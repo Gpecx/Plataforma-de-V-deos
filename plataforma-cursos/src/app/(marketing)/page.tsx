@@ -13,6 +13,8 @@ const backgroundImages = [
     "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=80&w=2000"
 ];
 
+import { welcomeCourses } from "@/data/courses-data";
+
 export default function WelcomePage() {
     const [currentImage, setCurrentImage] = useState(0);
 
@@ -101,60 +103,27 @@ export default function WelcomePage() {
                 </div>
 
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-12">
-                    {[
-                        {
-                            title: "UI/UX Design Profissional",
-                            price: "97,00",
-                            desc: "Domine o Figma e as técnicas de design que encantam clientes e triplicam o valor dos seus projetos.",
-                            image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&q=80&w=800"
-                        },
-                        {
-                            title: "Fullstack React & Next.js",
-                            price: "197,00",
-                            desc: "A jornada definitiva para criar aplicações modernas, rápidas e escaláveis com as melhores tecnologias.",
-                            image: "https://images.unsplash.com/photo-1587620962725-abab7fe55159?auto=format&fit=crop&q=80&w=800"
-                        },
-                        {
-                            title: "Backend com Node.js Avançado",
-                            price: "157,00",
-                            desc: "Construa APIs robustas, aprenda microsserviços, segurança e arquitetura de software profissional.",
-                            image: "https://images.unsplash.com/photo-1627398242454-45a1465c2479?auto=format&fit=crop&q=80&w=800"
-                        },
-                        {
-                            title: "Marketing Estratégico",
-                            price: "87,00",
-                            desc: "Transforme cliques em vendas reais com funis automatizados, tráfego pago e estratégias validadas.",
-                            image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=800"
-                        },
-                        {
-                            title: "Gestão Ágil e Scrum",
-                            price: "117,00",
-                            desc: "Lidere equipes de alta performance e entregue projetos com eficiência máxima e organização profissional.",
-                            image: "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=800"
-                        },
-                        {
-                            title: "IA na Prática",
-                            price: "247,00",
-                            desc: "Aposente as tarefas manuais e escale sua produtividade usando o poder da inteligência artificial.",
-                            image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=800"
-                        }
-                    ].map((course, i) => (
+                    {welcomeCourses.map((course, i) => (
                         <div key={i} className="group bg-[#0a1f3a]/90 border border-white/20 rounded-[2rem] overflow-hidden hover:border-[#00C402]/60 transition-all duration-500 flex flex-col hover:shadow-[0_0_50px_rgba(0,196,2,0.25)] hover:-translate-y-2">
-                            <div className="aspect-video relative overflow-hidden">
-                                <img src={course.image} alt={course.title} className="object-cover w-full h-full group-hover:scale-110 transition duration-1000 opacity-90" />
-                                <div className="absolute top-4 right-4 bg-black/80 backdrop-blur-md border border-[#00C402]/40 text-[#00C402] px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest">
-                                    CONTEÚDO ELITE
+                            <Link href={`/course/${course.slug}`}>
+                                <div className="aspect-video relative overflow-hidden">
+                                    <img src={course.image} alt={course.title} className="object-cover w-full h-full group-hover:scale-110 transition duration-1000 opacity-90" />
+                                    <div className="absolute top-4 right-4 bg-black/80 backdrop-blur-md border border-[#00C402]/40 text-[#00C402] px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest">
+                                        {course.tag}
+                                    </div>
                                 </div>
-                            </div>
+                            </Link>
                             <div className="p-10 flex-grow flex flex-col space-y-6">
-                                <h3 className="text-3xl font-black text-white leading-tight uppercase italic group-hover:text-[#00C402] transition-colors drop-shadow-sm">{course.title}</h3>
-                                <p className="text-white text-base leading-relaxed font-bold opacity-100 shadow-black drop-shadow-md">{course.desc}</p>
+                                <Link href={`/course/${course.slug}`}>
+                                    <h3 className="text-3xl font-black text-white leading-tight uppercase italic group-hover:text-[#00C402] transition-colors drop-shadow-sm">{course.title}</h3>
+                                </Link>
+                                <p className="text-white text-base leading-relaxed font-bold opacity-100 shadow-black drop-shadow-md">{course.description}</p>
                                 <div className="pt-8 mt-auto border-t border-white/10 flex items-center justify-between">
                                     <div className="flex flex-col">
                                         <span className="text-[11px] text-gray-300 uppercase font-black tracking-widest leading-none mb-2">Investimento Total</span>
-                                        <span className="text-3xl font-black text-[#00C402] italic drop-shadow-[0_0_10px_rgba(0,196,2,0.3)]">R$ {course.price}</span>
+                                        <span className="text-3xl font-black text-[#00C402] italic drop-shadow-[0_0_10px_rgba(0,196,2,0.3)]">R$ {course.price},00</span>
                                     </div>
-                                    <Link href="/login">
+                                    <Link href={`/course/${course.slug}`}>
                                         <Button className="bg-[#00C402] text-black hover:bg-white hover:scale-105 transition-all font-black uppercase tracking-widest text-xs px-8 py-7 rounded-2xl shadow-xl">
                                             Matricular
                                         </Button>

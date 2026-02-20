@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Play, Info, ChevronRight } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import { allCourses, categories as courseCategories } from "@/data/courses-data";
 
 const heroSlides = [
     {
@@ -24,33 +25,6 @@ const heroSlides = [
         subtitle: "Inovação e performance para o setor de energia.",
         image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800",
         tag: "ENGENHARIA"
-    }
-];
-
-const categories = [
-    {
-        title: "Programação",
-        courses: [
-            { id: 1, title: "Next.js 14 Pro", price: 497, thumb: "https://images.unsplash.com/photo-1618477388954-7852f32655ec?auto=format&fit=crop&w=800&q=80" },
-            { id: 2, title: "Fullstack Master", price: 697, thumb: "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=800&q=80" },
-            { id: 3, title: "Python para Dados", price: 397, thumb: "https://images.unsplash.com/photo-1587620962725-abab7fe55159?q=80&w=1031&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
-        ]
-    },
-    {
-        title: "Marketing",
-        courses: [
-            { id: 4, title: "Tráfego Pago", price: 297, thumb: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=800&q=80" },
-            { id: 5, title: "SEO Estratégico", price: 197, thumb: "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=800&q=80" },
-            { id: 6, title: "Copywriting 2.0", price: 347, thumb: "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=800&q=80" },
-        ]
-    },
-    {
-        title: "Design",
-        courses: [
-            { id: 7, title: "UI/UX Avançado", price: 597, thumb: "https://images.unsplash.com/photo-1587355760421-b9de3226a046?q=80&w=871&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
-            { id: 8, title: "Figma para Devs", price: 247, thumb: "https://images.unsplash.com/photo-1653647054667-c99dc7f914ef?q=80&w=774&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D" },
-            { id: 9, title: "Branding EXS", price: 447, thumb: "https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&w=800&q=80" },
-        ]
     }
 ];
 
@@ -104,44 +78,55 @@ export default function CoursesPage() {
             </div>
 
             {/* Listas de Cursos */}
-            <div className="px-12 relative z-30 space-y-16 pb-32">
-                {categories.map((cat) => (
-                    <div key={cat.title} className="space-y-4">
-                        <h2 className="text-2xl font-bold flex items-center gap-2 group cursor-pointer">
-                            {cat.title}
-                            <ChevronRight className="text-[#00C402] w-6 h-6 opacity-0 group-hover:opacity-100 transition-all" />
-                        </h2>
-                        <div className="flex gap-4 overflow-x-auto pb-8 scrollbar-hide snap-x">
-                            {cat.courses.map((course) => (
-                                <Link
-                                    href={`/classroom/${course.id}`}
-                                    key={course.id}
-                                    className="min-w-[300px] md:min-w-[350px] h-[200px] relative rounded-lg overflow-hidden transition-all duration-500 hover:scale-105 hover:z-50 cursor-pointer snap-start group border border-white/10 bg-[#0a1f3a]"
-                                >
-                                    <img
-                                        src={course.thumb}
-                                        className="w-full h-full object-cover"
-                                        onError={(e) => { e.currentTarget.src = "/images/gpecx.jpg" }}
-                                        alt={course.title}
-                                    />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-[#061629] via-[#061629]/60 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 p-6 flex flex-col justify-end">
-                                        <div className="space-y-3">
-                                            <h3 className="font-black text-white text-xl italic uppercase tracking-tighter leading-none">{course.title}</h3>
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-[#00C402] font-black text-lg italic">R$ {course.price}</span>
-                                                <div className="bg-[#00C402] text-black text-[10px] font-black px-2 py-1 rounded shadow-lg uppercase italic">Assistir Agora</div>
+            <div className="px-12 relative z-30 space-y-24 pb-32">
+                {courseCategories.map((category) => {
+                    const filteredCourses = allCourses.filter(c => c.category === category);
+                    if (filteredCourses.length === 0) return null;
+
+                    return (
+                        <div key={category} className="space-y-10">
+                            <div className="flex items-end justify-between border-b border-white/10 pb-4">
+                                <h2 className="text-3xl md:text-4xl font-black italic uppercase tracking-tighter flex items-center gap-3 group cursor-pointer">
+                                    {category}
+                                    <ChevronRight className="text-[#00C402] w-8 h-8 opacity-0 group-hover:opacity-100 transition-all -ml-2" />
+                                </h2>
+                                <span className="text-gray-400 text-sm font-bold uppercase tracking-widest">{filteredCourses.length} treinamentos</span>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                                {filteredCourses.map((course) => (
+                                    <div key={course.id} className="group bg-[#0a1f3a]/90 border border-white/20 rounded-[2rem] overflow-hidden hover:border-[#00C402]/60 transition-all duration-500 flex flex-col hover:shadow-[0_0_50px_rgba(0,196,2,0.25)] hover:-translate-y-2">
+                                        <Link href={`/course/${course.slug}`}>
+                                            <div className="aspect-video relative overflow-hidden">
+                                                <img src={course.image} alt={course.title} className="object-cover w-full h-full group-hover:scale-110 transition duration-1000 opacity-90" />
+                                                <div className="absolute top-4 right-4 bg-black/80 backdrop-blur-md border border-[#00C402]/40 text-[#00C402] px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest">
+                                                    {course.tag}
+                                                </div>
+                                            </div>
+                                        </Link>
+                                        <div className="p-8 flex-grow flex flex-col space-y-6">
+                                            <Link href={`/course/${course.slug}`}>
+                                                <h3 className="text-2xl font-black text-white leading-tight uppercase italic group-hover:text-[#00C402] transition-colors drop-shadow-sm">{course.title}</h3>
+                                            </Link>
+                                            <p className="text-gray-300 text-sm leading-relaxed font-bold opacity-80 h-12 line-clamp-2">{course.description}</p>
+                                            <div className="pt-6 mt-auto border-t border-white/10 flex items-center justify-between">
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] text-gray-400 uppercase font-black tracking-widest leading-none mb-1">Investimento</span>
+                                                    <span className="text-2xl font-black text-[#00C402] italic drop-shadow-[0_0_10px_rgba(0,196,2,0.3)]">R$ {course.price},00</span>
+                                                </div>
+                                                <Link href={`/course/${course.slug}`}>
+                                                    <Button className="bg-[#00C402] text-black hover:bg-white hover:scale-105 transition-all font-black uppercase tracking-widest text-[10px] px-6 py-5 rounded-xl shadow-lg">
+                                                        Ver Detalhes
+                                                    </Button>
+                                                </Link>
                                             </div>
                                         </div>
                                     </div>
-                                    {/* Preço sempre visível em tag sutil */}
-                                    <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md text-[#00C402] text-[10px] font-bold px-2 py-1 rounded border border-white/10 group-hover:opacity-0 transition-opacity">
-                                        R$ {course.price}
-                                    </div>
-                                </Link>
-                            ))}
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
         </div>
     );

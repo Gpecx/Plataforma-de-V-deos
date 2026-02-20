@@ -16,9 +16,13 @@ const loginSchema = z.object({
     password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres"),
 })
 
+import { useSearchParams } from "next/navigation"
+
 export default function LoginPage() {
     const supabase = createClient()
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const nextRedirect = searchParams.get("next")
 
     const form = useForm<z.infer<typeof loginSchema>>({
         resolver: zodResolver(loginSchema),
@@ -35,16 +39,21 @@ export default function LoginPage() {
             alert("Erro ao entrar: " + error.message)
         } else {
             if (data.user) {
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('role')
-                    .eq('id', data.user.id)
-                    .single()
-
-                if (profile?.role === 'teacher') {
-                    router.push('/dashboard-teacher')
+                // Se houver um redirecionamento pendente, use-o
+                if (nextRedirect) {
+                    router.push(nextRedirect)
                 } else {
-                    router.push('/dashboard-student') // Default redirect
+                    const { data: profile } = await supabase
+                        .from('profiles')
+                        .select('role')
+                        .eq('id', data.user.id)
+                        .single()
+
+                    if (profile?.role === 'teacher') {
+                        router.push('/dashboard-teacher')
+                    } else {
+                        router.push('/dashboard-student')
+                    }
                 }
                 router.refresh()
             }
