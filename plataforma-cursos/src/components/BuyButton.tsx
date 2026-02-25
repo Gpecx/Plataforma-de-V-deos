@@ -5,15 +5,22 @@ import { useRouter } from "next/navigation"
 import { ShoppingCart, Loader2 } from "lucide-react"
 import { createClient } from "@/utils/supabase/client"
 import { useCartStore } from "@/store/useCartStore"
-import type { Course } from "@/data/courses-data"
 
+// Ajustamos a interface para aceitar tanto o mock quanto o banco
 interface BuyButtonProps {
-    course: Course
+    course: {
+        id: string | number
+        title: string
+        price: number
+        image?: string // caso venha do mock
+        image_url?: string // caso venha do banco
+    }
     size?: "default" | "large"
     label?: string
+    className?: string
 }
 
-export function BuyButton({ course, size = "default", label = "Comprar Agora" }: BuyButtonProps) {
+export function BuyButton({ course, size = "default", label = "Comprar Agora", className = "" }: BuyButtonProps) {
     const router = useRouter()
     const { addItem } = useCartStore()
     const [loading, setLoading] = useState(false)
@@ -21,32 +28,36 @@ export function BuyButton({ course, size = "default", label = "Comprar Agora" }:
     const handleBuy = async () => {
         setLoading(true)
         try {
-            // Adiciona ao carrinho primeiro (é persistente)
+            // Adiciona ao carrinho usando a estrutura do useCartStore
             addItem({
-                id: course.id,
+                id: String(course.id), // Forçamos string para o UUID do Supabase
                 title: course.title,
                 price: course.price,
-                image_url: course.image,
+                image_url: course.image_url || course.image, // Pega qualquer um que estiver disponível
             })
 
             const supabase = createClient()
-            const { data: { user } } = await supabase.auth.getUser()
 
-            if (!user) {
-                // Redireciona para o login e volta para o carrinho
+            // Verificamos a sessão de forma mais rápida
+            const { data: { session } } = await supabase.auth.getSession()
+
+            if (!session) {
+                // Redireciona para o login e salva a intenção de ir para o cart
                 router.push("/login?next=/cart")
                 return
             }
 
             // Usuário logado: vai direto para o carrinho
             router.push("/cart")
+        } catch (error) {
+            console.error("Erro ao processar compra:", error)
         } finally {
             setLoading(false)
         }
     }
 
     const baseClass =
-        "flex items-center justify-center gap-3 font-black uppercase italic tracking-widest rounded-2xl transition-all shadow-[0_0_30px_rgba(0,196,2,0.3)] bg-[#00C402] text-black hover:bg-white hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed"
+        "flex items-center justify-center gap-3 font-black uppercase italic tracking-widest rounded-2xl transition-all shadow-[0_0_30px_rgba(0,196,2,0.3)] bg-[#00C402] text-black hover:bg-white hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed group"
 
     const sizeClass =
         size === "large"
@@ -57,14 +68,14 @@ export function BuyButton({ course, size = "default", label = "Comprar Agora" }:
         <button
             onClick={handleBuy}
             disabled={loading}
-            className={`${baseClass} ${sizeClass}`}
+            className={`${baseClass} ${sizeClass} ${className}`}
         >
             {loading ? (
-                <Loader2 size={22} className="animate-spin" />
+                <Loader2 size={22} className="animate-spin text-black" />
             ) : (
-                <ShoppingCart size={22} />
+                <ShoppingCart size={22} className="group-hover:text-[#00C402] transition-colors" />
             )}
-            {loading ? "Aguarde..." : label}
+            <span>{loading ? "Aguarde..." : label}</span>
         </button>
     )
 }

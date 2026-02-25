@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 
 export default function RegisterPage() {
     const [email, setEmail] = useState('')
@@ -54,49 +55,79 @@ export default function RegisterPage() {
     }
 
     return (
-        <div className="min-h-screen bg-brand-dark flex items-center justify-center p-4">
-            <form onSubmit={handleRegister} className="bg-gray-900 p-8 rounded-lg shadow-xl w-full max-w-md space-y-4 border border-gray-800">
-                <h2 className="text-2xl font-bold text-white text-center">Criar Conta Grátis</h2>
+        <div className="w-full">
+            <div className="text-center space-y-4 pt-4 pb-10">
+                <div className="flex justify-center mb-2">
+                    <Link href="/" className="hover:scale-105 transition-transform duration-500">
+                        <span className="text-2xl font-black tracking-tighter uppercase text-slate-700">
+                            SPCS <span className="text-[#00C402]">Academy</span>
+                        </span>
+                    </Link>
+                </div>
+                <h2 className="text-3xl font-black tracking-tighter uppercase text-slate-700">Criar Conta Grátis</h2>
+                <p className="text-slate-400 font-bold uppercase text-[10px] tracking-[3px]">Comece sua jornada de conhecimento</p>
+            </div>
 
-                <div className="flex gap-4 mb-4">
+            <form onSubmit={handleRegister} className="space-y-6">
+                <div className="flex gap-4 mb-6">
                     <button
                         type="button"
                         onClick={() => setRole('student')}
-                        className={`flex-1 p-3 rounded font-bold transition-all border ${role === 'student' ? 'bg-brand-green text-brand-dark border-brand-green' : 'bg-gray-800 text-gray-400 border-gray-700 hover:border-gray-600'}`}
+                        className={`flex-1 p-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all border ${role === 'student' ? 'bg-[#00C402] text-white border-[#00C402]' : 'bg-slate-50 text-slate-400 border-slate-100 hover:border-slate-200'}`}
                     >
-                        Estudante
+                        Sou Aluno
                     </button>
                     <button
                         type="button"
                         onClick={() => setRole('teacher')}
-                        className={`flex-1 p-3 rounded font-bold transition-all border ${role === 'teacher' ? 'bg-brand-green text-brand-dark border-brand-green' : 'bg-gray-800 text-gray-400 border-gray-700 hover:border-gray-600'}`}
+                        className={`flex-1 p-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all border ${role === 'teacher' ? 'bg-[#00C402] text-white border-[#00C402]' : 'bg-slate-50 text-slate-400 border-slate-100 hover:border-slate-200'}`}
                     >
-                        Professor
+                        Sou Professor
                     </button>
                 </div>
 
-                <input
-                    type="text" placeholder="Nome Completo" required
-                    className="w-full p-3 rounded bg-gray-800 text-white border border-gray-700 focus:border-brand-green outline-none"
-                    onChange={(e) => setFullName(e.target.value)}
-                />
-                <input
-                    type="email" placeholder="Seu e-mail" required
-                    className="w-full p-3 rounded bg-gray-800 text-white border border-gray-700 focus:border-brand-green outline-none"
-                    onChange={(e) => setEmail(e.target.value)}
-                />
-                <input
-                    type="password" placeholder="Sua senha" required
-                    className="w-full p-3 rounded bg-gray-800 text-white border border-gray-700 focus:border-brand-green outline-none"
-                    onChange={(e) => setPassword(e.target.value)}
-                />
+                <div className="space-y-4">
+                    <div className="space-y-1.5">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nome Completo</label>
+                        <input
+                            type="text" placeholder="SEU NOME COMPLETO" required
+                            className="w-full p-4 rounded-xl bg-slate-50 text-slate-700 border border-slate-100 focus:border-[#00C402] outline-none text-sm font-medium transition-all"
+                            onChange={(e) => setFullName(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">E-mail</label>
+                            <input
+                                type="email" placeholder="seu@email.com" required
+                                className="w-full p-4 rounded-xl bg-slate-50 text-slate-700 border border-slate-100 focus:border-[#00C402] outline-none text-sm font-medium transition-all"
+                                onChange={(e) => setEmail(e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Senha</label>
+                            <input
+                                type="password" placeholder="••••••••" required
+                                className="w-full p-4 rounded-xl bg-slate-50 text-slate-700 border border-slate-100 focus:border-[#00C402] outline-none text-sm transition-all"
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
+                        </div>
+                    </div>
+                </div>
 
                 <button
                     disabled={loading}
-                    className="w-full bg-brand-green text-brand-dark font-bold p-3 rounded hover:bg-green-600 transition-all"
+                    className="w-full bg-[#00C402] hover:bg-[#00A802] text-white font-black uppercase tracking-[2px] p-4 h-16 rounded-2xl transition-all shadow-sm disabled:opacity-50 mt-4"
                 >
-                    {loading ? 'Processando...' : 'Cadastrar na Plataforma'}
+                    {loading ? 'PROCESSANDO...' : 'CADASTRAR AGORA'}
                 </button>
+
+                <div className="mt-10 pt-8 border-t border-slate-50 text-center">
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                        Já tem uma conta? <Link href="/login" className="text-[#00C402] font-black hover:underline underline-offset-4">Entrar na plataforma</Link>
+                    </p>
+                </div>
             </form>
         </div>
     )

@@ -16,6 +16,7 @@ import {
 interface ClassroomTabsProps {
     lessonTitle: string;
     description?: string;
+    isDark?: boolean;
 }
 
 const MOCK_COMMENTS = [
@@ -30,7 +31,7 @@ const MOCK_COMMENTS = [
         replies: [
             {
                 id: "r1",
-                user: "Instrutor EXS",
+                user: "Instrutor SPCS Academy",
                 avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Instructor",
                 text: "Olá João! Você precisa ter o Docker Desktop instalado e rodando. Depois disso, basta rodar 'supabase start' no terminal. Se der erro de porta, verifica se não tem outro serviço usando a 5432.",
                 date: "há 1 hora",
@@ -51,16 +52,16 @@ const MOCK_COMMENTS = [
     }
 ]
 
-export function ClassroomTabs({ lessonTitle, description }: ClassroomTabsProps) {
+export function ClassroomTabs({ lessonTitle, description, isDark }: ClassroomTabsProps) {
     const [activeTab, setActiveTab] = useState<'overview' | 'comments'>('overview')
 
     return (
-        <div className="mt-8 border-t border-white/5">
+        <div className={`mt-8 border-t transition-colors duration-500 ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
             {/* Tab Headers */}
-            <div className="flex gap-8 border-b border-white/5 mb-8">
+            <div className={`flex gap-8 border-b mb-8 transition-colors duration-500 ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
                 <button
                     onClick={() => setActiveTab('overview')}
-                    className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all relative ${activeTab === 'overview' ? 'text-[#00C402]' : 'text-gray-500 hover:text-white'}`}
+                    className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all relative ${activeTab === 'overview' ? 'text-[#00C402]' : isDark ? 'text-gray-600 hover:text-slate-300' : 'text-gray-500 hover:text-slate-900'}`}
                 >
                     Visão Geral
                     {activeTab === 'overview' && (
@@ -69,7 +70,7 @@ export function ClassroomTabs({ lessonTitle, description }: ClassroomTabsProps) 
                 </button>
                 <button
                     onClick={() => setActiveTab('comments')}
-                    className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all relative ${activeTab === 'comments' ? 'text-[#00C402]' : 'text-gray-500 hover:text-white'}`}
+                    className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all relative ${activeTab === 'comments' ? 'text-[#00C402]' : isDark ? 'text-gray-600 hover:text-slate-300' : 'text-gray-500 hover:text-slate-900'}`}
                 >
                     Comentários (Q&A)
                     {activeTab === 'comments' && (
@@ -83,11 +84,11 @@ export function ClassroomTabs({ lessonTitle, description }: ClassroomTabsProps) 
                 {activeTab === 'overview' ? (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
                         <div className="lg:col-span-2 space-y-6">
-                            <h3 className="text-xl font-bold uppercase italic tracking-tighter">Sobre esta aula</h3>
-                            <p className="text-gray-400 leading-relaxed">
+                            <h3 className={`text-xl font-bold uppercase italic tracking-tighter ${isDark ? 'text-white' : 'text-slate-800'}`}>Sobre esta aula</h3>
+                            <p className={`leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                                 {description || "Nesta aula vamos explorar os conceitos fundamentais para o desenvolvimento de alta performance. Preste atenção em cada detalhe da implementação e utilize o código fonte disponível nos materiais."}
                             </p>
-                            <div className="p-6 bg-white/5 rounded-2xl border border-white/5">
+                            <div className={`p-6 rounded-2xl border transition-colors duration-500 ${isDark ? 'bg-white/5 border-white/5' : 'bg-slate-50 border-slate-100'}`}>
                                 <h4 className="text-sm font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
                                     <FileText size={16} className="text-[#00C402]" />
                                     Notas da Aula
@@ -101,27 +102,27 @@ export function ClassroomTabs({ lessonTitle, description }: ClassroomTabsProps) 
                         </div>
 
                         <div className="space-y-6">
-                            <h3 className="text-xl font-bold uppercase italic tracking-tighter">Materiais</h3>
+                            <h3 className={`text-xl font-bold uppercase italic tracking-tighter ${isDark ? 'text-white' : 'text-slate-800'}`}>Materiais</h3>
                             <div className="space-y-3">
-                                <a href="#" className="flex items-center justify-between p-4 bg-[#0a1f3a] border border-white/5 rounded-xl hover:border-[#00C402]/30 transition-all group">
+                                <a href="#" className={`flex items-center justify-between p-4 border rounded-xl hover:border-[#00C402]/30 transition-all group ${isDark ? 'bg-white/5 border-white/5' : 'bg-slate-50 border-slate-100'}`}>
                                     <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-white/5 rounded-lg text-gray-400 group-hover:text-[#00C402] transition-colors">
+                                        <div className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-white/5 text-gray-400 group-hover:text-[#00C402]' : 'bg-white text-slate-400 group-hover:text-[#00C402]'}`}>
                                             <FileText size={18} />
                                         </div>
                                         <div>
-                                            <p className="text-sm font-bold">Resumo da Aula.pdf</p>
+                                            <p className={`text-sm font-bold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Resumo da Aula.pdf</p>
                                             <p className="text-[10px] text-gray-500 uppercase tracking-widest">2.4 MB</p>
                                         </div>
                                     </div>
                                     <Download size={18} className="text-gray-600 group-hover:text-[#00C402]" />
                                 </a>
-                                <a href="#" className="flex items-center justify-between p-4 bg-[#0a1f3a] border border-white/5 rounded-xl hover:border-[#00C402]/30 transition-all group">
+                                <a href="#" className={`flex items-center justify-between p-4 border rounded-xl hover:border-[#00C402]/30 transition-all group ${isDark ? 'bg-white/5 border-white/5' : 'bg-slate-50 border-slate-100'}`}>
                                     <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-white/5 rounded-lg text-gray-400 group-hover:text-[#00C402] transition-colors">
+                                        <div className={`p-2 rounded-lg transition-colors ${isDark ? 'bg-white/5 text-gray-400 group-hover:text-[#00C402]' : 'bg-white text-slate-400 group-hover:text-[#00C402]'}`}>
                                             <Download size={18} />
                                         </div>
                                         <div>
-                                            <p className="text-sm font-bold">Codigo_Fonte.zip</p>
+                                            <p className={`text-sm font-bold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>Codigo_Fonte.zip</p>
                                             <p className="text-[10px] text-gray-500 uppercase tracking-widest">15.8 MB</p>
                                         </div>
                                     </div>
@@ -155,13 +156,13 @@ export function ClassroomTabs({ lessonTitle, description }: ClassroomTabsProps) 
                             {MOCK_COMMENTS.map((comment) => (
                                 <div key={comment.id} className="space-y-4">
                                     {/* Card Principal do Comentário */}
-                                    <div className={`p-6 rounded-3xl border transition-all ${comment.isInstructor ? 'bg-[#00C402]/5 border-[#00C402]/20' : 'bg-white/5 border-white/5'}`}>
+                                    <div className={`p-6 rounded-3xl border transition-all ${comment.isInstructor ? 'bg-[#00C402]/5 border-[#00C402]/20' : isDark ? 'bg-white/5 border-white/5' : 'bg-white border-slate-100 shadow-sm'}`}>
                                         <div className="flex justify-between items-start mb-4">
                                             <div className="flex gap-4">
-                                                <img src={comment.avatar} className="w-10 h-10 rounded-full border border-white/10" alt={comment.user} />
+                                                <img src={comment.avatar} className={`w-10 h-10 rounded-full border ${isDark ? 'border-white/10' : 'border-slate-100'}`} alt={comment.user} />
                                                 <div>
                                                     <div className="flex items-center gap-2">
-                                                        <h4 className="text-sm font-bold uppercase tracking-tight">{comment.user}</h4>
+                                                        <h4 className={`text-sm font-bold uppercase tracking-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>{comment.user}</h4>
                                                         {comment.isInstructor && (
                                                             <span className="flex items-center gap-1 px-2 py-0.5 bg-[#00C402] text-black text-[8px] font-black uppercase rounded tracking-widest">
                                                                 <CheckCircle2 size={8} />
@@ -189,15 +190,15 @@ export function ClassroomTabs({ lessonTitle, description }: ClassroomTabsProps) 
 
                                     {/* Respostas Aninhadas */}
                                     {comment.replies.length > 0 && (
-                                        <div className="space-y-4 pl-12 border-l border-white/5">
+                                        <div className={`space-y-4 pl-12 border-l ${isDark ? 'border-white/5' : 'border-slate-100'}`}>
                                             {comment.replies.map((reply) => (
-                                                <div key={reply.id} className={`p-6 rounded-3xl border transition-all ${reply.isInstructor ? 'bg-[#00C402]/5 border-[#00C402]/20 shadow-[0_0_30px_rgba(0,196,2,0.05)]' : 'bg-white/5 border-white/5'}`}>
+                                                <div key={reply.id} className={`p-6 rounded-3xl border transition-all ${reply.isInstructor ? 'bg-[#00C402]/5 border-[#00C402]/20 shadow-[0_0_30px_rgba(0,196,2,0.05)]' : isDark ? 'bg-white/5 border-white/5' : 'bg-white border-slate-100 shadow-sm'}`}>
                                                     <div className="flex justify-between items-start mb-4">
                                                         <div className="flex gap-4">
-                                                            <img src={reply.avatar} className="w-10 h-10 rounded-full border border-white/10" alt={reply.user} />
+                                                            <img src={reply.avatar} className={`w-10 h-10 rounded-full border ${isDark ? 'border-white/10' : 'border-slate-100'}`} alt={reply.user} />
                                                             <div>
                                                                 <div className="flex items-center gap-2">
-                                                                    <h4 className="text-sm font-bold uppercase tracking-tight">{reply.user}</h4>
+                                                                    <h4 className={`text-sm font-bold uppercase tracking-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>{reply.user}</h4>
                                                                     {reply.isInstructor && (
                                                                         <span className="flex items-center gap-1 px-2 py-0.5 bg-[#00C402] text-black text-[8px] font-black uppercase rounded tracking-widest">
                                                                             <CheckCircle2 size={8} />

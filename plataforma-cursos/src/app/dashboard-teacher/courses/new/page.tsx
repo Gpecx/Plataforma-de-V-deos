@@ -12,11 +12,18 @@ import {
     Info,
     Image as ImageIcon,
     ListTree,
-    X
+    BookOpen,
+    X,
+    Loader2
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+
+// Importamos a Store, a Action e o utilitário de Storage
+import { useCourseFormStore, Lesson } from "@/store/useCourseFormStore"
+import { createCourseAction } from "../actions"
+import { uploadCourseImage, uploadCourseVideo } from "@/utils/supabase/storage"
 
 const STEPS = [
     { id: 1, name: 'Informações Básicas', icon: Info },
@@ -37,27 +44,74 @@ const CATEGORIES = [
 export default function NewCoursePage() {
     const router = useRouter()
     const [currentStep, setCurrentStep] = useState(1)
-    const [courseData, setCourseData] = useState({
-        title: '',
-        subtitle: '',
-        category: '',
-        description: '',
-        price: '',
-        thumbnail: null as File | null,
-        sections: [
-            { id: Date.now(), title: 'Módulo 1', lessons: [{ id: Date.now() + 1, title: 'Aula 1' }] }
-        ]
-    })
+    const [isPublishing, setIsPublishing] = useState(false)
+    const [isUploading, setIsUploading] = useState(false)
+
+    // Usamos a Store em vez do useState local
+    const { formData, setStepData, setLessons, resetForm } = useCourseFormStore()
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        setIsUploading(true)
+        try {
+            const publicUrl = await uploadCourseImage(file)
+            setStepData({ image_url: publicUrl })
+            console.log("Upload concluído:", publicUrl)
+        } catch (error) {
+            console.error(error)
+            alert("Erro ao subir imagem. Verifique sua conexão.")
+        } finally {
+            setIsUploading(false)
+        }
+    }
+
+    const [uploadingVideos, setUploadingVideos] = useState<Record<number, boolean>>({})
+
+    const handleAddLesson = () => {
+        const newLesson: Lesson = {
+            title: '',
+            video_url: '',
+            position: formData.lessons.length + 1
+        }
+        setLessons([...formData.lessons, newLesson])
+    }
+
+    const handleRemoveLesson = (index: number) => {
+        const newLessons = formData.lessons.filter((_, i) => i !== index)
+        setLessons(newLessons)
+    }
+
+    const handleUpdateLesson = (index: number, data: Partial<Lesson>) => {
+        const newLessons = [...formData.lessons]
+        newLessons[index] = { ...newLessons[index], ...data }
+        setLessons(newLessons)
+    }
+
+    const handleVideoUpload = async (index: number, file: File) => {
+        if (!file) return
+
+        setUploadingVideos(prev => ({ ...prev, [index]: true }))
+        try {
+            const publicUrl = await uploadCourseVideo(file)
+            handleUpdateLesson(index, { video_url: publicUrl })
+        } catch (error: any) {
+            alert(error.message || "Erro ao subir vídeo.")
+        } finally {
+            setUploadingVideos(prev => ({ ...prev, [index]: false }))
+        }
+    }
 
     const isStepValid = (step: number) => {
         if (step === 1) {
-            return courseData.title && courseData.category && courseData.description
+            return formData.title && formData.category && formData.description
         }
         if (step === 2) {
-            return courseData.price
+            return formData.price > 0
         }
         if (step === 3) {
-            return courseData.sections.length > 0 && courseData.sections.every(s => s.title && s.lessons.length > 0)
+            return true // Grade opcional na validação simples, ou adicione sua lógica
         }
         return false
     }
@@ -70,88 +124,52 @@ export default function NewCoursePage() {
         if (currentStep > 1) setCurrentStep(prev => prev - 1)
     }
 
-    const addSection = () => {
-        setCourseData(prev => ({
-            ...prev,
-            sections: [...prev.sections, { id: Date.now(), title: `Módulo ${prev.sections.length + 1}`, lessons: [{ id: Date.now() + 1, title: 'Aula 1' }] }]
-        }))
+    // Função para disparar a gravação no Supabase
+    const handlePublish = async () => {
+        setIsPublishing(true)
+        try {
+            const result = await createCourseAction(formData)
+            if (result.success) {
+                alert("🚀 CURSO LANÇADO COM SUCESSO!")
+                resetForm()
+                router.push("/dashboard-teacher/courses")
+            } else {
+                alert("Erro: " + result.error)
+            }
+        } catch (error) {
+            console.error(error)
+        } finally {
+            setIsPublishing(false)
+        }
     }
 
-    const removeSection = (id: number) => {
-        setCourseData(prev => ({
-            ...prev,
-            sections: prev.sections.filter(s => s.id !== id)
-        }))
-    }
-
-    const addLesson = (sectionId: number) => {
-        setCourseData(prev => ({
-            ...prev,
-            sections: prev.sections.map(s =>
-                s.id === sectionId
-                    ? { ...s, lessons: [...s.lessons, { id: Date.now(), title: `Aula ${s.lessons.length + 1}` }] }
-                    : s
-            )
-        }))
-    }
-
-    const removeLesson = (sectionId: number, lessonId: number) => {
-        setCourseData(prev => ({
-            ...prev,
-            sections: prev.sections.map(s =>
-                s.id === sectionId
-                    ? { ...s, lessons: s.lessons.filter(l => l.id !== lessonId) }
-                    : s
-            )
-        }))
-    }
-
-    const updateSectionTitle = (id: number, title: string) => {
-        setCourseData(prev => ({
-            ...prev,
-            sections: prev.sections.map(s => s.id === id ? { ...s, title } : s)
-        }))
-    }
-
-    const updateLessonTitle = (sectionId: number, lessonId: number, title: string) => {
-        setCourseData(prev => ({
-            ...prev,
-            sections: prev.sections.map(s =>
-                s.id === sectionId
-                    ? { ...s, lessons: s.lessons.map(l => l.id === lessonId ? { ...l, title } : l) }
-                    : s
-            )
-        }))
-    }
-
-    const isPublishable = isStepValid(1) && isStepValid(2) && isStepValid(3)
+    const isPublishable = isStepValid(1) && isStepValid(2)
 
     return (
-        <div className="min-h-screen bg-[#061629] text-white p-8 md:p-12">
-            {/* Header com Botão Cancelar */}
-            <div className="flex justify-between items-center mb-12">
+        <div className="min-h-screen bg-[#F4F7F9] text-slate-800 p-8 md:p-12 font-exo border-t border-slate-100">
+            {/* Header */}
+            <div className="flex justify-between items-center mb-16 px-4 max-w-6xl mx-auto">
                 <div>
-                    <h1 className="text-3xl font-black italic uppercase tracking-tighter">
-                        Criar <span className="text-[#00FF00]">Novo Curso</span>
+                    <h1 className="text-3xl font-black tracking-tighter uppercase leading-none">
+                        Criar <span className="text-[#00C402]">Novo Curso</span>
                     </h1>
-                    <p className="text-gray-400 mt-1">Siga os passos abaixo para publicar seu conhecimento.</p>
+                    <p className="text-slate-500 mt-2 text-[10px] font-bold uppercase tracking-[3px]">Siga os passos abaixo para publicar seu conhecimento.</p>
                 </div>
                 <button
                     onClick={() => router.back()}
-                    className="flex items-center gap-2 text-gray-400 hover:text-white transition group"
+                    className="flex items-center gap-3 text-slate-500 hover:text-slate-800 transition group bg-white border border-slate-100 px-6 py-3 rounded-2xl shadow-sm"
                 >
-                    <X size={20} className="group-hover:rotate-90 transition-transform" />
-                    <span className="font-bold uppercase text-xs tracking-widest">Cancelar</span>
+                    <X size={18} className="group-hover:rotate-90 transition-transform" />
+                    <span className="font-black uppercase text-[10px] tracking-widest">Sair do Studio</span>
                 </button>
             </div>
 
-            {/* Stepper Superior */}
-            <div className="max-w-4xl mx-auto mb-16 px-4">
+            {/* Stepper */}
+            <div className="max-w-4xl mx-auto mb-20 px-4">
                 <div className="relative flex justify-between">
-                    {/* Linha de progresso lateral */}
-                    <div className="absolute top-1/2 left-0 w-full h-1 bg-white/5 -translate-y-1/2 -z-10" />
+                    <div className="absolute top-1/2 left-0 w-full h-[2px] bg-slate-100 -translate-y-1/2 -z-10" />
                     <div
-                        className="absolute top-1/2 left-0 h-1 bg-[#00FF00] -translate-y-1/2 -z-10 transition-all duration-500 shadow-[0_0_15px_rgba(0,255,0,0.5)]"
+                        className="absolute top-1/2 left-0 h-[2px] bg-[#00C402] -translate-y-1/2 -z-10 transition-all duration-700 shadow-[0_0_15px_rgba(0,196,2,0.3)]"
                         style={{ width: `${((currentStep - 1) / (STEPS.length - 1)) * 100}%` }}
                     />
 
@@ -162,17 +180,15 @@ export default function NewCoursePage() {
 
                         return (
                             <div key={step.id} className="flex flex-col items-center">
-                                <div
-                                    className={`
-                                        w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 border-2
-                                        ${isActive ? 'bg-black border-[#00FF00] text-[#00FF00] scale-110 shadow-[0_0_20px_rgba(0,255,0,0.4)]' : ''}
-                                        ${isCompleted ? 'bg-[#00FF00] border-[#00FF00] text-black' : ''}
-                                        ${!isActive && !isCompleted ? 'bg-[#0a1f3a] border-white/10 text-gray-500' : ''}
-                                    `}
-                                >
-                                    {isCompleted ? <Check size={24} strokeWidth={3} /> : <Icon size={24} />}
+                                <div className={`
+                                    w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 border border-slate-100 shadow-sm
+                                    ${isActive ? 'bg-slate-900 text-white border-slate-900 scale-110 shadow-xl' : ''}
+                                    ${isCompleted ? 'bg-[#00C402] border-[#00C402] text-white shadow-[#00C402]/20 shadow-lg' : ''}
+                                    ${!isActive && !isCompleted ? 'bg-white text-slate-300' : ''}
+                                `}>
+                                    {isCompleted ? <Check size={24} strokeWidth={4} /> : <Icon size={24} />}
                                 </div>
-                                <span className={`mt-4 text-[10px] font-black uppercase tracking-widest ${isActive ? 'text-[#00FF00]' : 'text-gray-500'}`}>
+                                <span className={`mt-5 text-[9px] font-black uppercase tracking-[2px] ${isActive ? 'text-slate-800' : 'text-slate-400'}`}>
                                     {step.name}
                                 </span>
                             </div>
@@ -181,189 +197,246 @@ export default function NewCoursePage() {
                 </div>
             </div>
 
-            {/* Conteúdo do Step */}
-            <div className="max-w-4xl mx-auto bg-[#0a1f3a]/50 border border-white/5 rounded-3xl p-8 md:p-12 mb-12">
+            {/* Conteúdo Central */}
+            <div className="max-w-4xl mx-auto bg-white border border-slate-100 rounded-[48px] p-8 md:p-14 mb-16 shadow-sm">
 
-                {/* STEP 1: INFORMAÇÕES BÁSICAS */}
                 {currentStep === 1 && (
-                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-700">
+                        {/* Upload de Capa */}
+                        <div className="space-y-4">
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Capa do Treinamento</Label>
+                            <div className="relative group overflow-hidden rounded-3xl border-2 border-dashed border-slate-100 hover:border-[#00C402]/30 transition-all duration-500 bg-slate-50/50 aspect-video flex flex-col items-center justify-center cursor-pointer">
+                                {formData.image_url ? (
+                                    <>
+                                        <img
+                                            src={formData.image_url}
+                                            alt="Preview"
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-all duration-1000"
+                                        />
+                                        <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
+                                            <Button variant="outline" className="bg-white border-white text-slate-900 font-black uppercase text-[10px] tracking-widest h-12 px-8 rounded-xl shadow-xl">
+                                                Trocar Arte
+                                            </Button>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="text-center p-8">
+                                        {isUploading ? (
+                                            <div className="flex flex-col items-center gap-5">
+                                                <Loader2 className="animate-spin text-[#00C402]" size={40} />
+                                                <p className="text-[10px] font-black tracking-widest text-slate-400 animate-pulse">PROCESSANDO UPLOAD...</p>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <Upload size={48} className="mx-auto text-slate-200 mb-6 group-hover:text-[#00C402] group-hover:scale-110 transition-all duration-500" />
+                                                <p className="text-[10px] font-black uppercase tracking-[3px] text-slate-400">Clique para subir a capa</p>
+                                                <p className="text-[9px] text-slate-300 mt-2 font-bold italic">DIMENSÕES IDEAIS: 1280X720PX</p>
+                                            </>
+                                        )}
+                                    </div>
+                                )}
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed"
+                                    onChange={handleImageUpload}
+                                    disabled={isUploading}
+                                />
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                             <div className="space-y-2">
-                                <Label className="text-xs font-black uppercase tracking-widest text-[#00FF00]">Título do Curso</Label>
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Nome do Curso</Label>
                                 <Input
                                     placeholder="Ex: Do Zero ao Mestre em React"
-                                    className="bg-black/40 border-white/10 focus:border-[#00FF00] transition-all h-12"
-                                    value={courseData.title}
-                                    onChange={(e) => setCourseData({ ...courseData, title: e.target.value })}
+                                    className="bg-slate-50 border-slate-100 focus:border-[#00C402] focus:ring-[#00C402] h-14 rounded-2xl text-sm font-medium transition-all"
+                                    value={formData.title}
+                                    onChange={(e) => setStepData({ title: e.target.value })}
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label className="text-xs font-black uppercase tracking-widest text-[#00FF00]">Categoria</Label>
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Categoria Principal</Label>
                                 <select
-                                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 h-12 focus:border-[#00FF00] outline-none transition-all text-sm"
-                                    value={courseData.category}
-                                    onChange={(e) => setCourseData({ ...courseData, category: e.target.value })}
+                                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 h-14 focus:border-[#00C402] focus:ring-[#00C402] focus:ring-4 focus:ring-[#00C402]/5 outline-none text-sm font-medium transition-all appearance-none"
+                                    value={formData.category}
+                                    onChange={(e) => setStepData({ category: e.target.value })}
                                 >
-                                    <option value="" disabled>Selecione uma categoria</option>
+                                    <option value="" disabled>Escolha o nicho...</option>
                                     {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
                                 </select>
                             </div>
                         </div>
-
                         <div className="space-y-2">
-                            <Label className="text-xs font-black uppercase tracking-widest text-[#00FF00]">Subtítulo (Resumo Curto)</Label>
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Subtítulo Estratégico</Label>
                             <Input
-                                placeholder="Uma frase impactante sobre o seu curso"
-                                className="bg-black/40 border-white/10 focus:border-[#00FF00] transition-all h-12"
-                                value={courseData.subtitle}
-                                onChange={(e) => setCourseData({ ...courseData, subtitle: e.target.value })}
+                                placeholder="Uma frase curta que resume a transformação"
+                                className="bg-slate-50 border-slate-100 focus:border-[#00C402] h-14 rounded-2xl text-sm font-medium transition-all"
+                                value={formData.subtitle}
+                                onChange={(e) => setStepData({ subtitle: e.target.value })}
                             />
                         </div>
-
                         <div className="space-y-2">
-                            <Label className="text-xs font-black uppercase tracking-widest text-[#00FF00]">Descrição Completa</Label>
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Descrição Completa</Label>
                             <textarea
-                                placeholder="Conte tudo o que o aluno vai aprender..."
-                                className="w-full bg-black/40 border border-white/10 rounded-lg p-4 min-h-[200px] focus:border-[#00FF00] outline-none transition-all text-sm resize-none"
-                                value={courseData.description}
-                                onChange={(e) => setCourseData({ ...courseData, description: e.target.value })}
+                                className="w-full bg-slate-50 border border-slate-100 rounded-[32px] p-6 min-h-[180px] focus:border-[#00C402] focus:ring-4 focus:ring-[#00C402]/5 outline-none text-sm font-medium transition-all leading-relaxed"
+                                placeholder="Descreva os benefícios e o que o aluno vai aprender..."
+                                value={formData.description}
+                                onChange={(e) => setStepData({ description: e.target.value })}
                             />
                         </div>
                     </div>
                 )}
 
-                {/* STEP 2: MÍDIA E PREÇO */}
                 {currentStep === 2 && (
-                    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <div className="space-y-4">
-                            <Label className="text-xs font-black uppercase tracking-widest text-[#00FF00]">Capa do Curso (Thumbnail)</Label>
-                            <div className="border-2 border-dashed border-white/10 rounded-3xl p-12 flex flex-col items-center justify-center bg-black/20 hover:bg-black/40 hover:border-[#00FF00]/50 transition-all group cursor-pointer">
-                                <div className="w-20 h-20 bg-white/5 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-[#00FF00]/10 transition-colors">
-                                    <Upload size={32} className="text-gray-500 group-hover:text-[#00FF00] transition-colors" />
-                                </div>
-                                <h3 className="font-bold text-lg mb-2">Clique ou arraste sua imagem</h3>
-                                <p className="text-gray-500 text-sm">Recomendado: 1280x720px (PNG ou JPG)</p>
-                            </div>
-                        </div>
-
-                        <div className="max-w-xs space-y-2">
-                            <Label className="text-xs font-black uppercase tracking-widest text-[#00FF00]">Preço de Venda</Label>
-                            <div className="relative">
-                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#00FF00] font-black">R$</span>
+                    <div className="space-y-12 animate-in fade-in duration-700">
+                        <div className="space-y-6">
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1 text-center block">Investimento Sugerido</Label>
+                            <div className="relative max-w-sm mx-auto group">
+                                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 font-black text-2xl group-focus-within:text-[#00C402] transition-colors">R$</span>
                                 <Input
                                     type="number"
-                                    placeholder="0,00"
-                                    className="bg-black/40 border-white/10 focus:border-[#00FF00] transition-all h-14 pl-12 text-xl font-bold"
-                                    value={courseData.price}
-                                    onChange={(e) => setCourseData({ ...courseData, price: e.target.value })}
+                                    className="bg-slate-50 border-slate-100 focus:border-[#00C402] focus:ring-[#00C402] focus:ring-8 focus:ring-[#00C402]/5 h-24 pl-16 rounded-[40px] text-4xl font-black text-slate-900 shadow-sm transition-all text-center pr-8"
+                                    value={formData.price}
+                                    onChange={(e) => setStepData({ price: Number(e.target.value) })}
                                 />
                             </div>
-                            <p className="text-[10px] text-gray-500 uppercase tracking-wider font-bold mt-2 italic">Dica: Preços entre R$ 197 e R$ 497 têm maior conversão.</p>
+                            <p className="text-center text-[10px] text-slate-500 font-bold uppercase tracking-widest">Defina o valor do seu conteúdo Premium</p>
                         </div>
                     </div>
                 )}
 
-                {/* STEP 3: GRADE CURRICULAR */}
                 {currentStep === 3 && (
-                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <div className="flex justify-between items-center">
-                            <Label className="text-xs font-black uppercase tracking-widest text-[#00FF00]">Estrutura do Curso</Label>
+                    <div className="space-y-10 animate-in fade-in duration-700">
+                        <div className="flex justify-between items-center bg-slate-50 p-6 rounded-[32px] border border-slate-100">
+                            <div>
+                                <h2 className="text-xl font-black tracking-tighter uppercase text-slate-800 leading-none"> Grade Curricular </h2>
+                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[2px] mt-2">Organize o fluxo de aprendizado.</p>
+                            </div>
                             <Button
-                                onClick={addSection}
-                                className="bg-[#00FF00]/10 text-[#00FF00] border border-[#00FF00]/20 hover:bg-[#00FF00] hover:text-black font-bold uppercase text-[10px] tracking-widest px-4"
+                                onClick={handleAddLesson}
+                                className="bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest px-8 rounded-2xl h-12 shadow-lg shadow-slate-200"
                             >
-                                <Plus size={14} className="mr-2" /> Novo Módulo
+                                <Plus size={18} className="mr-2" /> Adicionar Aula
                             </Button>
                         </div>
 
-                        <div className="space-y-6">
-                            {courseData.sections.map((section, sIdx) => (
-                                <div key={section.id} className="bg-black/30 border border-white/5 rounded-2xl p-6 space-y-4">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-8 h-8 bg-white/5 rounded flex items-center justify-center font-black text-xs text-gray-500">
-                                            {sIdx + 1}
-                                        </div>
-                                        <Input
-                                            value={section.title}
-                                            onChange={(e) => updateSectionTitle(section.id, e.target.value)}
-                                            className="bg-transparent border-none text-lg font-bold p-0 focus-visible:ring-0"
-                                            placeholder="Nome do Módulo"
-                                        />
-                                        <button
-                                            onClick={() => removeSection(section.id)}
-                                            className="text-gray-600 hover:text-red-500 transition ml-auto"
-                                        >
-                                            <Trash2 size={18} />
-                                        </button>
-                                    </div>
-
-                                    <div className="pl-12 space-y-3">
-                                        {section.lessons.map((lesson, lIdx) => (
-                                            <div key={lesson.id} className="flex items-center gap-4 bg-white/5 p-3 rounded-lg border border-transparent hover:border-white/10 transition-all group">
-                                                <span className="text-[10px] font-black text-gray-600 w-4">{lIdx + 1}</span>
-                                                <Input
-                                                    value={lesson.title}
-                                                    onChange={(e) => updateLessonTitle(section.id, lesson.id, e.target.value)}
-                                                    className="bg-transparent border-none text-sm p-0 focus-visible:ring-0 h-auto"
-                                                    placeholder="Nome da Aula"
-                                                />
-                                                <button
-                                                    onClick={() => removeLesson(section.id, lesson.id)}
-                                                    className="text-gray-700 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"
-                                                >
-                                                    <Trash2 size={14} />
-                                                </button>
+                        {formData.lessons.length === 0 ? (
+                            <div className="text-center py-24 bg-slate-50/50 rounded-[40px] border-2 border-dashed border-slate-100">
+                                <BookOpen size={48} className="mx-auto text-slate-200 mb-6" />
+                                <p className="text-slate-500 font-black uppercase text-[10px] tracking-[3px]">Nenhuma aula adicionada</p>
+                                <p className="text-slate-400 text-[10px] mt-2 font-medium">CONSTRUA SUA GRADE CURRICULAR AGORA</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-6">
+                                {formData.lessons.map((lesson, index) => (
+                                    <div key={index} className="bg-slate-50/30 border border-slate-100 rounded-[32px] p-8 hover:border-[#00C402]/20 hover:bg-white transition-all group shadow-sm">
+                                        <div className="flex flex-col md:flex-row gap-10">
+                                            <div className="flex-grow space-y-6 text-slate-900">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-[9px] font-black uppercase tracking-[3px] text-slate-400">ESTÁGIO #{index + 1}</span>
+                                                    <button
+                                                        onClick={() => handleRemoveLesson(index)}
+                                                        className="text-slate-200 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-all"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Título da Aula</Label>
+                                                    <Input
+                                                        placeholder="Ex: Introdução ao Módulo 1"
+                                                        className="bg-white border-slate-100 focus:border-[#00C402] h-12 rounded-xl text-sm font-medium"
+                                                        value={lesson.title}
+                                                        onChange={(e) => handleUpdateLesson(index, { title: e.target.value })}
+                                                    />
+                                                </div>
                                             </div>
-                                        ))}
-                                        <button
-                                            onClick={() => addLesson(section.id)}
-                                            className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#00FF00]/60 hover:text-[#00FF00] transition pt-2"
-                                        >
-                                            <Plus size={14} /> Adicionar Aula
-                                        </button>
+
+                                            <div className="w-full md:w-72 space-y-2">
+                                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Vídeo da Aula</Label>
+                                                <div className={`
+                                                    relative h-32 rounded-[24px] border-2 border-dashed transition-all flex flex-col items-center justify-center overflow-hidden
+                                                    ${lesson.video_url ? 'border-[#00C402]/40 bg-white' : 'border-slate-100 bg-white hover:border-slate-200'}
+                                                `}>
+                                                    {uploadingVideos[index] ? (
+                                                        <div className="flex flex-col items-center gap-3">
+                                                            <Loader2 className="animate-spin text-[#00C402]" size={24} />
+                                                            <span className="text-[8px] font-black uppercase tracking-[2px] animate-pulse">UPLOADING...</span>
+                                                        </div>
+                                                    ) : lesson.video_url ? (
+                                                        <div className="flex flex-col items-center gap-2">
+                                                            <div className="w-10 h-10 bg-green-50 rounded-full flex items-center justify-center text-green-500">
+                                                                <Check size={20} strokeWidth={4} />
+                                                            </div>
+                                                            <span className="text-[9px] font-black uppercase tracking-widest text-[#00C402]">MULTIMÍDIA PRONTA</span>
+                                                            <button
+                                                                className="text-[8px] text-slate-400 hover:text-slate-900 font-bold uppercase tracking-tighter"
+                                                                onClick={() => handleUpdateLesson(index, { video_url: '' })}
+                                                            >
+                                                                [ SUBSTITUIR ]
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="text-center px-6">
+                                                            <Upload size={24} className="mx-auto text-slate-200 mb-3" />
+                                                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">SUBIR MP4</span>
+                                                        </div>
+                                                    )}
+                                                    {!uploadingVideos[index] && !lesson.video_url && (
+                                                        <input
+                                                            type="file"
+                                                            accept="video/*"
+                                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                                            onChange={(e) => {
+                                                                const file = e.target.files?.[0]
+                                                                if (file) handleVideoUpload(index, file)
+                                                            }}
+                                                        />
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 )}
-
             </div>
 
-            {/* Rodapé de Ações */}
-            <div className="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
+            {/* Footer de Ações */}
+            <div className="max-w-4xl mx-auto flex justify-between items-center gap-8 mb-20 md:mb-0">
                 <Button
-                    variant="outline"
-                    className="w-full md:w-auto border-white/10 hover:bg-white/5 text-gray-400 font-bold uppercase text-xs tracking-widest px-8 py-6 h-auto order-2 md:order-1"
+                    variant="ghost"
+                    onClick={handleBack}
+                    disabled={currentStep === 1}
+                    className="text-slate-400 hover:text-slate-900 hover:bg-white font-black uppercase text-[10px] tracking-[4px] px-10 h-14 rounded-2xl disabled:opacity-0 transition-all"
                 >
-                    Salvar como Rascunho
+                    <ChevronLeft size={20} className="mr-3" /> VOLTAR
                 </Button>
 
-                <div className="flex gap-4 w-full md:w-auto order-1 md:order-2">
-                    {currentStep > 1 && (
-                        <Button
-                            variant="ghost"
-                            onClick={handleBack}
-                            className="flex-1 md:flex-none text-white hover:text-[#00FF00] font-bold uppercase text-xs tracking-widest px-6"
-                        >
-                            <ChevronLeft size={20} className="mr-2" /> Voltar
-                        </Button>
-                    )}
-
+                <div className="flex gap-4">
                     {currentStep < 3 ? (
                         <Button
                             onClick={handleNext}
                             disabled={!isStepValid(currentStep)}
-                            className="flex-1 md:flex-none bg-[#00FF00] text-black hover:brightness-110 font-black uppercase text-xs tracking-widest px-8 py-6 h-auto shadow-[0_0_20px_rgba(0,255,0,0.3)] disabled:opacity-20 transition-all"
+                            className="bg-slate-900 text-white hover:bg-slate-800 font-black uppercase text-[10px] tracking-[4px] px-12 h-16 rounded-[24px] shadow-xl shadow-slate-100 disabled:opacity-10 group"
                         >
-                            Próximo Passo <ChevronRight size={20} className="ml-2" />
+                            PRÓXIMO PASSO <ChevronRight size={20} className="ml-3 group-hover:translate-x-1 transition-transform" />
                         </Button>
                     ) : (
                         <Button
-                            disabled={!isPublishable}
-                            className="flex-1 md:flex-none bg-[#00FF00] text-black hover:brightness-110 font-black uppercase text-xs tracking-widest px-12 py-6 h-auto shadow-[0_0_30px_rgba(0,255,0,0.5)] disabled:opacity-20 transition-all"
+                            onClick={handlePublish}
+                            disabled={!isPublishable || isPublishing}
+                            className="bg-slate-900 text-white hover:bg-slate-800 font-black uppercase text-[10px] tracking-[4px] px-16 h-16 rounded-[24px] shadow-2xl shadow-slate-200 disabled:opacity-10 group"
                         >
-                            Publicar Curso <Check size={20} className="ml-2" />
+                            {isPublishing ? (
+                                <Loader2 className="animate-spin mr-3" />
+                            ) : (
+                                <Check size={20} className="mr-3" />
+                            )}
+                            {isPublishing ? "PROCESSANDO..." : " LANÇAR CURSO "}
                         </Button>
                     )}
                 </div>

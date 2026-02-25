@@ -42,7 +42,7 @@ export const allCourses: Course[] = [
         longDescription: "Aprenda a criar interfaces digitais de alto impacto com o Figma. Do wireframe ao protótipo interativo, você vai dominar os princípios de UX Research, Design Systems e Handoff para desenvolvimento. Metodologia 100% prática com projetos reais.",
         image: "https://images.unsplash.com/photo-1561070791-2526d30994b5?auto=format&fit=crop&q=80&w=1600",
         inspirationImages: [
-            "https://images.unsplash.com/photo-1586717791821-3f44a563cc4c?auto=format&fit=crop&q=80&w=800",
+            "https://media.istockphoto.com/id/2228204306/pt/foto/web-design-application-design-coding-develop-ux-ui-design-web-and-user-design-development.jpg?s=1024x1024&w=is&k=20&c=_ZyAeBzxFRK-Q0aXkKgr36dGEBP5_RjR-jLC1wfPUgY=",
             "https://images.unsplash.com/photo-1545235617-9465d2a55698?auto=format&fit=crop&q=80&w=800",
             "https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&q=80&w=800"
         ],
@@ -95,7 +95,7 @@ export const allCourses: Course[] = [
         title: "Fullstack React & Next.js",
         shortTitle: "Fullstack Next.js",
         category: "Programação",
-        tag: "ORIGINAL EXS",
+        tag: "ORIGINAL SPCS",
         price: 197,
         hours: 56,
         rating: 4.8,
@@ -166,8 +166,8 @@ export const allCourses: Course[] = [
         longDescription: "Domine o ecossistema Node.js em profundidade. Aprenda a construir APIs RESTful e GraphQL, implementar autenticação JWT, criar microsserviços com Docker, trabalhar com filas (Redis/Bull) e garantir a segurança da sua aplicação.",
         image: "https://images.unsplash.com/photo-1627398242454-45a1465c2479?auto=format&fit=crop&q=80&w=1600",
         inspirationImages: [
-            "https://images.unsplash.com/photo-1558494949-ef010cbdcc4b?auto=format&fit=crop&q=80&w=800",
-            "https://images.unsplash.com/photo-1518433278981-2da268cb3621?auto=format&fit=crop&q=80&w=800",
+            "https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?q=80&w=1470&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+            "https://images.unsplash.com/photo-1650234083177-e76e49fa3d73?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
             "https://images.unsplash.com/photo-1544197150-b99a580bb7a8?auto=format&fit=crop&q=80&w=800"
         ],
         highlights: [
@@ -535,9 +535,9 @@ export const allCourses: Course[] = [
         students: 980,
         description: "Domine o Google organicamente. Técnicas de SEO on-page, off-page e técnico para ranquear no topo.",
         longDescription: "Aprenda a rankear sites no topo do Google usando SEO técnico, on-page e off-page. Da pesquisa de palavras-chave à construção de autoridade com link building. Estratégias validadas com resultados comprovados.",
-        image: "https://images.unsplash.com/photo-1523474253046-8cd2748b5fd2?auto=format&fit=crop&q=80&w=1600",
+        image: "https://plus.unsplash.com/premium_photo-1685210129009-501c75e96183?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
         inspirationImages: [
-            "https://images.unsplash.com/photo-1523474253046-8cd2748b5fd2?auto=format&fit=crop&q=80&w=800",
+            "https://plus.unsplash.com/premium_photo-1685210129009-501c75e96183?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
             "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=800",
             "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=800"
         ],
@@ -631,7 +631,7 @@ export const allCourses: Course[] = [
         inspirationImages: [
             "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=80&w=800",
             "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=800",
-            "https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=800"
+            "https://plus.unsplash.com/premium_photo-1661605653366-b1a6a6831cd4?q=80&w=869&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
         ],
         highlights: [
             "Inteligência emocional na liderança",

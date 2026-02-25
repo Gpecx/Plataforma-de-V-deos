@@ -28,6 +28,38 @@ export async function buyCourse(courseId: string) {
     return { success: true }
 }
 
+/**
+ * Action para processar o checkout de múltiplos cursos de uma vez
+ */
+export async function processCheckoutAction(courseIds: string[]) {
+    const supabase = await createClient()
+
+    // 1. Pega o usuário logado
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return { success: false, error: 'Não autorizado' }
+
+    // 2. Prepara os dados de matrícula
+    const enrollments = courseIds.map(id => ({
+        user_id: user.id,
+        course_id: id
+    }))
+
+    // 3. Insere em massa
+    const { error } = await supabase
+        .from('enrollments')
+        .insert(enrollments)
+
+    if (error) {
+        console.error('Erro no checkout:', error.message)
+        return { success: false, error: 'Falha ao registrar matrículas.' }
+    }
+
+    // 4. Limpa o cache
+    revalidatePath('/dashboard-student')
+
+    return { success: true }
+}
+
 export async function updateProfile(prevState: any, formData: FormData) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()

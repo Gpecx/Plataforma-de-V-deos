@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, PlayCircle, TrendingUp, Handshake, BarChart3 } from "lucide-react";
+import { ArrowRight, TrendingUp, Handshake, BarChart3, Volume2, VolumeX } from "lucide-react";
 import Navbar from "@/components/Navbar"
 
 const backgroundImages = [
@@ -13,63 +13,64 @@ const backgroundImages = [
     "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=80&w=2000"
 ];
 
-import { welcomeCourses } from "@/data/courses-data";
+import { createClient } from "@/utils/supabase/client";
+import { Loader2 } from "lucide-react";
+import CourseModal from "@/components/CourseModal";
 
 export default function WelcomePage() {
-    const [currentImage, setCurrentImage] = useState(0);
+    const [courses, setCourses] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [isMuted, setIsMuted] = useState(true);
+    const [selectedCourse, setSelectedCourse] = useState<any>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const supabase = createClient();
 
     useEffect(() => {
-        const timer = setInterval(() => {
-            setCurrentImage((prev) => (prev + 1) % backgroundImages.length);
-        }, 6000);
-        return () => clearInterval(timer);
+        async function fetchTopCourses() {
+            setLoading(true);
+            const { data } = await supabase
+                .from('courses')
+                .select('*')
+                .eq('status', 'published')
+                .order('created_at', { ascending: false })
+                .limit(8);
+
+            if (data) setCourses(data);
+            setLoading(false);
+        }
+        fetchTopCourses();
     }, []);
 
-    return (
-        <div className="min-h-screen bg-[#061629] text-white font-['Exo'] relative overflow-hidden">
-            {/* Background Image Carousel with Overlay */}
-            <div className="absolute inset-0 z-0">
-                {backgroundImages.map((img, index) => (
-                    <div
-                        key={index}
-                        className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentImage ? "opacity-30" : "opacity-0"
-                            }`}
-                    >
-                        <img
-                            src={img}
-                            alt=""
-                            className={`w-full h-full object-cover transition-transform duration-[6000ms] ease-linear ${index === currentImage ? "scale-110" : "scale-100"
-                                }`}
-                        />
-                    </div>
-                ))}
-                {/* Layered Overlays for depth and readability */}
-                <div className="absolute inset-0 bg-gradient-to-b from-[#061629]/90 via-transparent to-[#061629]"></div>
-                <div className="absolute inset-0 bg-gradient-to-r from-[#061629] via-[#061629]/60 to-transparent"></div>
-            </div>
+    const handleCourseClick = (course: any) => {
+        setSelectedCourse(course);
+        setIsModalOpen(true);
+    };
 
+    return (
+        <div className="min-h-screen bg-white text-slate-800 font-exo relative overflow-hidden">
             <Navbar />
 
             {/* HERO SECTION */}
-            <main className="relative z-10 max-w-7xl mx-auto px-6 pt-40 pb-24 grid lg:grid-cols-2 gap-12 items-center">
-                <div className="space-y-8 animate-in fade-in slide-in-from-left duration-1000">
-                    <h1 className="text-4xl md:text-6xl font-black leading-tight italic uppercase tracking-tighter text-white">
-                        Domine novas <br />
-                        <span className="text-[#00C402]">habilidades</span> agora.
+            <main className="relative z-10 max-w-7xl mx-auto px-6 pt-32 pb-20 grid lg:grid-cols-2 gap-12 items-center">
+                <div className="space-y-6 animate-in fade-in slide-in-from-left duration-700">
+                    <h1 className="text-3xl md:text-5xl font-black leading-tight tracking-tighter text-slate-800">
+                        Domine novas habilidades com a <br />
+                        <span className="text-[#00C402]">SPCS Academy</span>.
                     </h1>
-                    <p className="text-gray-200 text-lg md:text-2xl max-w-lg font-bold">
-                        A plataforma de educação corporativa da EXS Solutions que conecta tecnologia e crescimento profissional imediato.
+                    <p className="text-slate-700 text-base md:text-lg max-w-lg font-bold">
+                        Conectamos tecnologia e crescimento profissional em uma experiência de aprendizado moderna e imediata.
                     </p>
 
-                    <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                    <div className="flex flex-col sm:flex-row gap-4 pt-2">
                         <Link href="/login">
-                            <Button size="lg" className="bg-[#00C402] hover:bg-white text-black px-10 py-8 text-xl group font-black uppercase italic tracking-widest rounded-2xl shadow-[0_0_30px_rgba(0,196,2,0.4)] transition-all">
+                            <Button size="lg" className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-6 text-sm group font-bold uppercase tracking-widest rounded-xl transition-all shadow-md">
                                 Conecte-se
                                 <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
                             </Button>
                         </Link>
                         <Link href="/register">
-                            <Button size="lg" variant="outline" className="border-white/30 hover:bg-white/10 px-10 py-8 text-xl font-black uppercase italic tracking-widest rounded-2xl backdrop-blur-md">
+                            <Button size="lg" variant="outline" className="border-slate-200 hover:bg-slate-50 text-slate-700 px-8 py-6 text-sm font-bold uppercase tracking-widest rounded-xl transition-all shadow-sm">
                                 Inscrever-se
                             </Button>
                         </Link>
@@ -77,95 +78,195 @@ export default function WelcomePage() {
                 </div>
 
                 <div className="relative group">
-                    <div className="absolute -inset-2 bg-gradient-to-r from-[#00C402] to-[#1D5F31] rounded-3xl blur-xl opacity-20 group-hover:opacity-40 transition duration-1000"></div>
-                    <div className="relative aspect-video rounded-3xl overflow-hidden border border-white/20 bg-[#0a1f3a] shadow-2xl">
-                        <img
-                            src="/images/gpecx.jpg"
-                            alt="Painéis de LED EXS"
-                            className="object-cover w-full h-full opacity-80 group-hover:scale-105 transition duration-700"
+                    <div className="relative aspect-video rounded-2xl overflow-hidden border border-slate-100 bg-slate-50 shadow-xl">
+                        <video
+                            ref={videoRef}
+                            src="/videos/videoplayback (2).mp4"
+                            autoPlay
+                            muted={isMuted}
+                            loop
+                            playsInline
+                            preload="auto"
+                            className="object-cover w-full h-full opacity-90 transition duration-700"
                         />
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-transparent transition-colors">
-                            <PlayCircle className="w-24 h-24 text-[#00C402] drop-shadow-[0_0_15px_rgba(0,196,2,0.5)] group-hover:scale-110 transition cursor-pointer" />
-                        </div>
+                        <button
+                            onClick={() => setIsMuted(!isMuted)}
+                            className="absolute bottom-4 right-4 p-2.5 bg-white/80 backdrop-blur-md rounded-full text-slate-900 border border-slate-100 hover:bg-white transition-all z-20"
+                        >
+                            {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                        </button>
                     </div>
                 </div>
+                {/* HERO SECTION */}
             </main>
 
-            {/* CURSOS - SUBIU PARA CIMA (ORDER 2) */}
-            <section className="py-24 max-w-7xl mx-auto px-6 space-y-20 relative z-10">
-                <div className="text-center space-y-6">
-                    <h2 className="text-4xl md:text-6xl font-black italic uppercase tracking-tighter text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.5)]">
-                        EXPLORE NOSSOS <span className="text-[#00C402]">MELHORES TREINAMENTOS</span>
+            {/* CURSOS */}
+            <section className="py-20 max-w-7xl mx-auto px-6 space-y-12 relative z-10 border-t border-slate-100 bg-white">
+                <div className="space-y-3">
+                    <h2 className="text-2xl md:text-3xl font-black tracking-tighter text-slate-800">
+                        TREINAMENTOS EM <span className="text-[#00C402]">DESTAQUE</span>
                     </h2>
-                    <p className="text-white text-xl md:text-2xl max-w-3xl mx-auto font-black uppercase italic tracking-tight opacity-90">
-                        Capacite-se com quem domina o mercado. Resultados práticos e aplicação imediata.
+                    <p className="text-slate-700 text-sm md:text-base max-w-2xl font-bold">
+                        Explore nossos melhores conteúdos pensados para sua evolução.
                     </p>
                 </div>
 
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-12">
-                    {welcomeCourses.map((course, i) => (
-                        <div key={i} className="group bg-[#0a1f3a]/90 border border-white/20 rounded-[2rem] overflow-hidden hover:border-[#00C402]/60 transition-all duration-500 flex flex-col hover:shadow-[0_0_50px_rgba(0,196,2,0.25)] hover:-translate-y-2">
-                            <Link href={`/course/${course.slug}`}>
-                                <div className="aspect-video relative overflow-hidden">
-                                    <img src={course.image} alt={course.title} className="object-cover w-full h-full group-hover:scale-110 transition duration-1000 opacity-90" />
-                                    <div className="absolute top-4 right-4 bg-black/80 backdrop-blur-md border border-[#00C402]/40 text-[#00C402] px-4 py-2 rounded-full text-xs font-black uppercase tracking-widest">
-                                        {course.tag}
-                                    </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    {loading ? (
+                        <div className="col-span-full flex justify-center py-20">
+                            <Loader2 className="animate-spin text-slate-300" size={32} />
+                        </div>
+                    ) : courses.map((course: any, i: number) => (
+                        <div
+                            key={i}
+                            onClick={() => handleCourseClick(course)}
+                            className="group bg-white border border-slate-100 rounded-xl overflow-hidden hover:border-[#00C402]/30 transition-all duration-300 flex flex-col hover:shadow-lg cursor-pointer"
+                        >
+                            <div className="aspect-video relative overflow-hidden">
+                                <img src={course.image_url || "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=2070"} alt={course.title} className="object-cover w-full h-full group-hover:scale-105 transition duration-500" />
+                                <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm border border-slate-100 text-[#00C402] px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest">
+                                    {course.tag || "PREMIUM"}
                                 </div>
-                            </Link>
-                            <div className="p-10 flex-grow flex flex-col space-y-6">
-                                <Link href={`/course/${course.slug}`}>
-                                    <h3 className="text-3xl font-black text-white leading-tight uppercase italic group-hover:text-[#00C402] transition-colors drop-shadow-sm">{course.title}</h3>
-                                </Link>
-                                <p className="text-white text-base leading-relaxed font-bold opacity-100 shadow-black drop-shadow-md">{course.description}</p>
-                                <div className="pt-8 mt-auto border-t border-white/10 flex items-center justify-between">
+                            </div>
+                            <div className="p-4 flex-grow flex flex-col space-y-3">
+                                <h3 className="text-sm font-bold text-slate-700 leading-tight group-hover:text-[#00C402] transition-colors line-clamp-2">{course.title}</h3>
+                                <div className="mt-auto pt-3 border-t border-slate-50 flex items-center justify-between">
                                     <div className="flex flex-col">
-                                        <span className="text-[11px] text-gray-300 uppercase font-black tracking-widest leading-none mb-2">Investimento Total</span>
-                                        <span className="text-3xl font-black text-[#00C402] italic drop-shadow-[0_0_10px_rgba(0,196,2,0.3)]">R$ {course.price},00</span>
+                                        <span className="text-[8px] text-slate-700 uppercase font-black tracking-widest leading-none mb-0.5">Investimento</span>
+                                        <span className="text-sm font-black text-slate-700 leading-none">R$ {course.price},00</span>
                                     </div>
-                                    <Link href={`/course/${course.slug}`}>
-                                        <Button className="bg-[#00C402] text-black hover:bg-white hover:scale-105 transition-all font-black uppercase tracking-widest text-xs px-8 py-7 rounded-2xl shadow-xl">
-                                            Matricular
-                                        </Button>
-                                    </Link>
+                                    <div className="text-[#00C402] opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <ArrowRight size={14} />
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     ))}
                 </div>
 
-                <div className="text-center pt-10">
+                <div className="text-center pt-6">
                     <Link href="/course">
-                        <Button variant="link" className="text-white hover:text-[#00C402] font-black uppercase tracking-widest text-sm border-b-2 border-white/10 hover:border-[#00C402] pb-1 transition-all">
-                            Ver catálogo completo de treinamentos agora
+                        <Button variant="link" className="text-slate-500 hover:text-slate-800 font-bold uppercase tracking-widest text-[10px] border-b border-transparent hover:border-slate-200 pb-1 transition-all">
+                            Ver catálogo completo
                         </Button>
                     </Link>
                 </div>
             </section>
 
-            {/* DIFERENCIAIS - DESCEU PARA BAIXO (ORDER 3) */}
-            <section className="bg-black/60 py-32 relative overflow-hidden z-10 mt-12">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-[#00C402]/50 to-transparent"></div>
-                <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-3 gap-12 relative z-10">
-                    {[
-                        { icon: <TrendingUp size={48} />, title: "Crescimento", desc: "Acelere sua evolução técnica com trilhas pensadas para o mercado real." },
-                        { icon: <Handshake size={48} />, title: "Soluções", desc: "Metodologias exclusivas que transformam desafios em oportunidades." },
-                        { icon: <BarChart3 size={48} />, title: "Resultados", desc: "Métricas claras e acompanhamento em tempo real do seu progresso." },
-                    ].map((item, i) => (
-                        <div
-                            key={i}
-                            className="p-12 rounded-[2.5rem] bg-white/5 backdrop-blur-2xl border border-white/10 hover:border-[#00C402]/50 transition-all duration-700 group cursor-default hover:-translate-y-4 hover:shadow-[0_30px_60px_rgba(0,0,0,0.6),0_0_40px_rgba(0,196,2,0.2)] flex flex-col items-center text-center"
-                        >
-                            <div className="relative mb-8">
-                                <div className="absolute inset-0 bg-[#00C402] blur-3xl opacity-0 group-hover:opacity-30 transition-opacity"></div>
-                                <div className="text-[#00C402] relative z-10 group-hover:scale-125 transition-transform duration-700">{item.icon}</div>
+            {/* SEÇÃO DE BANNERS IMERSIVOS (Clean & Professional) */}
+            <section className="relative z-10">
+                {/* BANNER 1: OFFICE / EXPERIENCE */}
+                <div className="relative h-[600px] w-full overflow-hidden group">
+                    <img
+                        src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1976&auto=format&fit=crop"
+                        alt="Professional Engineering"
+                        className="object-cover w-full h-full group-hover:scale-105 transition duration-[2s] brightness-50"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-slate-900/95 via-slate-900/70 to-transparent flex items-center">
+                        <div className="max-w-7xl mx-auto px-6 w-full">
+                            <div className="max-w-2xl space-y-6 animate-in fade-in slide-in-from-left duration-1000">
+                                <span className="text-[10px] font-black uppercase tracking-[4px] !text-white bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">Experiência</span>
+                                <h2 className="text-4xl md:text-6xl font-black !text-white tracking-tighter leading-tight">
+                                    APRENDA COM <br />
+                                    <span className="!text-white">ESPECIALISTAS</span> DO MERCADO
+                                </h2>
+                                <p className="!text-white text-lg font-bold leading-relaxed max-w-lg">
+                                    Trilhas de conhecimento desenhadas por profissionais que lideram grandes projetos de engenharia e tecnologia.
+                                </p>
+                                <Link href="/register">
+                                    <Button size="lg" className="bg-[#00C402] hover:bg-[#00b302] text-white px-8 py-6 text-sm font-black uppercase tracking-widest rounded-xl transition-all shadow-lg mt-4">
+                                        Começar agora
+                                    </Button>
+                                </Link>
                             </div>
-                            <h3 className="text-3xl font-black mb-4 italic uppercase tracking-tighter text-white drop-shadow-md">{item.title}</h3>
-                            <p className="text-white text-base leading-relaxed font-bold opacity-80">{item.desc}</p>
                         </div>
-                    ))}
+                    </div>
+                </div>
+
+                {/* BANNER 2: LABORATORY / METHODOLOGY */}
+                <div className="relative h-[600px] w-full overflow-hidden group">
+                    <img
+                        src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=2070&auto=format&fit=crop"
+                        alt="High-Tech Laboratory"
+                        className="object-cover w-full h-full group-hover:scale-105 transition duration-[2s] brightness-50"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-l from-slate-900/95 via-slate-900/70 to-transparent flex items-center justify-end">
+                        <div className="max-w-7xl mx-auto px-6 w-full text-right flex justify-end">
+                            <div className="max-w-2xl space-y-6 animate-in fade-in slide-in-from-right duration-1000">
+                                <span className="text-[10px] font-black uppercase tracking-[4px] !text-white bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">Metodologia</span>
+                                <h2 className="text-4xl md:text-6xl font-black !text-white tracking-tighter leading-tight">
+                                    LABORATÓRIOS DA <br />
+                                    <span className="!text-white">VIDA REAL</span>
+                                </h2>
+                                <p className="!text-white text-lg font-bold leading-relaxed max-w-lg ml-auto">
+                                    Nossa metodologia foca na resolução de desafios reais, utilizando simuladores e ferramentas de ponta.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* BANNER 3: COLLABORATION / RESULTS */}
+                <div className="relative h-[600px] w-full overflow-hidden group">
+                    <img
+                        src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop"
+                        alt="Collaborative Workspace"
+                        className="object-cover w-full h-full group-hover:scale-105 transition duration-[2s] brightness-50"
+                    />
+                    <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-[2px] flex items-center justify-center text-center">
+                        <div className="max-w-4xl mx-auto px-6 space-y-8 animate-in fade-in zoom-in duration-1000">
+                            <span className="text-[10px] font-black uppercase tracking-[4px] !text-white bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 inline-block">Resultados</span>
+                            <h2 className="text-5xl md:text-7xl font-black !text-white tracking-tighter leading-tight">
+                                TRANSFORME SUA <br />
+                                <span className="!text-white">CARREIRA</span> HOJE
+                            </h2>
+                            <p className="!text-white text-xl font-bold leading-relaxed max-w-2xl mx-auto">
+                                Junte-se a milhares de alunos que já alcançaram cargos de destaque nas maiores empresas do Brasil.
+                            </p>
+                            <Link href="/login">
+                                <Button size="lg" variant="outline" className="border-white/20 hover:bg-white/10 text-white px-10 py-8 text-base font-black uppercase tracking-[3px] rounded-2xl transition-all shadow-2xl backdrop-blur-xl">
+                                    Conecte-se à Comunidade
+                                </Button>
+                            </Link>
+                        </div>
+                    </div>
                 </div>
             </section>
+
+            {/* GRID DE BENEFÍCIOS (Final Clean Section) */}
+            <section className="bg-white py-24 relative z-10 border-t border-slate-100">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="grid md:grid-cols-3 gap-16">
+                        <div className="space-y-4 text-center group">
+                            <div className="w-20 h-20 rounded-[32px] bg-slate-50 flex items-center justify-center text-[#00C402] mx-auto shadow-sm border border-slate-100 group-hover:scale-110 transition-transform">
+                                <TrendingUp size={36} />
+                            </div>
+                            <h3 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Crescimento</h3>
+                            <p className="text-slate-500 text-sm leading-relaxed font-bold">Acelere sua evolução técnica com trilhas pensadas para o mercado real.</p>
+                        </div>
+                        <div className="space-y-4 text-center group">
+                            <div className="w-20 h-20 rounded-[32px] bg-slate-50 flex items-center justify-center text-[#00C402] mx-auto shadow-sm border border-slate-100 group-hover:scale-110 transition-transform">
+                                <Handshake size={36} />
+                            </div>
+                            <h3 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Soluções</h3>
+                            <p className="text-slate-500 text-sm leading-relaxed font-bold">Metodologias exclusivas que transformam desafios em oportunidades.</p>
+                        </div>
+                        <div className="space-y-4 text-center group">
+                            <div className="w-20 h-20 rounded-[32px] bg-slate-50 flex items-center justify-center text-[#00C402] mx-auto shadow-sm border border-slate-100 group-hover:scale-110 transition-transform">
+                                <BarChart3 size={36} />
+                            </div>
+                            <h3 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Resultados</h3>
+                            <p className="text-slate-500 text-sm leading-relaxed font-bold">Métricas claras e acompanhamento em tempo real do seu progresso.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <CourseModal
+                course={selectedCourse}
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+            />
         </div>
     );
 }

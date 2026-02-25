@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
+// Interface para os itens que o ALUNO adiciona ao carrinho
 export interface CartItem {
     id: string
     title: string
@@ -22,6 +23,7 @@ export const useCartStore = create<CartStore>()(
             items: [],
             addItem: (item) => {
                 const currentItems = get().items
+                // Evita duplicados no carrinho
                 if (!currentItems.find((i) => i.id === item.id)) {
                     set({ items: [...currentItems, item] })
                 }
@@ -35,7 +37,7 @@ export const useCartStore = create<CartStore>()(
             },
         }),
         {
-            name: 'exs-cart-storage',
+            name: 'spcs-cart-storage', // Nome da chave no LocalStorage
         }
     )
 )

@@ -11,20 +11,76 @@ export default async function TeacherDashboard() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) redirect('/login')
 
-    // 2. Busca perfil e cursos criados pelo professor
-    const [profileRes, coursesRes] = await Promise.all([
+    // 2. Busca perfil e métricas reais
+    // Primeiro, pegamos todos os cursos deste professor para    // Fetching real data for metrics and charts
+    const { data: teacherCourses } = await supabase
+        .from('courses')
+        .select('id, price, title, image_url, status')
+        .eq('teacher_id', user.id)
+
+    interface TeacherCourse {
+        id: string
+        price: number
+        title: string
+        image_url: string | null
+        status: string
+    }
+
+    const courses: TeacherCourse[] = (teacherCourses || []) as TeacherCourse[]
+    const courseIds = courses.map(c => c.id)
+    const coursesPriceMap = new Map(courses.map(c => [c.id, c.price || 0]))
+
+    // Queries paralelas para performance
+    const now = new Date()
+    const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000)).toISOString()
+    const todayStart = new Date(now.setHours(0, 0, 0, 0)).toISOString()
+
+    const [profileRes, enrollmentsRes, weeklySalesRes] = await Promise.all([
         supabase.from('profiles').select('full_name').eq('id', user.id).single(),
-        supabase.from('courses').select('*').eq('instructor_id', user.id)
+        supabase.from('enrollments').select('*').in('course_id', courseIds),
+        supabase.from('enrollments')
+            .select('created_at, course_id')
+            .in('course_id', courseIds)
+            .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+            .order('created_at', { ascending: true })
     ])
 
     const profile = profileRes.data
-    const courses = coursesRes.data || []
+    const enrollments = enrollmentsRes.data || []
+    const weeklySales = weeklySalesRes.data || []
+
+    // Cálculos de Métricas
+    const totalStudents = new Set(enrollments.map(e => e.user_id)).size
+
+    const monthlyRevenue = enrollments
+        .filter(e => e.created_at >= thirtyDaysAgo)
+        .reduce((acc, e) => acc + (coursesPriceMap.get(e.course_id) || 0), 0)
+
+    const todaySales = enrollments
+        .filter(e => e.created_at >= todayStart)
+        .reduce((acc, e) => acc + (coursesPriceMap.get(e.course_id) || 0), 0)
+
+    // Formatação para o gráfico (Últimos 7 dias)
+    const last7Days = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date()
+        d.setDate(d.getDate() - i)
+        return d.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')
+    }).reverse()
+
+    const chartData = last7Days.map(day => {
+        const salesForDay = weeklySales.filter(s => {
+            const saleDay = new Date(s.created_at).toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')
+            return saleDay === day
+        })
+        const totalValue = salesForDay.reduce((acc, s) => acc + (coursesPriceMap.get(s.course_id) || 0), 0)
+        return { name: day.charAt(0).toUpperCase() + day.slice(1), vendas: totalValue }
+    })
 
     const metrics = [
-        { label: 'Receita Mensal', value: 'R$ 12.450,00', icon: DollarSign, color: 'text-[#00C402]' },
-        { label: 'Total Alunos', value: '1.240', icon: Users, color: 'text-blue-500' },
+        { label: 'Receita Mensal', value: `R$ ${monthlyRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: DollarSign, color: 'text-[#00C402]' },
+        { label: 'Total Alunos', value: totalStudents.toString(), icon: Users, color: 'text-blue-500' },
         { label: 'Avaliação Média', value: '4.8', icon: Star, color: 'text-yellow-500' },
-        { label: 'Vendas Hoje', value: 'R$ 840,00', icon: TrendingUp, color: 'text-purple-500' },
+        { label: 'Vendas Hoje', value: `R$ ${todaySales.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: TrendingUp, color: 'text-purple-500' },
     ]
 
     const recentActivities = [
@@ -34,90 +90,89 @@ export default async function TeacherDashboard() {
     ]
 
     return (
-        <div className="p-8 md:p-12 min-h-screen bg-[#061629] text-white">
+        <div className="p-8 md:p-12 min-h-screen bg-[#F4F7F9] text-slate-800 font-exo border-t border-slate-100">
             {/* Header com Boas-vindas e Botão Criar */}
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-8">
                 <div>
-                    <h1 className="text-4xl font-black italic tracking-tighter uppercase">
+                    <h1 className="text-4xl font-black tracking-tighter uppercase leading-none text-slate-700">
                         Bem-vindo, <span className="text-[#00C402]">{profile?.full_name || 'Professor'}!</span>
                     </h1>
-                    <p className="text-gray-400 mt-2 font-medium">Gerencie seus cursos e acompanhe seus resultados com o Creator Studio.</p>
+                    <p className="text-slate-500 mt-2 font-bold uppercase text-[10px] tracking-[3px]">Gerencie seus cursos e acompanhe seus resultados com o Creator Studio.</p>
                 </div>
                 <Link href="/dashboard-teacher/courses/new">
-                    <button className="flex items-center gap-3 bg-[#00C402] text-black font-black uppercase italic tracking-widest px-8 py-4 rounded-2xl hover:brightness-110 transition shadow-[0_0_30px_rgba(0,196,2,0.3)] shrink-0">
-                        <Plus size={22} strokeWidth={3} />
+                    <button className="flex items-center gap-3 bg-slate-900 text-white font-black uppercase tracking-widest px-10 py-5 rounded-2xl hover:bg-slate-800 transition shadow-lg shadow-slate-200 shrink-0 group">
+                        <Plus size={20} strokeWidth={3} className="group-hover:rotate-90 transition-transform" />
                         Criar Novo Curso
                     </button>
                 </Link>
             </header>
 
             {/* Grid de Métricas */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
                 {metrics.map((metric, idx) => (
-                    <div key={idx} className="bg-white/5 p-6 rounded-3xl border border-white/10 hover:border-[#00C402]/30 transition-all shadow-xl backdrop-blur-md">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className={`p-3 rounded-2xl bg-white/5 ${metric.color}`}>
-                                <metric.icon size={24} />
+                    <div key={idx} className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm group">
+                        <div className="flex justify-between items-start mb-6">
+                            <div className={`p-4 rounded-2xl bg-slate-50 border border-slate-100 ${metric.color}`}>
+                                <metric.icon size={22} />
                             </div>
                         </div>
-                        <p className="text-gray-400 text-xs font-black uppercase tracking-widest">{metric.label}</p>
-                        <h3 className="text-3xl font-black mt-1 italic tracking-tighter">{metric.value}</h3>
+                        <p className="text-slate-500 text-[10px] font-black uppercase tracking-[2px]">{metric.label}</p>
+                        <h3 className="text-3xl font-black mt-1 tracking-tighter text-slate-700">{metric.value}</h3>
                     </div>
                 ))}
             </div>
 
             {/* Gráfico de Desempenho */}
-            <section className="bg-white/5 p-8 rounded-[40px] border border-white/10 mb-16 shadow-2xl relative overflow-hidden group backdrop-blur-xl">
-                <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                    <TrendingUp size={160} className="text-[#00C402]" />
-                </div>
+            <section className="bg-white p-10 rounded-[48px] border border-slate-100 mb-20 shadow-sm relative overflow-hidden group">
                 <div className="relative z-10">
-                    <h2 className="text-2xl font-black uppercase italic tracking-tighter mb-10 flex items-center gap-3">
-                        <TrendingUp size={28} className="text-[#00C402]" />
-                        Desempenho de Vendas <span className="text-[#00C402]/40">(Últimos 7 dias)</span>
-                    </h2>
-                    <SalesChart />
+                    <div className="flex items-center justify-between mb-12">
+                        <h2 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-4 text-slate-700">
+                            <TrendingUp size={24} className="text-[#00C402]" />
+                            Desempenho de Vendas <span className="text-slate-300 font-bold text-sm tracking-widest ml-4">(ÚLTIMOS 7 DIAS)</span>
+                        </h2>
+                    </div>
+                    <SalesChart data={chartData} />
                 </div>
             </section>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
                 {/* Seção: Meus Cursos (2 colunas) */}
-                <section className="lg:col-span-2">
-                    <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/5">
-                        <h2 className="text-2xl font-black uppercase italic tracking-tighter">Meus Cursos</h2>
-                        <Link href="/dashboard-teacher/courses" className="text-xs text-[#00C402] hover:underline font-black uppercase tracking-[3px]">Ver todos</Link>
+                <section className="lg:col-span-2 space-y-10">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-6">
+                        <h2 className="text-2xl font-black uppercase tracking-tighter text-slate-700">Meus Cursos</h2>
+                        <Link href="/dashboard-teacher/courses" className="text-[10px] text-slate-500 hover:text-slate-700 font-black uppercase tracking-[3px] transition-colors">Ver todos os cursos</Link>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                         {courses.length > 0 ? (
                             courses.map((curso) => (
-                                <div key={curso.id} className="bg-white/5 rounded-[32px] overflow-hidden border border-white/10 hover:border-[#00C402]/40 transition-all group shadow-xl">
-                                    <div className="relative h-56 bg-[#0a1f3a]">
+                                <div key={curso.id} className="bg-white rounded-[40px] overflow-hidden border border-slate-100 hover:border-[#00C402]/40 transition-all group shadow-sm flex flex-col">
+                                    <div className="relative h-60 bg-slate-50 overflow-hidden">
                                         <img
                                             src={curso.image_url || "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400"}
-                                            className="w-full h-full object-cover opacity-40 group-hover:opacity-100 transition-opacity duration-700"
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                                             alt={curso.title}
                                         />
                                         <div className="absolute top-6 left-6">
-                                            <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[2px] shadow-lg ${curso.status === 'published' ? 'bg-[#00C402] text-black' : 'bg-yellow-500 text-black'}`}>
+                                            <span className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-[2px] shadow-sm backdrop-blur-md ${curso.status === 'published' ? 'bg-[#00C402] text-white' : 'bg-yellow-500 text-white'}`}>
                                                 {curso.status === 'published' ? 'Publicado' : 'Rascunho'}
                                             </span>
                                         </div>
                                     </div>
-                                    <div className="p-8">
-                                        <h3 className="font-black text-2xl mb-4 italic tracking-tighter line-clamp-1">{curso.title}</h3>
-                                        <div className="flex items-center gap-6 text-sm text-gray-400 mb-8 font-bold">
+                                    <div className="p-8 flex-grow flex flex-col">
+                                        <h3 className="font-black text-2xl mb-4 tracking-tighter text-slate-700 line-clamp-1">{curso.title}</h3>
+                                        <div className="flex items-center gap-6 text-[10px] text-slate-500 mb-8 font-black uppercase tracking-widest">
                                             <div className="flex items-center gap-2">
                                                 <Users size={16} className="text-[#00C402]" />
                                                 <span>450 Alunos</span>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <Star size={16} className="text-yellow-500 fill-yellow-500" />
-                                                <span>4.8</span>
+                                                <span>4.8 Rating</span>
                                             </div>
                                         </div>
-                                        <Link href={`/dashboard-teacher/courses/${curso.id}/edit`}>
-                                            <button className="w-full flex items-center justify-center gap-3 bg-white/5 hover:bg-[#00C402] hover:text-black border border-white/10 text-white font-black uppercase italic tracking-widest py-4 rounded-2xl transition-all duration-300">
+                                        <Link href={`/dashboard-teacher/courses/${curso.id}/edit`} className="mt-auto">
+                                            <button className="w-full flex items-center justify-center gap-3 bg-slate-50 hover:bg-slate-800 hover:text-white border border-slate-100 text-slate-700 font-black uppercase tracking-widest py-5 rounded-2xl transition-all duration-300">
                                                 <Edit size={18} />
                                                 Editar no Studio
                                             </button>
@@ -126,32 +181,32 @@ export default async function TeacherDashboard() {
                                 </div>
                             ))
                         ) : (
-                            <div className="col-span-full py-24 border-2 border-dashed border-white/10 rounded-[40px] text-center bg-white/[0.02]">
-                                <p className="text-gray-500 italic font-medium">O Studio está pronto. Comece criando seu primeiro treinamento!</p>
+                            <div className="col-span-full py-24 border-2 border-dashed border-slate-100 rounded-[48px] text-center bg-white">
+                                <p className="text-slate-400 font-bold uppercase text-xs tracking-[4px]">O Studio está pronto. Comece criando seu primeiro treinamento!</p>
                             </div>
                         )}
                     </div>
                 </section>
 
                 {/* Seção: Dúvidas Recentes (1 coluna) */}
-                <section>
-                    <div className="flex items-center justify-between mb-8 pb-4 border-b border-white/5">
-                        <h2 className="text-2xl font-black uppercase italic tracking-tighter">Inbox de Dúvidas</h2>
-                        <Link href="/dashboard-teacher/comments" className="text-xs text-gray-500 hover:text-white font-black uppercase tracking-[2px]">Acessar Inbox</Link>
+                <section className="space-y-10">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-6">
+                        <h2 className="text-2xl font-black uppercase tracking-tighter text-slate-700">Dúvidas Inbox</h2>
+                        <Link href="/dashboard-teacher/comments" className="text-[10px] text-slate-500 hover:text-slate-700 font-black uppercase tracking-[2px] transition-colors">Acessar Inbox</Link>
                     </div>
 
                     <div className="space-y-6">
                         {recentActivities.map((activity) => (
-                            <div key={activity.id} className="bg-white/5 p-6 rounded-3xl border border-white/10 hover:border-white/20 transition-all flex gap-4 backdrop-blur-md">
-                                <div className="h-12 w-12 rounded-2xl bg-[#00C402]/10 flex items-center justify-center shrink-0 border border-[#00C402]/20">
-                                    <MessageSquare size={20} className="text-[#00C402]" />
+                            <div key={activity.id} className="bg-white p-7 rounded-[32px] border border-slate-100 hover:border-slate-200 transition-all flex gap-5 shadow-sm group">
+                                <div className="h-14 w-14 rounded-2xl bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100 group-hover:border-[#00C402]/30 transition-colors">
+                                    <MessageSquare size={20} className="text-slate-400 group-hover:text-[#00C402] transition-colors" />
                                 </div>
                                 <div className="flex-grow min-w-0">
                                     <div className="flex justify-between items-start mb-2">
-                                        <h4 className="font-black text-sm uppercase tracking-tight truncate mr-2">{activity.user}</h4>
-                                        <span className="text-[10px] font-bold text-gray-500 uppercase shrink-0">{activity.date}</span>
+                                        <h4 className="font-black text-[11px] uppercase tracking-widest text-slate-800 truncate mr-2">{activity.user}</h4>
+                                        <span className="text-[9px] font-bold text-slate-500 uppercase shrink-0">{activity.date}</span>
                                     </div>
-                                    <p className="text-xs text-gray-400 line-clamp-2 leading-relaxed italic font-medium">
+                                    <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed font-medium italic">
                                         "{activity.comment}"
                                     </p>
                                 </div>

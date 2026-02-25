@@ -92,7 +92,7 @@ export default function StudentChatPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#061629] text-white flex flex-col">
+        <div className="min-h-screen bg-[#F8FAFC] text-slate-900 flex flex-col border-t border-slate-100">
             <div className="max-w-6xl w-full mx-auto flex flex-col flex-1 p-6 md:p-10 gap-6">
 
                 {/* Page Header */}
@@ -100,39 +100,39 @@ export default function StudentChatPage() {
                     <div className="flex items-center gap-4">
                         <Link
                             href="/dashboard-student/messages"
-                            className="p-3 bg-white/5 border border-white/10 rounded-2xl hover:border-white/30 text-gray-500 hover:text-white transition"
+                            className="p-3 bg-white border border-slate-100 rounded-2xl hover:border-slate-300 text-slate-400 hover:text-slate-900 transition shadow-sm"
                         >
                             <ArrowLeft size={20} />
                         </Link>
                         <div>
-                            <h1 className="text-3xl font-black italic tracking-tighter uppercase">
-                                Chat com <span className="text-[#00C402]">Professores</span>
+                            <h1 className="text-2xl font-black tracking-tighter uppercase text-slate-900">
+                                SUPORTE <span className="text-[#00C402]">ESPECIALIZADO</span>
                             </h1>
-                            <p className="text-[9px] font-black uppercase tracking-[4px] text-gray-600 mt-0.5">Tire suas dúvidas em tempo real</p>
+                            <p className="text-[9px] font-black uppercase tracking-[4px] text-slate-400 mt-0.5">Tira-dúvidas em tempo real com seus mentores</p>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex flex-1 gap-6 h-[calc(100vh-220px)]">
+                <div className="flex flex-1 gap-8 h-[calc(100vh-220px)]">
                     {/* Teacher List Sidebar */}
                     <aside className="w-72 shrink-0 flex flex-col gap-3">
-                        <div className="text-[9px] font-black uppercase tracking-[3px] text-gray-600 px-2 mb-1">Seus Professores</div>
+                        <div className="text-[9px] font-black uppercase tracking-[3px] text-slate-400 px-2 mb-1">CANAIS DE ATENDIMENTO</div>
                         {TEACHERS.map(teacher => (
                             <button
                                 key={teacher.id}
                                 onClick={() => setSelectedTeacher(teacher)}
-                                className={`flex items-center gap-4 p-5 rounded-[20px] border text-left transition-all ${selectedTeacher.id === teacher.id ? 'bg-[#00C402]/10 border-[#00C402]/40' : 'bg-white/5 border-white/5 hover:border-white/20'}`}
+                                className={`flex items-center gap-4 p-5 rounded-3xl border text-left transition-all ${selectedTeacher.id === teacher.id ? 'bg-white border-[#00C402]/30 shadow-md ring-1 ring-[#00C402]/5' : 'bg-white/50 border-slate-100 hover:border-slate-300'}`}
                             >
-                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-sm shrink-0 ${selectedTeacher.id === teacher.id ? 'bg-[#00C402] text-black' : 'bg-[#00C402]/20 text-[#00C402]'}`}>
+                                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-black text-xs shrink-0 ${selectedTeacher.id === teacher.id ? 'bg-[#00C402] text-white' : 'bg-slate-100 text-slate-400'}`}>
                                     {teacher.initials}
                                 </div>
                                 <div className="min-w-0">
-                                    <h4 className={`font-black uppercase text-[11px] tracking-tight truncate ${selectedTeacher.id === teacher.id ? 'text-white' : 'text-gray-400'}`}>
+                                    <h4 className={`font-bold uppercase text-[11px] tracking-tight truncate ${selectedTeacher.id === teacher.id ? 'text-slate-900' : 'text-slate-400'}`}>
                                         {teacher.name}
                                     </h4>
                                     <div className="flex items-center gap-1.5 mt-1">
-                                        <BookOpen size={9} className="text-[#00C402] shrink-0" />
-                                        <p className="text-[9px] font-bold uppercase tracking-wide text-gray-600 truncate italic">{teacher.course}</p>
+                                        <BookOpen size={10} className="text-[#00C402] shrink-0" />
+                                        <p className="text-[9px] font-bold uppercase tracking-wide text-slate-400 truncate italic">{teacher.course}</p>
                                     </div>
                                 </div>
                             </button>
@@ -140,21 +140,21 @@ export default function StudentChatPage() {
                     </aside>
 
                     {/* Chat Window */}
-                    <section className="flex-1 flex flex-col bg-white/5 border border-white/10 rounded-[32px] overflow-hidden">
+                    <section className="flex-1 flex flex-col bg-white border border-slate-100 rounded-[32px] overflow-hidden shadow-sm">
                         {/* Chat Header */}
-                        <div className="flex items-center gap-5 px-8 py-5 border-b border-white/5 bg-black/20">
-                            <div className="w-12 h-12 rounded-2xl bg-[#00C402] flex items-center justify-center text-black font-black shadow-[0_0_20px_rgba(0,196,2,0.3)]">
+                        <div className="flex items-center gap-5 px-8 py-6 border-b border-slate-50 bg-slate-50/30">
+                            <div className="w-11 h-11 rounded-2xl bg-slate-900 flex items-center justify-center text-white font-black text-sm shadow-sm">
                                 {selectedTeacher.initials}
                             </div>
                             <div>
-                                <h3 className="font-black uppercase italic tracking-tighter text-base">{selectedTeacher.name}</h3>
+                                <h3 className="font-black uppercase tracking-tighter text-base text-slate-900">{selectedTeacher.name}</h3>
                                 <div className="flex items-center gap-2 mt-0.5">
                                     <div className="w-1.5 h-1.5 rounded-full bg-[#00C402]"></div>
-                                    <span className="text-[9px] font-black uppercase tracking-[3px] text-[#00C402]">Online · Responde em até 2h</span>
+                                    <span className="text-[9px] font-black uppercase tracking-[3px] text-[#00C402]">Canal Online · Mentoria Ativa</span>
                                 </div>
                             </div>
                             <div className="ml-auto">
-                                <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[2px] text-gray-600 border border-white/5 px-4 py-2 rounded-xl">
+                                <div className="hidden lg:flex items-center gap-2 text-[8px] font-black uppercase tracking-[2px] text-slate-400 border border-slate-100 px-4 py-2 rounded-full">
                                     <GraduationCap size={12} className="text-[#00C402]" />
                                     {selectedTeacher.course}
                                 </div>
@@ -162,23 +162,23 @@ export default function StudentChatPage() {
                         </div>
 
                         {/* Messages */}
-                        <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+                        <div className="flex-1 overflow-y-auto px-10 py-8 space-y-8 bg-white/50">
                             {messages.map(msg => (
                                 <div
                                     key={msg.id}
                                     className={`flex gap-4 ${msg.role === 'student' ? 'flex-row-reverse' : 'flex-row'} animate-in fade-in slide-in-from-bottom-2 duration-300`}
                                 >
                                     {/* Avatar */}
-                                    <div className={`w-9 h-9 rounded-xl shrink-0 flex items-center justify-center font-black text-[10px] mt-1 ${msg.role === 'teacher' ? 'bg-[#00C402]/20 text-[#00C402]' : 'bg-white/10 text-gray-400'}`}>
+                                    <div className={`w-8 h-8 rounded-xl shrink-0 flex items-center justify-center font-black text-[9px] mt-1 ${msg.role === 'teacher' ? 'bg-slate-100 text-slate-400' : 'bg-slate-900 text-white'}`}>
                                         {msg.role === 'teacher' ? selectedTeacher.initials : 'EU'}
                                     </div>
 
                                     {/* Bubble */}
-                                    <div className={`max-w-[70%] ${msg.role === 'student' ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
-                                        <div className={`px-6 py-4 rounded-3xl text-sm font-medium leading-relaxed ${msg.role === 'teacher' ? 'bg-white/[0.07] border border-white/5 text-gray-200 rounded-tl-sm' : 'bg-[#00C402] text-black rounded-tr-sm'}`}>
+                                    <div className={`max-w-[70%] ${msg.role === 'student' ? 'items-end' : 'items-start'} flex flex-col gap-1.5`}>
+                                        <div className={`px-6 py-4 rounded-3xl text-sm font-medium leading-relaxed shadow-sm ${msg.role === 'teacher' ? 'bg-slate-50 border border-slate-100 text-slate-700 rounded-tl-none' : 'bg-slate-900 text-white rounded-tr-none'}`}>
                                             {msg.content}
                                         </div>
-                                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-700 px-2">{msg.time}</span>
+                                        <span className="text-[8px] font-black uppercase tracking-widest text-slate-300 px-2">{msg.time}</span>
                                     </div>
                                 </div>
                             ))}
@@ -186,34 +186,31 @@ export default function StudentChatPage() {
                         </div>
 
                         {/* Input Bar */}
-                        <div className="px-6 py-5 border-t border-white/5 bg-black/10">
-                            <div className="flex items-end gap-4">
-                                <button className="p-3 text-gray-600 hover:text-[#00C402] transition shrink-0">
-                                    <Paperclip size={18} />
+                        <div className="px-8 py-6 border-t border-slate-50 bg-slate-50/50">
+                            <div className="flex items-end gap-5">
+                                <button className="p-3 text-slate-300 hover:text-slate-900 transition shrink-0">
+                                    <Paperclip size={20} />
                                 </button>
-                                <div className="flex-1 bg-black/20 border border-white/10 rounded-[20px] flex items-end px-5 py-3 focus-within:border-[#00C402]/40 transition">
+                                <div className="flex-1 bg-white border border-slate-100 rounded-3xl flex items-end px-6 py-4 focus-within:border-[#00C402]/40 transition shadow-sm">
                                     <textarea
                                         value={input}
                                         onChange={e => setInput(e.target.value)}
                                         onKeyDown={handleKey}
-                                        placeholder="Escreva sua dúvida para o mestre..."
+                                        placeholder="Digite sua dúvida aqui..."
                                         rows={1}
-                                        className="flex-1 bg-transparent outline-none resize-none font-medium text-sm text-white placeholder:text-gray-600 placeholder:italic max-h-28"
+                                        className="flex-1 bg-transparent outline-none resize-none font-medium text-sm text-slate-900 placeholder:text-slate-300 placeholder:font-bold max-h-28"
                                         style={{ lineHeight: '1.6' }}
                                     />
                                 </div>
-                                <button className="p-3 text-gray-600 hover:text-[#00C402] transition shrink-0">
-                                    <Mic size={18} />
-                                </button>
                                 <button
                                     onClick={handleSend}
                                     disabled={!input.trim()}
-                                    className="w-12 h-12 bg-[#00C402] text-black rounded-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-[0_0_20px_rgba(0,196,2,0.3)] disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
+                                    className="w-14 h-14 bg-slate-900 text-white rounded-2xl flex items-center justify-center hover:bg-slate-800 disabled:opacity-20 active:scale-95 transition-all shadow-md shrink-0"
                                 >
-                                    <Send size={18} strokeWidth={3} />
+                                    <Send size={20} strokeWidth={2.5} />
                                 </button>
                             </div>
-                            <p className="text-[8px] font-black uppercase tracking-[3px] text-center text-gray-700 mt-3">Enter para enviar • Shift+Enter para nova linha</p>
+                            <p className="text-[8px] font-black uppercase tracking-[3px] text-center text-slate-300 mt-4">Sua conversa é protegida por criptografia SPCS Shield</p>
                         </div>
                     </section>
                 </div>

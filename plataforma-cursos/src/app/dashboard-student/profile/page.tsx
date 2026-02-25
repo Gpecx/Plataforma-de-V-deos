@@ -16,25 +16,27 @@ export default async function ProfilePage() {
         .single()
 
     return (
-        <div className="max-w-4xl mx-auto p-8 md:p-12">
-            <div className="mb-8 flex items-center justify-between">
-                <div>
-                    <h1 className="text-4xl font-black italic tracking-tighter uppercase mb-2">
-                        Meu <span className="text-[#00C402]">Perfil</span>
-                    </h1>
-                    <p className="text-gray-400">Gerencie suas informações pessoais na plataforma.</p>
+        <div className="min-h-screen bg-[#F5F7FA] font-exo p-8 md:p-12 border-t border-slate-100">
+            <div className="max-w-4xl mx-auto space-y-10">
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-3xl font-black tracking-tighter uppercase mb-1 text-slate-900 leading-none">
+                            Meu <span className="text-[#00C402]">Perfil</span>
+                        </h1>
+                        <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[3px]">Gerencie suas informações pessoais na plataforma.</p>
+                    </div>
+                    <Link
+                        href="/dashboard-student"
+                        className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition group bg-white px-5 py-3 rounded-xl border border-slate-100 shadow-sm"
+                    >
+                        <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
+                        Voltar
+                    </Link>
                 </div>
-                <Link
-                    href="/dashboard-student"
-                    className="flex items-center gap-2 text-sm text-gray-400 hover:text-white transition"
-                >
-                    <ArrowLeft size={16} />
-                    Voltar
-                </Link>
-            </div>
 
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 md:p-12 shadow-2xl">
-                <ProfileForm initialFullName={profile?.full_name || ''} />
+                <div className="bg-white border border-slate-100 rounded-[32px] p-8 md:p-12 shadow-sm">
+                    <ProfileForm initialFullName={profile?.full_name || ''} />
+                </div>
             </div>
         </div>
     )

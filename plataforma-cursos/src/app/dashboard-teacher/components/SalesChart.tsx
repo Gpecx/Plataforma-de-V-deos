@@ -7,22 +7,12 @@ interface SalesData {
     vendas: number
 }
 
-const data: SalesData[] = [
-    { name: 'Seg', vendas: 400 },
-    { name: 'Ter', vendas: 700 },
-    { name: 'Qua', vendas: 600 },
-    { name: 'Qui', vendas: 800 },
-    { name: 'Sex', vendas: 500 },
-    { name: 'Sáb', vendas: 900 },
-    { name: 'Dom', vendas: 1100 },
-]
-
-export function SalesChart() {
+export function SalesChart({ data }: { data: SalesData[] }) {
     return (
         <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={data}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#ffffff10" vertical={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
                     <XAxis
                         dataKey="name"
                         stroke="#94a3b8"
@@ -39,12 +29,13 @@ export function SalesChart() {
                     />
                     <Tooltip
                         contentStyle={{
-                            backgroundColor: '#0a1f3a',
-                            border: '1px solid rgba(255,255,255,0.1)',
+                            backgroundColor: '#ffffff',
+                            border: '1px solid #E2E8F0',
                             borderRadius: '12px',
-                            color: '#fff'
+                            color: '#334155',
+                            boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
                         }}
-                        itemStyle={{ color: '#00C402' }}
+                        itemStyle={{ color: '#00C402', fontWeight: 'bold' }}
                     />
                     <Line
                         type="monotone"

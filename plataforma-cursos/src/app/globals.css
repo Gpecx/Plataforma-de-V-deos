@@ -1,15 +1,22 @@
 @import "tailwindcss";
 
 @theme {
-  /* Suas Cores Estilo Udemy */
+  /* Cores Modernas e Limpas */
   --color-brand-dark: #061629;
   --color-brand-green: #00C402;
   --color-brand-green-dark: #1D5F31;
 
+  --color-slate-50: #f8fafc;
+  --color-slate-100: #f1f5f9;
+  --color-slate-500: #64748b;
+  --color-slate-700: #334155;
+  --color-slate-800: #1e293b;
+  --color-slate-900: #0f172a;
+
   /* Fontes */
   --font-exo: "Exo 2", sans-serif;
 
-  /* Variáveis de suporte para o Shadcn não quebrar */
+  /* Variáveis de suporte para o Shadcn */
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -18,16 +25,61 @@
 }
 
 :root {
-  --background: #061629;
-  --foreground: #061629;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #00C402;
+  --background: #F4F7F9;
+  /* Soft Matte Ice Gray */
+  --foreground: #334155;
+  /* Slate-700 for better balance */
+  --border: #E2E8F0;
+  /* Standard Soft Matte Border */
+  --input: #E2E8F0;
+  --ring: #334155;
   --radius: 0.5rem;
+
+  --primary: #334155;
+  --primary-foreground: #ffffff;
+
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
 }
 
-/* Removemos o @layer base por enquanto para evitar o erro de 'unknown utility' */
 body {
-  background-color: var(--background);
-  color: var(--foreground);
+  background-color: var(--background) !important;
+  color: #475569;
+  /* Slate-600 */
+  font-family: var(--font-exo);
+  font-size: 0.875rem;
+  /* Soft Matte Filter */
+  filter: saturate(0.9) brightness(0.97);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: #334155;
+  /* Slate-700 */
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+p {
+  color: #64748b;
+  /* Slate-500 */
+}
+
+/* Forçar bordas suaves e sombras em cards brancos */
+.bg-white,
+.bg-card {
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
+  /* shadow-sm */
+}
+
+/* Overwrite default borders for clarity */
+.border,
+[class*="border-"] {
+  border-color: #E2E8F0;
 }

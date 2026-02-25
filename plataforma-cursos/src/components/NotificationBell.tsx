@@ -1,12 +1,13 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Bell, MessageSquare, PlayCircle, CheckCheck, X } from 'lucide-react'
+import { Bell, MessageSquare, PlayCircle, CheckCheck, X, TrendingUp, Users } from 'lucide-react'
+import { createClient } from '@/utils/supabase/client'
 
 interface Notification {
     id: string
-    type: 'reply' | 'new_lesson'
+    type: 'reply' | 'new_lesson' | 'sale' | 'new_student'
     title: string
     subtitle: string
     time: string
@@ -14,50 +15,94 @@ interface Notification {
     href: string
 }
 
-// Mock notifications — replace with real Supabase fetch later
-const MOCK_NOTIFICATIONS: Notification[] = [
-    {
-        id: '1',
-        type: 'reply',
-        title: 'Professor respondeu sua dúvida',
-        subtitle: 'Curso: Dominando o Marketing Digital',
-        time: '5 min atrás',
-        read: false,
-        href: '/dashboard-student/messages',
-    },
-    {
-        id: '2',
-        type: 'new_lesson',
-        title: 'Nova aula disponível!',
-        subtitle: 'Módulo 3 — Estratégias Avançadas de Venda',
-        time: '1h atrás',
-        read: false,
-        href: '/classroom/1',
-    },
-    {
-        id: '3',
-        type: 'reply',
-        title: 'Professor respondeu sua dúvida',
-        subtitle: 'Curso: Copywriting de Elite',
-        time: '3h atrás',
-        read: true,
-        href: '/dashboard-student/messages',
-    },
-    {
-        id: '4',
-        type: 'new_lesson',
-        title: 'Nova aula disponível!',
-        subtitle: 'Módulo 2 — Framework de Fechamento',
-        time: 'Ontem',
-        read: true,
-        href: '/classroom/2',
-    },
-]
-
-export function NotificationBell({ accent = '#00C402' }: { accent?: string }) {
+export function NotificationBell({
+    accent = '#00C402',
+    isTeacher = false
+}: {
+    accent?: string,
+    isTeacher?: boolean
+}) {
     const router = useRouter()
+    const supabase = createClient()
     const [open, setOpen] = useState(false)
-    const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS)
+    const [notifications, setNotifications] = useState<Notification[]>([])
+    const [loading, setLoading] = useState(true)
+
+    const fetchNotifications = async () => {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+
+        if (isTeacher) {
+            // Notificações de Professor: Novas Matrículas/Vendas
+            const { data: courses } = await supabase.from('courses').select('id, title').eq('teacher_id', user.id)
+            const courseIds = courses?.map(c => c.id) || []
+
+            const { data: enrollments } = await supabase
+                .from('enrollments')
+                .select('id, created_at, course_id, user_id')
+                .in('course_id', courseIds)
+                .order('created_at', { ascending: false })
+                .limit(5)
+
+            const { data: profiles } = await supabase
+                .from('profiles')
+                .select('id, full_name')
+                .in('id', enrollments?.map(e => e.user_id) || [])
+
+            const profilesMap = new Map(profiles?.map(p => [p.id, p]))
+            const coursesMap = new Map(courses?.map(c => [c.id, c]))
+
+            const teacherNotifs: Notification[] = (enrollments || []).map(e => ({
+                id: e.id.toString(),
+                type: 'sale',
+                title: 'Nova venda realizada!',
+                subtitle: `${profilesMap.get(e.user_id)?.full_name || 'Aluno'} comprou ${coursesMap.get(e.course_id)?.title}`,
+                time: new Date(e.created_at).toLocaleDateString('pt-BR'),
+                read: false,
+                href: `/dashboard-teacher/analytics?saleId=${e.id}`
+            }))
+            setNotifications(teacherNotifs)
+        } else {
+            // Notificações de Aluno: Novas Aulas (Simulado via cursos matriculados recentemente)
+            const { data: enrollments } = await supabase.from('enrollments').select('course_id').eq('user_id', user.id)
+            const myCourseIds = enrollments?.map(e => e.course_id) || []
+
+            const { data: recentCourses } = await supabase
+                .from('courses')
+                .select('id, title, updated_at')
+                .in('id', myCourseIds)
+                .order('updated_at', { ascending: false })
+                .limit(5)
+
+            const studentNotifs: Notification[] = (recentCourses || []).map(c => ({
+                id: c.id.toString(),
+                type: 'new_lesson',
+                title: 'Conteúdo atualizado!',
+                subtitle: `Novas aulas em: ${c.title}`,
+                time: new Date(c.updated_at).toLocaleDateString('pt-BR'),
+                read: false,
+                href: `/classroom/${c.id}`
+            }))
+            setNotifications(studentNotifs)
+        }
+        setLoading(false)
+    }
+
+    useEffect(() => {
+        fetchNotifications()
+
+        // Setup realtime subscription (Optional but recommended)
+        const channel = supabase
+            .channel('db-changes')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'enrollments' }, () => {
+                fetchNotifications()
+            })
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [isTeacher])
 
     const unread = notifications.filter(n => !n.read).length
 
@@ -78,12 +123,12 @@ export function NotificationBell({ accent = '#00C402' }: { accent?: string }) {
             {/* Bell Trigger */}
             <button
                 onClick={() => setOpen(prev => !prev)}
-                className="text-gray-400 hover:text-white transition cursor-pointer relative outline-none"
+                className="text-slate-400 hover:text-slate-600 transition cursor-pointer relative outline-none"
             >
                 <Bell size={20} />
                 {unread > 0 && (
                     <span
-                        className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-black text-[9px] font-black flex items-center justify-center border border-[#061629] animate-in zoom-in duration-300"
+                        className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-white text-[9px] font-black flex items-center justify-center border border-white animate-in zoom-in duration-300"
                         style={{ backgroundColor: accent }}
                     >
                         {unread}
@@ -94,17 +139,18 @@ export function NotificationBell({ accent = '#00C402' }: { accent?: string }) {
             {/* Dropdown Panel */}
             {open && (
                 <>
-                    {/* Backdrop */}
                     <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
 
-                    <div className="absolute right-0 mt-3 w-96 z-50 bg-[#0a1f3a]/95 backdrop-blur-2xl border border-white/10 rounded-[28px] shadow-[0_30px_80px_rgba(0,0,0,0.6)] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="absolute right-0 mt-3 w-80 md:w-96 z-50 bg-white border border-slate-200 rounded-[28px] shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                         {/* Header */}
-                        <div className="flex items-center justify-between px-6 py-5 border-b border-white/5">
+                        <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
                             <div>
-                                <h3 className="font-black uppercase italic tracking-tighter text-base">Notificações</h3>
+                                <h3 className="font-black uppercase tracking-tighter text-base text-slate-700">
+                                    {isTeacher ? 'Painel de Alertas' : 'Notificações'}
+                                </h3>
                                 {unread > 0 && (
                                     <p className="text-[9px] font-black uppercase tracking-[3px] mt-0.5" style={{ color: accent }}>
-                                        {unread} não lidas
+                                        {unread} novas interações
                                     </p>
                                 )}
                             </div>
@@ -112,13 +158,13 @@ export function NotificationBell({ accent = '#00C402' }: { accent?: string }) {
                                 {unread > 0 && (
                                     <button
                                         onClick={markAllRead}
-                                        className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-[2px] text-gray-500 hover:text-white transition px-3 py-1.5 rounded-lg border border-white/5 hover:border-white/20"
+                                        className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-[2px] text-slate-400 hover:text-slate-600 transition px-3 py-1.5 rounded-lg border border-slate-100 hover:border-slate-200"
                                     >
                                         <CheckCheck size={12} />
-                                        Marcar todas
+                                        Limpar
                                     </button>
                                 )}
-                                <button onClick={() => setOpen(false)} className="text-gray-600 hover:text-white transition">
+                                <button onClick={() => setOpen(false)} className="text-slate-400 hover:text-slate-600 transition">
                                     <X size={16} />
                                 </button>
                             </div>
@@ -126,42 +172,36 @@ export function NotificationBell({ accent = '#00C402' }: { accent?: string }) {
 
                         {/* Notification List */}
                         <div className="max-h-[400px] overflow-y-auto">
-                            {notifications.length === 0 ? (
+                            {loading ? (
+                                <div className="py-12 text-center text-slate-400 text-xs font-bold uppercase tracking-widest">Carregando...</div>
+                            ) : notifications.length === 0 ? (
                                 <div className="py-12 text-center">
-                                    <Bell size={32} className="mx-auto text-gray-700 mb-3" />
-                                    <p className="text-xs font-bold uppercase text-gray-600 tracking-widest">Nenhuma notificação</p>
+                                    <Bell size={32} className="mx-auto text-slate-200 mb-3" />
+                                    <p className="text-xs font-bold uppercase text-slate-400 tracking-widest">Tudo em dia!</p>
                                 </div>
                             ) : (
                                 notifications.map((notif) => (
                                     <button
                                         key={notif.id}
                                         onClick={() => handleClick(notif)}
-                                        className={`w-full flex items-start gap-4 px-6 py-5 text-left transition-all border-b border-white/5 last:border-0 group ${notif.read ? 'opacity-50 hover:opacity-100' : 'hover:bg-white/5'}`}
+                                        className={`w-full flex items-start gap-4 px-6 py-5 text-left transition-all border-b border-slate-50 last:border-0 group ${notif.read ? 'opacity-50' : 'hover:bg-slate-50'}`}
                                     >
-                                        {/* Icon */}
                                         <div
-                                            className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 mt-0.5 transition-all ${notif.read ? 'bg-white/5' : ''}`}
-                                            style={!notif.read ? { backgroundColor: `${accent}20`, boxShadow: `0 0 20px ${accent}30` } : {}}
+                                            className={`w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 mt-0.5 transition-all ${notif.read ? 'bg-slate-50' : 'bg-slate-100'}`}
                                         >
-                                            {notif.type === 'reply' ? (
-                                                <MessageSquare size={18} style={{ color: notif.read ? '#4B5563' : accent }} />
-                                            ) : (
-                                                <PlayCircle size={18} style={{ color: notif.read ? '#4B5563' : accent }} />
-                                            )}
+                                            {notif.type === 'reply' && <MessageSquare size={18} style={{ color: notif.read ? '#94A3B8' : accent }} />}
+                                            {notif.type === 'new_lesson' && <PlayCircle size={18} style={{ color: notif.read ? '#94A3B8' : accent }} />}
+                                            {notif.type === 'sale' && <TrendingUp size={18} style={{ color: notif.read ? '#94A3B8' : accent }} />}
+                                            {notif.type === 'new_student' && <Users size={18} style={{ color: notif.read ? '#94A3B8' : accent }} />}
                                         </div>
 
-                                        {/* Content */}
                                         <div className="flex-1 min-w-0">
-                                            <p className={`text-sm font-black uppercase tracking-tight leading-tight mb-1 ${notif.read ? 'text-gray-500' : 'text-white'}`}>
+                                            <p className={`text-sm font-black uppercase tracking-tight leading-tight mb-1 ${notif.read ? 'text-slate-400' : 'text-slate-700'}`}>
                                                 {notif.title}
                                             </p>
-                                            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 truncate italic">{notif.subtitle}</p>
-                                            <p className="text-[9px] font-black uppercase tracking-[2px] mt-2" style={{ color: notif.read ? '#374151' : accent }}>
-                                                {notif.time}
-                                            </p>
+                                            <p className="text-[10px] text-slate-500 truncate italic">{notif.subtitle}</p>
                                         </div>
 
-                                        {/* Unread dot */}
                                         {!notif.read && (
                                             <div className="w-2 h-2 rounded-full mt-2 shrink-0" style={{ backgroundColor: accent }} />
                                         )}
@@ -171,12 +211,12 @@ export function NotificationBell({ accent = '#00C402' }: { accent?: string }) {
                         </div>
 
                         {/* Footer */}
-                        <div className="px-6 py-4 border-t border-white/5">
+                        <div className="px-6 py-4 border-t border-slate-100">
                             <button
-                                onClick={() => { setOpen(false); router.push('/dashboard-student/messages') }}
-                                className="w-full text-[9px] font-black uppercase tracking-[3px] py-3 rounded-xl border border-white/5 hover:border-white/20 text-gray-500 hover:text-white transition-all"
+                                onClick={() => { setOpen(false); router.push(isTeacher ? '/dashboard-teacher/analytics' : '/dashboard-student/chat') }}
+                                className="w-full text-[9px] font-black uppercase tracking-[3px] py-3 rounded-xl border border-slate-100 hover:border-slate-200 text-slate-400 hover:text-slate-700 transition-all outline-none"
                             >
-                                Ver todas as mensagens
+                                {isTeacher ? 'Ver relatório de vendas' : 'Ver todas as mensagens'}
                             </button>
                         </div>
                     </div>

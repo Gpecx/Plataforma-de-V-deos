@@ -17,6 +17,7 @@ import {
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { processCheckoutAction } from '@/app/dashboard-student/actions'
 
 type PaymentMethod = 'card' | 'pix' | 'boleto'
 
@@ -39,14 +40,31 @@ export default function CheckoutPage() {
 
     const total = getTotal()
 
-    const handlePayment = () => {
+    const handlePayment = async () => {
         setIsProcessing(true)
-        // Simulando processamento de pagamento EXS
-        setTimeout(() => {
+
+        try {
+            // 1. Pega os IDs dos cursos no carrinho
+            const courseIds = items.map(item => item.id)
+
+            // 2. Chama a action para gravar no banco
+            const result = await processCheckoutAction(courseIds)
+
+            if (result.success) {
+                // 3. Feedback e Limpeza
+                alert("Acesso liberado! Bons estudos")
+                setIsProcessing(false)
+                setIsFinished(true)
+                clearCart()
+            } else {
+                alert("Erro ao processar matrícula: " + result.error)
+                setIsProcessing(false)
+            }
+        } catch (error) {
+            console.error(error)
+            alert("Erro fatal no pagamento. Tente novamente.")
             setIsProcessing(false)
-            setIsFinished(true)
-            clearCart()
-        }, 3000)
+        }
     }
 
     if (isFinished) {
@@ -145,7 +163,7 @@ export default function CheckoutPage() {
                                         <div className="p-6 bg-[#00C402]/10 border border-[#00C402]/20 rounded-2xl flex items-center gap-4">
                                             <ShieldCheck size={28} className="text-[#00C402]" />
                                             <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-relaxed">
-                                                Seus dados estão protegidos por criptografia de ponta a ponta EXS Shield. Nunca armazenamos seu CVV.
+                                                Seus dados estão protegidos por criptografia de ponta a ponta SPCS Shield. Nunca armazenamos seu CVV.
                                             </p>
                                         </div>
                                     </div>
@@ -174,7 +192,7 @@ export default function CheckoutPage() {
                                                 <div className="h-20 w-full bg-white/10 rounded flex justify-between px-4 items-center">
                                                     {[...Array(30)].map((_, i) => <div key={i} className={`w-0.5 bg-white h-full ${i % 3 === 0 ? 'opacity-20' : 'opacity-100'}`}></div>)}
                                                 </div>
-                                                <p className="text-[10px] font-black uppercase tracking-widest">Boleto Bancário EXS Solutions</p>
+                                                <p className="text-[10px] font-black uppercase tracking-widest">Boleto Bancário SPCS Academy</p>
                                             </div>
                                         </div>
                                         <div>
@@ -215,7 +233,7 @@ export default function CheckoutPage() {
                                     <span>R$ {total.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between font-bold uppercase text-[10px] tracking-widest text-[#00C402]">
-                                    <span>Desconto EXS</span>
+                                    <span>Desconto SPCS Academy</span>
                                     <span>- R$ 0,00</span>
                                 </div>
                                 <div className="h-px bg-white/5 my-6"></div>

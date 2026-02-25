@@ -7,7 +7,7 @@ export default function TeacherLayout({
     children: React.ReactNode
 }) {
     return (
-        <div className="min-h-screen bg-[#061629] text-white">
+        <div className="min-h-screen bg-[#F4F7F9] text-slate-800">
             <Navbar />
 
             {/* Main Content Area */}

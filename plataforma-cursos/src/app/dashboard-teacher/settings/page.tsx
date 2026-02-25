@@ -11,107 +11,119 @@ export default function TeacherSettingsPage() {
     const [browserEnabled, setBrowserEnabled] = useState(false)
 
     return (
-        <div className="min-h-screen bg-[#061629] p-8 md:p-12 space-y-12">
-            <header>
-                <h1 className="text-3xl font-black italic uppercase tracking-tighter">
-                    Configurações do <span className="text-[#00FF00]">Professor</span>
+        <div className="min-h-screen bg-[#F4F7F9] p-8 md:p-12 space-y-16 font-exo border-t border-slate-100">
+            <header className="max-w-6xl mx-auto">
+                <div className="flex items-center gap-3 mb-2">
+                    <span className="text-[10px] font-black uppercase tracking-[5px] text-[#00C402]">WORKSPACE SETTINGS</span>
+                </div>
+                <h1 className="text-4xl font-black tracking-tighter text-slate-800">
+                    CONFIGURAÇÕES DO <span className="text-[#00C402] uppercase">TEACHER</span>
                 </h1>
-                <p className="text-gray-400 mt-1">Gerencie suas preferências de pagamento e notificações.</p>
+                <p className="text-slate-500 mt-2 font-semibold text-xs tracking-widest uppercase">Gerencie suas preferências de faturamento e alertas de sistema.</p>
             </header>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
                 {/* Configurações Financeiras */}
-                <section className="bg-[#0a1f3a]/40 border border-white/5 rounded-3xl p-8 backdrop-blur-md space-y-8">
-                    <div className="flex items-center gap-3">
-                        <div className="p-3 bg-green-500/10 rounded-xl text-green-500">
-                            <Wallet size={24} />
+                <section className="bg-white border border-slate-100 rounded-[32px] p-10 shadow-sm space-y-10">
+                    <div className="flex items-center gap-4">
+                        <div className="p-4 bg-slate-50 rounded-2xl text-slate-900 border border-slate-100">
+                            <Wallet size={24} strokeWidth={2.5} />
                         </div>
-                        <h2 className="text-xl font-bold italic tracking-tight uppercase">Dados de Faturamento</h2>
+                        <div>
+                            <h2 className="text-xl font-black uppercase tracking-tighter text-slate-900 leading-none">Dados de Saída</h2>
+                            <p className="text-[10px] font-bold uppercase tracking-[2px] text-slate-400 mt-2">Como você recebe seus lucros.</p>
+                        </div>
                     </div>
 
-                    <div className="space-y-6">
-                        <div className="space-y-2">
-                            <label className="text-xs font-black uppercase tracking-widest text-gray-500">Chave PIX para Recebimento</label>
-                            <div className="relative">
-                                <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                    <div className="space-y-8">
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 px-1">Chave PIX Estratégica</label>
+                            <div className="relative group">
+                                <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-[#00C402] transition-colors" size={20} />
                                 <Input
                                     value={pixKey}
                                     onChange={(e) => setPixKey(e.target.value)}
                                     placeholder="CPF, E-mail ou Chave Aleatória"
-                                    className="bg-black/20 border-white/10 pl-10 focus:border-[#00FF00]"
+                                    className="bg-slate-50 border-slate-100 rounded-2xl pl-12 h-14 focus:border-[#00C402] focus:ring-4 focus:ring-[#00C402]/5 font-bold text-sm"
                                 />
                             </div>
-                            <p className="text-[10px] text-gray-500 italic">As comissões serão enviadas para esta chave automaticamente.</p>
+                            <p className="text-[9px] text-slate-400 font-medium italic px-1">As comissões de vendas serão auditadas e enviadas para esta chave.</p>
                         </div>
                     </div>
                 </section>
 
                 {/* Notificações */}
-                <section className="bg-[#0a1f3a]/40 border border-white/5 rounded-3xl p-8 backdrop-blur-md space-y-8">
-                    <div className="flex items-center gap-3">
-                        <div className="p-3 bg-blue-500/10 rounded-xl text-blue-500">
-                            <Bell size={24} />
+                <section className="bg-white border border-slate-100 rounded-[32px] p-10 shadow-sm space-y-10">
+                    <div className="flex items-center gap-4">
+                        <div className="p-4 bg-slate-50 rounded-2xl text-slate-900 border border-slate-100">
+                            <Bell size={24} strokeWidth={2.5} />
                         </div>
-                        <h2 className="text-xl font-bold italic tracking-tight uppercase">Notificações</h2>
+                        <div>
+                            <h2 className="text-xl font-black uppercase tracking-tighter text-slate-900 leading-none">Alertas Digitais</h2>
+                            <p className="text-[10px] font-bold uppercase tracking-[2px] text-slate-400 mt-2">Fique por dentro de cada nova venda.</p>
+                        </div>
                     </div>
 
-                    <div className="space-y-6">
-                        <div className="flex items-center justify-between p-4 bg-black/20 rounded-2xl border border-white/5">
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between p-6 bg-slate-50 rounded-2xl border border-slate-100 hover:border-slate-200 transition-all">
                             <div>
-                                <h3 className="text-sm font-bold">Relatórios Semanais</h3>
-                                <p className="text-xs text-gray-500">Receba um resumo de vendas por e-mail.</p>
+                                <h3 className="text-xs font-black uppercase tracking-widest text-slate-900">Relatórios de Performance</h3>
+                                <p className="text-[10px] text-slate-500 font-medium mt-1">Resumo semanal do ecossistema por e-mail.</p>
                             </div>
                             <button
                                 onClick={() => setEmailEnabled(!emailEnabled)}
-                                className={`w-12 h-6 rounded-full transition-colors relative ${emailEnabled ? 'bg-[#00FF00]' : 'bg-gray-700'}`}
+                                className={`w-12 h-6 rounded-full transition-all relative ${emailEnabled ? 'bg-[#00C402]' : 'bg-slate-200 shadow-inner'}`}
                             >
-                                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${emailEnabled ? 'right-1' : 'left-1'}`}></div>
+                                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all shadow-md ${emailEnabled ? 'right-1' : 'left-1'}`}></div>
                             </button>
                         </div>
 
-                        <div className="flex items-center justify-between p-4 bg-black/20 rounded-2xl border border-white/5">
+                        <div className="flex items-center justify-between p-6 bg-slate-50 rounded-2xl border border-slate-100 hover:border-slate-200 transition-all">
                             <div>
-                                <h3 className="text-sm font-bold">Novos Alunos</h3>
-                                <p className="text-xs text-gray-500">Alertas em tempo real no seu navegador.</p>
+                                <h3 className="text-xs font-black uppercase tracking-widest text-slate-900">Novos Leads e Alunos</h3>
+                                <p className="text-[10px] text-slate-500 font-medium mt-1">Push notifications em tempo real.</p>
                             </div>
                             <button
                                 onClick={() => setBrowserEnabled(!browserEnabled)}
-                                className={`w-12 h-6 rounded-full transition-colors relative ${browserEnabled ? 'bg-[#00FF00]' : 'bg-gray-700'}`}
+                                className={`w-12 h-6 rounded-full transition-all relative ${browserEnabled ? 'bg-[#00C402]' : 'bg-slate-200 shadow-inner'}`}
                             >
-                                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${browserEnabled ? 'right-1' : 'left-1'}`}></div>
+                                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all shadow-md ${browserEnabled ? 'right-1' : 'left-1'}`}></div>
                             </button>
                         </div>
                     </div>
                 </section>
 
                 {/* Segurança */}
-                <section className="bg-[#0a1f3a]/40 border border-white/5 rounded-3xl p-8 backdrop-blur-md space-y-8 lg:col-span-2">
-                    <div className="flex items-center gap-3">
-                        <div className="p-3 bg-amber-500/10 rounded-xl text-amber-500">
-                            <Shield size={24} />
+                <section className="bg-white border border-slate-100 rounded-[32px] p-10 shadow-sm space-y-10 lg:col-span-2 relative overflow-hidden group">
+                    <div className="flex items-center gap-4 relative z-10">
+                        <div className="p-4 bg-slate-50 rounded-2xl text-[#00C402] border border-slate-100">
+                            <Shield size={24} strokeWidth={2.5} />
                         </div>
-                        <h2 className="text-xl font-bold italic tracking-tight uppercase">Conta e Segurança</h2>
+                        <div>
+                            <h2 className="text-xl font-black uppercase tracking-tighter text-slate-900 leading-none">Protocolos de Acesso</h2>
+                            <p className="text-[10px] font-bold uppercase tracking-[2px] text-slate-400 mt-2">Proteção de dados e soberania da conta.</p>
+                        </div>
                     </div>
 
-                    <div className="flex flex-col md:flex-row gap-8">
-                        <div className="flex-grow space-y-4">
-                            <h3 className="text-sm font-bold">Alterar Senha</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <Input type="password" placeholder="Nova senha" className="bg-black/20 border-white/10 focus:border-[#00FF00]" />
-                                <Input type="password" placeholder="Confirmar nova senha" className="bg-black/20 border-white/10 focus:border-[#00FF00]" />
+                    <div className="flex flex-col md:flex-row gap-12 relative z-10">
+                        <div className="flex-grow space-y-6">
+                            <h3 className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 px-1">Redefinição de Credenciais</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <Input type="password" placeholder="Nova senha master" className="bg-slate-50 border-slate-100 h-14 rounded-2xl text-slate-900 focus:border-[#00C402] placeholder:text-slate-400 font-bold text-sm" />
+                                <Input type="password" placeholder="Confirmar nova senha" className="bg-slate-50 border-slate-100 h-14 rounded-2xl text-slate-900 focus:border-[#00C402] placeholder:text-slate-400 font-bold text-sm" />
                             </div>
                         </div>
                         <div className="flex items-end">
-                            <Button variant="outline" className="border-white/10 text-white hover:bg-white/5 px-8">Atualizar Acesso</Button>
+                            <Button variant="outline" className="border-slate-100 text-slate-400 hover:bg-slate-50 hover:text-slate-900 h-14 px-8 rounded-2xl font-black uppercase tracking-[2px] text-[10px] transition-all">Sincronizar Acesso</Button>
                         </div>
                     </div>
                 </section>
             </div>
 
-            <div className="flex justify-end pt-8">
-                <Button className="bg-[#00FF00] text-black font-black uppercase tracking-widest py-6 px-12 rounded-2xl hover:brightness-110 shadow-[0_0_20px_rgba(0,255,0,0.3)] transition-all gap-2">
-                    <Save size={20} />
-                    Salvar Configurações
+            <div className="flex justify-end pt-8 max-w-6xl mx-auto">
+                <Button className="bg-[#00C402] text-white font-black uppercase tracking-[3px] h-14 px-12 rounded-2xl hover:brightness-110 shadow-xl shadow-[#00C402]/20 transition-all gap-4 animate-in fade-in slide-in-from-bottom-4 text-[11px]">
+                    <Save size={18} strokeWidth={3} />
+                    Salvar Alterações
                 </Button>
             </div>
         </div>
