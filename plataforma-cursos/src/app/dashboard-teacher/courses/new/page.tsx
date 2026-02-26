@@ -157,11 +157,11 @@ export default function NewCoursePage() {
                     <h1 className="text-3xl font-black tracking-tighter uppercase leading-none">
                         Criar <span className="text-[#00C402]">Novo Curso</span>
                     </h1>
-                    <p className="text-slate-500 mt-2 text-[10px] font-bold uppercase tracking-[3px]">Siga os passos abaixo para publicar seu conhecimento.</p>
+                    <p className="text-black mt-2 text-[10px] font-bold uppercase tracking-[3px]">Siga os passos abaixo para publicar seu conhecimento.</p>
                 </div>
                 <button
                     onClick={() => router.back()}
-                    className="flex items-center gap-3 text-slate-500 hover:text-slate-800 transition group bg-white border border-slate-100 px-6 py-3 rounded-2xl shadow-sm"
+                    className="flex items-center gap-3 text-black hover:text-slate-800 transition group bg-white border border-slate-100 px-6 py-3 rounded-2xl shadow-sm"
                 >
                     <X size={18} className="group-hover:rotate-90 transition-transform" />
                     <span className="font-black uppercase text-[10px] tracking-widest">Sair do Studio</span>
@@ -192,7 +192,7 @@ export default function NewCoursePage() {
                                 `}>
                                     {isCompleted ? <Check size={24} strokeWidth={4} /> : <Icon size={24} />}
                                 </div>
-                                <span className={`mt-5 text-[9px] font-black uppercase tracking-[2px] ${isActive ? 'text-slate-800' : 'text-slate-400'}`}>
+                                <span className={`mt-5 text-[9px] font-black uppercase tracking-[2px] text-black`}>
                                     {step.name}
                                 </span>
                             </div>
@@ -208,7 +208,7 @@ export default function NewCoursePage() {
                     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-700">
                         {/* Upload de Capa */}
                         <div className="space-y-4">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Capa do Treinamento</Label>
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-black px-1">Capa do Treinamento</Label>
                             <div className="relative group overflow-hidden rounded-3xl border-2 border-dashed border-slate-100 hover:border-[#00C402]/30 transition-all duration-500 bg-slate-50/50 aspect-video flex flex-col items-center justify-center cursor-pointer">
                                 {formData.image_url ? (
                                     <>
@@ -228,13 +228,13 @@ export default function NewCoursePage() {
                                         {isUploading ? (
                                             <div className="flex flex-col items-center gap-5">
                                                 <Loader2 className="animate-spin text-[#00C402]" size={40} />
-                                                <p className="text-[10px] font-black tracking-widest text-slate-400 animate-pulse">PROCESSANDO UPLOAD...</p>
+                                                <p className="text-[10px] font-black tracking-widest text-black animate-pulse">PROCESSANDO UPLOAD...</p>
                                             </div>
                                         ) : (
                                             <>
                                                 <Upload size={48} className="mx-auto text-slate-200 mb-6 group-hover:text-[#00C402] group-hover:scale-110 transition-all duration-500" />
-                                                <p className="text-[10px] font-black uppercase tracking-[3px] text-slate-400">Clique para subir a capa</p>
-                                                <p className="text-[9px] text-slate-300 mt-2 font-bold italic">DIMENSÕES IDEAIS: 1280X720PX</p>
+                                                <p className="text-[10px] font-black uppercase tracking-[3px] text-black">Clique para subir a capa</p>
+                                                <p className="text-[9px] text-slate-600 mt-2 font-bold italic">DIMENSÕES IDEAIS: 1280X720PX</p>
                                             </>
                                         )}
                                     </div>
@@ -251,26 +251,26 @@ export default function NewCoursePage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             <div className="md:col-span-2 lg:col-span-1 space-y-2">
-                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Nome do Curso</Label>
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-black px-1">Nome do Curso</Label>
                                 <Input
                                     placeholder="Ex: Do Zero ao Mestre em React"
-                                    className="bg-slate-50 border-slate-100 focus:border-[#00C402] focus:ring-[#00C402] h-14 rounded-2xl text-sm font-medium transition-all"
+                                    className="bg-slate-50 border-slate-100 focus:border-[#00C402] focus:ring-[#00C402] h-14 rounded-2xl text-sm font-medium transition-all text-black"
                                     value={formData.title}
                                     onChange={(e) => setStepData({ title: e.target.value })}
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Carga Horária (horas)</Label>
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-black px-1">Carga Horária (horas)</Label>
                                 <Input
                                     type="number"
                                     placeholder="Ex: 40"
-                                    className="bg-slate-50 border-slate-100 focus:border-[#00C402] focus:ring-[#00C402] h-14 rounded-2xl text-sm font-medium transition-all"
+                                    className="bg-slate-50 border-slate-100 focus:border-[#00C402] focus:ring-[#00C402] h-14 rounded-2xl text-sm font-medium transition-all text-black"
                                     value={formData.duration}
                                     onChange={(e) => setStepData({ duration: Number(e.target.value) })}
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Categoria Principal</Label>
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-black px-1">Categoria Principal</Label>
                                 <select
                                     className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 h-14 focus:border-[#00C402] focus:ring-[#00C402] focus:ring-4 focus:ring-[#00C402]/5 outline-none text-sm font-medium transition-all appearance-none"
                                     value={formData.category}
@@ -282,18 +282,18 @@ export default function NewCoursePage() {
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Subtítulo Estratégico</Label>
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-black px-1">Subtítulo Estratégico</Label>
                             <Input
                                 placeholder="Uma frase curta que resume a transformação"
-                                className="bg-slate-50 border-slate-100 focus:border-[#00C402] h-14 rounded-2xl text-sm font-medium transition-all"
+                                className="bg-slate-50 border-slate-100 focus:border-[#00C402] h-14 rounded-2xl text-sm font-medium transition-all text-black"
                                 value={formData.subtitle}
                                 onChange={(e) => setStepData({ subtitle: e.target.value })}
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Descrição Completa</Label>
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-black px-1">Descrição Completa</Label>
                             <textarea
-                                className="w-full bg-slate-50 border border-slate-100 rounded-[32px] p-6 min-h-[180px] focus:border-[#00C402] focus:ring-4 focus:ring-[#00C402]/5 outline-none text-sm font-medium transition-all leading-relaxed"
+                                className="w-full bg-slate-50 border border-slate-100 rounded-[32px] p-6 min-h-[180px] focus:border-[#00C402] focus:ring-4 focus:ring-[#00C402]/5 outline-none text-sm font-medium transition-all leading-relaxed text-black"
                                 placeholder="Descreva os benefícios e o que o aluno vai aprender..."
                                 value={formData.description}
                                 onChange={(e) => setStepData({ description: e.target.value })}
@@ -305,9 +305,9 @@ export default function NewCoursePage() {
                 {currentStep === 2 && (
                     <div className="space-y-12 animate-in fade-in duration-700">
                         <div className="space-y-6">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1 text-center block">Investimento Sugerido</Label>
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-black px-1 text-center block">Investimento Sugerido</Label>
                             <div className="relative max-w-sm mx-auto group">
-                                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 font-black text-2xl group-focus-within:text-[#00C402] transition-colors">R$</span>
+                                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-black font-black text-2xl group-focus-within:text-[#00C402] transition-colors">R$</span>
                                 <Input
                                     type="number"
                                     className="bg-slate-50 border-slate-100 focus:border-[#00C402] focus:ring-[#00C402] focus:ring-8 focus:ring-[#00C402]/5 h-24 pl-16 rounded-[40px] text-4xl font-black text-slate-900 shadow-sm transition-all text-center pr-8"
@@ -315,7 +315,7 @@ export default function NewCoursePage() {
                                     onChange={(e) => setStepData({ price: Number(e.target.value) })}
                                 />
                             </div>
-                            <p className="text-center text-[10px] text-slate-500 font-bold uppercase tracking-widest">Defina o valor do seu conteúdo Premium</p>
+                            <p className="text-center text-[10px] text-black font-bold uppercase tracking-widest">Defina o valor do seu conteúdo Premium</p>
                         </div>
                     </div>
                 )}
@@ -325,7 +325,7 @@ export default function NewCoursePage() {
                         <div className="flex justify-between items-center bg-slate-50 p-6 rounded-[32px] border border-slate-100">
                             <div>
                                 <h2 className="text-xl font-black tracking-tighter uppercase text-slate-800 leading-none"> Grade Curricular </h2>
-                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[2px] mt-2">Organize o fluxo de aprendizado.</p>
+                                <p className="text-[10px] text-black font-bold uppercase tracking-[2px] mt-2">Organize o fluxo de aprendizado.</p>
                             </div>
                             <Button
                                 onClick={handleAddLesson}
@@ -338,8 +338,8 @@ export default function NewCoursePage() {
                         {formData.lessons.length === 0 ? (
                             <div className="text-center py-24 bg-slate-50/50 rounded-[40px] border-2 border-dashed border-slate-100">
                                 <BookOpen size={48} className="mx-auto text-slate-200 mb-6" />
-                                <p className="text-slate-500 font-black uppercase text-[10px] tracking-[3px]">Nenhuma aula adicionada</p>
-                                <p className="text-slate-400 text-[10px] mt-2 font-medium">CONSTRUA SUA GRADE CURRICULAR AGORA</p>
+                                <p className="text-black font-black uppercase text-[10px] tracking-[3px]">Nenhuma aula adicionada</p>
+                                <p className="text-black text-[10px] mt-2 font-medium">CONSTRUA SUA GRADE CURRICULAR AGORA</p>
                             </div>
                         ) : (
                             <div className="space-y-6">
@@ -348,7 +348,7 @@ export default function NewCoursePage() {
                                         <div className="flex flex-col md:flex-row gap-10">
                                             <div className="flex-grow space-y-6 text-slate-900">
                                                 <div className="flex justify-between items-center">
-                                                    <span className="text-[9px] font-black uppercase tracking-[3px] text-slate-400">ESTÁGIO #{index + 1}</span>
+                                                    <span className="text-[9px] font-black uppercase tracking-[3px] text-black">ESTÁGIO #{index + 1}</span>
                                                     <button
                                                         onClick={() => handleRemoveLesson(index)}
                                                         className="text-slate-200 hover:text-red-500 hover:bg-red-50 p-2 rounded-lg transition-all"
@@ -357,7 +357,7 @@ export default function NewCoursePage() {
                                                     </button>
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Título da Aula</Label>
+                                                    <Label className="text-[10px] font-black uppercase tracking-widest text-black px-1">Título da Aula</Label>
                                                     <Input
                                                         placeholder="Ex: Introdução ao Módulo 1"
                                                         className="bg-white border-slate-100 focus:border-[#00C402] h-12 rounded-xl text-sm font-medium"
@@ -368,7 +368,7 @@ export default function NewCoursePage() {
                                             </div>
 
                                             <div className="w-full md:w-72 space-y-2">
-                                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Vídeo da Aula</Label>
+                                                <Label className="text-[10px] font-black uppercase tracking-widest text-black px-1">Vídeo da Aula</Label>
                                                 <div className={`
                                                     relative h-32 rounded-[24px] border-2 border-dashed transition-all flex flex-col items-center justify-center overflow-hidden
                                                     ${lesson.video_url ? 'border-[#00C402]/40 bg-white' : 'border-slate-100 bg-white hover:border-slate-200'}
@@ -394,7 +394,7 @@ export default function NewCoursePage() {
                                                     ) : (
                                                         <div className="text-center px-6">
                                                             <Upload size={24} className="mx-auto text-slate-200 mb-3" />
-                                                            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">SUBIR MP4</span>
+                                                            <span className="text-[9px] font-black uppercase tracking-widest text-black">SUBIR MP4</span>
                                                         </div>
                                                     )}
                                                     {!uploadingVideos[index] && !lesson.video_url && (

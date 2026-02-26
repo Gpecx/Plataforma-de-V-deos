@@ -48,21 +48,42 @@ export default function Navbar() {
 
     useEffect(() => {
         setMounted(true)
-        async function getProfile() {
+
+        async function getProfile(userId: string) {
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('role, full_name, created_at')
+                .eq('id', userId)
+                .single()
+            setUserProfile(profile)
+        }
+
+        async function checkUser() {
             const { data: { user } } = await supabase.auth.getUser()
             if (user) {
                 setIsLoggedIn(true)
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('role, full_name, created_at')
-                    .eq('id', user.id)
-                    .single()
-                setUserProfile(profile)
+                await getProfile(user.id)
             } else {
                 setIsLoggedIn(false)
+                setUserProfile(null)
             }
         }
-        getProfile()
+
+        checkUser()
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+            if (session?.user) {
+                setIsLoggedIn(true)
+                await getProfile(session.user.id)
+            } else {
+                setIsLoggedIn(false)
+                setUserProfile(null)
+            }
+        })
+
+        return () => {
+            subscription.unsubscribe()
+        }
     }, [])
 
     const formatDate = (dateString: string | null) => {
@@ -85,32 +106,32 @@ export default function Navbar() {
                             <img
                                 src="/images/SPCS academy 2.png"
                                 alt="SPCS Academy"
-                                className="h-14 md:h-16 w-auto"
+                                className="h-16 w-auto"
                             />
                             {isTeacherMode && (
                                 <span className="ml-3 text-[8px] bg-slate-900 text-white px-2 py-0.5 rounded font-black tracking-widest uppercase">Painel</span>
                             )}
                         </Link>
 
-                        <div className="hidden md:flex gap-6 text-base font-medium text-black">
+                        <div className="hidden md:flex gap-8 text-base font-bold text-black font-exo">
                             {!isTeacherMode ? (
                                 <>
-                                    <Link href="/" className="hover:opacity-70 transition">Início</Link>
-                                    <Link href="/course" className="hover:opacity-70 transition">Cursos</Link>
-                                    <Link href="/dashboard-student" className="hover:opacity-70 transition">Minha Lista</Link>
-                                    {isLoggedIn && <Link href="/dashboard-student/chat" className="hover:opacity-70 transition">Chat</Link>}
+                                    <Link href="/" className="hover:text-[#00C402] transition-colors duration-300">Início</Link>
+                                    <Link href="/course" className="hover:text-[#00C402] transition-colors duration-300">Cursos</Link>
+                                    <Link href="/dashboard-student" className="hover:text-[#00C402] transition-colors duration-300">Minha Lista</Link>
+                                    {isLoggedIn && <Link href="/dashboard-student/chat" className="hover:text-[#00C402] transition-colors duration-300">Chat</Link>}
                                 </>
                             ) : (
                                 <>
-                                    <Link href="/dashboard-teacher" className="hover:opacity-70 transition">Dashboard</Link>
-                                    <Link href="/dashboard-teacher/courses" className="hover:opacity-70 transition">Meus Cursos</Link>
-                                    <Link href="/dashboard-teacher/analytics" className="hover:opacity-70 transition">Desempenho</Link>
+                                    <Link href="/dashboard-teacher" className="hover:text-[#00C402] transition-colors duration-300">Dashboard</Link>
+                                    <Link href="/dashboard-teacher/courses" className="hover:text-[#00C402] transition-colors duration-300">Meus Cursos</Link>
+                                    <Link href="/dashboard-teacher/analytics" className="hover:text-[#00C402] transition-colors duration-300">Desempenho</Link>
                                 </>
                             )}
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-6 justify-end">
+                    <div className="flex items-center gap-6 justify-end ml-auto">
                         {isTeacherMode ? (
                             <Link
                                 href="/"
@@ -324,7 +345,10 @@ export default function Navbar() {
 
                                         <DropdownMenuItem
                                             onSelect={async () => {
-                                                await signOut();
+                                                await supabase.auth.signOut();
+                                                setIsLoggedIn(false);
+                                                setUserProfile(null);
+                                                router.push('/');
                                             }}
                                             className="flex items-center gap-4 px-4 py-4 rounded-xl cursor-pointer hover:bg-red-50 text-red-500 transition-colors outline-none focus:bg-red-50 group mb-1"
                                         >
