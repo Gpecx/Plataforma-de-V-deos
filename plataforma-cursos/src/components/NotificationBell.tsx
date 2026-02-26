@@ -123,7 +123,7 @@ export function NotificationBell({
             {/* Bell Trigger */}
             <button
                 onClick={() => setOpen(prev => !prev)}
-                className="text-slate-400 hover:text-slate-600 transition cursor-pointer relative outline-none"
+                className="text-black hover:opacity-70 transition cursor-pointer relative outline-none flex items-center justify-center"
             >
                 <Bell size={20} />
                 {unread > 0 && (

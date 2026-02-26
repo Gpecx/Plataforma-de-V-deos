@@ -92,19 +92,19 @@ export default function Navbar() {
                             )}
                         </Link>
 
-                        <div className="hidden md:flex gap-6 text-base font-medium text-slate-500">
+                        <div className="hidden md:flex gap-6 text-base font-medium text-black">
                             {!isTeacherMode ? (
                                 <>
-                                    <Link href="/" className="hover:text-slate-900 transition">Início</Link>
-                                    <Link href="/course" className="hover:text-slate-900 transition">Cursos</Link>
-                                    <Link href="/dashboard-student" className="hover:text-slate-900 transition">Minha Lista</Link>
-                                    {isLoggedIn && <Link href="/dashboard-student/chat" className="hover:text-slate-900 transition">Chat</Link>}
+                                    <Link href="/" className="hover:opacity-70 transition">Início</Link>
+                                    <Link href="/course" className="hover:opacity-70 transition">Cursos</Link>
+                                    <Link href="/dashboard-student" className="hover:opacity-70 transition">Minha Lista</Link>
+                                    {isLoggedIn && <Link href="/dashboard-student/chat" className="hover:opacity-70 transition">Chat</Link>}
                                 </>
                             ) : (
                                 <>
-                                    <Link href="/dashboard-teacher" className="hover:text-slate-900 transition">Dashboard</Link>
-                                    <Link href="/dashboard-teacher/courses" className="hover:text-slate-900 transition">Meus Cursos</Link>
-                                    <Link href="/dashboard-teacher/analytics" className="hover:text-slate-900 transition">Desempenho</Link>
+                                    <Link href="/dashboard-teacher" className="hover:opacity-70 transition">Dashboard</Link>
+                                    <Link href="/dashboard-teacher/courses" className="hover:opacity-70 transition">Meus Cursos</Link>
+                                    <Link href="/dashboard-teacher/analytics" className="hover:opacity-70 transition">Desempenho</Link>
                                 </>
                             )}
                         </div>
@@ -128,48 +128,52 @@ export default function Navbar() {
                             </Link>
                         )}
 
-                        <div className="flex items-center gap-2 relative">
-                            <div className={`flex items-center bg-slate-50 border border-slate-100 rounded-xl px-3 py-1.5 transition-all duration-300 ${isSearchOpen ? 'w-48 md:w-64 opacity-100' : 'w-0 opacity-0 pointer-events-none border-none'}`}>
-                                <Search size={16} className="text-slate-400 mr-2" />
-                                <input
-                                    type="text"
-                                    placeholder="Buscar cursos..."
-                                    className="bg-transparent border-none outline-none text-[10px] font-bold uppercase tracking-widest w-full placeholder:text-slate-400 text-slate-700"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            router.push(`/course?s=${searchQuery}`)
-                                            setIsSearchOpen(false)
-                                        }
-                                    }}
-                                />
+                        <div className="flex items-center gap-6">
+                            <div className="flex items-center gap-2 relative">
+                                <div className={`flex items-center bg-slate-50 border border-slate-100 rounded-xl px-3 py-1.5 transition-all duration-300 ${isSearchOpen ? 'w-48 md:w-64 opacity-100' : 'w-0 opacity-0 pointer-events-none border-none'}`}>
+                                    <Search size={16} className="text-black mr-2" />
+                                    <input
+                                        type="text"
+                                        placeholder="Buscar cursos..."
+                                        className="bg-transparent border-none outline-none text-[10px] font-bold uppercase tracking-widest w-full placeholder:text-slate-400 text-black"
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                router.push(`/course?s=${searchQuery}`)
+                                                setIsSearchOpen(false)
+                                            }
+                                        }}
+                                    />
+                                </div>
+                                <button
+                                    onClick={() => setIsSearchOpen(!isSearchOpen)}
+                                    className={`text-black hover:opacity-70 transition cursor-pointer outline-none flex items-center justify-center ${isSearchOpen ? 'opacity-100' : ''}`}
+                                >
+                                    {isSearchOpen ? <X size={20} /> : <Search size={20} />}
+                                </button>
                             </div>
-                            <button
-                                onClick={() => setIsSearchOpen(!isSearchOpen)}
-                                className={`text-slate-500 hover:text-slate-900 transition cursor-pointer outline-none ${isSearchOpen ? 'text-slate-900' : ''}`}
-                            >
-                                {isSearchOpen ? <X size={20} /> : <Search size={20} />}
-                            </button>
+
+                            {isLoggedIn && (
+                                <div className="flex items-center justify-center h-full">
+                                    <NotificationBell
+                                        accent={isTeacherMode ? '#0f172a' : '#00C402'}
+                                        isTeacher={isTeacherMode}
+                                    />
+                                </div>
+                            )}
+
+                            {isLoggedIn && !isTeacherMode && (
+                                <Link href="/cart" className="text-black hover:opacity-70 transition cursor-pointer outline-none relative flex items-center justify-center">
+                                    <ShoppingCart size={20} />
+                                    {mounted && items.length > 0 && (
+                                        <span className="absolute -top-1 -right-1.5 w-4 h-4 rounded-full bg-[#00C402] text-white text-[9px] font-black flex items-center justify-center border-2 border-white">
+                                            {items.length}
+                                        </span>
+                                    )}
+                                </Link>
+                            )}
                         </div>
-
-                        {isLoggedIn && (
-                            <NotificationBell
-                                accent={isTeacherMode ? '#0f172a' : '#00C402'}
-                                isTeacher={isTeacherMode}
-                            />
-                        )}
-
-                        {isLoggedIn && !isTeacherMode && (
-                            <Link href="/cart" className="text-slate-500 hover:text-slate-900 transition cursor-pointer outline-none relative">
-                                <ShoppingCart size={20} />
-                                {mounted && items.length > 0 && (
-                                    <span className="absolute -top-1 -right-1.5 w-4 h-4 rounded-full bg-[#00C402] text-white text-[9px] font-black flex items-center justify-center border-2 border-white">
-                                        {items.length}
-                                    </span>
-                                )}
-                            </Link>
-                        )}
 
                         {!isLoggedIn && (
                             <div className="hidden md:flex items-center gap-4">
