@@ -56,7 +56,7 @@ export default function WelcomePage() {
                 <div className="space-y-6 animate-in fade-in slide-in-from-left duration-700">
                     <h1 className="text-5xl md:text-7xl font-black leading-[1.1] tracking-tighter text-slate-900">
                         Domine novas habilidades com a <br />
-                        <span className="from-[#00C402] to-[#1D5F31] bg-gradient-to-r bg-clip-text text-transparent">EXS Solutions</span>.
+                        <span className="from-[#00C402] to-[#1D5F31] bg-gradient-to-r bg-clip-text text-transparent">SPCS Academy</span>.
                     </h1>
                     <p className="text-slate-700 text-base md:text-lg max-w-lg font-bold">
                         Conectamos tecnologia e crescimento profissional em uma experiência de aprendizado moderna e imediata.
