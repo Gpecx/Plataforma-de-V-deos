@@ -32,6 +32,10 @@ const STEPS = [
 ]
 
 const CATEGORIES = [
+    'Engenharia Elétrica',
+    'Engenharia Civil',
+    'Engenharia Mecânica',
+    'Tecnologia da Informação',
     'Desenvolvimento Web',
     'Design',
     'Marketing Digital',
@@ -245,14 +249,24 @@ export default function NewCoursePage() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                            <div className="space-y-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                            <div className="md:col-span-2 lg:col-span-1 space-y-2">
                                 <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Nome do Curso</Label>
                                 <Input
                                     placeholder="Ex: Do Zero ao Mestre em React"
                                     className="bg-slate-50 border-slate-100 focus:border-[#00C402] focus:ring-[#00C402] h-14 rounded-2xl text-sm font-medium transition-all"
                                     value={formData.title}
                                     onChange={(e) => setStepData({ title: e.target.value })}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Carga Horária (horas)</Label>
+                                <Input
+                                    type="number"
+                                    placeholder="Ex: 40"
+                                    className="bg-slate-50 border-slate-100 focus:border-[#00C402] focus:ring-[#00C402] h-14 rounded-2xl text-sm font-medium transition-all"
+                                    value={formData.duration}
+                                    onChange={(e) => setStepData({ duration: Number(e.target.value) })}
                                 />
                             </div>
                             <div className="space-y-2">

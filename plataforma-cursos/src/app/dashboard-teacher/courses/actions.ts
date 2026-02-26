@@ -23,6 +23,7 @@ export async function createCourseAction(formData: any) {
                 description: formData.description,
                 category: formData.category,
                 price: formData.price || 157.0,
+                duration: formData.duration || 0,
                 status: 'published',
                 image_url: formData.image_url || "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=2070"
             }
@@ -97,6 +98,7 @@ export async function updateCourseAction(courseId: string, formData: any) {
     if (formData.title !== undefined) updateData.title = formData.title
     if (formData.price !== undefined && !isNaN(formData.price)) updateData.price = formData.price
     if (formData.status !== undefined) updateData.status = formData.status
+    if (formData.duration !== undefined) updateData.duration = formData.duration
     if (formData.image_url !== undefined) updateData.image_url = formData.image_url
 
     console.log('Atualizando curso:', courseId, updateData)
