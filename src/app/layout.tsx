@@ -3,8 +3,7 @@ import "./globals.css"
 
 const exo = Exo({
   subsets: ['latin'],
-  weight: ['400', '700', '900'],
-  variable: '--font-exo'
+  variable: '--font-exo' // Isso nos permite usar font-exo no Tailwind
 })
 
 

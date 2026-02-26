@@ -54,9 +54,9 @@ export default function WelcomePage() {
             {/* HERO SECTION */}
             <main className="relative z-10 max-w-7xl mx-auto px-6 pt-32 pb-20 grid lg:grid-cols-2 gap-12 items-center">
                 <div className="space-y-6 animate-in fade-in slide-in-from-left duration-700">
-                    <h1 className="text-3xl md:text-5xl font-black leading-tight tracking-tighter text-slate-800">
+                    <h1 className="text-5xl md:text-7xl font-black leading-[1.1] tracking-tighter text-slate-900">
                         Domine novas habilidades com a <br />
-                        <span className="text-[#00C402]">SPCS Academy</span>.
+                        <span className="from-[#00C402] to-[#1D5F31] bg-gradient-to-r bg-clip-text text-transparent">EXS Solutions</span>.
                     </h1>
                     <p className="text-slate-700 text-base md:text-lg max-w-lg font-bold">
                         Conectamos tecnologia e crescimento profissional em uma experiência de aprendizado moderna e imediata.
@@ -64,13 +64,13 @@ export default function WelcomePage() {
 
                     <div className="flex flex-col sm:flex-row gap-4 pt-2">
                         <Link href="/login">
-                            <Button size="lg" className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-6 text-sm group font-bold uppercase tracking-widest rounded-xl transition-all shadow-md">
+                            <Button size="lg" className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-6 text-sm group font-bold uppercase tracking-widest rounded-lg transition-all shadow-md shadow-inner">
                                 Conecte-se
                                 <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
                             </Button>
                         </Link>
                         <Link href="/register">
-                            <Button size="lg" variant="outline" className="border-slate-200 hover:bg-slate-50 text-slate-700 px-8 py-6 text-sm font-bold uppercase tracking-widest rounded-xl transition-all shadow-sm">
+                            <Button size="lg" variant="outline" className="border-slate-200 hover:bg-slate-50 text-slate-700 px-8 py-6 text-sm font-bold uppercase tracking-widest rounded-lg transition-all shadow-sm">
                                 Inscrever-se
                             </Button>
                         </Link>

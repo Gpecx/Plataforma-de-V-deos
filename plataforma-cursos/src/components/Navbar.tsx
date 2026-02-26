@@ -78,14 +78,14 @@ export default function Navbar() {
 
     return (
         <>
-            <header className="relative w-full bg-white shadow-sm border-b border-slate-100 transition-all duration-300 pointer-events-auto">
+            <header className="relative w-full bg-white shadow-sm border-b border-slate-100 transition-all duration-300 pointer-events-auto antialiased">
                 <nav className={`flex items-center justify-between px-8 md:px-12 py-4 text-slate-800 font-exo`}>
                     <div className="flex items-center gap-10">
                         <Link href={isTeacherMode ? "/dashboard-teacher" : "/dashboard-student"} className="flex items-center outline-none hover:opacity-80 transition-opacity">
                             <img
                                 src="/images/SPCS academy 2.png"
                                 alt="SPCS Academy"
-                                className="h-16 md:h-20 w-auto"
+                                className="h-14 md:h-16 w-auto"
                             />
                             {isTeacherMode && (
                                 <span className="ml-3 text-[8px] bg-slate-900 text-white px-2 py-0.5 rounded font-black tracking-widest uppercase">Painel</span>
