@@ -9,7 +9,7 @@ export default function Footer() {
                     <img
                         src="/images/SPCS academy 2.png"
                         alt="SPCS Academy"
-                        className="h-32 md:h-48 w-auto grayscale-0 opacity-100 hover:opacity-90 transition-all duration-300 object-contain"
+                        className="h-24 md:h-36 w-auto grayscale-0 opacity-100 hover:opacity-90 transition-all duration-300 object-contain"
                     />
                 </Link>
 

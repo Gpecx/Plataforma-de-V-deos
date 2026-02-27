@@ -277,6 +277,14 @@ export default function Navbar() {
                                                         <TrendingUp size={18} className="text-slate-400" />
                                                         <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Vendas</span>
                                                     </DropdownMenuItem>
+
+                                                    <DropdownMenuItem
+                                                        onSelect={() => router.push("/dashboard-teacher/chat")}
+                                                        className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors outline-none focus:bg-slate-50"
+                                                    >
+                                                        <MessageSquare size={18} className="text-slate-400" />
+                                                        <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Mensagens</span>
+                                                    </DropdownMenuItem>
                                                 </>
                                             ) : (
                                                 <>
