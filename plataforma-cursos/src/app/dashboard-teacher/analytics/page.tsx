@@ -19,23 +19,38 @@ export default async function FinancialDashboardPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) redirect('/login')
 
-    // Query otimizada com joins conforme especificação real
-    const { data: enrollments } = await supabase
+    // 1. Buscamos as matrículas vinculadas aos cursos deste professor
+    const { data: enrollments, error: enrollError } = await supabase
         .from('enrollments')
         .select(`
             id,
             user_id,
             created_at,
             course_id,
-            profiles (full_name, email),
             courses!inner (title, price, teacher_id)
         `)
         .eq('courses.teacher_id', user.id)
-        .order('created_at', { ascending: false }) as any
+        .order('created_at', { ascending: false })
 
-    // Processamento de dados baseado no join real
+    if (enrollError) {
+        console.error('Erro ao buscar matrículas:', enrollError.message)
+    }
+
+    // 2. Buscamos perfis dos alunos envolvidos
+    const userIds = Array.from(new Set((enrollments || []).map(e => (e as any).user_id)))
+    let profiles: any[] = []
+    if (userIds.length > 0) {
+        const { data: profilesData } = await supabase
+            .from('profiles')
+            .select('id, full_name')
+            .in('id', userIds)
+        profiles = profilesData || []
+    }
+    const profileMap = new Map(profiles.map(p => [p.id, p]))
+
+    // 3. Processamento de dados unificado
     const salesHistory = (enrollments || []).map((e: any) => {
-        const student = e.profiles
+        const student = profileMap.get(e.user_id)
         const course = e.courses
         const value = course?.price || 0
         const commission = value * 0.70 // 70% solicitado

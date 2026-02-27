@@ -49,6 +49,12 @@ export default async function TeacherDashboard() {
     const enrollments = enrollmentsRes.data || []
     const weeklySales = weeklySalesRes.data || []
 
+    // Map real student counts per course
+    const courseStudentCountMap = enrollments.reduce((acc, e) => {
+        acc[e.course_id] = (acc[e.course_id] || 0) + 1
+        return acc
+    }, {} as Record<string, number>)
+
     // Cálculos de Métricas
     const totalStudents = new Set(enrollments.map(e => e.user_id)).size
 
@@ -164,7 +170,7 @@ export default async function TeacherDashboard() {
                                         <div className="flex items-center gap-6 text-[10px] text-slate-500 mb-8 font-black uppercase tracking-widest">
                                             <div className="flex items-center gap-2">
                                                 <Users size={16} className="text-[#00C402]" />
-                                                <span>450 Alunos</span>
+                                                <span>{courseStudentCountMap[curso.id] || 0} {courseStudentCountMap[curso.id] === 1 ? 'Aluno' : 'Alunos'}</span>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 <Star size={16} className="text-yellow-500 fill-yellow-500" />

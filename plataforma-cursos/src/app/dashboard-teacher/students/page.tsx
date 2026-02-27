@@ -9,64 +9,65 @@ export default async function StudentsPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) redirect('/login')
 
-    // 1. Buscamos os IDs dos cursos vinculados ao professor
-    const { data: teacherCourses, error: coursesError } = await supabase
-        .from('courses')
-        .select('id')
-        .eq('teacher_id', user.id)
+    // 1. Buscamos as matrículas vinculadas aos cursos deste professor
+    const { data: enrollments, error: enrollError } = await supabase
+        .from('enrollments')
+        .select(`
+            user_id,
+            created_at,
+            course_id,
+            courses!inner (teacher_id)
+        `)
+        .eq('courses.teacher_id', user.id)
+        .order('created_at', { ascending: false })
 
-    if (coursesError) {
-        // Fallback silencioso ou log seguro
-        console.log('Erro ao buscar cursos:', coursesError.message)
+    if (enrollError) {
+        console.error('Erro ao buscar matrículas:', enrollError.message)
     }
 
-    const courseIds = teacherCourses?.map(c => c.id) || []
+    // 2. Extraímos os user_ids únicos para buscar os perfis separadamente
+    const userIds = Array.from(new Set((enrollments || []).map(e => (e as any).user_id)))
 
-    // 2. Buscamos as matrículas filtrando por esses IDs de curso
-    // Se não houver cursos, não há matrículas para buscar
-    let enrollments: any[] = []
-    if (courseIds.length > 0) {
-        const { data, error: enrollError } = await supabase
-            .from('enrollments')
-            .select(`
-                id,
-                user_id,
-                created_at,
-                profiles (full_name, email)
-            `)
-            .in('course_id', courseIds)
-            .order('created_at', { ascending: false })
+    // 3. Buscamos os perfis desses usuários
+    let profiles: any[] = []
+    if (userIds.length > 0) {
+        const { data: profilesData, error: profilesError } = await supabase
+            .from('profiles')
+            .select('id, full_name')
+            .in('id', userIds)
 
-        if (enrollError) {
-            console.log('Erro ao buscar matrículas:', enrollError.message)
+        if (profilesError) {
+            console.error('Erro ao buscar perfis:', profilesError.message)
         } else {
-            enrollments = data || []
+            profiles = profilesData || []
         }
     }
 
-    // Agregamos por aluno para evitar duplicatas
+    // Mapa de perfis para busca rápida
+    const profileMap = new Map(profiles.map(p => [p.id, p]))
+
+    // 4. Agregamos por aluno para a tabela
     const studentMap = new Map<string, any>()
 
-    enrollments.forEach((e: any) => {
-        // Tratamento da estrutura de profiles (Pode vir como objeto ou array)
-        const profileData = Array.isArray(e.profiles) ? e.profiles[0] : e.profiles
-        const userId = e.user_id
+        ; (enrollments || []).forEach((e: any) => {
+            const userId = e.user_id
+            const profileData = profileMap.get(userId)
 
-        const existing = studentMap.get(userId)
-        if (existing) {
-            existing.courseCount++
-        } else {
-            studentMap.set(userId, {
-                id: userId,
-                profiles: {
-                    full_name: profileData?.full_name || 'Aluno sem Perfil',
-                    email: profileData?.email || 'N/A'
-                },
-                joinedAt: e.created_at,
-                courseCount: 1
-            })
-        }
-    })
+            const existing = studentMap.get(userId)
+            if (existing) {
+                existing.courseCount++
+            } else {
+                studentMap.set(userId, {
+                    id: userId,
+                    profiles: {
+                        full_name: profileData?.full_name || 'Aluno Sem Perfil',
+                        email: profileData?.email || 'N/A'
+                    },
+                    joinedAt: e.created_at,
+                    courseCount: 1
+                })
+            }
+        })
 
     const studentsData = Array.from(studentMap.values()).sort((a, b) =>
         (a.profiles?.full_name || '').localeCompare(b.profiles?.full_name || '')
