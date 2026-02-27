@@ -101,7 +101,7 @@ export const allCourses: Course[] = [
         rating: 4.8,
         students: 3210,
         description: "A jornada definitiva para criar aplicações modernas, rápidas e escaláveis com as melhores tecnologias.",
-        longDescription: "Do zero ao deploy em produção. Aprenda React 18, Next.js 14 com App Router, Supabase, Prisma, autenticação completa, pagamentos com Stripe e deploy na Vercel. O curso mais completo de Fullstack JS do mercado.",
+        longDescription: "Do zero ao deploy em produção. Aprenda React 18, Next.js 14 com App Router, Supabase, Prisma, autenticação completa, pagamentos com Stripe e deploy profissional. O curso mais completo de Fullstack JS do mercado.",
         image: "https://images.unsplash.com/photo-1587620962725-abab7fe55159?auto=format&fit=crop&q=80&w=1600",
         inspirationImages: [
             "https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&q=80&w=800",
@@ -114,7 +114,7 @@ export const allCourses: Course[] = [
             "Banco de dados com Supabase e Prisma",
             "Autenticação completa com JWT e OAuth",
             "Pagamentos com Stripe",
-            "Deploy profissional na Vercel",
+            "Deploy profissional",
         ],
         curriculum: [
             {
@@ -146,7 +146,7 @@ export const allCourses: Course[] = [
                 lessons: [
                     { title: "Integrando Stripe Checkout" },
                     { title: "Webhooks e eventos de pagamento" },
-                    { title: "CI/CD e deploy na Vercel" },
+                    { title: "CI/CD e deploy profissional" },
                 ],
             },
         ],

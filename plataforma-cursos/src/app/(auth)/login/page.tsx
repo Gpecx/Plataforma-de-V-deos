@@ -1,5 +1,6 @@
 'use client'
 
+import { Suspense } from 'react'
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
@@ -17,7 +18,7 @@ const loginSchema = z.object({
     password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres"),
 })
 
-export default function LoginPage() {
+function LoginContent() {
     const supabase = createClient()
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -140,5 +141,20 @@ export default function LoginPage() {
                 </div>
             </div>
         </div>
+    )
+}
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={
+            <div className="w-full h-full flex items-center justify-center p-8">
+                <div className="text-center space-y-4">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00C402] mx-auto"></div>
+                    <p className="text-slate-900 font-black uppercase text-[10px] tracking-[3px]">Carregando portal...</p>
+                </div>
+            </div>
+        }>
+            <LoginContent />
+        </Suspense>
     )
 }

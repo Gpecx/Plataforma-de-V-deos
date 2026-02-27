@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useParams, useSearchParams } from "next/navigation";
@@ -30,7 +30,7 @@ const heroSlides = [
     }
 ];
 
-export default function CoursesPage() {
+function CoursesContent() {
     const searchParams = useSearchParams();
     const searchQuery = searchParams.get('s')?.toLowerCase() || "";
     const [currentSlide, setCurrentSlide] = useState(0);
@@ -202,5 +202,20 @@ export default function CoursesPage() {
                 onClose={() => setIsModalOpen(false)}
             />
         </div>
+    );
+}
+
+export default function CoursesPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-[#F4F7F9] flex items-center justify-center">
+                <div className="flex flex-col items-center gap-4">
+                    <Loader2 className="animate-spin text-[#00C402]" size={40} />
+                    <p className="text-sm font-black uppercase tracking-[3px] text-slate-400">Preparando Cursos...</p>
+                </div>
+            </div>
+        }>
+            <CoursesContent />
+        </Suspense>
     );
 }
