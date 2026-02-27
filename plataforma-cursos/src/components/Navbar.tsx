@@ -216,13 +216,13 @@ export default function Navbar() {
 
                         {isLoggedIn ? (
                             <div className="relative">
-                                <DropdownMenu>
+                                <DropdownMenu modal={false}>
                                     <DropdownMenuTrigger asChild>
                                         <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold transition-all cursor-pointer border-2 border-slate-100 outline-none hover:scale-105 bg-slate-900 shadow-sm overflow-hidden`}>
                                             <User size={22} />
                                         </div>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent className="bg-white text-slate-900 w-64 shadow-2xl rounded-[24px] overflow-hidden p-3 z-[120] border-none absolute right-0 top-full mt-2" align="end" sideOffset={10}>
+                                    <DropdownMenuContent className="bg-white text-slate-900 w-64 shadow-2xl rounded-[24px] overflow-hidden p-3 z-[120] border-none mt-2" align="end" alignOffset={-30} sideOffset={10}>
                                         <div className="px-5 py-6 bg-slate-50/50 mb-2 rounded-[18px]">
                                             <p className="font-black uppercase tracking-tighter text-sm text-slate-800 line-clamp-1">
                                                 {isTeacherMode || userProfile?.role === 'teacher' || userProfile?.role === 'admin' ? 'PROFESSOR SPCS' : 'ESTUDANTE SPCS'}

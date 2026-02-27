@@ -1,14 +1,12 @@
 "use client"
 
-import { CreditCard, Calendar, ArrowUpRight, Plus, CheckCircle2, Clock } from 'lucide-react'
+import { CreditCard, Calendar, ArrowUpRight, Plus, CheckCircle2, Clock, Zap } from 'lucide-react'
 
 const TRANSACTIONS = [
     { id: 1, date: '22/02/2026', value: 'R$ 497,00', method: 'Cartão •••• 4242', status: 'Pago', icon: CreditCard },
     { id: 2, date: '15/01/2026', value: 'R$ 497,00', method: 'Boleto Bancário', status: 'Pago', icon: Clock },
     { id: 3, date: '10/12/2025', value: 'R$ 297,00', method: 'PIX', status: 'Pago', icon: Zap },
 ]
-
-import { Zap } from 'lucide-react'
 
 export default function PaymentsPage() {
     return (
@@ -37,7 +35,7 @@ export default function PaymentsPage() {
                         <div className="overflow-x-auto">
                             <table className="w-full text-left">
                                 <thead>
-                                    <tr className="border-b border-slate-50 uppercase text-[9px] font-black text-slate-300 tracking-[2px]">
+                                    <tr className="border-b border-slate-50 uppercase text-[9px] font-black text-slate-900 tracking-[2px]">
                                         <th className="pb-6">Data</th>
                                         <th className="pb-6">Valor</th>
                                         <th className="pb-6">Método</th>
@@ -48,12 +46,12 @@ export default function PaymentsPage() {
                                 <tbody className="divide-y divide-slate-50">
                                     {TRANSACTIONS.map((t) => (
                                         <tr key={t.id} className="group hover:bg-slate-50/50 transition-colors">
-                                            <td className="py-6 py-6 text-xs font-bold text-slate-500 tracking-tight">{t.date}</td>
+                                            <td className="py-6 text-xs font-bold text-slate-900 tracking-tight">{t.date}</td>
                                             <td className="py-6 text-sm font-black text-slate-800 tracking-tighter">{t.value}</td>
                                             <td className="py-6">
                                                 <div className="flex items-center gap-3">
                                                     <t.icon size={14} className="text-slate-400" />
-                                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{t.method}</span>
+                                                    <span className="text-[10px] font-bold text-slate-900 uppercase tracking-widest">{t.method}</span>
                                                 </div>
                                             </td>
                                             <td className="py-6">
