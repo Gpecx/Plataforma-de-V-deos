@@ -4,6 +4,7 @@ import { X, Play, Info, CheckCircle2, Clock, Globe, ShieldCheck } from "lucide-r
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { BuyButton } from "@/components/BuyButton"
 
 interface CourseModalProps {
     course: any
@@ -107,9 +108,16 @@ export default function CourseModal({ course, isOpen, onClose }: CourseModalProp
                             </p>
                         </div>
 
-                        <Button className="w-full bg-[#00C402] text-white hover:brightness-105 font-black uppercase tracking-widest text-xs py-7 rounded-xl mt-8 shadow-md">
-                            Matricular Agora
-                        </Button>
+                        <BuyButton
+                            course={{
+                                id: course.id,
+                                title: course.title,
+                                price: course.price,
+                                image_url: course.image_url
+                            }}
+                            label="Matricular-se Agora"
+                            className="w-full py-7 text-xs tracking-widest uppercase font-black rounded-xl mt-8 shadow-md"
+                        />
                     </div>
                 </div>
             </div>

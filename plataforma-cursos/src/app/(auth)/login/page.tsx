@@ -4,14 +4,16 @@ import { Suspense } from 'react'
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
-import { createClient } from "@/utils/supabase/client"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { ArrowRight } from "lucide-react"
-import { useSearchParams } from "next/navigation"
+import { auth, db } from "@/lib/firebase"
+import { signInWithEmailAndPassword } from "firebase/auth"
+import { doc, getDoc } from "firebase/firestore"
+import { setSessionCookie } from "@/app/actions/auth"
 
 const loginSchema = z.object({
     email: z.string().email("E-mail inválido"),
@@ -19,12 +21,9 @@ const loginSchema = z.object({
 })
 
 function LoginContent() {
-    const supabase = createClient()
     const router = useRouter()
     const searchParams = useSearchParams()
     const nextRedirect = searchParams.get("next")
-    const roleParam = searchParams.get("role") || "student"
-    const isTeacherRole = roleParam === "teacher"
 
     const form = useForm<z.infer<typeof loginSchema>>({
         resolver: zodResolver(loginSchema),
@@ -32,32 +31,31 @@ function LoginContent() {
     })
 
     async function onSubmit(values: z.infer<typeof loginSchema>) {
-        const { data, error } = await supabase.auth.signInWithPassword({
-            email: values.email,
-            password: values.password,
-        })
+        try {
+            const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password)
+            const user = userCredential.user
 
-        if (error) {
-            alert("Erro ao entrar: " + error.message)
-        } else {
-            if (data.user) {
-                if (nextRedirect) {
-                    router.push(nextRedirect)
+            // Gerar ID Token e salvar no cookie via Server Action
+            const idToken = await user.getIdToken()
+            await setSessionCookie(idToken)
+
+            if (nextRedirect) {
+                router.push(nextRedirect)
+            } else {
+                // Buscar papel no Firestore
+                const profileDoc = await getDoc(doc(db, 'profiles', user.uid))
+                const profileData = profileDoc.data()
+
+                if (profileData?.role === 'teacher' || profileData?.role === 'admin') {
+                    router.push('/dashboard-teacher')
                 } else {
-                    const { data: profile } = await supabase
-                        .from('profiles')
-                        .select('role')
-                        .eq('id', data.user.id)
-                        .single()
-
-                    if (profile?.role === 'teacher' || profile?.role === 'admin') {
-                        router.push('/dashboard-teacher')
-                    } else {
-                        router.push('/dashboard-student')
-                    }
+                    router.push('/dashboard-student')
                 }
-                router.refresh()
             }
+            router.refresh()
+        } catch (error: any) {
+            console.error("Erro ao entrar:", error)
+            alert("Erro ao entrar: " + (error.message || "Verifique suas credenciais."))
         }
     }
 

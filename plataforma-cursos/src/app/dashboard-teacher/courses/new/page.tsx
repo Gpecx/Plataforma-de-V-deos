@@ -23,7 +23,7 @@ import { Label } from '@/components/ui/label'
 // Importamos a Store, a Action e o utilitário de Storage
 import { useCourseFormStore, Lesson } from "@/store/useCourseFormStore"
 import { createCourseAction } from "../actions"
-import { uploadCourseImage, uploadCourseVideo } from "@/utils/supabase/storage"
+import { uploadCourseImage, uploadCourseVideo } from "@/lib/storage-helpers"
 
 const STEPS = [
     { id: 1, name: 'Informações Básicas', icon: Info },
@@ -128,7 +128,7 @@ export default function NewCoursePage() {
         if (currentStep > 1) setCurrentStep(prev => prev - 1)
     }
 
-    // Função para disparar a gravação no Supabase
+    // Função para disparar a gravação no Firebase
     const handlePublish = async () => {
         setIsPublishing(true)
         try {

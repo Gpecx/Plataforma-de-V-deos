@@ -6,13 +6,15 @@ import { Button } from "@/components/ui/button";
 import { useParams, useSearchParams } from "next/navigation";
 import { Play, Info, ChevronRight, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
-import { createClient } from "@/utils/supabase/client";
+import { db, auth } from "@/lib/firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { collection, query, where, getDocs } from "firebase/firestore";
 import CourseModal from "@/components/CourseModal";
 
 const heroSlides = [
     {
         title: "FULLSTACK NEXUS",
-        subtitle: "A jornada definitiva Next.js e Supabase.",
+        subtitle: "A jornada definitiva Next.js e Firebase.",
         image: "https://images.unsplash.com/photo-1627398242454-45a1465c2479?auto=format&fit=crop&q=80&w=1600",
         tag: "ORIGINAL SPCS"
     },
@@ -38,7 +40,6 @@ function CoursesContent() {
     const [loading, setLoading] = useState(true);
     const [selectedCourse, setSelectedCourse] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const supabase = createClient();
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -48,25 +49,35 @@ function CoursesContent() {
     }, []);
 
     useEffect(() => {
-        async function fetchCourses() {
-            setLoading(true);
-            const { data, error } = await supabase
-                .from('courses')
-                .select('*')
-                .eq('status', 'published');
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            async function fetchCourses() {
+                setLoading(true);
+                try {
+                    const coursesRef = collection(db, 'courses');
+                    const q = query(coursesRef, where('status', '==', 'published'));
+                    const querySnapshot = await getDocs(q);
+                    const data = querySnapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
 
-            if (data) {
-                const filtered = searchQuery
-                    ? data.filter(c =>
-                        c.title.toLowerCase().includes(searchQuery) ||
-                        c.category?.toLowerCase().includes(searchQuery)
-                    )
-                    : data;
-                setCourses(filtered);
+                    const filtered = searchQuery
+                        ? data.filter((c: any) =>
+                            c.title?.toLowerCase().includes(searchQuery) ||
+                            c.category?.toLowerCase().includes(searchQuery)
+                        )
+                        : data;
+                    setCourses(filtered);
+                } catch (error) {
+                    console.error("Erro ao buscar cursos:", error);
+                } finally {
+                    setLoading(false);
+                }
             }
-            setLoading(false);
-        }
-        fetchCourses();
+            fetchCourses();
+        });
+
+        return () => unsubscribe();
     }, [searchQuery]);
 
     const handleCourseClick = (course: any) => {

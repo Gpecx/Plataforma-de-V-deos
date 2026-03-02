@@ -13,7 +13,9 @@ const backgroundImages = [
     "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=80&w=2000"
 ];
 
-import { createClient } from "@/utils/supabase/client";
+import { db, auth } from "@/lib/firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
 import { Loader2 } from "lucide-react";
 import CourseModal from "@/components/CourseModal";
 
@@ -24,22 +26,35 @@ export default function WelcomePage() {
     const [selectedCourse, setSelectedCourse] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
-    const supabase = createClient();
 
     useEffect(() => {
-        async function fetchTopCourses() {
-            setLoading(true);
-            const { data } = await supabase
-                .from('courses')
-                .select('*')
-                .eq('status', 'published')
-                .order('created_at', { ascending: false })
-                .limit(8);
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            async function fetchTopCourses() {
+                setLoading(true);
+                try {
+                    const coursesRef = collection(db, 'courses');
+                    const querySnapshot = await getDocs(coursesRef);
+                    const coursesData = querySnapshot.docs.map(doc => {
+                        const data = doc.data();
+                        return {
+                            id: doc.id,
+                            ...data,
+                            // Garantir que o preço seja tratado como número se vier como string ou indefinido
+                            price: Number(data.price) || 0
+                        };
+                    });
 
-            if (data) setCourses(data);
-            setLoading(false);
-        }
-        fetchTopCourses();
+                    setCourses(coursesData);
+                } catch (error) {
+                    console.error("Erro ao buscar cursos:", error);
+                } finally {
+                    setLoading(false);
+                }
+            }
+            fetchTopCourses();
+        });
+
+        return () => unsubscribe();
     }, []);
 
     const handleCourseClick = (course: any) => {

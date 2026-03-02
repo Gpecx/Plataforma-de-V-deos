@@ -1,4 +1,5 @@
-import { createClient } from '@/utils/supabase/server'
+import { adminAuth, adminDb } from '@/lib/firebase-admin'
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import {
     DollarSign,
@@ -12,57 +13,93 @@ import {
     Search
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 export default async function FinancialDashboardPage() {
-    const supabase = await createClient()
+    const cookieStore = cookies()
+    const token = (await cookieStore).get('firebase-token')?.value
+    if (!token) redirect('/login')
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) redirect('/login')
-
-    // 1. Buscamos as matrículas vinculadas aos cursos deste professor
-    const { data: enrollments, error: enrollError } = await supabase
-        .from('enrollments')
-        .select(`
-            id,
-            user_id,
-            created_at,
-            course_id,
-            courses!inner (title, price, teacher_id)
-        `)
-        .eq('courses.teacher_id', user.id)
-        .order('created_at', { ascending: false })
-
-    if (enrollError) {
-        console.error('Erro ao buscar matrículas:', enrollError.message)
+    let decodedToken
+    try {
+        decodedToken = await adminAuth.verifyIdToken(token)
+    } catch (error) {
+        redirect('/login')
     }
 
-    // 2. Buscamos perfis dos alunos envolvidos
-    const userIds = Array.from(new Set((enrollments || []).map(e => (e as any).user_id)))
+    const teacherId = decodedToken.uid
+
+    // 1. Buscamos os cursos deste professor
+    const coursesSnapshot = await adminDb.collection('courses')
+        .where('teacher_id', '==', teacherId)
+        .get()
+
+    const courses = coursesSnapshot.docs.reduce((acc, doc) => {
+        acc[doc.id] = { id: doc.id, ...doc.data() }
+        return acc
+    }, {} as any)
+    const courseIds = Object.keys(courses)
+
+    if (courseIds.length === 0) {
+        return <NoSales />
+    }
+
+    // 2. Buscamos as matrículas vinculadas aos cursos deste professor (em chunks de 10)
+    const courseChunks = []
+    for (let i = 0; i < courseIds.length; i += 10) {
+        courseChunks.push(courseIds.slice(i, i + 10))
+    }
+
+    const enrollmentPromises = courseChunks.map(chunk =>
+        adminDb.collection('enrollments')
+            .where('course_id', 'in', chunk)
+            .get()
+    )
+
+    const enrollmentSnapshots = await Promise.all(enrollmentPromises)
+    const enrollments = enrollmentSnapshots.flatMap(snap =>
+        snap.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }))
+    ).sort((a: any, b: any) => {
+        const dateA = a.created_at?.seconds ? a.created_at.seconds : (a.created_at || 0)
+        const dateB = b.created_at?.seconds ? b.created_at.seconds : (b.created_at || 0)
+        return (dateB as any) - (dateA as any)
+    })
+
+    // 3. Buscamos perfis dos alunos envolvidos
+    const userIds = Array.from(new Set(enrollments.map((e: any) => e.user_id)))
     let profiles: any[] = []
     if (userIds.length > 0) {
-        const { data: profilesData } = await supabase
-            .from('profiles')
-            .select('id, full_name')
-            .in('id', userIds)
-        profiles = profilesData || []
+        const userChunks = []
+        for (let i = 0; i < userIds.length; i += 10) {
+            userChunks.push(userIds.slice(i, i + 10))
+        }
+
+        const profilePromises = userChunks.map(chunk =>
+            adminDb.collection('profiles').where('__name__', 'in', chunk).get()
+        )
+        const profileSnapshots = await Promise.all(profilePromises)
+        profiles = profileSnapshots.flatMap(snap => snap.docs.map(doc => ({ id: doc.id, ...doc.data() })))
     }
     const profileMap = new Map(profiles.map(p => [p.id, p]))
 
-    // 3. Processamento de dados unificado
-    const salesHistory = (enrollments || []).map((e: any) => {
+    // 4. Processamento de dados unificado
+    const salesHistory = enrollments.map((e: any) => {
         const student = profileMap.get(e.user_id)
-        const course = e.courses
-        const value = course?.price || 0
+        const course = courses[e.course_id]
+        const value = Number(course?.price) || 0
         const commission = value * 0.70 // 70% solicitado
 
         return {
             id: `#${e.id.toString().slice(-4)}`,
-            student: student?.full_name || 'Aluno Excluido',
-            studentEmail: student?.email,
-            course: course?.title || 'Curso Excluido',
+            student: student?.full_name || 'Aluno Excluído',
+            studentEmail: student?.email || 'N/A',
+            course: course?.title || 'Curso Excluído',
             value: `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
             commission: `R$ ${commission.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-            date: new Date(e.created_at).toLocaleDateString('pt-BR'),
+            date: (e.created_at?.toDate ? e.created_at.toDate() : new Date(e.created_at)).toLocaleDateString('pt-BR'),
             status: 'Sucedido'
         }
     })
@@ -212,6 +249,26 @@ export default async function FinancialDashboardPage() {
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+    )
+}
+
+function NoSales() {
+    return (
+        <div className="p-8 md:p-12 space-y-12 bg-[#F4F7F9] min-h-screen text-slate-700 border-t border-slate-100 font-exo">
+            <header>
+                <h1 className="text-2xl font-black tracking-tighter text-slate-700 uppercase">
+                    GESTÃO <span className="text-[#00C402]">FINANCEIRA</span>
+                </h1>
+            </header>
+            <div className="bg-white border border-slate-100 rounded-3xl p-20 text-center shadow-sm">
+                <p className="text-slate-500 italic font-medium uppercase tracking-widest text-[10px]">
+                    Você ainda não possui vendas registradas.
+                </p>
+                <Link href="/dashboard-teacher/courses" className="inline-block mt-6 text-[10px] font-black uppercase tracking-[3px] text-[#00C402] hover:underline">
+                    Divulgar meus Cursos
+                </Link>
             </div>
         </div>
     )

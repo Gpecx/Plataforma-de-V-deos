@@ -1,4 +1,5 @@
-import { createClient } from '@/utils/supabase/server'
+import { adminAuth, adminDb } from '@/lib/firebase-admin'
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { PlayCircle, CreditCard, BookOpen, Sparkles, Trophy, Users } from 'lucide-react'
 import Link from 'next/link'
@@ -7,22 +8,36 @@ import { StudentCarousel } from '@/components/dashboard/StudentCarousel'
 import { MyLearningSidebar } from '@/components/dashboard/MyLearningSidebar'
 
 export default async function StudentDashboard() {
-    const supabase = await createClient()
+    const cookieStore = cookies()
+    const token = (await cookieStore).get('firebase-token')?.value
 
-    // 1. Verifica sessão do usuário
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) redirect('/login')
+    if (!token) redirect('/login')
 
-    // 2. Busca perfil, cursos totais e matrículas em paralelo
-    const [profileRes, allCoursesRes, enrollmentsRes] = await Promise.all([
-        supabase.from('profiles').select('full_name').eq('id', user.id).single(),
-        supabase.from('courses').select('*'),
-        supabase.from('enrollments').select('course_id').eq('user_id', user.id)
+    let user;
+    try {
+        user = await adminAuth.verifyIdToken(token)
+    } catch (error) {
+        redirect('/login')
+    }
+
+    // 2. Busca perfil, cursos totais e matrículas em paralelo no Firestore
+    const [profileDoc, coursesSnapshot, enrollmentsSnapshot] = await Promise.all([
+        adminDb.collection('profiles').doc(user.uid).get(),
+        adminDb.collection('courses').get(),
+        adminDb.collection('enrollments').where('user_id', '==', user.uid).get()
     ])
 
-    const profile = profileRes.data
-    const allCourses = allCoursesRes.data || []
-    const enrolledIds = enrollmentsRes.data?.map(e => e.course_id) || []
+    const profile = profileDoc.data()
+    const allCourses = coursesSnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+            id: doc.id,
+            ...data,
+            created_at: data.created_at?.toDate ? data.created_at.toDate().toISOString() : data.created_at,
+            updated_at: data.updated_at?.toDate ? data.updated_at.toDate().toISOString() : data.updated_at
+        };
+    }) as any[]
+    const enrolledIds = enrollmentsSnapshot.docs.map(doc => doc.data().course_id)
 
     const meusCursos = allCourses.filter(c => enrolledIds.includes(c.id))
     const cursosDisponiveis = allCourses.filter(c => !enrolledIds.includes(c.id))

@@ -1,6 +1,7 @@
 "use client"
 
-import { CreditCard, Calendar, ArrowUpRight, Plus, CheckCircle2, Clock, Zap } from 'lucide-react'
+import { useState } from 'react'
+import { CreditCard, Calendar, ArrowUpRight, Plus, CheckCircle2, Clock, Zap, X, ShieldCheck } from 'lucide-react'
 
 const TRANSACTIONS = [
     { id: 1, date: '22/02/2026', value: 'R$ 497,00', method: 'Cartão •••• 4242', status: 'Pago', icon: CreditCard },
@@ -9,6 +10,19 @@ const TRANSACTIONS = [
 ]
 
 export default function PaymentsPage() {
+    const [isModalOpen, setIsModalOpen] = useState(false)
+    const [isSaving, setIsSaving] = useState(false)
+
+    const handleSaveCard = (e: React.FormEvent) => {
+        e.preventDefault()
+        setIsSaving(true)
+        // Simulate API call
+        setTimeout(() => {
+            setIsSaving(false)
+            setIsModalOpen(false)
+        }, 2000)
+    }
+
     return (
         <div className="p-8 md:p-12 min-h-screen font-exo text-slate-800 animate-in fade-in duration-500">
             <header className="mb-12">
@@ -92,7 +106,10 @@ export default function PaymentsPage() {
                                     </div>
                                 </div>
                             </div>
-                            <button className="w-full h-14 border border-white/10 rounded-2xl flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-slate-900 transition-all shadow-sm">
+                            <button
+                                onClick={() => setIsModalOpen(true)}
+                                className="w-full h-14 border border-white/10 rounded-2xl flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest hover:bg-white hover:text-slate-900 transition-all shadow-sm"
+                            >
                                 <Plus size={16} /> Adicionar Novo Cartão
                             </button>
                         </div>
@@ -112,6 +129,99 @@ export default function PaymentsPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Modal de Adicionar Cartão */}
+            {isModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-white w-full max-w-lg rounded-[48px] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300">
+                        <div className="p-10 relative">
+                            <button
+                                onClick={() => setIsModalOpen(false)}
+                                className="absolute top-8 right-8 p-2 text-slate-300 hover:text-slate-900 transition-colors"
+                            >
+                                <X size={20} />
+                            </button>
+
+                            <div className="mb-10">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <div className="w-8 h-1 bg-[#00C402] rounded-full"></div>
+                                    <span className="text-[9px] font-black uppercase tracking-[4px] text-[#00C402]">Secure Payment</span>
+                                </div>
+                                <h2 className="text-2xl font-black uppercase tracking-tighter text-slate-900">Novo Cartão de Crédito</h2>
+                                <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1">Seus dados são criptografados e protegidos.</p>
+                            </div>
+
+                            <form onSubmit={handleSaveCard} className="space-y-6">
+                                <div className="space-y-2">
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 pl-2">Número do Cartão</label>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            placeholder="0000 0000 0000 0000"
+                                            className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-sm font-bold tracking-[2px] placeholder:text-slate-200 focus:border-[#00C402]/30 outline-none transition-all"
+                                            required
+                                        />
+                                        <CreditCard className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-200" size={20} />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 pl-2">Nome no Cartão</label>
+                                    <input
+                                        type="text"
+                                        placeholder="COMO IMPRESSO NO CARTÃO"
+                                        className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-[10px] font-black uppercase tracking-[1px] placeholder:text-slate-200 focus:border-[#00C402]/30 outline-none transition-all"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 pl-2">Validade</label>
+                                        <input
+                                            type="text"
+                                            placeholder="MM / YY"
+                                            className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-sm font-bold tracking-widest placeholder:text-slate-200 focus:border-[#00C402]/30 outline-none transition-all"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 pl-2">CVV</label>
+                                        <input
+                                            type="text"
+                                            placeholder="000"
+                                            className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-6 text-sm font-bold tracking-widest placeholder:text-slate-200 focus:border-[#00C402]/30 outline-none transition-all"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="pt-4 space-y-4">
+                                    <button
+                                        type="submit"
+                                        disabled={isSaving}
+                                        className="w-full h-16 bg-[#00C402] text-white text-[11px] font-black uppercase tracking-[3px] rounded-2xl shadow-lg shadow-[#00C402]/20 hover:bg-[#00C402]/90 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {isSaving ? (
+                                            <>
+                                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                Processando...
+                                            </>
+                                        ) : (
+                                            'Confirmar e Salvar'
+                                        )}
+                                    </button>
+
+                                    <div className="flex items-center justify-center gap-2 text-[8px] font-black text-slate-300 uppercase tracking-widest">
+                                        <ShieldCheck size={12} className="text-[#00C402]" />
+                                        Pagamento 100% Seguro & Criptografado
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

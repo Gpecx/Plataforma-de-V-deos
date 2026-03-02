@@ -2,7 +2,6 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { BuyButton } from "@/components/BuyButton"
 import Navbar from "@/components/Navbar"
-import { createClient } from "@/utils/supabase/server"
 import { MotivationalBanner } from "@/components/MotivationalBanner"
 import {
     CheckCircle2,
@@ -14,25 +13,52 @@ import {
     ChevronDown,
     ArrowLeft,
 } from "lucide-react"
+import { db } from "@/lib/firebase"
+import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore"
 
 export default async function CourseDetailPage({ params }: { params: { slug: string } }) {
     const { slug } = await params
-    const supabase = await createClient()
 
-    // 1. Busca o curso por ID
-    const { data: course, error: courseError } = await supabase
-        .from('courses')
-        .select('*')
-        .eq('id', slug)
-        .single()
+    // 1. Busca o curso por ID no Firestore
+    let course: any = null
+    try {
+        const courseRef = doc(db, 'courses', slug)
+        const courseSnap = await getDoc(courseRef)
 
-    if (courseError || !course) return notFound()
+        if (courseSnap.exists()) {
+            const data = courseSnap.data()
+            course = {
+                id: courseSnap.id,
+                ...data,
+                // Garantir que datas sejam serializáveis se existirem
+                created_at: data.created_at?.toDate ? data.created_at.toDate().toISOString() : data.created_at,
+                updated_at: data.updated_at?.toDate ? data.updated_at.toDate().toISOString() : data.updated_at
+            }
+        }
+    } catch (error) {
+        console.error("Erro ao buscar curso (Client SDK):", error)
+    }
 
-    const { data: lessons } = await supabase
-        .from('lessons')
-        .select('*')
-        .eq('course_id', slug)
-        .order('position', { ascending: true })
+    if (!course) return notFound()
+
+    // 2. Busca as lições do curso
+    let lessons: any[] = []
+    try {
+        const lessonsRef = collection(db, 'lessons')
+        const q = query(lessonsRef, where('course_id', '==', slug))
+        const lessonsSnap = await getDocs(q)
+
+        lessons = lessonsSnap.docs.map(d => {
+            const lData = d.data()
+            return {
+                id: d.id,
+                ...lData,
+                created_at: lData.created_at?.toDate ? lData.created_at.toDate().toISOString() : lData.created_at
+            } as any
+        }).sort((a: any, b: any) => (a.position || 0) - (b.position || 0))
+    } catch (error) {
+        console.error("Erro ao buscar lições (Client SDK):", error)
+    }
 
     const curriculum = [
         {
@@ -42,7 +68,9 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
     ]
 
     const totalLessons = lessons?.length || 0
-    const coursePrice = typeof course.price === 'number' ? course.price : parseFloat(course.price)
+    // Adicionando fallback para evitar erro de toFixed se o curso/preço não existir corretamente
+    const rawPrice = course?.price ?? 157
+    const coursePrice = typeof rawPrice === 'number' ? rawPrice : parseFloat(rawPrice)
 
     return (
         <div className="min-h-screen bg-[#F4F7F9] text-slate-800 font-exo">
@@ -130,7 +158,7 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
 
                             <div className="space-y-3 border-t border-slate-50 pt-6">
                                 {[
-                                    { icon: <Clock size={16} />, text: `${course.hours || 24} Horas de Conteúdo` },
+                                    { icon: <Clock size={16} />, text: `${course.duration || 24} Horas de Conteúdo` },
                                     { icon: <PlayCircle size={16} />, text: `${totalLessons} Aulas Práticas` },
                                     { icon: <CheckCircle2 size={16} />, text: "Material Complementar" },
                                 ].map((item, i) => (
@@ -205,7 +233,7 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                 </div>
 
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {(course.highlights || [
+                    {(Array.isArray(course?.highlights) ? course.highlights : [
                         "Fundamentos e conceitos essenciais",
                         "Práticas e exercícios reais",
                         "Domínio completo da ferramenta",

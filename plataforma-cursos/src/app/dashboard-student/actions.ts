@@ -1,110 +1,120 @@
 'use server'
-
-import { createClient } from '@/utils/supabase/server'
+import { adminAuth, adminDb } from '@/lib/firebase-admin'
+import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
-export async function buyCourse(courseId: string) {
-    const supabase = await createClient()
+async function getAuthUser() {
+    const cookieStore = cookies()
+    const token = (await cookieStore).get('firebase-token')?.value
+    if (!token) return null
 
-    // 1. Pega o usuário logado
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) throw new Error('Não autorizado')
-
-    // 2. Insere a matrícula na tabela que criamos
-    const { error } = await supabase
-        .from('enrollments')
-        .insert([
-            { user_id: user.id, course_id: courseId }
-        ])
-
-    if (error) {
-        console.error('Erro na compra:', error.message)
-        return { success: false }
+    try {
+        return await adminAuth.verifyIdToken(token)
+    } catch (error) {
+        return null
     }
-
-    // 3. Atualiza a página para o curso "mudar de lista" na hora
-    revalidatePath('/dashboard-student')
-    return { success: true }
 }
 
-/**
- * Action para processar o checkout de múltiplos cursos de uma vez
- */
-export async function processCheckoutAction(courseIds: string[]) {
-    const supabase = await createClient()
+export async function buyCourse(courseId: string) {
+    const user = await getAuthUser()
+    if (!user) throw new Error('Não autorizado')
 
-    // 1. Pega o usuário logado
-    const { data: { user } } = await supabase.auth.getUser()
+    try {
+        await adminDb.collection('enrollments').add({
+            user_id: user.uid,
+            course_id: courseId,
+            created_at: new Date()
+        })
+
+        revalidatePath('/dashboard-student')
+        return { success: true }
+    } catch (error) {
+        console.error('Erro na compra:', error)
+        return { success: false }
+    }
+}
+
+export async function processCheckoutAction(courseIds: string[]) {
+    const user = await getAuthUser()
     if (!user) return { success: false, error: 'Não autorizado' }
 
-    // 2. Prepara os dados de matrícula
-    const enrollments = courseIds.map(id => ({
-        user_id: user.id,
-        course_id: id
-    }))
+    try {
+        const batch = adminDb.batch()
+        courseIds.forEach(id => {
+            const enrollRef = adminDb.collection('enrollments').doc()
+            batch.set(enrollRef, {
+                user_id: user.uid,
+                course_id: id,
+                created_at: new Date()
+            })
+        })
+        await batch.commit()
 
-    // 3. Insere em massa
-    const { error } = await supabase
-        .from('enrollments')
-        .insert(enrollments)
-
-    if (error) {
-        console.error('Erro no checkout:', error.message)
+        revalidatePath('/dashboard-student')
+        return { success: true }
+    } catch (error) {
+        console.error('Erro no checkout:', error)
         return { success: false, error: 'Falha ao registrar matrículas.' }
     }
-
-    // 4. Limpa o cache
-    revalidatePath('/dashboard-student')
-
-    return { success: true }
 }
 
 export async function updateProfile(prevState: any, formData: FormData) {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const user = await getAuthUser()
     if (!user) throw new Error('Não autorizado')
 
     const fullName = formData.get('fullName') as string
 
-    const { error } = await supabase
-        .from('profiles')
-        .update({ full_name: fullName })
-        .eq('id', user.id)
+    try {
+        await adminDb.collection('profiles').doc(user.uid).update({
+            full_name: fullName,
+            updated_at: new Date()
+        })
 
-    if (error) {
-        console.error('Erro ao atualizar perfil:', error.message)
-        return { success: false, error: error.message }
+        revalidatePath('/dashboard-student')
+        revalidatePath('/dashboard-student/profile')
+        return { success: true }
+    } catch (error) {
+        console.error('Erro ao atualizar perfil:', error)
+        return { success: false, error: 'Falha ao atualizar perfil.' }
     }
-
-    revalidatePath('/dashboard-student')
-    revalidatePath('/dashboard-student/profile')
-    return { success: true }
 }
 
 export async function updatePassword(formData: FormData) {
-    const supabase = await createClient()
+    const user = await getAuthUser()
+    if (!user) return { success: false, error: 'Não autorizado' }
+
     const password = formData.get('password') as string
 
-    const { error } = await supabase.auth.updateUser({
-        password: password
-    })
-
-    if (error) {
-        return { success: false, error: error.message }
+    try {
+        await adminAuth.updateUser(user.uid, {
+            password: password
+        })
+        return { success: true }
+    } catch (error) {
+        console.error('Erro ao atualizar senha:', error)
+        return { success: false, error: 'Falha ao atualizar senha.' }
     }
-
-    return { success: true }
 }
 
 export async function deleteAccount() {
-    const supabase = await createClient()
-    await supabase.auth.signOut()
+    const user = await getAuthUser()
+    if (user) {
+        try {
+            await adminAuth.deleteUser(user.uid)
+            // Também deveria deletar o profile no Firestore se quiser cleanup completo
+            await adminDb.collection('profiles').doc(user.uid).delete()
+        } catch (error) {
+            console.error('Erro ao deletar conta:', error)
+        }
+    }
+    const cookieStore = cookies()
+        ; (await cookieStore).delete('firebase-token')
     redirect('/')
 }
 
 export async function signOut() {
-    const supabase = await createClient()
-    await supabase.auth.signOut()
+    const cookieStore = cookies()
+        ; (await cookieStore).delete('firebase-token')
     redirect('/')
 }

@@ -3,7 +3,10 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { ArrowLeft, Send, Paperclip, BookOpen, GraduationCap, MessageSquare, Users } from 'lucide-react'
 import Link from 'next/link'
-import { createClient } from '@/utils/supabase/client'
+import { auth, db } from '@/lib/firebase'
+import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp, getDocs, doc, getDoc } from 'firebase/firestore'
+import { onAuthStateChanged } from 'firebase/auth'
+import { getPublicProfile } from '@/app/actions/profile'
 
 interface ChatMessage {
     id: string
@@ -22,7 +25,6 @@ interface Teacher {
 }
 
 export default function StudentChatPage() {
-    const supabase = createClient()
     const [user, setUser] = useState<any>(null)
     const [teachers, setTeachers] = useState<Teacher[]>([])
     const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
@@ -41,126 +43,108 @@ export default function StudentChatPage() {
         scrollToBottom()
     }, [messages, scrollToBottom])
 
-    const formatTime = (dateStr: string) => {
-        const d = new Date(dateStr)
+    const formatTime = (date: any) => {
+        if (!date) return ''
+        const d = date.toDate ? date.toDate() : new Date(date)
         return d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
     }
 
     // 1. Initial Load: User & Teachers
     useEffect(() => {
-        async function loadInitialData() {
-            setLoading(true)
-            const { data: { user } } = await supabase.auth.getUser()
-            if (!user) return
-            setUser(user)
-
-            // Fetch enrollments -> courses -> teachers
-            const { data: enrollments, error: enrollError } = await supabase
-                .from('enrollments')
-                .select(`
-                    course_id,
-                    courses (
-                        id,
-                        title,
-                        teacher_id,
-                        profiles!courses_teacher_id_fkey (
-                            id,
-                            full_name
-                        )
-                    )
-                `)
-                .eq('user_id', user.id)
-
-            if (enrollments && enrollments.length > 0) {
-                const mappedTeachers: Teacher[] = enrollments.map((e: any) => ({
-                    id: e.courses.profiles.id,
-                    name: e.courses.profiles.full_name,
-                    course: e.courses.title,
-                    initials: e.courses.profiles.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase().substring(0, 2)
-                }))
-                setTeachers(mappedTeachers)
-                setSelectedTeacher(mappedTeachers[0])
+        const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
+            if (!authUser) {
+                setLoading(false)
+                return
             }
-            setLoading(false)
-        }
-        loadInitialData()
+            setUser(authUser)
+            setLoading(true)
+
+            try {
+                // Fetch enrollments
+                const enrollRef = collection(db, 'enrollments')
+                const q = query(enrollRef, where('user_id', '==', authUser.uid))
+                const enrollSnapshot = await getDocs(q)
+
+                const mappedTeachers: Teacher[] = []
+                const teacherIdsSeen = new Set<string>()
+
+                for (const enrollDoc of enrollSnapshot.docs) {
+                    const enrollData = enrollDoc.data()
+                    const courseId = enrollData.course_id
+
+                    const courseDoc = await getDoc(doc(db, 'courses', courseId))
+                    if (courseDoc.exists()) {
+                        const courseData = courseDoc.data()
+                        const teacherId = courseData.teacher_id
+
+                        if (!teacherIdsSeen.has(teacherId)) {
+                            const teacherData = await getPublicProfile(teacherId)
+                            if (teacherData) {
+                                mappedTeachers.push({
+                                    id: teacherId,
+                                    name: teacherData.full_name,
+                                    course: courseData.title,
+                                    initials: teacherData.full_name.split(' ').map((n: string) => n[0]).join('').toUpperCase().substring(0, 2)
+                                })
+                                teacherIdsSeen.add(teacherId)
+                            }
+                        }
+                    }
+                }
+
+                setTeachers(mappedTeachers)
+                if (mappedTeachers.length > 0) {
+                    setSelectedTeacher(mappedTeachers[0])
+                }
+            } catch (error) {
+                console.error("Erro ao carregar professores:", error)
+            } finally {
+                setLoading(false)
+            }
+        })
+
+        return () => unsubscribe()
     }, [])
 
-    // 2. Fetch Messages when teacher changes
+    // 2. Fetch Messages when teacher changes (using onSnapshot)
     useEffect(() => {
         if (!user || !selectedTeacher) return
 
-        async function fetchMessages() {
-            if (!selectedTeacher) return;
+        const q = query(
+            collection(db, 'messages'),
+            where('user_id', '==', user.uid),
+            where('teacher_id', '==', selectedTeacher.id),
+            orderBy('created_at', 'asc')
+        )
 
-            const { data, error } = await supabase
-                .from('messages')
-                .select('*')
-                .eq('user_id', user.id)
-                .eq('teacher_id', selectedTeacher.id)
-                .order('created_at', { ascending: true })
+        const unsubscribe = onSnapshot(q, (snapshot) => {
+            const msgs = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+                time: formatTime(doc.data().created_at)
+            })) as any[]
+            setMessages(msgs)
+        })
 
-            if (data) {
-                setMessages(data.map((m: any) => ({
-                    id: m.id,
-                    role: m.role,
-                    content: m.content,
-                    time: formatTime(m.created_at),
-                    user_id: m.user_id,
-                    teacher_id: m.teacher_id
-                })))
-            }
-        }
-
-        fetchMessages()
-
-        // Realtime subscription filtered by user and teacher
-        const channel = supabase
-            .channel(`chat:${user.id}:${selectedTeacher.id}`)
-            .on('postgres_changes', {
-                event: 'INSERT',
-                schema: 'public',
-                table: 'messages',
-                filter: `user_id=eq.${user.id}`
-            }, (payload) => {
-                const newMsg = payload.new as any
-                if (newMsg.teacher_id === selectedTeacher.id) {
-                    setMessages(prev => [...prev, {
-                        id: newMsg.id,
-                        role: newMsg.role,
-                        content: newMsg.content,
-                        time: formatTime(newMsg.created_at),
-                        user_id: newMsg.user_id,
-                        teacher_id: newMsg.teacher_id
-                    }])
-                }
-            })
-            .subscribe()
-
-        return () => {
-            supabase.removeChannel(channel)
-        }
+        return () => unsubscribe()
     }, [user, selectedTeacher])
 
     const handleSend = async () => {
         const text = input.trim()
         if (!text || !user || !selectedTeacher) return
 
-        const { error } = await supabase
-            .from('messages')
-            .insert([{
-                user_id: user.id,
+        try {
+            await addDoc(collection(db, 'messages'), {
+                user_id: user.uid,
                 teacher_id: selectedTeacher.id,
                 role: 'student',
-                content: text
-            }])
-
-        if (error) {
+                content: text,
+                created_at: serverTimestamp()
+            })
+            setInput('')
+        } catch (error) {
             console.error('Erro ao enviar:', error)
-            return
         }
-
-        setInput('')
     }
 
     const handleKey = (e: React.KeyboardEvent) => {

@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from 'react'
-import { createClient } from '@/utils/supabase/client'
+import { auth } from '@/lib/firebase'
+import { onAuthStateChanged } from 'firebase/auth'
 import { useRouter } from 'next/navigation'
 import { updatePassword } from '../actions'
 import { Lock, CreditCard, Trash2, ArrowLeft, Save } from 'lucide-react'
@@ -11,7 +11,6 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 
 export default function SettingsPage() {
-    const supabase = createClient()
     const router = useRouter()
     const [loading, setLoading] = useState(true)
     const [user, setUser] = useState<any>(null)
@@ -19,17 +18,16 @@ export default function SettingsPage() {
     const [bank, setBank] = useState('')
 
     useEffect(() => {
-        async function getUser() {
-            const { data: { user } } = await supabase.auth.getUser()
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (!user) {
                 router.push('/login')
             } else {
                 setUser(user)
                 setLoading(false)
             }
-        }
-        getUser()
-    }, [supabase, router])
+        })
+        return () => unsubscribe()
+    }, [router])
 
     if (loading) {
         return (

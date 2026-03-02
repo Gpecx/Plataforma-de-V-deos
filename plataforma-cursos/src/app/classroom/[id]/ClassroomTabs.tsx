@@ -24,7 +24,7 @@ const MOCK_COMMENTS = [
         id: "c1",
         user: "João Silva",
         avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Joao",
-        text: "Professor, como faço para configurar o Supabase Localmente? Tentei seguir a doc mas me perdi na parte do Docker.",
+        text: "Professor, como faço para configurar o Firebase Localmente? Tentei seguir a doc mas me perdi na parte das credenciais.",
         date: "há 2 horas",
         isInstructor: false,
         canEdit: true, // Mock para o usuário atual
@@ -33,7 +33,7 @@ const MOCK_COMMENTS = [
                 id: "r1",
                 user: "Instrutor SPCS Academy",
                 avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Instructor",
-                text: "Olá João! Você precisa ter o Docker Desktop instalado e rodando. Depois disso, basta rodar 'supabase start' no terminal. Se der erro de porta, verifica se não tem outro serviço usando a 5432.",
+                text: "Olá João! Você precisa configurar o Firebase CLI. Depois disso, basta rodar 'firebase init' no terminal.",
                 date: "há 1 hora",
                 isInstructor: true,
                 canEdit: false

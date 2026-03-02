@@ -1,73 +1,99 @@
-import { createClient } from '@/utils/supabase/server'
+import { adminAuth, adminDb } from '@/lib/firebase-admin'
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { Search, MessageSquare, ArrowUpDown } from 'lucide-react'
 import Link from 'next/link'
 
 export default async function StudentsPage() {
-    const supabase = await createClient()
+    const cookieStore = cookies()
+    const token = (await cookieStore).get('firebase-token')?.value
+    if (!token) redirect('/login')
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) redirect('/login')
-
-    // 1. Buscamos as matrículas vinculadas aos cursos deste professor
-    const { data: enrollments, error: enrollError } = await supabase
-        .from('enrollments')
-        .select(`
-            user_id,
-            created_at,
-            course_id,
-            courses!inner (teacher_id)
-        `)
-        .eq('courses.teacher_id', user.id)
-        .order('created_at', { ascending: false })
-
-    if (enrollError) {
-        console.error('Erro ao buscar matrículas:', enrollError.message)
+    let decodedToken
+    try {
+        decodedToken = await adminAuth.verifyIdToken(token)
+    } catch (error) {
+        redirect('/login')
     }
 
-    // 2. Extraímos os user_ids únicos para buscar os perfis separadamente
-    const userIds = Array.from(new Set((enrollments || []).map(e => (e as any).user_id)))
+    const teacherId = decodedToken.uid
 
-    // 3. Buscamos os perfis desses usuários
+    // 1. Buscamos os cursos deste professor
+    const coursesSnapshot = await adminDb.collection('courses')
+        .where('teacher_id', '==', teacherId)
+        .get()
+
+    const courseIds = coursesSnapshot.docs.map(doc => doc.id)
+
+    if (courseIds.length === 0) {
+        return <NoStudents />
+    }
+
+    // 2. Buscamos as matrículas para esses cursos (em chunks de 10 porque Firestore 'in' limita a 10)
+    const courseChunks = []
+    for (let i = 0; i < courseIds.length; i += 10) {
+        courseChunks.push(courseIds.slice(i, i + 10))
+    }
+
+    const enrollmentPromises = courseChunks.map(chunk =>
+        adminDb.collection('enrollments')
+            .where('course_id', 'in', chunk)
+            .get()
+    )
+
+    const enrollmentSnapshots = await Promise.all(enrollmentPromises)
+    const enrollments = enrollmentSnapshots.flatMap(snap =>
+        snap.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }))
+    ).sort((a: any, b: any) => {
+        const dateA = a.created_at?.seconds ? a.created_at.seconds : (a.created_at || 0)
+        const dateB = b.created_at?.seconds ? b.created_at.seconds : (b.created_at || 0)
+        return (dateB as any) - (dateA as any)
+    })
+
+    // 3. Extraímos os user_ids únicos (removendo nulos/indefinidos)
+    const userIds = Array.from(new Set(enrollments.map((e: any) => e.user_id).filter(id => !!id)))
+
+    // 4. Buscamos perfis (em chunks de 10 porque Firestore 'in' limita a 10)
     let profiles: any[] = []
     if (userIds.length > 0) {
-        const { data: profilesData, error: profilesError } = await supabase
-            .from('profiles')
-            .select('id, full_name')
-            .in('id', userIds)
-
-        if (profilesError) {
-            console.error('Erro ao buscar perfis:', profilesError.message)
-        } else {
-            profiles = profilesData || []
+        // Para simplificar agora, assumimos menos de 10 ou fazemos um loop
+        const userChunks = []
+        for (let i = 0; i < userIds.length; i += 10) {
+            userChunks.push(userIds.slice(i, i + 10))
         }
+
+        const profilePromises = userChunks.map(chunk =>
+            adminDb.collection('profiles').where('__name__', 'in', chunk).get()
+        )
+        const profileSnapshots = await Promise.all(profilePromises)
+        profiles = profileSnapshots.flatMap(snap => snap.docs.map(doc => ({ id: doc.id, ...doc.data() })))
     }
 
-    // Mapa de perfis para busca rápida
     const profileMap = new Map(profiles.map(p => [p.id, p]))
 
-    // 4. Agregamos por aluno para a tabela
     const studentMap = new Map<string, any>()
+    enrollments.forEach((e: any) => {
+        const userId = e.user_id
+        const profileData = profileMap.get(userId)
 
-        ; (enrollments || []).forEach((e: any) => {
-            const userId = e.user_id
-            const profileData = profileMap.get(userId)
-
-            const existing = studentMap.get(userId)
-            if (existing) {
-                existing.courseCount++
-            } else {
-                studentMap.set(userId, {
-                    id: userId,
-                    profiles: {
-                        full_name: profileData?.full_name || 'Aluno Sem Perfil',
-                        email: profileData?.email || 'N/A'
-                    },
-                    joinedAt: e.created_at,
-                    courseCount: 1
-                })
-            }
-        })
+        const existing = studentMap.get(userId)
+        if (existing) {
+            existing.courseCount++
+        } else {
+            studentMap.set(userId, {
+                id: userId,
+                profiles: {
+                    full_name: profileData?.full_name || 'Aluno Sem Perfil',
+                    email: profileData?.email || 'N/A'
+                },
+                joinedAt: e.created_at?.toDate ? e.created_at.toDate() : e.created_at,
+                courseCount: 1
+            })
+        }
+    })
 
     const studentsData = Array.from(studentMap.values()).sort((a, b) =>
         (a.profiles?.full_name || '').localeCompare(b.profiles?.full_name || '')
@@ -145,6 +171,26 @@ export default async function StudentsPage() {
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+    )
+}
+
+function NoStudents() {
+    return (
+        <div className="p-8 md:p-12 space-y-12 bg-[#F4F7F9] min-h-screen text-slate-800 border-t border-slate-100 font-exo">
+            <header>
+                <h1 className="text-2xl font-black tracking-tighter text-slate-800 uppercase">
+                    GESTÃO DE <span className="text-[#00C402]">ALUNOS</span>
+                </h1>
+            </header>
+            <div className="bg-white border border-slate-100 rounded-2xl p-20 text-center shadow-sm">
+                <p className="text-slate-300 italic font-medium uppercase tracking-widest text-[10px]">
+                    Você ainda não possui cursos ou alunos cadastrados.
+                </p>
+                <Link href="/dashboard-teacher/courses" className="inline-block mt-6 text-[10px] font-black uppercase tracking-[3px] text-[#00C402] hover:underline">
+                    Criar meu Primeiro Curso
+                </Link>
             </div>
         </div>
     )

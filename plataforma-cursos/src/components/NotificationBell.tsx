@@ -3,7 +3,10 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bell, MessageSquare, PlayCircle, CheckCheck, X, TrendingUp, Users } from 'lucide-react'
-import { createClient } from '@/utils/supabase/client'
+import { onAuthStateChanged } from 'firebase/auth'
+import { auth, db } from '@/lib/firebase'
+import { collection, query, where, orderBy, limit, getDocs, onSnapshot, doc, getDoc } from 'firebase/firestore'
+import { getPublicProfile } from '@/app/actions/profile'
 
 interface Notification {
     id: string
@@ -23,85 +26,123 @@ export function NotificationBell({
     isTeacher?: boolean
 }) {
     const router = useRouter()
-    const supabase = createClient()
     const [open, setOpen] = useState(false)
     const [notifications, setNotifications] = useState<Notification[]>([])
     const [loading, setLoading] = useState(true)
 
     const fetchNotifications = async () => {
-        const { data: { user } } = await supabase.auth.getUser()
+        const user = auth.currentUser
         if (!user) return
 
-        if (isTeacher) {
-            // Notificações de Professor: Novas Matrículas/Vendas
-            const { data: courses } = await supabase.from('courses').select('id, title').eq('teacher_id', user.id)
-            const courseIds = courses?.map(c => c.id) || []
+        try {
+            if (isTeacher) {
+                // Notificações de Professor: Novas Matrículas/Vendas
+                const coursesRef = collection(db, 'courses')
+                const coursesQuery = query(coursesRef, where('teacher_id', '==', user.uid))
+                const coursesSnapshot = await getDocs(coursesQuery)
+                const courseIds = coursesSnapshot.docs.map(doc => doc.id)
 
-            const { data: enrollments } = await supabase
-                .from('enrollments')
-                .select('id, created_at, course_id, user_id')
-                .in('course_id', courseIds)
-                .order('created_at', { ascending: false })
-                .limit(5)
+                if (courseIds.length === 0) {
+                    setNotifications([])
+                    setLoading(false)
+                    return
+                }
 
-            const { data: profiles } = await supabase
-                .from('profiles')
-                .select('id, full_name')
-                .in('id', enrollments?.map(e => e.user_id) || [])
+                const enrollmentsRef = collection(db, 'enrollments')
+                const enrollmentsQuery = query(
+                    enrollmentsRef,
+                    where('course_id', 'in', courseIds),
+                    orderBy('created_at', 'desc'),
+                    limit(5)
+                )
 
-            const profilesMap = new Map(profiles?.map(p => [p.id, p]))
-            const coursesMap = new Map(courses?.map(c => [c.id, c]))
+                const enrollmentsSnapshot = await getDocs(enrollmentsQuery)
 
-            const teacherNotifs: Notification[] = (enrollments || []).map(e => ({
-                id: e.id.toString(),
-                type: 'sale',
-                title: 'Nova venda realizada!',
-                subtitle: `${profilesMap.get(e.user_id)?.full_name || 'Aluno'} comprou ${coursesMap.get(e.course_id)?.title}`,
-                time: new Date(e.created_at).toLocaleDateString('pt-BR'),
-                read: false,
-                href: `/dashboard-teacher/analytics?saleId=${e.id}`
-            }))
-            setNotifications(teacherNotifs)
-        } else {
-            // Notificações de Aluno: Novas Aulas (Simulado via cursos matriculados recentemente)
-            const { data: enrollments } = await supabase.from('enrollments').select('course_id').eq('user_id', user.id)
-            const myCourseIds = enrollments?.map(e => e.course_id) || []
+                const teacherNotifs: Notification[] = await Promise.all(enrollmentsSnapshot.docs.map(async (enrollDoc) => {
+                    const e = enrollDoc.data()
+                    const userData = await getPublicProfile(e.user_id)
+                    const courseDoc = await getDoc(doc(db, 'courses', e.course_id))
+                    const courseData = courseDoc.data()
 
-            const { data: recentCourses } = await supabase
-                .from('courses')
-                .select('id, title, updated_at')
-                .in('id', myCourseIds)
-                .order('updated_at', { ascending: false })
-                .limit(5)
+                    return {
+                        id: enrollDoc.id,
+                        type: 'sale',
+                        title: 'Nova venda realizada!',
+                        subtitle: `${userData?.full_name || 'Aluno'} comprou ${courseData?.title || 'Curso'}`,
+                        time: e.created_at?.toDate ? e.created_at.toDate().toLocaleDateString('pt-BR') : 'Recentemente',
+                        read: false,
+                        href: `/dashboard-teacher/analytics?saleId=${enrollDoc.id}`
+                    }
+                }))
+                setNotifications(teacherNotifs)
+            } else {
+                // Notificações de Aluno: Conteúdo atualizado
+                const enrollmentsRef = collection(db, 'enrollments')
+                const enrollmentsQuery = query(enrollmentsRef, where('user_id', '==', user.uid))
+                const enrollmentsSnapshot = await getDocs(enrollmentsQuery)
+                const myCourseIds = enrollmentsSnapshot.docs.map(doc => doc.data().course_id)
 
-            const studentNotifs: Notification[] = (recentCourses || []).map(c => ({
-                id: c.id.toString(),
-                type: 'new_lesson',
-                title: 'Conteúdo atualizado!',
-                subtitle: `Novas aulas em: ${c.title}`,
-                time: new Date(c.updated_at).toLocaleDateString('pt-BR'),
-                read: false,
-                href: `/classroom/${c.id}`
-            }))
-            setNotifications(studentNotifs)
+                if (myCourseIds.length === 0) {
+                    setNotifications([])
+                    setLoading(false)
+                    return
+                }
+
+                const coursesRef = collection(db, 'courses')
+                const coursesQuery = query(
+                    coursesRef,
+                    where('__name__', 'in', myCourseIds),
+                    orderBy('updated_at', 'desc'),
+                    limit(5)
+                )
+                const coursesSnapshot = await getDocs(coursesQuery)
+
+                const studentNotifs: Notification[] = coursesSnapshot.docs.map(courseDoc => {
+                    const c = courseDoc.data()
+                    return {
+                        id: courseDoc.id,
+                        type: 'new_lesson',
+                        title: 'Conteúdo atualizado!',
+                        subtitle: `Novas aulas em: ${c.title}`,
+                        time: c.updated_at?.toDate ? c.updated_at.toDate().toLocaleDateString('pt-BR') : 'Recentemente',
+                        read: false,
+                        href: `/classroom/${courseDoc.id}`
+                    }
+                })
+                setNotifications(studentNotifs)
+            }
+        } catch (error) {
+            console.error("Erro ao buscar notificações:", error)
+        } finally {
+            setLoading(false)
         }
-        setLoading(false)
     }
 
     useEffect(() => {
-        fetchNotifications()
-
-        // Setup realtime subscription (Optional but recommended)
-        const channel = supabase
-            .channel('db-changes')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'enrollments' }, () => {
+        const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+            if (user) {
                 fetchNotifications()
-            })
-            .subscribe()
 
-        return () => {
-            supabase.removeChannel(channel)
-        }
+                // Realtime with Firestore onSnapshot
+                const enrollmentsRef = collection(db, 'enrollments')
+                // Se for professor, ele não pode dar query 'in' se não tiver cursos, 
+                // então vamos simplificar o filtro do snapshot para evitar erros de permissão
+                const q = isTeacher
+                    ? query(enrollmentsRef, limit(1)) // Apenas para disparar o refresh
+                    : query(enrollmentsRef, where('user_id', '==', user.uid), limit(1))
+
+                const unsubscribeSnap = onSnapshot(q, () => {
+                    fetchNotifications()
+                })
+
+                return () => unsubscribeSnap()
+            } else {
+                setNotifications([])
+                setLoading(false)
+            }
+        })
+
+        return () => unsubscribeAuth()
     }, [isTeacher])
 
     const unread = notifications.filter(n => !n.read).length

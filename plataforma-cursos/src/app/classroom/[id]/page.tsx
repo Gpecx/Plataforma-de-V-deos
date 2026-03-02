@@ -19,14 +19,15 @@ import {
 } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import { ClassroomTabs } from './ClassroomTabs'
-import { createClient } from '@/utils/supabase/client'
+import { db, auth } from '@/lib/firebase'
+import { onAuthStateChanged } from 'firebase/auth'
+import { doc, getDoc, collection, query, where, orderBy, getDocs } from 'firebase/firestore'
 
-// Mock Data removido para usar dados reais do banco
+// ... (imports)
 
 export default function ClassroomPage() {
     const params = useParams()
     const router = useRouter()
-    const supabase = createClient()
 
     const [sidebarOpen, setSidebarOpen] = useState(true)
     const [course, setCourse] = useState<any>(null)
@@ -37,31 +38,50 @@ export default function ClassroomPage() {
     const [isDark, setIsDark] = useState(false)
 
     useEffect(() => {
-        async function loadContent() {
-            setLoading(true)
-            const courseId = params.id as string
-
-            // 1. Busca curso e aulas
-            const { data: courseData } = await supabase
-                .from('courses')
-                .select('*')
-                .eq('id', courseId)
-                .single()
-
-            const { data: lessonsData } = await supabase
-                .from('lessons')
-                .select('*')
-                .eq('course_id', courseId)
-                .order('position', { ascending: true })
-
-            if (courseData) setCourse(courseData)
-            if (lessonsData) {
-                setLessons(lessonsData)
-                setCurrentLesson(lessonsData[0])
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                setLoading(false)
+                return
             }
-            setLoading(false)
-        }
-        loadContent()
+
+            async function loadContent() {
+                setLoading(true)
+                const courseId = params.id as string
+
+                try {
+                    // 1. Busca curso
+                    const courseDoc = await getDoc(doc(db, 'courses', courseId))
+                    if (courseDoc.exists()) {
+                        setCourse({ id: courseDoc.id, ...courseDoc.data() })
+                    }
+
+                    // 2. Busca lições
+                    const lessonsRef = collection(db, 'lessons')
+                    const q = query(
+                        lessonsRef,
+                        where('course_id', '==', courseId),
+                        orderBy('position', 'asc')
+                    )
+                    const lessonsSnapshot = await getDocs(q)
+                    const lessonsData = lessonsSnapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }))
+
+                    if (lessonsData.length > 0) {
+                        setLessons(lessonsData)
+                        setCurrentLesson(lessonsData[0])
+                    }
+                } catch (error) {
+                    console.error("Erro ao carregar conteúdo:", error)
+                } finally {
+                    setLoading(false)
+                }
+            }
+            loadContent()
+        })
+
+        return () => unsubscribe()
     }, [params.id])
 
     const goToNextLesson = () => {
@@ -109,7 +129,7 @@ export default function ClassroomPage() {
     return (
         <div className={`flex flex-col h-screen overflow-hidden font-exo transition-colors duration-500 ${isDark ? 'bg-[#000000] text-white' : 'bg-[#F4F7F9] text-slate-800'}`}>
             {/* Header Imersivo */}
-            <header className={`h-16 flex items-center justify-between px-6 border-b transition-colors duration-500 z-50 ${isDark ? 'bg-[#0a0a0a] border-white/5 shadow-2xl' : 'bg-white border-slate-100 shadow-sm'}`}>
+            <header className={`h-16 flex items-center justify-between px-6 border-b transition-all duration-500 z-50 bg-white/95 backdrop-blur-md border-slate-100 shadow-sm ${isDark ? 'opacity-30 hover:opacity-100' : 'opacity-100'}`}>
                 {/* Lado Esquerdo: Logo */}
                 <div className="flex items-center w-1/4">
                     <Link href="/dashboard-student" className="flex items-center hover:opacity-80 transition-opacity">
@@ -123,7 +143,7 @@ export default function ClassroomPage() {
 
                 {/* Centro: Título do Curso */}
                 <div className="flex-1 flex justify-center items-center px-4">
-                    <h1 className={`text-sm md:text-base font-medium font-exo tracking-tight text-center line-clamp-1 ${isDark ? 'text-white' : 'text-black'}`}>
+                    <h1 className={`text-sm md:text-base font-bold font-exo tracking-tight text-center line-clamp-1 text-slate-900`}>
                         {course?.title || 'Carregando...'}
                     </h1>
                 </div>
@@ -133,17 +153,17 @@ export default function ClassroomPage() {
                     <div className="hidden lg:flex items-center gap-3">
                         <div className="flex flex-col items-end">
                             <div className="flex items-center gap-2">
-                                <span className={`text-[9px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>Progresso Final</span>
+                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Progresso Final</span>
                                 <span className="text-xs font-black text-[#00C402]">{progressPercent}%</span>
                             </div>
-                            <div className={`w-20 h-1 rounded-full overflow-hidden mt-1 ${isDark ? 'bg-white/5' : 'bg-slate-100'}`}>
+                            <div className="w-20 h-1 rounded-full overflow-hidden mt-1 bg-slate-100">
                                 <div
                                     className="h-full bg-[#00C402] transition-all duration-1000 shadow-[0_0_10px_rgba(0,196,2,0.5)]"
                                     style={{ width: `${progressPercent}%` }}
                                 ></div>
                             </div>
                         </div>
-                        <div className={`h-8 w-px ${isDark ? 'bg-white/10' : 'bg-slate-100'} mx-1`}></div>
+                        <div className="h-8 w-px bg-slate-100 mx-1"></div>
                     </div>
 
                     <div className="flex items-center gap-2">

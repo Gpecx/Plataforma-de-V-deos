@@ -1,53 +1,60 @@
-import { createClient } from '@/utils/supabase/server'
+import { adminAuth, adminDb } from '@/lib/firebase-admin'
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Plus, Users, Star, DollarSign, TrendingUp, Edit, MoreVertical, MessageSquare } from 'lucide-react'
 import { SalesChart } from './components/SalesChart'
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function TeacherDashboard() {
-    const supabase = await createClient()
+    const cookieStore = cookies()
+    const token = (await cookieStore).get('firebase-token')?.value
 
-    // 1. Verifica sessão do usuário
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) redirect('/login')
+    if (!token) redirect('/login')
 
-    // 2. Busca perfil e métricas reais
-    // Primeiro, pegamos todos os cursos deste professor para    // Fetching real data for metrics and charts
-    const { data: teacherCourses } = await supabase
-        .from('courses')
-        .select('id, price, title, image_url, status')
-        .eq('teacher_id', user.id)
-
-    interface TeacherCourse {
-        id: string
-        price: number
-        title: string
-        image_url: string | null
-        status: string
+    let user;
+    try {
+        user = await adminAuth.verifyIdToken(token)
+    } catch (error) {
+        redirect('/login')
     }
 
-    const courses: TeacherCourse[] = (teacherCourses || []) as TeacherCourse[]
+    // 2. Busca perfil e métricas reais no Firestore
+    const [profileDoc, coursesSnapshot] = await Promise.all([
+        adminDb.collection('profiles').doc(user.uid).get(),
+        adminDb.collection('courses').where('teacher_id', '==', user.uid).get()
+    ])
+
+    const profile = profileDoc.data()
+    const courses = coursesSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    })) as any[]
+
     const courseIds = courses.map(c => c.id)
-    const coursesPriceMap = new Map(courses.map(c => [c.id, c.price || 0]))
+    const coursesPriceMap = new Map(courses.map(c => [c.id, Number(c.price) || 0]))
 
     // Queries paralelas para performance
     const now = new Date()
-    const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000)).toISOString()
-    const todayStart = new Date(now.setHours(0, 0, 0, 0)).toISOString()
+    const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000))
+    const todayStart = new Date(now.setHours(0, 0, 0, 0))
 
-    const [profileRes, enrollmentsRes, weeklySalesRes] = await Promise.all([
-        supabase.from('profiles').select('full_name').eq('id', user.id).single(),
-        supabase.from('enrollments').select('*').in('course_id', courseIds),
-        supabase.from('enrollments')
-            .select('created_at, course_id')
-            .in('course_id', courseIds)
-            .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
-            .order('created_at', { ascending: true })
-    ])
+    // Busca matrículas de todos os cursos deste professor
+    let enrollments: any[] = []
+    if (courseIds.length > 0) {
+        const enrollmentsSnapshot = await adminDb.collection('enrollments')
+            .where('course_id', 'in', courseIds)
+            .get()
+        enrollments = enrollmentsSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+            created_at: doc.data().created_at?.toDate() || new Date()
+        }))
+    }
 
-    const profile = profileRes.data
-    const enrollments = enrollmentsRes.data || []
-    const weeklySales = weeklySalesRes.data || []
+    const weeklySales = enrollments.filter(e => e.created_at >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
 
     // Map real student counts per course
     const courseStudentCountMap = enrollments.reduce((acc, e) => {

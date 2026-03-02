@@ -3,10 +3,9 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ShoppingCart, Loader2 } from "lucide-react"
-import { createClient } from "@/utils/supabase/client"
+import { auth } from "@/lib/firebase"
 import { useCartStore } from "@/store/useCartStore"
 
-// Ajustamos a interface para aceitar tanto o mock quanto o banco
 interface BuyButtonProps {
     course: {
         id: string | number
@@ -30,18 +29,15 @@ export function BuyButton({ course, size = "default", label = "Comprar Agora", c
         try {
             // Adiciona ao carrinho usando a estrutura do useCartStore
             addItem({
-                id: String(course.id), // Forçamos string para o UUID do Supabase
+                id: String(course.id),
                 title: course.title,
                 price: course.price,
-                image_url: course.image_url || course.image, // Pega qualquer um que estiver disponível
+                image_url: course.image_url || course.image,
             })
 
-            const supabase = createClient()
+            const user = auth.currentUser
 
-            // Verificamos a sessão de forma mais rápida
-            const { data: { session } } = await supabase.auth.getSession()
-
-            if (!session) {
+            if (!user) {
                 // Redireciona para o login e salva a intenção de ir para o cart
                 router.push("/login?next=/cart")
                 return

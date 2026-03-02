@@ -1,57 +1,56 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/utils/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { auth, db } from '@/lib/firebase'
+import { createUserWithEmailAndPassword, updateProfile as firebaseUpdateProfile } from 'firebase/auth'
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
 
 export default function RegisterPage() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [fullName, setFullName] = useState('')
-    const [role, setRole] = useState<'student' | 'teacher'>('student')
     const [loading, setLoading] = useState(false)
     const router = useRouter()
-    const supabase = createClient()
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
 
-        // 1. Cria o usuário no Supabase Auth
-        const { data, error: authError } = await supabase.auth.signUp({
-            email,
-            password,
-        })
+        try {
+            // 1. Cria o usuário no Firebase Auth
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+            const user = userCredential.user
 
-        if (authError) {
-            alert('Erro no cadastro: ' + authError.message)
-            setLoading(false)
-            return
-        }
+            // 2. Atualiza o Display Name no Auth (opcional mas recomendado)
+            await firebaseUpdateProfile(user, {
+                displayName: fullName
+            })
 
-        if (data.user) {
-            // 2. Insere o nome na tabela profiles que criamos no SQL
-            const { error: profileError } = await supabase
-                .from('profiles')
-                .insert([
-                    { id: data.user.id, full_name: fullName, role: role }
-                ])
-
-            if (profileError) {
-                console.error('Erro ao salvar perfil:', profileError.message)
-                // Mesmo com erro no perfil, o usuário foi criado.
-            }
+            // 3. Salva os dados extras no Firestore (Profiles)
+            // IMPORTANTE: Definimos o role como 'student' automaticamente por segurança
+            await setDoc(doc(db, 'profiles', user.uid), {
+                id: user.uid,
+                full_name: fullName,
+                email: email,
+                role: 'student',
+                created_at: serverTimestamp()
+            })
 
             // Redirecionamento baseado no cargo
-            if (role === 'teacher') {
-                router.push('/dashboard-teacher')
-            } else {
-                router.push('/dashboard-student')
-            }
+            const idToken = await user.getIdToken()
+            const { setSessionCookie } = await import('@/app/actions/auth')
+            await setSessionCookie(idToken)
+
+            router.push('/dashboard-student')
             router.refresh()
+        } catch (error: any) {
+            console.error('Erro no cadastro:', error)
+            alert('Erro no cadastro: ' + (error.message || 'Verifique os dados e tente novamente.'))
+        } finally {
+            setLoading(false)
         }
-        setLoading(false)
     }
 
     return (
@@ -69,22 +68,6 @@ export default function RegisterPage() {
             </div>
 
             <form onSubmit={handleRegister} className="space-y-6">
-                <div className="flex gap-4 mb-6">
-                    <button
-                        type="button"
-                        onClick={() => setRole('student')}
-                        className={`flex-1 p-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all border ${role === 'student' ? 'bg-[#00C402] text-white border-[#00C402]' : 'bg-slate-50 text-slate-400 border-slate-100 hover:border-slate-200'}`}
-                    >
-                        Sou Aluno
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setRole('teacher')}
-                        className={`flex-1 p-4 rounded-xl font-black text-xs uppercase tracking-widest transition-all border ${role === 'teacher' ? 'bg-[#00C402] text-white border-[#00C402]' : 'bg-slate-50 text-slate-400 border-slate-100 hover:border-slate-200'}`}
-                    >
-                        Sou Professor
-                    </button>
-                </div>
 
                 <div className="space-y-4">
                     <div className="space-y-1.5">

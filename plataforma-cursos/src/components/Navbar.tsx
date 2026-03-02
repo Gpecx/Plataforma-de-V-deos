@@ -1,7 +1,11 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { createClient } from '@/utils/supabase/client'
+import { auth, db } from '@/lib/firebase'
+import { onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth'
+import { doc, getDoc } from 'firebase/firestore'
+import { getPublicProfile } from '@/app/actions/profile'
+import { removeSessionCookie } from '@/app/actions/auth'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import {
@@ -23,7 +27,6 @@ import {
     TrendingUp,
     BookOpen
 } from 'lucide-react'
-import { signOut } from '@/app/dashboard-student/actions'
 import { useCartStore } from '@/store/useCartStore'
 import { NotificationBell } from '@/components/NotificationBell'
 import {
@@ -42,8 +45,7 @@ interface NavbarProps {
 export default function Navbar({ transparent }: NavbarProps) {
     const pathname = usePathname()
     const router = useRouter()
-    const supabase = createClient()
-    const [userProfile, setUserProfile] = useState<{ full_name: string | null, role: string | null, created_at: string | null } | null>(null)
+    const [userProfile, setUserProfile] = useState<{ full_name: string | null, role: string | null, created_at: any } | null>(null)
     const [isLoggedIn, setIsLoggedIn] = useState(false)
     const { items } = useCartStore()
     const [mounted, setMounted] = useState(false)
@@ -54,40 +56,31 @@ export default function Navbar({ transparent }: NavbarProps) {
         setMounted(true)
 
         async function getProfile(userId: string) {
-            const { data: profile } = await supabase
-                .from('profiles')
-                .select('role, full_name, created_at')
-                .eq('id', userId)
-                .single()
-            setUserProfile(profile)
-        }
-
-        async function checkUser() {
-            const { data: { user } } = await supabase.auth.getUser()
-            if (user) {
-                setIsLoggedIn(true)
-                await getProfile(user.id)
-            } else {
-                setIsLoggedIn(false)
-                setUserProfile(null)
+            try {
+                const data = await getPublicProfile(userId)
+                if (data) {
+                    setUserProfile({
+                        full_name: data.full_name || null,
+                        role: data.role as any || null,
+                        created_at: (data as any).created_at
+                    })
+                }
+            } catch (error) {
+                console.error("Erro ao buscar perfil:", error)
             }
         }
 
-        checkUser()
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-            if (session?.user) {
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            if (user) {
                 setIsLoggedIn(true)
-                await getProfile(session.user.id)
+                await getProfile(user.uid)
             } else {
                 setIsLoggedIn(false)
                 setUserProfile(null)
             }
         })
 
-        return () => {
-            subscription.unsubscribe()
-        }
+        return () => unsubscribe()
     }, [])
 
     const formatDate = (dateString: string | null) => {
@@ -144,7 +137,7 @@ export default function Navbar({ transparent }: NavbarProps) {
                                 <GraduationCap size={14} />
                                 Alternar para Aluno
                             </Link>
-                        ) : userProfile?.role === 'teacher' && (
+                        ) : (userProfile?.role === 'teacher' || userProfile?.role === 'admin') && (
                             <Link
                                 href="/dashboard-teacher"
                                 className="hidden md:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-600 border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-all outline-none"
@@ -357,10 +350,16 @@ export default function Navbar({ transparent }: NavbarProps) {
 
                                         <DropdownMenuItem
                                             onSelect={async () => {
-                                                await supabase.auth.signOut();
-                                                setIsLoggedIn(false);
-                                                setUserProfile(null);
-                                                router.push('/');
+                                                try {
+                                                    await firebaseSignOut(auth);
+                                                    await removeSessionCookie();
+                                                    setIsLoggedIn(false);
+                                                    setUserProfile(null);
+                                                    router.push('/');
+                                                    router.refresh();
+                                                } catch (error) {
+                                                    console.error("Erro ao sair:", error);
+                                                }
                                             }}
                                             className="flex items-center gap-4 px-4 py-4 rounded-xl cursor-pointer hover:bg-red-50 text-red-500 transition-colors outline-none focus:bg-red-50 group mb-1"
                                         >

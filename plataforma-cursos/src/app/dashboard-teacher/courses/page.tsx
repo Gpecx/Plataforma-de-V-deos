@@ -1,7 +1,10 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { createClient } from '@/utils/supabase/client'
+import { auth, db } from '@/lib/firebase'
+import { collection, query, where, orderBy, getDocs } from 'firebase/firestore'
+import { onAuthStateChanged } from 'firebase/auth'
+
 import Link from 'next/link'
 import {
     Plus,
@@ -20,26 +23,29 @@ import { Input } from '@/components/ui/input'
 import { deleteCourseAction } from './actions'
 
 export default function TeacherCoursesPage() {
-    const supabase = createClient()
     const [courses, setCourses] = useState<any[]>([])
     const [searchTerm, setSearchTerm] = useState("")
     const [loading, setLoading] = useState(true)
 
-    // 1. Busca os cursos do banco
     useEffect(() => {
-        async function loadCourses() {
-            const { data: { user } } = await supabase.auth.getUser()
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
             if (user) {
-                const { data } = await supabase
-                    .from('courses')
-                    .select('*')
-                    .eq('teacher_id', user.id) // Filtro correto conforme o banco
-                    .order('created_at', { ascending: false })
-                setCourses(data || [])
+                try {
+                    const coursesRef = collection(db, 'courses');
+                    const querySnapshot = await getDocs(query(coursesRef, where('teacher_id', '==', user.uid)));
+                    const data = querySnapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }));
+                    setCourses(data);
+                } catch (error) {
+                    console.error("Erro ao carregar cursos:", error);
+                }
             }
             setLoading(false)
-        }
-        loadCourses()
+        })
+
+        return () => unsubscribe()
     }, [])
 
     // --- AQUI ENTRA O CÓDIGO QUE VOCÊ ESTAVA NA DÚVIDA ---

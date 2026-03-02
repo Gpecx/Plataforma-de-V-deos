@@ -1,19 +1,25 @@
-import { createClient } from '@/utils/supabase/server'
+import { adminAuth, adminDb } from '@/lib/firebase-admin'
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { ProfileForm } from './ProfileForm'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
 export default async function ProfilePage() {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) redirect('/login')
+    const cookieStore = cookies()
+    const token = (await cookieStore).get('firebase-token')?.value
 
-    const { data: profile } = await supabase
-        .from('profiles')
-        .select('full_name')
-        .eq('id', user.id)
-        .single()
+    if (!token) redirect('/login')
+
+    let user;
+    try {
+        user = await adminAuth.verifyIdToken(token)
+    } catch (error) {
+        redirect('/login')
+    }
+
+    const profileDoc = await adminDb.collection('profiles').doc(user.uid).get()
+    const profile = profileDoc.data()
 
     return (
         <div className="min-h-screen bg-[#F5F7FA] font-exo p-8 md:p-12 border-t border-slate-100">
