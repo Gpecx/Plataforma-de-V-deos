@@ -7,6 +7,7 @@ const PROTECTED_ROUTES = [
     '/dashboard-teacher',
     '/classroom',
     '/cart',
+    '/payouts',
 ]
 
 export default async function proxy(request: NextRequest) {
@@ -54,5 +55,15 @@ export default async function proxy(request: NextRequest) {
         const loginUrl = new URL('/login', request.url)
         return NextResponse.redirect(loginUrl)
     }
+}
+
+export const config = {
+    matcher: [
+        "/dashboard-student/:path*",
+        "/dashboard-teacher/:path*",
+        "/classroom/:path*",
+        "/payouts/:path*",
+        "/cart/:path*",
+    ],
 }
 

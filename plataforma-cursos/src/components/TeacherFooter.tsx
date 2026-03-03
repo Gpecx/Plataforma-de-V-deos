@@ -8,7 +8,7 @@ export default function TeacherFooter() {
                 {/* Logo Principal (Aumentada) */}
                 <Link href="/dashboard-teacher" className="hover:scale-105 transition-transform duration-500">
                     <img
-                        src="/images/SPCS academy 2.png"
+                        src="/images/SPCSacademy2.png"
                         alt="SPCS Academy"
                         className="h-24 md:h-36 w-auto grayscale-0 opacity-100 hover:opacity-90 transition-all duration-300 object-contain"
                     />
