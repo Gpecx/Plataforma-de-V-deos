@@ -14,6 +14,7 @@ import { auth, db } from "@/lib/firebase"
 import { signInWithEmailAndPassword } from "firebase/auth"
 import { doc, getDoc } from "firebase/firestore"
 import { setSessionCookie } from "@/app/actions/auth"
+import Logo from "@/components/Logo"
 
 const loginSchema = z.object({
     email: z.string().email("E-mail inválido"),
@@ -63,13 +64,7 @@ function LoginContent() {
         <div className="w-full">
             <div className="text-center space-y-4 pt-1 pb-6">
                 <div className="flex justify-center mb-4">
-                    <Link href="/" className="hover:scale-105 transition-transform duration-500 outline-none">
-                        <img
-                            src="/images/SPCS academy 2.png"
-                            alt="SPCS Academy"
-                            className="h-16 md:h-20 w-auto object-contain"
-                        />
-                    </Link>
+                    <Logo variant="vertical" className="scale-125" />
                 </div>
 
                 <div className="space-y-2">

@@ -20,6 +20,7 @@ import {
 import { useParams, useRouter } from 'next/navigation'
 import { ClassroomTabs } from './ClassroomTabs'
 import { db, auth } from '@/lib/firebase'
+import Logo from '@/components/Logo'
 import { onAuthStateChanged } from 'firebase/auth'
 import { doc, getDoc, collection, query, where, orderBy, getDocs } from 'firebase/firestore'
 
@@ -132,13 +133,7 @@ export default function ClassroomPage() {
             <header className={`h-16 flex items-center justify-between px-6 border-b transition-all duration-500 z-50 bg-white/95 backdrop-blur-md border-slate-100 shadow-sm ${isDark ? 'opacity-30 hover:opacity-100' : 'opacity-100'}`}>
                 {/* Lado Esquerdo: Logo */}
                 <div className="flex items-center w-1/4">
-                    <Link href="/dashboard-student" className="flex items-center hover:opacity-80 transition-opacity">
-                        <img
-                            src="/images/SPCS academy 2.png"
-                            alt="SPCS Academy"
-                            className="h-12 md:h-14 w-auto"
-                        />
-                    </Link>
+                    <Logo href="/dashboard-student" className="h-12 md:h-14" />
                 </div>
 
                 {/* Centro: Título do Curso */}

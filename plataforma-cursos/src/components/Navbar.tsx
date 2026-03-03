@@ -29,6 +29,7 @@ import {
 } from 'lucide-react'
 import { useCartStore } from '@/store/useCartStore'
 import { NotificationBell } from '@/components/NotificationBell'
+import Logo from '@/components/Logo'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -99,16 +100,10 @@ export default function Navbar({ transparent }: NavbarProps) {
             <header className={`relative w-full transition-all duration-300 pointer-events-auto antialiased ${transparent ? 'bg-transparent border-none shadow-none' : 'bg-white shadow-sm border-b border-slate-100'}`}>
                 <nav className={`flex items-center justify-between px-8 md:px-12 py-4 text-slate-800 font-exo`}>
                     <div className="flex items-center gap-10">
-                        <Link href={isTeacherMode ? "/dashboard-teacher" : "/dashboard-student"} className="flex items-center outline-none hover:opacity-80 transition-opacity">
-                            <img
-                                src="/images/SPCS academy 2.png"
-                                alt="SPCS Academy"
-                                className="h-16 w-auto"
-                            />
-                            {isTeacherMode && (
-                                <span className="ml-3 text-[8px] bg-slate-900 text-white px-2 py-0.5 rounded font-black tracking-widest uppercase">Painel</span>
-                            )}
-                        </Link>
+                        <Logo className="h-16" />
+                        {isTeacherMode && (
+                            <span className="ml-3 text-[8px] bg-slate-900 text-white px-2 py-0.5 rounded font-black tracking-widest uppercase">Painel</span>
+                        )}
 
                         <div className="hidden md:flex gap-8 text-base font-bold text-black font-exo">
                             {!isTeacherMode ? (

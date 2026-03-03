@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
     ChevronRight,
@@ -50,6 +50,11 @@ export default function NewCoursePage() {
     const [currentStep, setCurrentStep] = useState(1)
     const [isPublishing, setIsPublishing] = useState(false)
     const [isUploading, setIsUploading] = useState(false)
+
+    // Automatiza o scroll para o topo ao mudar de passo
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+    }, [currentStep])
 
     // Usamos a Store em vez do useState local
     const { formData, setStepData, setLessons, resetForm } = useCourseFormStore()

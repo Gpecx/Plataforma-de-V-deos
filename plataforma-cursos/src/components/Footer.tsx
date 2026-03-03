@@ -1,17 +1,12 @@
 import Link from 'next/link'
+import Logo from '@/components/Logo'
 
 export default function Footer() {
     return (
         <footer className="relative bg-[#F4F7F9] pt-24 pb-20 overflow-hidden border-t border-slate-100 font-exo">
             <div className="max-w-7xl mx-auto px-8 md:px-12 relative z-10 flex flex-col items-center space-y-12">
                 {/* Logo Principal (Aumentada) */}
-                <Link href="/" className="hover:scale-105 transition-transform duration-500">
-                    <img
-                        src="/images/SPCS academy 2.png"
-                        alt="SPCS Academy"
-                        className="h-24 md:h-36 w-auto grayscale-0 opacity-100 hover:opacity-90 transition-all duration-300 object-contain"
-                    />
-                </Link>
+                <Logo className="h-24 py-2" />
 
                 {/* Navegação Minimalista */}
                 <div className="flex flex-wrap justify-center gap-x-16 gap-y-6 text-[12px] font-black uppercase tracking-widest text-[#1A1A1A]">

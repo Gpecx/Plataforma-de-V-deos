@@ -429,6 +429,12 @@ export default function CourseBuilder() {
         return () => unsubscribe()
     }, [params.id])
 
+    useEffect(() => {
+        if (selectedLesson) {
+            window.scrollTo({ top: 0, behavior: 'smooth' })
+        }
+    }, [selectedLesson?.id])
+
     const sensors = useSensors(
         useSensor(PointerSensor),
         useSensor(KeyboardSensor, {
