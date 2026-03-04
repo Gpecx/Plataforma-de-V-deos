@@ -102,7 +102,7 @@ function SortableLesson({ lesson, onDelete, onSelect, isSelected, onTitleChange 
             ref={setNodeRef}
             style={style}
             onClick={onSelect}
-            className={`group flex items-center justify-between p-5 cursor-pointer border rounded-[24px] transition-all duration-300 mb-4 ${isSelected ? 'bg-white border-[#00C402] shadow-[0_20px_40px_-12px_rgba(0,196,2,0.15)] ring-4 ring-[#00C402]/5' : 'bg-white border-slate-100 hover:border-[#00C402]/30 hover:shadow-md'
+            className={`group flex items-center justify-between p-4 cursor-pointer border rounded-2xl transition-all duration-300 mb-3 ${isSelected ? 'bg-white border-[#00C402] shadow-[0_15px_30px_-10px_rgba(0,196,2,0.1)] ring-4 ring-[#00C402]/5' : 'bg-white border-slate-100 hover:border-[#00C402]/30 hover:shadow-sm'
                 }`}
         >
             <div className="flex items-center gap-6">
@@ -168,9 +168,9 @@ function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons,
         <div
             ref={setNodeRef}
             style={style}
-            className="mb-10 bg-white border border-slate-100 rounded-[40px] overflow-hidden shadow-sm"
+            className="mb-8 bg-white border border-slate-100 rounded-[32px] overflow-hidden shadow-sm"
         >
-            <div className="p-8 flex items-center justify-between bg-white border-b border-slate-50">
+            <div className="p-6 flex items-center justify-between bg-white border-b border-slate-50">
                 <div className="flex items-center gap-6">
                     <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-slate-200 hover:text-slate-400 transition-colors p-1">
                         <GripVertical size={24} />
@@ -258,22 +258,22 @@ function VideoUpload({ onUploadComplete }: { onUploadComplete: (url: string) => 
             <div
                 {...getRootProps()}
                 className={`
-                    border-2 border-dashed rounded-[32px] p-16 transition-all duration-500 cursor-pointer flex flex-col items-center justify-center gap-6
+                    border-2 border-dashed rounded-[32px] p-12 transition-all duration-500 cursor-pointer flex flex-col items-center justify-center gap-4
                     ${isDragActive ? 'border-[#00C402] bg-[#00C402]/5 shadow-xl ring-8 ring-[#00C402]/5' : 'border-slate-100 hover:border-[#00C402]/30 bg-slate-50/50'}
                 `}
             >
                 <input {...getInputProps()} />
-                <div className={`w-20 h-20 rounded-[24px] flex items-center justify-center transition-all duration-500 ${isDragActive ? 'bg-[#00C402] text-white' : 'bg-slate-100 text-slate-300'}`}>
-                    <UploadCloud size={32} strokeWidth={2.5} />
+                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-500 ${isDragActive ? 'bg-[#00C402] text-white' : 'bg-slate-100 text-slate-300'}`}>
+                    <UploadCloud size={28} strokeWidth={2.5} />
                 </div>
                 <div className="text-center">
-                    <p className="font-black uppercase tracking-tight text-xl text-slate-800 leading-none">Arraste seu conteúdo</p>
-                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[3px] mt-3">OU CLIQUE PARA SELECIONAR MP4</p>
+                    <p className="font-black uppercase tracking-tight text-lg text-slate-800 leading-none">Arraste seu conteúdo</p>
+                    <p className="text-[9px] text-slate-500 font-bold uppercase tracking-[3px] mt-2">OU CLIQUE PARA SELECIONAR MP4</p>
                 </div>
             </div>
 
             {isUploading && (
-                <div className="bg-slate-900 border border-slate-800 p-8 rounded-[32px] flex items-center gap-6 shadow-2xl animate-pulse">
+                <div className="bg-slate-900 border border-slate-800 p-6 rounded-[32px] flex items-center gap-6 shadow-2xl animate-pulse">
                     <Loader2 className="animate-spin text-[#00C402]" size={28} />
                     <div>
                         <span className="text-[10px] font-black uppercase text-[#00C402] tracking-[4px] block mb-1">Upload Estratégico em Curso</span>
@@ -313,7 +313,7 @@ function CourseImageUpload({ currentImageUrl, onUploadComplete }: { currentImage
             <div
                 {...getRootProps()}
                 className={`
-                    relative group border-2 border-dashed rounded-[24px] overflow-hidden transition-all duration-500 cursor-pointer h-48 flex flex-col items-center justify-center gap-3
+                    relative group border-2 border-dashed rounded-2xl overflow-hidden transition-all duration-500 cursor-pointer h-40 flex flex-col items-center justify-center gap-2
                     ${isDragActive ? 'border-[#00C402] bg-[#00C402]/5' : 'border-slate-50 hover:border-slate-100 bg-slate-50/30'}
                 `}
             >
@@ -511,25 +511,20 @@ export default function CourseBuilder() {
     }
 
     return (
-        <div className="p-8 md:p-12 min-h-screen bg-[#F5F7FA] text-slate-900 font-exo border-t border-slate-100">
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-16 gap-8 px-4">
-                <div className="flex items-center gap-8">
-                    <Link href="/dashboard-teacher" className="p-4 bg-white rounded-2xl border border-slate-100 hover:border-[#00C402]/30 transition-all text-slate-400 hover:text-slate-900 shadow-sm">
-                        <ArrowLeft size={24} />
-                    </Link>
-                    <div className="flex-grow">
-                        <div className="flex items-center gap-4 mb-2">
-                            <span className="text-[10px] font-black uppercase tracking-[5px] text-[#00C402]">Builder Studio</span>
-                            <div className="h-1 w-1 rounded-full bg-slate-200"></div>
-                            <span className="text-[10px] font-black uppercase tracking-[5px] text-slate-500">ID: {params.id?.slice(0, 8)}</span>
-                        </div>
-                        <input
-                            className="bg-transparent border-none focus:outline-none text-3xl font-black tracking-tighter uppercase w-full py-1 transition-all placeholder:text-slate-200 text-slate-800"
-                            placeholder="TÍTULO DO CURSO"
-                            value={courseTitle}
-                            onChange={(e) => setCourseTitle(e.target.value)}
-                        />
+        <div className="px-4 pb-8 md:px-8 md:pb-12 pt-2 md:pt-4 min-h-screen bg-[#F5F7FA] text-slate-900 font-exo">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-6 px-2">
+                <div className="flex-grow">
+                    <div className="flex items-center gap-4 mb-2">
+                        <span className="text-[10px] font-black uppercase tracking-[5px] text-[#00C402]">Builder Studio</span>
+                        <div className="h-1 w-1 rounded-full bg-slate-200"></div>
+                        <span className="text-[10px] font-black uppercase tracking-[5px] text-slate-500">ID: {params.id?.slice(0, 8)}</span>
                     </div>
+                    <input
+                        className="bg-transparent border-none focus:outline-none text-3xl font-black tracking-tighter uppercase w-full py-1 transition-all placeholder:text-slate-200 text-slate-800"
+                        placeholder="TÍTULO DO CURSO"
+                        value={courseTitle}
+                        onChange={(e) => setCourseTitle(e.target.value)}
+                    />
                 </div>
 
                 <div className="flex items-center gap-4 bg-white p-3 rounded-2xl border border-slate-100 shadow-sm shrink-0">
@@ -550,7 +545,7 @@ export default function CourseBuilder() {
                 </div>
             </header>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-16 px-4">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 px-2">
                 {/* Lado Esquerdo: Estrutura (D&D) */}
                 <div className="lg:col-span-2 space-y-12">
                     <div className="flex items-center justify-between pb-6 border-b border-slate-100">
@@ -615,7 +610,7 @@ export default function CourseBuilder() {
                         </div>
 
                         {selectedLesson ? (
-                            <div className="space-y-8 bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="space-y-8 bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-500">
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-8 border-b border-slate-50">
                                     <div className="space-y-2 flex-grow">
                                         <span className="text-[9px] font-black uppercase text-slate-400 tracking-[3px]">Título da Aula Digital</span>
@@ -713,7 +708,7 @@ export default function CourseBuilder() {
                                 </div>
                             </div>
                         ) : (
-                            <div className="p-20 bg-white border border-slate-100 rounded-[64px] flex flex-col items-center justify-center text-center shadow-sm relative overflow-hidden group border-dashed">
+                            <div className="p-12 bg-white border border-slate-100 rounded-[32px] flex flex-col items-center justify-center text-center shadow-sm relative overflow-hidden group border-dashed">
                                 <div className="absolute inset-0 bg-slate-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
                                 <div className="w-24 h-24 bg-slate-50 rounded-[32px] flex items-center justify-center text-slate-200 mb-8 border border-slate-100 relative z-10 group-hover:scale-110 transition-transform duration-500">
                                     <Video size={48} />
@@ -727,8 +722,8 @@ export default function CourseBuilder() {
                 </div>
 
                 {/* Lado Direito: Configurações e Capa */}
-                <aside className="space-y-16">
-                    <section className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm relative overflow-hidden group">
+                <aside className="space-y-12">
+                    <section className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm relative overflow-hidden group">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-[#00C402]/5 blur-3xl -mr-16 -mt-16 group-hover:bg-[#00C402]/10 transition-all duration-1000"></div>
                         <h3 className="text-[10px] font-black uppercase tracking-[5px] text-[#00C402] mb-10 italic relative z-10">Configurações Base</h3>
                         <div className="space-y-8 relative z-10">
@@ -739,7 +734,7 @@ export default function CourseBuilder() {
                                     value={courseSubtitle}
                                     onChange={(e) => setCourseSubtitle(e.target.value)}
                                     placeholder="Frase curta de impacto"
-                                    className="w-full bg-slate-50 border border-slate-100 rounded-[20px] px-6 py-4 focus:border-[#00C402] outline-none text-sm text-slate-800 transition-all shadow-sm"
+                                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3 focus:border-[#00C402] outline-none text-sm text-slate-800 transition-all shadow-sm"
                                 />
                             </div>
 
@@ -758,7 +753,7 @@ export default function CourseBuilder() {
                                 <select
                                     value={courseCategory}
                                     onChange={(e) => setCourseCategory(e.target.value)}
-                                    className="w-full bg-slate-50 border border-slate-100 rounded-[20px] px-6 py-4 focus:border-[#00C402] outline-none text-sm text-slate-800 transition-all shadow-sm appearance-none"
+                                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3 focus:border-[#00C402] outline-none text-sm text-slate-800 transition-all shadow-sm appearance-none"
                                 >
                                     <option value="" disabled>Escolha o nicho...</option>
                                     {CATEGORIES.map((cat: string) => <option key={cat} value={cat}>{cat}</option>)}
@@ -778,12 +773,12 @@ export default function CourseBuilder() {
                             <div className="space-y-4">
                                 <label className="text-[9px] font-black uppercase tracking-[3px] text-slate-400 px-1">Valor do Investimento</label>
                                 <div className="relative group">
-                                    <span className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 font-black text-2xl group-focus-within:text-[#00C402] transition-colors">R$</span>
+                                    <span className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-900 font-black text-2xl group-focus-within:text-[#00C402] transition-colors">R$</span>
                                     <input
                                         type="text"
                                         value={coursePrice}
                                         onChange={(e) => setCoursePrice(e.target.value)}
-                                        className="w-full bg-slate-50 border border-slate-100 rounded-[24px] px-16 py-6 focus:border-[#00C402] outline-none font-black text-3xl text-slate-800 transition-all shadow-sm"
+                                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-12 py-5 focus:border-[#00C402] outline-none font-black text-2xl text-slate-800 transition-all shadow-sm"
                                     />
                                 </div>
                             </div>

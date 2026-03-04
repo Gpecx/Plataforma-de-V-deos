@@ -13,7 +13,7 @@ export default function TeacherLayout({
             <Navbar />
 
             {/* Main Content Area */}
-            <main className="pt-4">
+            <main>
                 {children}
             </main>
 
