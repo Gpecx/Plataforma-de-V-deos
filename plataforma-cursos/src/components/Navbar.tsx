@@ -110,14 +110,21 @@ export default function Navbar({ transparent }: NavbarProps) {
                                 <>
                                     <Link href="/" className="hover:text-[#00C402] transition-colors duration-300">Início</Link>
                                     <Link href="/course" className="hover:text-[#00C402] transition-colors duration-300">Cursos</Link>
-                                    <Link href="/dashboard-student" className="hover:text-[#00C402] transition-colors duration-300">Minha Lista</Link>
-                                    {isLoggedIn && <Link href="/dashboard-student/chat" className="hover:text-[#00C402] transition-colors duration-300">Chat</Link>}
+                                    {isLoggedIn && (
+                                        <>
+                                            <Link href="/dashboard-student" className="hover:text-[#00C402] transition-colors duration-300">Minha Lista</Link>
+                                            <Link href="/dashboard-student/settings" className="hover:text-[#00C402] transition-colors duration-300">Configurações</Link>
+                                            <Link href="/dashboard-student/chat" className="hover:text-[#00C402] transition-colors duration-300">Chat</Link>
+                                        </>
+                                    )}
+
                                 </>
                             ) : (
                                 <>
                                     <Link href="/dashboard-teacher" className="hover:text-[#00C402] transition-colors duration-300">Dashboard</Link>
                                     <Link href="/dashboard-teacher/courses" className="hover:text-[#00C402] transition-colors duration-300">Meus Cursos</Link>
                                     <Link href="/dashboard-teacher/analytics" className="hover:text-[#00C402] transition-colors duration-300">Desempenho</Link>
+                                    <Link href="/dashboard-teacher/settings" className="hover:text-[#00C402] transition-colors duration-300">Configurações</Link>
                                 </>
                             )}
                         </div>
@@ -239,14 +246,6 @@ export default function Navbar({ transparent }: NavbarProps) {
                                                     </DropdownMenuItem>
 
                                                     <DropdownMenuItem
-                                                        onSelect={() => router.push("/dashboard-teacher/settings")}
-                                                        className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors outline-none focus:bg-slate-50"
-                                                    >
-                                                        <Settings size={18} className="text-slate-400" />
-                                                        <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Configurações</span>
-                                                    </DropdownMenuItem>
-
-                                                    <DropdownMenuItem
                                                         onSelect={() => router.push("/dashboard-teacher/students")}
                                                         className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors outline-none focus:bg-slate-50"
                                                     >
@@ -287,6 +286,9 @@ export default function Navbar({ transparent }: NavbarProps) {
                                                         <User size={18} className="text-slate-400" />
                                                         <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Meu Perfil</span>
                                                     </DropdownMenuItem>
+
+
+
 
                                                     <DropdownMenuItem
                                                         onSelect={() => router.push("/dashboard-student/certificates")}
