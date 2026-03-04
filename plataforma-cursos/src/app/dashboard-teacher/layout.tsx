@@ -1,5 +1,6 @@
 import Navbar from '@/components/Navbar'
 import TeacherFooter from '@/components/TeacherFooter'
+import ScrollToTop from '@/components/ScrollToTop'
 
 export default function TeacherLayout({
     children,
@@ -8,6 +9,7 @@ export default function TeacherLayout({
 }) {
     return (
         <div className="min-h-screen bg-[#F4F7F9] text-slate-800">
+            <ScrollToTop />
             <Navbar />
 
             {/* Main Content Area */}

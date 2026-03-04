@@ -61,76 +61,93 @@ function LoginContent() {
     }
 
     return (
-        <div className="w-full">
-            <div className="text-center space-y-4 pt-1 pb-6">
-                <div className="flex justify-center mb-4">
-                    <Logo variant="vertical" className="scale-125" />
-                </div>
-
-                <div className="space-y-2">
-                    <h2 className="text-3xl md:text-4xl font-black tracking-tighter uppercase text-slate-900 border-b-4 border-[#00C402] inline-block pb-1">
-                        Área de Acesso
-                    </h2>
-                    <p className="text-slate-900 font-black uppercase text-[9px] tracking-[3px] mt-2">
-                        Acesse sua área de evolução e conquistas
-                    </p>
+        <div className="min-h-screen w-full flex flex-row bg-white overflow-hidden">
+            {/* Left Side - Visual (Full Column Image) */}
+            <div className="hidden md:flex md:w-1/2 bg-white items-center justify-center p-0 overflow-hidden">
+                <div className="w-full h-full relative">
+                    <img
+                        src="/login-illustration.png"
+                        alt="SPCS Academy"
+                        className="w-full h-full object-cover object-center"
+                    />
                 </div>
             </div>
 
-            <div className="pb-4">
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <FormField
-                            control={form.control}
-                            name="email"
-                            render={({ field }) => (
-                                <FormItem className="space-y-1.5">
-                                    <FormLabel className="text-[11px] font-black uppercase tracking-widest text-slate-900">E-mail de acesso</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            className="bg-white border-2 border-slate-100 focus:ring-2 rounded-xl h-14 text-sm font-bold text-slate-900 transition-all focus:border-[#00C402] focus:ring-[#00C402]/10 placeholder:text-slate-300 shadow-sm"
-                                            placeholder="SEU@EMAIL.COM"
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage className="text-[10px] uppercase font-bold text-red-500" />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="password"
-                            render={({ field }) => (
-                                <FormItem className="space-y-1.5">
-                                    <div className="flex items-center justify-between">
-                                        <FormLabel className="text-[11px] font-black uppercase tracking-widest text-slate-900">Senha</FormLabel>
-                                        <Link href="/forgot-password" title="Esqueceu a senha?" className="text-[10px] font-black uppercase tracking-widest hover:underline text-[#00C402]">Recuperar senha</Link>
-                                    </div>
-                                    <FormControl>
-                                        <Input
-                                            className="bg-white border-2 border-slate-100 focus:ring-2 rounded-xl h-14 text-sm font-bold text-slate-900 transition-all focus:border-[#00C402] focus:ring-[#00C402]/10 placeholder:text-slate-300 shadow-sm"
-                                            type="password"
-                                            placeholder="••••••••"
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage className="text-[10px] uppercase font-bold text-red-500" />
-                                </FormItem>
-                            )}
-                        />
-                        <Button
-                            type="submit"
-                            className="w-full font-black uppercase tracking-[3px] h-14 rounded-2xl shadow-lg transition-all flex items-center justify-center gap-3 bg-slate-900 hover:bg-[#00C402] text-white hover:scale-[1.02] active:scale-[0.98] group"
-                        >
-                            ACESSAR AGORA
-                            <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
-                        </Button>
-                    </form>
-                </Form>
-                <div className="mt-6 pt-4 border-t border-slate-100 text-center">
-                    <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest">
-                        Ainda não faz parte? <Link href="/register" className="font-black hover:underline underline-offset-4 text-[#00C402]">Crie sua conta agora</Link>
-                    </p>
+            {/* Right Side - SPCS Form Area (Positioned Higher) */}
+            <div className="w-full md:w-1/2 flex flex-col items-center justify-start pt-8 md:pt-12 lg:pt-16 p-6 md:p-12 bg-white relative">
+                <div className="w-full max-w-[450px] flex flex-col items-center">
+                    {/* Logo Section (Smaller and closer) */}
+                    <div className="mb-4 text-center">
+                        <Logo variant="vertical" className="scale-100 md:scale-110 mb-2" />
+                        <div className="space-y-1">
+                            <h2 className="text-2xl md:text-3xl font-black tracking-tighter uppercase text-slate-900">
+                                Área de Acesso
+                            </h2>
+                            <p className="text-slate-500 font-bold uppercase text-[9px] tracking-[4px]">
+                                Evolução e Conquistas
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Form Section (Compact) */}
+                    <div className="w-full">
+                        <Form {...form}>
+                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                                <FormField
+                                    control={form.control}
+                                    name="email"
+                                    render={({ field }) => (
+                                        <FormItem className="space-y-1.5">
+                                            <FormLabel className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">E-mail de acesso</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    className="bg-slate-50 border-slate-200 focus:border-slate-800 focus:ring-0 rounded-xl h-14 text-sm font-bold text-slate-900 placeholder:text-slate-300 transition-all shadow-none px-5"
+                                                    placeholder="SEU@EMAIL.COM"
+                                                    {...field}
+                                                />
+                                            </FormControl>
+                                            <FormMessage className="text-[9px] uppercase font-bold text-red-600" />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="password"
+                                    render={({ field }) => (
+                                        <FormItem className="space-y-1.5">
+                                            <div className="flex items-center justify-between ml-1">
+                                                <FormLabel className="text-[10px] font-black uppercase tracking-widest text-slate-500">Senha</FormLabel>
+                                                <Link href="/forgot-password" title="Esqueceu a senha?" className="text-[9px] font-black uppercase tracking-widest hover:underline text-slate-500">Recuperar senha</Link>
+                                            </div>
+                                            <FormControl>
+                                                <Input
+                                                    className="bg-slate-50 border-slate-200 focus:border-slate-800 focus:ring-0 rounded-xl h-14 text-sm font-bold text-slate-900 placeholder:text-slate-300 transition-all shadow-none px-5"
+                                                    type="password"
+                                                    placeholder="••••••••"
+                                                    {...field}
+                                                />
+                                            </FormControl>
+                                            <FormMessage className="text-[9px] uppercase font-bold text-red-600" />
+                                        </FormItem>
+                                    )}
+                                />
+                                <Button
+                                    type="submit"
+                                    className="w-full font-black uppercase tracking-[4px] h-14 rounded-xl shadow-lg transition-all flex items-center justify-center gap-4 bg-slate-900 hover:bg-black text-white hover:scale-[1.01] active:scale-[0.99] group mt-2"
+                                >
+                                    ENTRAR AGORA
+                                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                </Button>
+                            </form>
+                        </Form>
+
+                        {/* Footer Links (Closer) */}
+                        <div className="mt-12 pt-8 border-t border-slate-100 text-center">
+                            <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest">
+                                Não tem uma conta? <Link href="/register" className="font-black text-[#00C402] hover:underline underline-offset-8 ml-2">Crie agora</Link>
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -140,7 +157,7 @@ function LoginContent() {
 export default function LoginPage() {
     return (
         <Suspense fallback={
-            <div className="w-full h-full flex items-center justify-center p-8">
+            <div className="w-full h-full min-h-screen flex items-center justify-center p-8 bg-white">
                 <div className="text-center space-y-4">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00C402] mx-auto"></div>
                     <p className="text-slate-900 font-black uppercase text-[10px] tracking-[3px]">Carregando portal...</p>

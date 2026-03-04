@@ -1,5 +1,6 @@
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import ScrollToTop from '@/components/ScrollToTop'
 
 export default function StudentLayout({
     children,
@@ -8,6 +9,7 @@ export default function StudentLayout({
 }) {
     return (
         <div className="min-h-screen bg-[#F8F9FA] text-slate-800 font-exo">
+            <ScrollToTop />
             <Navbar />
 
             <div className="flex">
