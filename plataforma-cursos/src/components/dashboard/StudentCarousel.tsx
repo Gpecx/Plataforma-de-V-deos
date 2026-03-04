@@ -44,7 +44,7 @@ export function StudentCarousel() {
     }, [next])
 
     return (
-        <section className="mb-12 relative overflow-hidden rounded-[32px] bg-slate-100 aspect-[21/9] md:aspect-[32/10] group shadow-xl">
+        <section className="mb-12 relative overflow-hidden rounded-2xl bg-slate-100 aspect-[21/9] md:aspect-[32/10] group shadow-xl">
             {/* Imagens */}
             <div
                 className="flex w-full h-full transition-transform duration-700 ease-in-out"
