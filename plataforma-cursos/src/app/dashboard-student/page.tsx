@@ -6,6 +6,8 @@ import Link from 'next/link'
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { StudentCarousel } from '@/components/dashboard/StudentCarousel'
 import { MyLearningSidebar } from '@/components/dashboard/MyLearningSidebar'
+import { StoreInitializer } from '@/components/dashboard/StoreInitializer'
+
 
 export default async function StudentDashboard() {
     const cookieStore = cookies()
@@ -37,13 +39,15 @@ export default async function StudentDashboard() {
             updated_at: data.updated_at?.toDate ? data.updated_at.toDate().toISOString() : data.updated_at
         };
     }) as any[]
-    const enrolledIds = enrollmentsSnapshot.docs.map(doc => doc.data().course_id)
+    const purchasedCourseIds = enrollmentsSnapshot.docs.map(doc => doc.data().course_id)
 
-    const meusCursos = allCourses.filter(c => enrolledIds.includes(c.id))
-    const cursosDisponiveis = allCourses.filter(c => !enrolledIds.includes(c.id))
+    const meusCursos = allCourses.filter(c => purchasedCourseIds.includes(c.id))
+    const cursosDisponiveis = allCourses.filter(c => !purchasedCourseIds.includes(c.id))
 
     return (
         <div className="max-w-[1600px] mx-auto pb-16 min-h-screen bg-[#F3F4F6] text-slate-800 font-exo relative">
+            {/* Lógica para sincronizar cursos comprados com o Zustand no Client Side se necessário */}
+            <StoreInitializer purchasedCourseIds={purchasedCourseIds} />
 
             {/* Main Content (Full Width) */}
             <div className="space-y-8">
@@ -177,6 +181,7 @@ export default async function StudentDashboard() {
                                                     price: 497,
                                                     image_url: curso.image_url
                                                 }}
+                                                purchasedCourseIds={purchasedCourseIds}
                                             />
                                         </div>
                                     </div>
@@ -184,6 +189,7 @@ export default async function StudentDashboard() {
                             ))}
                         </div>
                     </section>
+
                 </div>
             </div>
         </div>

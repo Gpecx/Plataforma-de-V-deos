@@ -1,5 +1,6 @@
 import { Exo } from 'next/font/google'
 import "./globals.css"
+import { ToastNotification } from '@/components/ui/ToastNotification'
 
 const exo = Exo({
   subsets: ['latin'],
@@ -16,6 +17,7 @@ export default function RootLayout({
   return (
     <html lang="pt-br" className={exo.variable}>
       <body className="font-exo">
+        <ToastNotification />
         {children}
       </body>
     </html>

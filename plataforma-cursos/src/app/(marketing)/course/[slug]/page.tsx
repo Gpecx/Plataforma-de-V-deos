@@ -15,15 +15,39 @@ import {
 } from "lucide-react"
 import { db } from "@/lib/firebase"
 import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore"
+import { cookies } from "next/headers"
+import { adminAuth, adminDb } from "@/lib/firebase-admin"
 
 export default async function CourseDetailPage({ params }: { params: { slug: string } }) {
     const { slug } = await params
+
+    // 0. Verifica se o usuário está logado e já possui o curso
+    let purchasedCourseIds: string[] = []
+    const cookieStore = cookies()
+    const token = (await cookieStore).get('firebase-token')?.value
+
+    if (token) {
+        try {
+            const decodedToken = await adminAuth.verifyIdToken(token)
+            const enrollmentSnap = await adminDb.collection('enrollments')
+                .where('user_id', '==', decodedToken.uid)
+                .where('course_id', '==', slug)
+                .get()
+
+            if (!enrollmentSnap.empty) {
+                purchasedCourseIds = [slug]
+            }
+        } catch (error) {
+            console.error("Erro ao verificar matrícula no marketing:", error)
+        }
+    }
 
     // 1. Busca o curso por ID no Firestore
     let course: any = null
     try {
         const courseRef = doc(db, 'courses', slug)
         const courseSnap = await getDoc(courseRef)
+
 
         if (courseSnap.exists()) {
             const data = courseSnap.data()
@@ -148,7 +172,12 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                             </div>
 
                             <div className="space-y-3">
-                                <BuyButton course={course} label="Matricular-se Agora" className="w-full py-5 text-[11px] tracking-[3px] uppercase font-black rounded-xl bg-[#00C402] hover:bg-[#00C402]/90 shadow-lg shadow-[#00C402]/10" />
+                                <BuyButton
+                                    course={course}
+                                    label="Matricular-se Agora"
+                                    className="w-full py-5 text-[11px] tracking-[3px] uppercase font-black rounded-xl bg-[#00C402] hover:bg-[#00C402]/90 shadow-lg shadow-[#00C402]/10"
+                                    purchasedCourseIds={purchasedCourseIds}
+                                />
 
                                 <div className="flex items-center justify-center gap-2 text-slate-400 text-[8px] font-bold uppercase tracking-widest">
                                     <ShieldCheck size={14} className="text-[#00C402]" />
