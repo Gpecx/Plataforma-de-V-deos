@@ -11,9 +11,9 @@ export default function StudentLayout({
             <Navbar />
 
             <div className="flex">
-                {/* Main Content Area - Full Width optimized */}
-                <main className="flex-1 pt-24 transition-all duration-300">
-                    <div className="w-full max-w-[1600px] mx-auto px-4 md:px-0">
+                {/* Main Content Area - Full Width optimized, Added pt-20 to compensate fixed Navbar */}
+                <main className="flex-1 pt-20 transition-all duration-300">
+                    <div className="w-full">
                         {children}
                     </div>
                 </main>

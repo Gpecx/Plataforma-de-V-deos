@@ -71,25 +71,40 @@ export function validateDocument(docStr: string): boolean {
 }
 
 /**
+ * Aplica máscara de CPF: 000.000.000-00
+ */
+export function maskCPF(value: string): string {
+    const v = value.replace(/\D/g, '').slice(0, 11)
+    return v
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d{1,2})/, '$1-$2')
+        .replace(/(-\d{2})\d+?$/, '$1')
+}
+
+/**
+ * Aplica máscara de CNPJ: 00.000.000/0000-00
+ */
+export function maskCNPJ(value: string): string {
+    const v = value.replace(/\D/g, '').slice(0, 14)
+    return v
+        .replace(/(\d{2})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1/$2')
+        .replace(/(\d{4})(\d{1,2})/, '$1-$2')
+        .replace(/(-\d{2})\d+?$/, '$1')
+}
+
+/**
  * Aplica máscara dinâmica de CPF ou CNPJ baseado no length sendo digitado
  */
 export function maskCpfCnpj(value: string): string {
     const v = value.replace(/\D/g, '')
 
     if (v.length <= 11) {
-        // Máscara de CPF: 000.000.000-00
-        return v
-            .replace(/(\d{3})(\d)/, '$1.$2')
-            .replace(/(\d{3})(\d)/, '$1.$2')
-            .replace(/(\d{3})(\d{1,2})/, '$1-$2')
-            .replace(/(-\d{2})\d+?$/, '$1')
+        return maskCPF(value)
     } else {
-        // Máscara de CNPJ: 00.000.000/0000-00
-        return v
-            .replace(/(\d{2})(\d)/, '$1.$2')
-            .replace(/(\d{3})(\d)/, '$1.$2')
-            .replace(/(\d{3})(\d)/, '$1/$2')
-            .replace(/(\d{4})(\d{1,2})/, '$1-$2')
-            .replace(/(-\d{2})\d+?$/, '$1')
+        return maskCNPJ(value)
     }
 }
+

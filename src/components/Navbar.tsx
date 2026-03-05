@@ -24,11 +24,16 @@ import {
     Users,
     UserCog,
     TrendingUp,
-    BookOpen
+    BookOpen,
+    Menu
 } from 'lucide-react'
-// import { signOut } from '@/app/dashboard-student/actions' // Removido para usar Firebase diretamente no cliente
 import { useCartStore } from '@/store/useCartStore'
 import { NotificationBell } from '@/components/NotificationBell'
+
+/**
+ * SHADCN UI DROPDOWN MENU 
+ * O DropdownMenu usa Portal nativo e injeta o conteúdo no body livre de overflow hidden.
+ */
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -79,281 +84,260 @@ export default function Navbar() {
         }
     };
 
-    // ... later inside Navbar ...
     const formatDate = (dateValue: any) => {
         return formatDateBR(dateValue)
     }
 
-    // Identifica se estamos na área do professor
     const isTeacherMode = pathname.startsWith('/dashboard-teacher') ||
         pathname.startsWith('/instructor') ||
         pathname.startsWith('/painel-professor')
 
     return (
-        <>
-            <header className="relative w-full bg-white shadow-sm border-b border-slate-100 transition-all duration-300 pointer-events-auto">
-                <nav className={`flex items-center justify-between px-8 md:px-12 py-4 text-slate-800 font-exo`}>
-                    <div className="flex items-center gap-10">
-                        <Link href={isTeacherMode ? "/dashboard-teacher" : "/dashboard-student"} className="flex items-center outline-none hover:opacity-80 transition-opacity">
-                            <img
-                                src="/images/SPCS academy 2.png"
-                                alt="SPCS Academy"
-                                className="h-16 md:h-20 w-auto"
+        <header className="sticky top-0 left-0 right-0 z-[100] w-full bg-white shadow-sm border-b border-slate-100 transition-all duration-300 pointer-events-auto">
+            <nav className="flex items-center justify-between px-4 sm:px-8 md:px-12 py-4 text-slate-800 font-exo">
+
+                {/* Logo & Navigation */}
+                <div className="flex items-center gap-4 lg:gap-10">
+
+                    {/* Hamburger Menu Mobile */}
+                    <div className="md:hidden flex items-center">
+                        <DropdownMenu modal={false}>
+                            <DropdownMenuTrigger asChild>
+                                <button className="p-2 border border-slate-200 rounded-xl bg-slate-50 text-slate-700 hover:bg-slate-100 transition-colors outline-none cursor-pointer">
+                                    <Menu size={20} />
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="start" sideOffset={8} className="w-56 bg-white p-2 rounded-2xl border-none shadow-2xl z-[200]">
+                                <div className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-[#00C402] mb-1">
+                                    Menu Principal
+                                </div>
+                                {!isTeacherMode ? (
+                                    <>
+                                        <DropdownMenuItem onSelect={() => router.push("/")} className="px-3 py-3 text-xs font-bold uppercase tracking-widest text-slate-700 focus:bg-slate-50 rounded-xl cursor-pointer">INÍCIO</DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => router.push("/course")} className="px-3 py-3 text-xs font-bold uppercase tracking-widest text-slate-700 focus:bg-slate-50 rounded-xl cursor-pointer">CURSOS</DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => router.push("/dashboard-student")} className="px-3 py-3 text-xs font-bold uppercase tracking-widest text-slate-700 focus:bg-slate-50 rounded-xl cursor-pointer">MEU APRENDIZADO</DropdownMenuItem>
+                                        {isLoggedIn && <DropdownMenuItem onSelect={() => router.push("/dashboard-student/chat")} className="px-3 py-3 text-xs font-bold uppercase tracking-widest text-slate-700 focus:bg-slate-50 rounded-xl cursor-pointer">PROFESSORES</DropdownMenuItem>}
+                                    </>
+                                ) : (
+                                    <>
+                                        <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher")} className="px-3 py-3 text-xs font-bold uppercase tracking-widest text-slate-700 focus:bg-slate-50 rounded-xl cursor-pointer">DASHBOARD</DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/courses")} className="px-3 py-3 text-xs font-bold uppercase tracking-widest text-slate-700 focus:bg-slate-50 rounded-xl cursor-pointer">TURMAS</DropdownMenuItem>
+                                        <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/analytics")} className="px-3 py-3 text-xs font-bold uppercase tracking-widest text-slate-700 focus:bg-slate-50 rounded-xl cursor-pointer">CAIXA</DropdownMenuItem>
+                                    </>
+                                )}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
+
+                    <Link href={isTeacherMode ? "/dashboard-teacher" : "/dashboard-student"} className="flex items-center outline-none hover:opacity-80 transition-opacity">
+                        <img
+                            src="/images/SPCS academy 2.png"
+                            alt="SPCS Academy"
+                            className="h-12 sm:h-16 md:h-20 w-auto"
+                        />
+                        {isTeacherMode && (
+                            <span className="ml-3 text-[8px] bg-slate-900 text-white px-2 py-0.5 rounded font-black tracking-widest uppercase hidden sm:inline-block">Painel</span>
+                        )}
+                    </Link>
+
+                    <div className="hidden md:flex gap-4 lg:gap-6 text-xs lg:text-sm font-black text-slate-900 uppercase tracking-tighter">
+                        {!isTeacherMode ? (
+                            <>
+                                <Link href="/" className="hover:text-[#00C402] transition-colors">INÍCIO</Link>
+                                <Link href="/course" className="hover:text-[#00C402] transition-colors">CURSOS</Link>
+                                <Link href="/dashboard-student" className="hover:text-[#00C402] transition-colors">MEU APRENDIZADO</Link>
+                                {isLoggedIn && <Link href="/dashboard-student/chat" className="hover:text-[#00C402] transition-colors">PROFESSORES</Link>}
+                            </>
+                        ) : (
+                            <>
+                                <Link href="/dashboard-teacher" className="hover:text-slate-500 transition-colors">Dashboard</Link>
+                                <Link href="/dashboard-teacher/courses" className="hover:text-slate-500 transition-colors">Turmas</Link>
+                                <Link href="/dashboard-teacher/analytics" className="hover:text-slate-500 transition-colors">Caixa</Link>
+                            </>
+                        )}
+                    </div>
+                </div>
+
+                {/* Right Side Actions */}
+                <div className="flex items-center gap-3 sm:gap-6 justify-end">
+
+                    {/* View Switcher Mobile Hidden */}
+                    {isTeacherMode ? (
+                        <Link
+                            href="/"
+                            className="hidden md:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-900 border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-all outline-none"
+                        >
+                            <GraduationCap size={14} />
+                            ALUNO
+                        </Link>
+                    ) : userProfile?.role === 'teacher' && (
+                        <Link
+                            href="/dashboard-teacher"
+                            className="hidden md:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-900 border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-all outline-none"
+                        >
+                            PROFESSOR
+                        </Link>
+                    )}
+
+                    {/* Search Component */}
+                    <div className="flex items-center gap-2 relative">
+                        <div className={`flex items-center bg-slate-50 border border-slate-100 rounded-xl px-3 py-1.5 transition-all duration-300 ${isSearchOpen ? 'w-36 sm:w-48 md:w-64 opacity-100' : 'w-0 opacity-0 pointer-events-none border-none'}`}>
+                            <Search size={16} className="text-slate-400 mr-2" />
+                            <input
+                                type="text"
+                                placeholder="Buscar cursos..."
+                                className="bg-transparent border-none outline-none text-[10px] font-bold uppercase tracking-widest w-full placeholder:text-slate-400 text-slate-700"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                        router.push(`/course?s=${searchQuery}`)
+                                        setIsSearchOpen(false)
+                                    }
+                                }}
                             />
-                            {isTeacherMode && (
-                                <span className="ml-3 text-[8px] bg-slate-900 text-white px-2 py-0.5 rounded font-black tracking-widest uppercase">Painel</span>
+                        </div>
+                        <button
+                            onClick={() => setIsSearchOpen(!isSearchOpen)}
+                            className={`text-slate-900 hover:text-[#00C402] transition cursor-pointer outline-none ${isSearchOpen ? 'text-[#00C402]' : ''}`}
+                        >
+                            {isSearchOpen ? <X size={20} /> : <Search size={20} />}
+                        </button>
+                    </div>
+
+                    {/* Notifications */}
+                    {isLoggedIn && (
+                        <NotificationBell
+                            accent={isTeacherMode ? '#0f172a' : '#00C402'}
+                            isTeacher={isTeacherMode}
+                        />
+                    )}
+
+                    {/* Cart Section */}
+                    {isLoggedIn && !isTeacherMode && (
+                        <Link href="/cart" className="text-slate-900 hover:text-[#00C402] transition cursor-pointer outline-none relative">
+                            <ShoppingCart size={20} />
+                            {mounted && items.length > 0 && (
+                                <span className="absolute -top-1 -right-1.5 w-4 h-4 rounded-full bg-[#00C402] text-white text-[9px] font-black flex items-center justify-center border-2 border-white">
+                                    {items.length}
+                                </span>
                             )}
                         </Link>
+                    )}
 
-                        <div className="hidden md:flex gap-6 text-sm font-bold text-slate-900 uppercase tracking-widest">
-                            {!isTeacherMode ? (
-                                <>
-                                    <Link href="/" className="hover:text-[#00C402] transition-colors">Início</Link>
-                                    <Link href="/course" className="hover:text-[#00C402] transition-colors">Cursos</Link>
-                                    <Link href="/dashboard-student" className="hover:text-[#00C402] transition-colors">Evolução</Link>
-                                    {isLoggedIn && <Link href="/dashboard-student/chat" className="hover:text-[#00C402] transition-colors">Profs</Link>}
-                                </>
-                            ) : (
-                                <>
-                                    <Link href="/dashboard-teacher" className="hover:text-slate-500 transition-colors">Dashboard</Link>
-                                    <Link href="/dashboard-teacher/courses" className="hover:text-slate-500 transition-colors">Turmas</Link>
-                                    <Link href="/dashboard-teacher/analytics" className="hover:text-slate-500 transition-colors">Caixa</Link>
-                                </>
-                            )}
+                    {/* Anonymous Users View */}
+                    {!isLoggedIn && (
+                        <div className="hidden md:flex items-center gap-4">
+                            <Link href="/contact" className="text-slate-500 hover:text-slate-900 transition text-xs font-black uppercase tracking-widest">
+                                Contato
+                            </Link>
+                            <Link href="/login">
+                                <button className="text-[10px] font-black uppercase tracking-widest text-slate-700 border border-slate-200 px-4 py-2 rounded-lg hover:bg-slate-50 transition-all outline-none">
+                                    Login
+                                </button>
+                            </Link>
+                            <Link href="/register">
+                                <button className="text-[10px] font-black uppercase tracking-widest bg-slate-900 text-white px-4 py-2 rounded-lg hover:bg-slate-800 transition-all outline-none">
+                                    Inscreva-se
+                                </button>
+                            </Link>
                         </div>
-                    </div>
+                    )}
 
-                    <div className="flex items-center gap-6 justify-end">
-                        {isTeacherMode ? (
-                            <Link
-                                href="/"
-                                className="hidden md:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-900 border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-all outline-none"
-                            >
-                                <GraduationCap size={14} />
-                                ALUNO
-                            </Link>
-                        ) : userProfile?.role === 'teacher' && (
-                            <Link
-                                href="/dashboard-teacher"
-                                className="hidden md:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-900 border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-all outline-none"
-                            >
-                                PROFESSOR
-                            </Link>
-                        )}
-
-                        <div className="flex items-center gap-2 relative">
-                            <div className={`flex items-center bg-slate-50 border border-slate-100 rounded-xl px-3 py-1.5 transition-all duration-300 ${isSearchOpen ? 'w-48 md:w-64 opacity-100' : 'w-0 opacity-0 pointer-events-none border-none'}`}>
-                                <Search size={16} className="text-slate-400 mr-2" />
-                                <input
-                                    type="text"
-                                    placeholder="Buscar cursos..."
-                                    className="bg-transparent border-none outline-none text-[10px] font-bold uppercase tracking-widest w-full placeholder:text-slate-400 text-slate-700"
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            router.push(`/course?s=${searchQuery}`)
-                                            setIsSearchOpen(false)
-                                        }
-                                    }}
-                                />
-                            </div>
-                            <button
-                                onClick={() => setIsSearchOpen(!isSearchOpen)}
-                                className={`text-slate-900 hover:text-[#00C402] transition cursor-pointer outline-none ${isSearchOpen ? 'text-[#00C402]' : ''}`}
-                            >
-                                {isSearchOpen ? <X size={20} /> : <Search size={20} />}
-                            </button>
-                        </div>
-
-                        {isLoggedIn && (
-                            <NotificationBell
-                                accent={isTeacherMode ? '#0f172a' : '#00C402'}
-                                isTeacher={isTeacherMode}
-                            />
-                        )}
-
-                        {isLoggedIn && !isTeacherMode && (
-                            <Link href="/cart" className="text-slate-900 hover:text-[#00C402] transition cursor-pointer outline-none relative">
-                                <ShoppingCart size={20} />
-                                {mounted && items.length > 0 && (
-                                    <span className="absolute -top-1 -right-1.5 w-4 h-4 rounded-full bg-[#00C402] text-white text-[9px] font-black flex items-center justify-center border-2 border-white">
-                                        {items.length}
-                                    </span>
-                                )}
-                            </Link>
-                        )}
-
-                        {!isLoggedIn && (
-                            <div className="hidden md:flex items-center gap-4">
-                                <Link href="/contact" className="text-slate-500 hover:text-slate-900 transition text-xs font-black uppercase tracking-widest">
-                                    Contato
-                                </Link>
-                                <Link href="/login">
-                                    <button className="text-[10px] font-black uppercase tracking-widest text-slate-700 border border-slate-200 px-4 py-2 rounded-lg hover:bg-slate-50 transition-all outline-none">
-                                        Login
-                                    </button>
-                                </Link>
-                                <Link href="/register">
-                                    <button className="text-[10px] font-black uppercase tracking-widest bg-slate-900 text-white px-4 py-2 rounded-lg hover:bg-slate-800 transition-all outline-none">
-                                        Inscreva-se
-                                    </button>
-                                </Link>
-                            </div>
-                        )}
-
-                        {isLoggedIn ? (
-                            <div className="relative">
-                                <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold transition-all cursor-pointer border-2 border-slate-100 outline-none hover:scale-105 bg-slate-900 shadow-sm overflow-hidden`}>
-                                            <User size={22} />
-                                        </div>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent className="bg-white text-slate-900 w-64 shadow-2xl rounded-[24px] overflow-hidden p-3 z-[120] border-none absolute right-0 top-full mt-2" align="end" sideOffset={10}>
-                                        <div className="px-5 py-6 bg-slate-50/50 mb-2 rounded-[18px]">
-                                            <p className="font-black uppercase tracking-tighter text-sm text-slate-800 line-clamp-1">
-                                                {isTeacherMode || userProfile?.role === 'teacher' || userProfile?.role === 'admin' ? 'PROFESSOR SPCS' : 'ESTUDANTE SPCS'}
-                                            </p>
-                                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-700 mt-1 line-clamp-1">
-                                                {userProfile?.full_name || 'Membro SPCS Academy'}
-                                            </p>
-                                            <p className="text-[9px] font-black uppercase tracking-[2px] text-slate-400 mt-2">
-                                                Registrado em {formatDate(userProfile?.created_at || null)}
-                                            </p>
-                                        </div>
-
-                                        <div className="p-1 space-y-1">
-                                            {isTeacherMode || userProfile?.role === 'teacher' || userProfile?.role === 'admin' ? (
-                                                <>
-                                                    <DropdownMenuItem
-                                                        onSelect={() => router.push("/dashboard-teacher/profile")}
-                                                        className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors outline-none focus:bg-slate-50"
-                                                    >
-                                                        <UserCog size={18} className="text-slate-400" />
-                                                        <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Editar Perfil</span>
-                                                    </DropdownMenuItem>
-
-                                                    <DropdownMenuItem
-                                                        onSelect={() => router.push("/dashboard-teacher/settings")}
-                                                        className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors outline-none focus:bg-slate-50"
-                                                    >
-                                                        <Settings size={18} className="text-slate-400" />
-                                                        <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Configurações</span>
-                                                    </DropdownMenuItem>
-
-                                                    <DropdownMenuItem
-                                                        onSelect={() => router.push("/dashboard-teacher/students")}
-                                                        className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors outline-none focus:bg-slate-50"
-                                                    >
-                                                        <Users size={18} className="text-slate-400" />
-                                                        <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Alunos</span>
-                                                    </DropdownMenuItem>
-
-                                                    <DropdownMenuItem
-                                                        onSelect={() => router.push("/dashboard-teacher/courses")}
-                                                        className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors outline-none focus:bg-slate-50"
-                                                    >
-                                                        <BookOpen size={18} className="text-slate-400" />
-                                                        <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Cursos</span>
-                                                    </DropdownMenuItem>
-
-                                                    <DropdownMenuItem
-                                                        onSelect={() => router.push("/dashboard-teacher/analytics")}
-                                                        className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors outline-none focus:bg-slate-50"
-                                                    >
-                                                        <TrendingUp size={18} className="text-slate-400" />
-                                                        <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Vendas</span>
-                                                    </DropdownMenuItem>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <DropdownMenuItem
-                                                        onSelect={() => router.push("/dashboard-student/profile")}
-                                                        className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors outline-none focus:bg-slate-50"
-                                                    >
-                                                        <User size={18} className="text-slate-400" />
-                                                        <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Meu Perfil</span>
-                                                    </DropdownMenuItem>
-
-                                                    <DropdownMenuItem
-                                                        onSelect={() => router.push("/dashboard-student/certificates")}
-                                                        className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors outline-none focus:bg-slate-50"
-                                                    >
-                                                        <Award size={18} className="text-slate-400" />
-                                                        <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Meus Certificados</span>
-                                                    </DropdownMenuItem>
-
-                                                    <DropdownMenuItem
-                                                        onSelect={() => router.push("/dashboard-student/payments")}
-                                                        className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors outline-none focus:bg-slate-50"
-                                                    >
-                                                        <CreditCard size={18} className="text-slate-400" />
-                                                        <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Pagamentos</span>
-                                                    </DropdownMenuItem>
-
-                                                    <DropdownMenuItem
-                                                        onSelect={() => router.push("/dashboard-student/subscriptions")}
-                                                        className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors outline-none focus:bg-slate-50"
-                                                    >
-                                                        <Zap size={18} className="text-slate-400" />
-                                                        <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Assinaturas</span>
-                                                    </DropdownMenuItem>
-
-                                                    <DropdownMenuItem
-                                                        onSelect={() => router.push("/dashboard-student/activity")}
-                                                        className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors outline-none focus:bg-slate-50"
-                                                    >
-                                                        <History size={18} className="text-slate-400" />
-                                                        <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Logs de Atividades</span>
-                                                    </DropdownMenuItem>
-
-                                                    <DropdownMenuSeparator className="bg-slate-50 my-2" />
-
-                                                    <DropdownMenuItem
-                                                        onSelect={() => router.push("/contact")}
-                                                        className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors outline-none focus:bg-slate-50"
-                                                    >
-                                                        <HelpCircle size={18} className="text-slate-400" />
-                                                        <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Central de Ajuda</span>
-                                                    </DropdownMenuItem>
-
-                                                    <DropdownMenuItem
-                                                        onSelect={() => router.push("/dashboard-student/sugestoes")}
-                                                        className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors outline-none focus:bg-slate-50"
-                                                    >
-                                                        <MessageSquare size={18} className="text-slate-400" />
-                                                        <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Sugestões</span>
-                                                    </DropdownMenuItem>
-                                                </>
-                                            )}
-                                        </div>
-
-                                        <DropdownMenuSeparator className="bg-slate-50 my-2" />
-
-                                        <DropdownMenuItem
-                                            onSelect={async () => {
-                                                await handleSignOut();
-                                            }}
-                                            className="flex items-center gap-4 px-4 py-4 rounded-xl cursor-pointer hover:bg-red-50 text-red-500 transition-colors outline-none focus:bg-red-50 group mb-1"
-                                        >
-                                            <LogOut size={18} className="group-hover:scale-110 transition-transform" />
-                                            <span className="text-[12px] font-black uppercase tracking-[2px]">Encerrar Sessão</span>
-                                        </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                </DropdownMenu>
-                            </div>
-                        ) : (
-                            /* Mobile version of the contact link when not logged in */
-                            <div className="md:hidden">
-                                <Link href="/contact" className="text-slate-500 hover:text-slate-900 transition">
+                    {/* Logged In User Avatar Dropdown (Shadcn Portal) */}
+                    {isLoggedIn && (
+                        <DropdownMenu modal={false}>
+                            <DropdownMenuTrigger asChild>
+                                <button className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold transition-all outline-none hover:scale-105 bg-slate-900 shadow-sm overflow-hidden border-2 border-transparent hover:border-slate-200">
                                     <User size={22} />
-                                </Link>
-                            </div>
-                        )}
-                    </div>
-                </nav>
-            </header >
-        </>
+                                </button>
+                            </DropdownMenuTrigger>
+
+                            {/* Portal Container ensures rendering at root level */}
+                            <DropdownMenuContent
+                                align="end"
+                                sideOffset={8}
+                                className="bg-white text-slate-900 w-[calc(100vw-32px)] sm:w-72 shadow-2xl rounded-[24px] overflow-hidden p-3 border-none z-[200] animate-in slide-in-from-top-2"
+                            >
+                                {/* Header / Identity Card */}
+                                <div className="px-5 py-6 bg-slate-50/50 mb-2 rounded-[18px]">
+                                    <p className="font-black uppercase tracking-tighter text-sm text-slate-800 line-clamp-1">
+                                        {isTeacherMode || userProfile?.role === 'teacher' || userProfile?.role === 'admin' ? 'PROFESSOR SPCS' : 'ESTUDANTE SPCS'}
+                                    </p>
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-700 mt-1 line-clamp-1">
+                                        {userProfile?.full_name || 'Membro SPCS Academy'}
+                                    </p>
+                                    <p className="text-[9px] font-black uppercase tracking-[2px] text-slate-400 mt-2">
+                                        Registrado em {formatDate(userProfile?.created_at || null)}
+                                    </p>
+                                </div>
+
+                                {/* Menu Items */}
+                                <div className="p-1 space-y-1">
+                                    {isTeacherMode || userProfile?.role === 'teacher' || userProfile?.role === 'admin' ? (
+                                        <>
+                                            <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/profile")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors focus:bg-slate-50">
+                                                <UserCog size={18} className="text-slate-400" />
+                                                <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Editar Perfil</span>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/settings")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors focus:bg-slate-50">
+                                                <Settings size={18} className="text-slate-400" />
+                                                <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Configurações</span>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/students")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors focus:bg-slate-50">
+                                                <Users size={18} className="text-slate-400" />
+                                                <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Alunos</span>
+                                            </DropdownMenuItem>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <DropdownMenuItem onSelect={() => router.push("/dashboard-student/profile")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors focus:bg-slate-50">
+                                                <UserCog size={18} className="text-slate-400" />
+                                                <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Minha Conta</span>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onSelect={() => router.push("/dashboard-student")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors focus:bg-slate-50">
+                                                <Award size={18} className="text-slate-400" />
+                                                <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Certificados</span>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onSelect={() => router.push("/dashboard-student")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors focus:bg-slate-50">
+                                                <History size={18} className="text-slate-400" />
+                                                <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Histórico Escolar</span>
+                                            </DropdownMenuItem>
+                                        </>
+                                    )}
+
+                                    <DropdownMenuSeparator className="my-2 bg-slate-100" />
+
+                                    <div className="px-3 py-2">
+                                        <p className="text-[9px] font-black uppercase tracking-[2px] text-slate-400 mb-2 px-2">Suporte & Ajuda</p>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <DropdownMenuItem onSelect={() => router.push("/contact")} className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer focus:bg-slate-100">
+                                                <HelpCircle size={20} className="mb-2 text-slate-400" />
+                                                <span className="text-[9px] font-bold uppercase tracking-widest">FAQ</span>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onSelect={() => router.push("/contact")} className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-[#00C402] transition-colors cursor-pointer focus:bg-slate-100">
+                                                <MessageSquare size={20} className="mb-2" />
+                                                <span className="text-[9px] font-bold uppercase tracking-widest text-slate-600">Chat</span>
+                                            </DropdownMenuItem>
+                                        </div>
+                                    </div>
+
+                                    <DropdownMenuSeparator className="my-2 bg-slate-100" />
+
+                                    {/* Sign Out Action */}
+                                    <DropdownMenuItem
+                                        onSelect={handleSignOut}
+                                        className="flex items-center justify-between px-4 py-3 rounded-xl cursor-pointer bg-red-50/50 hover:bg-red-100 text-red-600 transition-colors mt-2 focus:bg-red-100"
+                                    >
+                                        <span className="text-[11px] font-black uppercase tracking-widest">Sair da Conta</span>
+                                        <LogOut size={16} />
+                                    </DropdownMenuItem>
+                                </div>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    )}
+                </div>
+            </nav>
+        </header>
     )
 }

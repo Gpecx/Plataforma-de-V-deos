@@ -101,10 +101,10 @@ function LoginContent() {
                             name="email"
                             render={({ field }) => (
                                 <FormItem className="space-y-1.5">
-                                    <FormLabel className="text-[10px] font-black uppercase tracking-widest text-slate-400">E-mail de acesso</FormLabel>
+                                    <FormLabel className="text-[10px] font-black uppercase tracking-widest text-black">E-mail de acesso</FormLabel>
                                     <FormControl>
                                         <Input
-                                            className={`bg-slate-50 border-slate-100 focus:ring-2 rounded-xl h-12 text-sm font-medium transition-all ${isTeacherRole ? 'focus:border-slate-900 focus:ring-slate-900/10' : 'focus:border-[#00C402] focus:ring-[#00C402]/10'}`}
+                                            className={`bg-slate-50 text-black border-slate-300 focus:ring-2 rounded-xl h-12 text-sm font-medium transition-all ${isTeacherRole ? 'focus:border-slate-900 focus:ring-slate-900/10' : 'focus:border-[#00C402] focus:ring-[#00C402]/10'}`}
                                             placeholder="seu@email.com"
                                             {...field}
                                         />
@@ -119,12 +119,12 @@ function LoginContent() {
                             render={({ field }) => (
                                 <FormItem className="space-y-1.5">
                                     <div className="flex items-center justify-between">
-                                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-slate-400">Senha</FormLabel>
+                                        <FormLabel className="text-[10px] font-black uppercase tracking-widest text-black">Senha</FormLabel>
                                         <Link href="/forgot-password" title="Esqueceu a senha?" className={`text-[10px] font-black uppercase tracking-widest hover:underline ${isTeacherRole ? 'text-slate-700' : 'text-[#00C402]'}`}>Recuperar senha</Link>
                                     </div>
                                     <FormControl>
                                         <Input
-                                            className={`bg-slate-50 border-slate-100 focus:ring-2 rounded-xl h-12 text-sm transition-all ${isTeacherRole ? 'focus:border-slate-900 focus:ring-slate-900/10' : 'focus:border-[#00C402] focus:ring-[#00C402]/10'}`}
+                                            className={`bg-slate-50 text-black border-slate-300 focus:ring-2 rounded-xl h-12 text-sm transition-all ${isTeacherRole ? 'focus:border-slate-900 focus:ring-slate-900/10' : 'focus:border-[#00C402] focus:ring-[#00C402]/10'}`}
                                             type="password"
                                             placeholder="••••••••"
                                             {...field}
