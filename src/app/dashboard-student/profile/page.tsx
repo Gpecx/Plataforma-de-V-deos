@@ -67,7 +67,10 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="bg-white border border-slate-100 rounded-[32px] p-8 md:p-12 shadow-sm">
-                    <ProfileForm initialFullName={profile?.full_name || ''} />
+                    <ProfileForm
+                        initialFullName={profile?.full_name || ''}
+                        initialAvatarUrl={profile?.avatar_url}
+                    />
                 </div>
             </div>
         </div>

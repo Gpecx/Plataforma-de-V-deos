@@ -78,9 +78,6 @@ export default function StudentDashboard() {
     return (
         <div className="min-h-screen bg-[#F4F7F9] text-slate-800 font-exo relative flex flex-col pt-0">
 
-            {/* Sidebar de Progresso (Udemy Style) */}
-            <MyLearningSidebar recentCourses={meusCursos} />
-
             {/* Header de Boas-vindas - Altura Reduzida */}
             <header className="px-8 md:px-12 py-6 bg-white border-b border-slate-100">
                 <div className="flex items-center gap-3 mb-1">

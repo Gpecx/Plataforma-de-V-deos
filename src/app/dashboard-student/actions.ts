@@ -50,10 +50,12 @@ export async function updateProfile(
     if (!user) return { success: false, error: 'Não autorizado' }
 
     const fullName = formData.get('fullName') as string
+    const avatarUrl = formData.get('avatarUrl') as string
 
     try {
         await updateDoc(doc(db, 'profiles', user.uid), {
-            full_name: fullName
+            full_name: fullName,
+            avatar_url: avatarUrl
         })
         return { success: true }
     } catch (error: any) {

@@ -1,7 +1,9 @@
 "use client"
 
 import { useState, useEffect, Suspense } from 'react' // Adicionado useEffect e Suspense
-import { useSearchParams } from 'next/navigation' // Adicionado para ler a URL
+import { useSearchParams, useRouter } from 'next/navigation' // Adicionado para ler a URL
+import { auth } from '@/lib/firebase'
+import { onAuthStateChanged } from 'firebase/auth'
 import {
     Search,
     MessageSquare,
@@ -50,12 +52,39 @@ function ChatManagementContent() {
     const isNewStudentAction = searchParams.get('new') === 'true'
     const userIdParam = searchParams.get('userId')
 
-    // Inicia com o primeiro aluno, mas mudaremos no useEffect se necessário
     const [selectedStudent, setSelectedStudent] = useState(MOCK_STUDENTS[0])
     const [newMessage, setNewMessage] = useState('')
     const [showNewAlert, setShowNewAlert] = useState(false)
+    const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null)
+    const router = useRouter()
 
     useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                router.push('/login')
+                return
+            }
+
+            try {
+                const { doc, getDoc } = await import('firebase/firestore')
+                const { db } = await import('@/lib/firebase')
+                const snap = await getDoc(doc(db, 'profiles', user.uid))
+
+                if (snap.exists() && (snap.data().role === 'teacher' || snap.data().role === 'admin')) {
+                    setIsAuthorized(true)
+                } else {
+                    router.push('/')
+                }
+            } catch (err) {
+                console.error("Auth check error:", err)
+                router.push('/')
+            }
+        })
+        return () => unsubscribe()
+    }, [router])
+
+    useEffect(() => {
+        if (!isAuthorized) return
         if (userIdParam) {
             const student = MOCK_STUDENTS.find(s => s.id.toString() === userIdParam)
             if (student) setSelectedStudent(student)
@@ -74,6 +103,10 @@ function ChatManagementContent() {
     }, [isNewStudentAction, userIdParam])
 
     const messages = MOCK_MESSAGES_BY_STUDENT[selectedStudent.id] || []
+
+    if (isAuthorized === null) {
+        return <div className="h-screen flex items-center justify-center font-black uppercase text-[10px] tracking-widest text-slate-400">Verificando permissões...</div>
+    }
 
     return (
         <div className="h-[calc(100vh-20px)] flex flex-col p-4 md:p-8 space-y-6">

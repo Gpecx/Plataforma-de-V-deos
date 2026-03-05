@@ -50,9 +50,26 @@ export default function StudentChatPage() {
     const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES)
     const [input, setInput] = useState('')
     const bottomRef = useRef<HTMLDivElement>(null)
+    const isInitialMount = useRef(true)
+
+    // Force absolute scroll to top on mount with a slight delay to beat browser scroll restoration
+    useEffect(() => {
+        const timeout = setTimeout(() => {
+            window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+        }, 0)
+        return () => clearTimeout(timeout)
+    }, [])
 
     useEffect(() => {
-        bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
+        if (isInitialMount.current) {
+            isInitialMount.current = false
+            return
+        }
+
+        // Ensure scroll only happens on new messages, not on mount
+        if (bottomRef.current) {
+            bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' })
+        }
     }, [messages])
 
     const now = () => {

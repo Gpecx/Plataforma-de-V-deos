@@ -46,7 +46,7 @@ import {
 export default function Navbar() {
     const pathname = usePathname()
     const router = useRouter()
-    const [userProfile, setUserProfile] = useState<{ full_name: string | null, role: string | null, created_at: string | null } | null>(null)
+    const [userProfile, setUserProfile] = useState<{ full_name: string | null, role: string | null, created_at: string | null, avatar_url?: string } | null>(null)
     const [isLoggedIn, setIsLoggedIn] = useState(false)
     const { items } = useCartStore()
     const [mounted, setMounted] = useState(false)
@@ -248,8 +248,12 @@ export default function Navbar() {
                     {isLoggedIn && (
                         <DropdownMenu modal={false}>
                             <DropdownMenuTrigger asChild>
-                                <button className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold transition-all outline-none hover:scale-105 bg-slate-900 shadow-sm overflow-hidden border-2 border-transparent hover:border-slate-200">
-                                    <User size={22} />
+                                <button className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold transition-all outline-none hover:scale-105 bg-slate-900 shadow-sm overflow-hidden border-2 border-transparent hover:border-slate-200 relative">
+                                    {userProfile?.avatar_url ? (
+                                        <img src={userProfile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <User size={22} />
+                                    )}
                                 </button>
                             </DropdownMenuTrigger>
 
@@ -315,7 +319,7 @@ export default function Navbar() {
                                                 <HelpCircle size={20} className="mb-2 text-slate-400" />
                                                 <span className="text-[9px] font-bold uppercase tracking-widest">FAQ</span>
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem onSelect={() => router.push("/contact")} className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-[#00C402] transition-colors cursor-pointer focus:bg-slate-100">
+                                            <DropdownMenuItem onSelect={() => router.push("/dashboard-student/chat")} className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-[#00C402] transition-colors cursor-pointer focus:bg-slate-100">
                                                 <MessageSquare size={20} className="mb-2" />
                                                 <span className="text-[9px] font-bold uppercase tracking-widest text-slate-600">Chat</span>
                                             </DropdownMenuItem>

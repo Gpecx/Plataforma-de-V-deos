@@ -70,44 +70,44 @@ export default function ContactPage() {
 
                         <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
                             <div className="space-y-2">
-                                <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-gray-400">Nome Completo</Label>
+                                <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-black">Nome Completo</Label>
                                 <Input
                                     id="name"
                                     placeholder="COMO PODEMOS TE CHAMAR?"
                                     required
-                                    className="bg-slate-50 border-slate-100 text-slate-700 placeholder:text-slate-300 rounded-xl h-14 text-xs font-bold uppercase tracking-widest px-6 focus:border-[#00C402] focus:ring-0"
+                                    className="bg-slate-50 border-slate-100 text-black placeholder:text-slate-500 rounded-xl h-14 text-xs font-bold uppercase tracking-widest px-6 focus:border-[#00C402] focus:ring-0"
                                 />
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-gray-400">E-mail</Label>
+                                    <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-black">E-mail</Label>
                                     <Input
                                         id="email"
                                         type="email"
                                         placeholder="SEU MELHOR E-MAIL"
                                         required
-                                        className="bg-slate-50 border-slate-100 text-slate-700 placeholder:text-slate-300 rounded-xl h-14 text-xs font-bold uppercase tracking-widest px-6 focus:border-[#00C402] focus:ring-0"
+                                        className="bg-slate-50 border-slate-100 text-black placeholder:text-slate-500 rounded-xl h-14 text-xs font-bold uppercase tracking-widest px-6 focus:border-[#00C402] focus:ring-0"
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="phone" className="text-[10px] font-black uppercase tracking-widest text-gray-400">Telefone</Label>
+                                    <Label htmlFor="phone" className="text-[10px] font-black uppercase tracking-widest text-black">Telefone</Label>
                                     <Input
                                         id="phone"
                                         placeholder="(00) 00000-0000"
-                                        className="bg-slate-50 border-slate-100 text-slate-700 placeholder:text-slate-300 rounded-xl h-14 text-xs font-bold uppercase tracking-widest px-6 focus:border-[#00C402] focus:ring-0"
+                                        className="bg-slate-50 border-slate-100 text-black placeholder:text-slate-500 rounded-xl h-14 text-xs font-bold uppercase tracking-widest px-6 focus:border-[#00C402] focus:ring-0"
                                     />
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="message" className="text-[10px] font-black uppercase tracking-widest text-gray-400">Mensagem</Label>
+                                <Label htmlFor="message" className="text-[10px] font-black uppercase tracking-widest text-black">Mensagem</Label>
                                 <textarea
                                     id="message"
                                     placeholder="EM QUE PODEMOS AJUDAR?"
                                     required
                                     rows={4}
-                                    className="w-full bg-slate-50 border border-slate-100 text-slate-700 placeholder:text-slate-300 rounded-xl p-6 text-xs font-bold uppercase tracking-widest focus:outline-none focus:border-[#00C402] transition-all"
+                                    className="w-full bg-slate-50 border border-slate-100 text-black placeholder:text-slate-500 rounded-xl p-6 text-xs font-bold uppercase tracking-widest focus:outline-none focus:border-[#00C402] transition-all"
                                 />
                             </div>
 

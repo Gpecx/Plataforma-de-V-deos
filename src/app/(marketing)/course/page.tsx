@@ -5,7 +5,6 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useParams, useSearchParams } from "next/navigation";
 import { Play, Info, ChevronRight, Loader2 } from "lucide-react";
-import Navbar from "@/components/Navbar";
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import CourseModal from "@/components/CourseModal";
@@ -73,7 +72,6 @@ function CoursesContent() {
 
     return (
         <div className="min-h-screen bg-[#F4F7F9] text-slate-800 font-exo">
-            <Navbar />
 
             {/* Carrossel Hero - High Impact Design */}
             <section className="relative h-[65vh] w-full overflow-hidden">

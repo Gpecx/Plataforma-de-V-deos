@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, TrendingUp, Handshake, BarChart3, Volume2, VolumeX } from "lucide-react";
-import Navbar from "@/components/Navbar"
 
 const backgroundImages = [
     "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=2000",
@@ -57,7 +56,6 @@ export default function WelcomePage() {
 
     return (
         <div className="min-h-screen bg-white text-slate-800 font-exo relative overflow-hidden">
-            <Navbar />
 
             {/* HERO SECTION */}
             <main className="relative z-10 max-w-7xl mx-auto px-6 pt-32 pb-20 grid lg:grid-cols-2 gap-12 items-center">
