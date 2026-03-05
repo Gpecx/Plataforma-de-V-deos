@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
     ChevronRight,
@@ -24,6 +24,7 @@ import { Label } from '@/components/ui/label'
 import { useCourseFormStore, Lesson } from "@/store/useCourseFormStore"
 import { createCourseAction } from "../actions"
 import { storage } from "@/lib/firebase"
+import { useAuth } from "@/context/AuthProvider"
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage"
 
 async function uploadCourseImage(file: File) {
@@ -56,12 +57,30 @@ const CATEGORIES = [
 
 export default function NewCoursePage() {
     const router = useRouter()
+    const { user, role, loading: authLoading } = useAuth()
     const [currentStep, setCurrentStep] = useState(1)
     const [isPublishing, setIsPublishing] = useState(false)
     const [isUploading, setIsUploading] = useState(false)
 
     // Usamos a Store em vez do useState local
     const { formData, setStepData, setLessons, resetForm } = useCourseFormStore()
+
+    // Proteção de Rota
+    useEffect(() => {
+        if (!authLoading && !user) {
+            router.push('/login')
+        } else if (!authLoading && user && role !== 'teacher' && role !== 'admin') {
+            router.push('/dashboard-student')
+        }
+    }, [user, authLoading, role, router])
+
+    if (authLoading || (!user || (role !== 'teacher' && role !== 'admin'))) {
+        return (
+            <div className="h-screen bg-[#F4F7F9] flex items-center justify-center font-exo">
+                <Loader2 className="animate-spin text-slate-800" size={48} />
+            </div>
+        )
+    }
 
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]

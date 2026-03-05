@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { auth, db } from '@/lib/firebase'
 import { onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
+import { formatDateBR } from '@/lib/date-utils'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import {
@@ -78,10 +79,9 @@ export default function Navbar() {
         }
     };
 
-    const formatDate = (dateString: string | null) => {
-        if (!dateString) return ''
-        const date = new Date(dateString)
-        return new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }).format(date)
+    // ... later inside Navbar ...
+    const formatDate = (dateValue: any) => {
+        return formatDateBR(dateValue)
     }
 
     // Identifica se estamos na área do professor
@@ -105,19 +105,19 @@ export default function Navbar() {
                             )}
                         </Link>
 
-                        <div className="hidden md:flex gap-6 text-base font-medium text-slate-500">
+                        <div className="hidden md:flex gap-6 text-sm font-bold text-slate-900 uppercase tracking-widest">
                             {!isTeacherMode ? (
                                 <>
-                                    <Link href="/" className="hover:text-slate-900 transition">Início</Link>
-                                    <Link href="/course" className="hover:text-slate-900 transition">Cursos</Link>
-                                    <Link href="/dashboard-student" className="hover:text-slate-900 transition">Minha Lista</Link>
-                                    {isLoggedIn && <Link href="/dashboard-student/chat" className="hover:text-slate-900 transition">Chat</Link>}
+                                    <Link href="/" className="hover:text-[#00C402] transition-colors">Início</Link>
+                                    <Link href="/course" className="hover:text-[#00C402] transition-colors">Cursos</Link>
+                                    <Link href="/dashboard-student" className="hover:text-[#00C402] transition-colors">Evolução</Link>
+                                    {isLoggedIn && <Link href="/dashboard-student/chat" className="hover:text-[#00C402] transition-colors">Profs</Link>}
                                 </>
                             ) : (
                                 <>
-                                    <Link href="/dashboard-teacher" className="hover:text-slate-900 transition">Dashboard</Link>
-                                    <Link href="/dashboard-teacher/courses" className="hover:text-slate-900 transition">Meus Cursos</Link>
-                                    <Link href="/dashboard-teacher/analytics" className="hover:text-slate-900 transition">Desempenho</Link>
+                                    <Link href="/dashboard-teacher" className="hover:text-slate-500 transition-colors">Dashboard</Link>
+                                    <Link href="/dashboard-teacher/courses" className="hover:text-slate-500 transition-colors">Turmas</Link>
+                                    <Link href="/dashboard-teacher/analytics" className="hover:text-slate-500 transition-colors">Caixa</Link>
                                 </>
                             )}
                         </div>
@@ -127,17 +127,17 @@ export default function Navbar() {
                         {isTeacherMode ? (
                             <Link
                                 href="/"
-                                className="hidden md:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-600 border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-all outline-none"
+                                className="hidden md:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-900 border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-all outline-none"
                             >
                                 <GraduationCap size={14} />
-                                Alternar para Aluno
+                                ALUNO
                             </Link>
                         ) : userProfile?.role === 'teacher' && (
                             <Link
                                 href="/dashboard-teacher"
-                                className="hidden md:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-600 border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-all outline-none"
+                                className="hidden md:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-900 border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-all outline-none"
                             >
-                                Modo Professor
+                                PROFESSOR
                             </Link>
                         )}
 
@@ -160,7 +160,7 @@ export default function Navbar() {
                             </div>
                             <button
                                 onClick={() => setIsSearchOpen(!isSearchOpen)}
-                                className={`text-slate-500 hover:text-slate-900 transition cursor-pointer outline-none ${isSearchOpen ? 'text-slate-900' : ''}`}
+                                className={`text-slate-900 hover:text-[#00C402] transition cursor-pointer outline-none ${isSearchOpen ? 'text-[#00C402]' : ''}`}
                             >
                                 {isSearchOpen ? <X size={20} /> : <Search size={20} />}
                             </button>
@@ -174,7 +174,7 @@ export default function Navbar() {
                         )}
 
                         {isLoggedIn && !isTeacherMode && (
-                            <Link href="/cart" className="text-slate-500 hover:text-slate-900 transition cursor-pointer outline-none relative">
+                            <Link href="/cart" className="text-slate-900 hover:text-[#00C402] transition cursor-pointer outline-none relative">
                                 <ShoppingCart size={20} />
                                 {mounted && items.length > 0 && (
                                     <span className="absolute -top-1 -right-1.5 w-4 h-4 rounded-full bg-[#00C402] text-white text-[9px] font-black flex items-center justify-center border-2 border-white">

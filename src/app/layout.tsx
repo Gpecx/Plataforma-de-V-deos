@@ -7,6 +7,8 @@ const exo = Exo({
 })
 
 
+import { AuthProvider } from '@/context/AuthProvider'
+
 export default function RootLayout({
   children,
 }: {
@@ -15,7 +17,9 @@ export default function RootLayout({
   return (
     <html lang="pt-br" className={exo.variable}>
       <body className="font-exo">
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   )

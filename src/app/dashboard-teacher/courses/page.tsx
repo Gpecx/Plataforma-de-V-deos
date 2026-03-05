@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { auth, db } from '@/lib/firebase'
-import { onAuthStateChanged } from 'firebase/auth'
 import { collection, query, where, orderBy, getDocs } from 'firebase/firestore'
 import Link from 'next/link'
+import { useAuth } from '@/context/AuthProvider'
+import { useRouter } from 'next/navigation'
 import {
     Plus,
     Search,
@@ -22,33 +23,50 @@ import { Input } from '@/components/ui/input'
 import { deleteCourseAction } from './actions'
 
 export default function TeacherCoursesPage() {
+    const { user, role, loading: authLoading } = useAuth()
+    const router = useRouter()
+
     const [courses, setCourses] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState('')
 
     // 1. Busca os cursos do banco
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                try {
-                    const q = query(
-                        collection(db, 'courses'),
-                        where('teacher_id', '==', user.uid),
-                        orderBy('created_at', 'desc')
-                    )
-                    const querySnapshot = await getDocs(q)
-                    const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-                    setCourses(data)
-                } catch (error) {
-                    console.error("Error loading courses:", error)
-                }
-            } else {
-                setCourses([])
+        if (!authLoading && !user) {
+            router.push('/login')
+            return
+        }
+
+        // Bloqueia acesso se não for professor ou admin
+        if (!authLoading && user && role !== 'teacher' && role !== 'admin') {
+            router.push('/dashboard-student')
+            return
+        }
+
+        async function fetchCourses() {
+            if (!user) return;
+
+            try {
+                const q = query(
+                    collection(db, 'courses'),
+                    where('teacher_id', '==', user.uid),
+                    orderBy('created_at', 'desc')
+                )
+                const querySnapshot = await getDocs(q)
+                const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+                setCourses(data)
+            } catch (error) {
+                console.error("Error loading courses:", error)
+            } finally {
+                setLoading(false)
             }
-            setLoading(false)
-        })
-        return () => unsubscribe()
-    }, [])
+        }
+
+        if (user && (role === 'teacher' || role === 'admin')) {
+            fetchCourses()
+        }
+
+    }, [user, authLoading, role, router])
 
     // --- AQUI ENTRA O CÓDIGO QUE VOCÊ ESTAVA NA DÚVIDA ---
     const handleDelete = async (courseId: string) => {
@@ -70,13 +88,15 @@ export default function TeacherCoursesPage() {
         curso.title?.toLowerCase().includes(searchTerm.toLowerCase())
     )
 
-    if (loading) {
+    if (authLoading || loading) {
         return (
             <div className="flex h-screen items-center justify-center bg-[#F4F7F9]">
                 <Loader2 className="animate-spin text-slate-800" size={48} />
             </div>
         )
     }
+
+    if (!user || (role !== 'teacher' && role !== 'admin')) return null;
 
     return (
         <div className="p-8 md:p-12 space-y-12 bg-[#F4F7F9] min-h-screen text-slate-800 border-t border-slate-100 font-exo">

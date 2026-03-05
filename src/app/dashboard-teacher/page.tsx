@@ -3,6 +3,7 @@
 import { auth, db } from '@/lib/firebase'
 import { onAuthStateChanged } from 'firebase/auth'
 import { collection, doc, getDoc, getDocs, query, where, orderBy } from 'firebase/firestore'
+import { parseFirebaseDate } from '@/lib/date-utils'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -55,16 +56,22 @@ export default function TeacherDashboard() {
 
                     // Calculations
                     const now = new Date()
-                    const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000)).toISOString()
-                    const todayStart = new Date(now.setHours(0, 0, 0, 0)).toISOString()
+                    const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000))
+                    const todayStart = new Date(now.setHours(0, 0, 0, 0))
 
                     const totalStudents = new Set(allEnrollments.map(e => e.user_id)).size
                     const monthlyRevenue = allEnrollments
-                        .filter(e => e.created_at >= thirtyDaysAgo)
+                        .filter(e => {
+                            const d = parseFirebaseDate(e.created_at)
+                            return d ? d >= thirtyDaysAgo : false
+                        })
                         .reduce((acc, e) => acc + (coursesPriceMap.get(e.course_id) || 0), 0)
 
                     const todaySales = allEnrollments
-                        .filter(e => e.created_at >= todayStart)
+                        .filter(e => {
+                            const d = parseFirebaseDate(e.created_at)
+                            return d ? d >= todayStart : false
+                        })
                         .reduce((acc, e) => acc + (coursesPriceMap.get(e.course_id) || 0), 0)
 
                     setMetrics([
@@ -83,7 +90,9 @@ export default function TeacherDashboard() {
 
                     const formattedChartData = last7DaysStrings.map(day => {
                         const salesForDay = allEnrollments.filter(e => {
-                            const saleDay = new Date(e.created_at).toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')
+                            const parsedDate = parseFirebaseDate(e.created_at)
+                            if (!parsedDate) return false;
+                            const saleDay = parsedDate.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')
                             return saleDay === day
                         })
                         const totalValue = salesForDay.reduce((acc, s) => acc + (coursesPriceMap.get(s.course_id) || 0), 0)

@@ -2,7 +2,8 @@
 
 import { auth, db } from '@/lib/firebase'
 import { onAuthStateChanged } from 'firebase/auth'
-import { collection, query, where, getDocs, doc, getDoc, orderBy } from 'firebase/firestore'
+import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore'
+import { formatShortDateBR } from '@/lib/date-utils'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { Search, MessageSquare, ArrowUpDown, Loader2 } from 'lucide-react'
@@ -155,7 +156,7 @@ export default function StudentsPage() {
                                             </span>
                                         </td>
                                         <td className="py-5 px-4 text-[10px] text-slate-400 uppercase font-bold tracking-tight">
-                                            {student.joinedAt ? new Date(student.joinedAt).toLocaleDateString('pt-BR') : '---'}
+                                            {formatShortDateBR(student.joinedAt)}
                                         </td>
                                         <td className="py-5 px-4 text-right">
                                             <Link href={`/dashboard-teacher/chat?userId=${student.id}`}>

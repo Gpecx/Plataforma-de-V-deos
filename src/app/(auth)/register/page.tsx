@@ -6,16 +6,24 @@ import { createUserWithEmailAndPassword } from 'firebase/auth'
 import { doc, setDoc } from 'firebase/firestore'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { validateDocument, maskCpfCnpj } from '@/lib/document-utils'
 
 export default function RegisterPage() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [fullName, setFullName] = useState('')
+    const [cpfCnpj, setCpfCnpj] = useState('')
     const [role, setRole] = useState<'student' | 'teacher'>('student')
     const [loading, setLoading] = useState(false)
     const router = useRouter()
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        if (!validateDocument(cpfCnpj)) {
+            alert("CPF ou CNPJ inválido. Por favor, verifique os números digitados.")
+            return
+        }
+
         setLoading(true)
 
         try {
@@ -24,9 +32,10 @@ export default function RegisterPage() {
             const user = userCredential.user;
 
             if (user) {
-                // 2. Insere o nome na coleção profiles
+                // 2. Insere o nome e doc na coleção profiles
                 await setDoc(doc(db, 'profiles', user.uid), {
                     full_name: fullName,
+                    cpf_cnpj: cpfCnpj.replace(/\D/g, ''), // Salva apenas os números
                     role: role,
                     created_at: new Date().toISOString()
                 });
@@ -79,13 +88,26 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="space-y-4">
-                    <div className="space-y-1.5">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nome Completo</label>
-                        <input
-                            type="text" placeholder="SEU NOME COMPLETO" required
-                            className="w-full p-4 rounded-xl bg-slate-50 text-slate-700 border border-slate-100 focus:border-[#00C402] outline-none text-sm font-medium transition-all"
-                            onChange={(e) => setFullName(e.target.value)}
-                        />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nome Completo</label>
+                            <input
+                                type="text" placeholder="SEU NOME COMPLETO" required
+                                className="w-full p-4 rounded-xl bg-slate-50 text-slate-700 border border-slate-100 focus:border-[#00C402] outline-none text-sm font-medium transition-all"
+                                onChange={(e) => setFullName(e.target.value)}
+                            />
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">CPF ou CNPJ</label>
+                            <input
+                                type="text" placeholder="000.000.000-00 ou 00.000.000/0000-00" required
+                                value={cpfCnpj}
+                                className="w-full p-4 rounded-xl bg-slate-50 text-slate-700 border border-slate-100 focus:border-[#00C402] outline-none text-sm font-medium transition-all"
+                                onChange={(e) => setCpfCnpj(maskCpfCnpj(e.target.value))}
+                                maxLength={18}
+                            />
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

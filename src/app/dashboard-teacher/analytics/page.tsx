@@ -5,6 +5,7 @@ import { onAuthStateChanged } from 'firebase/auth'
 import { collection, query, where, getDocs, doc, getDoc, orderBy } from 'firebase/firestore'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import { parseFirebaseDate, formatShortDateBR } from '@/lib/date-utils'
 import {
     DollarSign,
     TrendingUp,
@@ -74,8 +75,7 @@ export default function FinancialDashboardPage() {
                         const value = course?.price || 0
                         const commission = value * 0.70
 
-                        revAccumulator += commission
-                        const saleDate = new Date(e.created_at)
+                        const saleDate = parseFirebaseDate(e.created_at) || new Date(0)
                         if (saleDate >= thirtyDaysAgo) {
                             pendingAccumulator += commission
                         }
@@ -87,7 +87,7 @@ export default function FinancialDashboardPage() {
                             course: course?.title || 'Curso Excluido',
                             value: `R$ ${value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
                             commission: `R$ ${commission.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-                            date: saleDate.toLocaleDateString('pt-BR'),
+                            date: formatShortDateBR(e.created_at),
                             status: 'Sucedido'
                         }
                     })

@@ -35,6 +35,7 @@ import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { useDropzone } from 'react-dropzone'
 import { auth, db } from '@/lib/firebase'
+import { useAuth } from '@/context/AuthProvider'
 import { uploadCourseVideo, uploadCourseImage } from '@/lib/storage-utils'
 import { updateCourseAction } from '../../actions'
 import { Loader2 } from 'lucide-react'
@@ -328,6 +329,8 @@ export default function CourseBuilder() {
     const params = useParams()
     const router = useRouter()
 
+    const { user, role, loading: authLoading } = useAuth()
+
     const [loading, setLoading] = useState(true)
     const [isSaving, setIsSaving] = useState(false)
     const [showSuccess, setShowSuccess] = useState(false)
@@ -341,7 +344,18 @@ export default function CourseBuilder() {
 
     // 1. Carrega dados do Firebase
     useEffect(() => {
+        if (!authLoading && !user) {
+            router.push('/login')
+            return
+        }
+
+        if (!authLoading && user && role !== 'teacher' && role !== 'admin') {
+            router.push('/dashboard-student')
+            return
+        }
+
         async function fetchCourseData() {
+            if (!user) return;
             setLoading(true)
             const courseId = params.id as string
 
@@ -385,8 +399,11 @@ export default function CourseBuilder() {
                 setLoading(false)
             }
         }
-        fetchCourseData()
-    }, [params.id])
+
+        if (user && (role === 'teacher' || role === 'admin')) {
+            fetchCourseData()
+        }
+    }, [params.id, user, authLoading, role, router])
 
     const sensors = useSensors(
         useSensor(PointerSensor),
@@ -451,13 +468,15 @@ export default function CourseBuilder() {
         }
     }
 
-    if (loading) {
+    if (authLoading || loading) {
         return (
             <div className="h-screen bg-[#F4F7F9] flex items-center justify-center font-exo">
                 <Loader2 className="animate-spin text-slate-800" size={48} />
             </div>
         )
     }
+
+    if (!user || (role !== 'teacher' && role !== 'admin')) return null;
 
     return (
         <div className="p-8 md:p-12 min-h-screen bg-[#F5F7FA] text-slate-900 font-exo border-t border-slate-100">

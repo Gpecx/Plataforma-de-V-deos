@@ -5,6 +5,7 @@ import { onAuthStateChanged } from 'firebase/auth'
 import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import { useAuth } from '@/context/AuthProvider'
 import { PlayCircle, CreditCard, BookOpen, Sparkles, Trophy, Users, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { AddToCartButton } from '@/components/AddToCartButton'
@@ -13,45 +14,58 @@ import { MyLearningSidebar } from '@/components/dashboard/MyLearningSidebar'
 
 export default function StudentDashboard() {
     const router = useRouter()
-    const [user, setUser] = useState<any>(null)
-    const [profile, setProfile] = useState<any>(null)
+    const { user, profile, role, loading: authLoading } = useAuth()
+
     const [meusCursos, setMeusCursos] = useState<any[]>([])
     const [cursosDisponiveis, setCursosDisponiveis] = useState<any[]>([])
-    const [loading, setLoading] = useState(true)
+    const [dataLoading, setDataLoading] = useState(true)
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-            if (!currentUser) {
-                router.push('/login')
-                return
-            }
-            setUser(currentUser)
+        if (!authLoading && !user) {
+            router.push('/login')
+            return
+        }
+
+        // Se for professor ou admin tentando acessar o dashboard de aluno, redireciona
+        if (!authLoading && user && (role === 'teacher' || role === 'admin')) {
+            router.push('/dashboard-teacher')
+            return
+        }
+
+        async function fetchDashboardData() {
+            if (!user) return;
 
             try {
-                // 2. Busca perfil, cursos totais e matrículas
-                const [profileSnap, allCoursesSnap, enrollmentsSnap] = await Promise.all([
-                    getDoc(doc(db, 'profiles', currentUser.uid)),
-                    getDocs(collection(db, 'courses')),
-                    getDocs(query(collection(db, 'enrollments'), where('user_id', '==', currentUser.uid)))
+                // 1. Busca cursos disponíveis (seguro pela rule: status == 'published')
+                const coursesQuery = query(collection(db, 'courses'), where('status', '==', 'published'))
+
+                // 2. Busca matrículas do usuário logado
+                const enrollmentsQuery = query(collection(db, 'enrollments'), where('user_id', '==', user.uid))
+
+                const [allCoursesSnap, enrollmentsSnap] = await Promise.all([
+                    getDocs(coursesQuery),
+                    getDocs(enrollmentsQuery)
                 ])
 
-                const profileData = profileSnap.data()
                 const allCourses = allCoursesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() as any }))
                 const enrolledIds = enrollmentsSnap.docs.map(doc => doc.data().course_id)
 
-                setProfile(profileData)
                 setMeusCursos(allCourses.filter(c => enrolledIds.includes(c.id)))
                 setCursosDisponiveis(allCourses.filter(c => !enrolledIds.includes(c.id)))
+
             } catch (error) {
                 console.error("Error fetching dashboard data:", error)
             } finally {
-                setLoading(false)
+                setDataLoading(false)
             }
-        })
-        return () => unsubscribe()
-    }, [router])
+        }
 
-    if (loading) {
+        if (user) {
+            fetchDashboardData()
+        }
+    }, [user, authLoading, role, router])
+
+    if (authLoading || dataLoading) {
         return (
             <div className="flex items-center justify-center min-h-screen bg-[#F4F7F9]">
                 <Loader2 className="animate-spin text-[#00C402]" size={48} />

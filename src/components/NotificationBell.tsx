@@ -6,6 +6,7 @@ import { Bell, MessageSquare, PlayCircle, CheckCheck, X, TrendingUp, Users } fro
 import { auth, db } from '@/lib/firebase'
 import { onAuthStateChanged } from 'firebase/auth'
 import { collection, query, where, getDocs, getDoc, orderBy, limit, onSnapshot, doc } from 'firebase/firestore'
+import { formatShortDateBR } from '@/lib/date-utils'
 
 interface Notification {
     id: string
@@ -68,7 +69,7 @@ export function NotificationBell({
                         type: 'sale',
                         title: 'Nova venda realizada!',
                         subtitle: `${profilesMap.get(e.user_id)?.full_name || 'Aluno'} comprou ${coursesMap.get(e.course_id)?.title}`,
-                        time: e.created_at ? new Date(e.created_at).toLocaleDateString('pt-BR') : '---',
+                        time: formatShortDateBR(e.created_at),
                         read: false,
                         href: `/dashboard-teacher/analytics?saleId=${e.id}`
                     }))
@@ -96,7 +97,7 @@ export function NotificationBell({
                             type: 'new_lesson',
                             title: 'Conteúdo atualizado!',
                             subtitle: `Novas aulas em: ${c.title}`,
-                            time: c.updated_at ? new Date(c.updated_at).toLocaleDateString('pt-BR') : '---',
+                            time: formatShortDateBR(c.updated_at),
                             read: false,
                             href: `/classroom/${c.id}`
                         }))
@@ -142,7 +143,7 @@ export function NotificationBell({
             {/* Bell Trigger */}
             <button
                 onClick={() => setOpen(prev => !prev)}
-                className="text-slate-400 hover:text-slate-600 transition cursor-pointer relative outline-none"
+                className="text-slate-900 hover:text-[#00C402] transition cursor-pointer relative outline-none flex items-center justify-center p-1"
             >
                 <Bell size={20} />
                 {unread > 0 && (

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react' // Adicionado useEffect
+import { useState, useEffect, Suspense } from 'react' // Adicionado useEffect e Suspense
 import { useSearchParams } from 'next/navigation' // Adicionado para ler a URL
 import {
     Search,
@@ -45,7 +45,7 @@ const MOCK_MESSAGES_BY_STUDENT: Record<number, any[]> = {
     // ... outros mocks simplificados para o exemplo
 }
 
-export default function ChatManagementPage() {
+function ChatManagementContent() {
     const searchParams = useSearchParams()
     const isNewStudentAction = searchParams.get('new') === 'true'
     const userIdParam = searchParams.get('userId')
@@ -209,5 +209,13 @@ export default function ChatManagementPage() {
                 </main>
             </div>
         </div>
+    )
+}
+
+export default function ChatManagementPage() {
+    return (
+        <Suspense fallback={<div className="h-screen flex items-center justify-center font-black uppercase text-[10px] tracking-widest text-slate-400">Carregando painel de mensagens...</div>}>
+            <ChatManagementContent />
+        </Suspense>
     )
 }
