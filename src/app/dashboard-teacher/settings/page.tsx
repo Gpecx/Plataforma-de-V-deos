@@ -11,7 +11,7 @@ export default function TeacherSettingsPage() {
     const [browserEnabled, setBrowserEnabled] = useState(false)
 
     return (
-        <div className="min-h-screen bg-[#F4F7F9] p-8 md:p-12 space-y-16 font-exo border-t border-slate-100">
+        <div className="min-h-screen bg-[#F4F7F9] px-8 py-6 md:px-12 md:py-8 space-y-12 font-exo border-t border-slate-100">
             <header className="max-w-6xl mx-auto">
                 <div className="flex items-center gap-3 mb-2">
                     <span className="text-[10px] font-black uppercase tracking-[5px] text-[#00C402]">WORKSPACE SETTINGS</span>
@@ -115,6 +115,31 @@ export default function TeacherSettingsPage() {
                         </div>
                         <div className="flex items-end">
                             <Button variant="outline" className="border-slate-100 text-slate-400 hover:bg-slate-50 hover:text-slate-900 h-14 px-8 rounded-2xl font-black uppercase tracking-[2px] text-[10px] transition-all">Sincronizar Acesso</Button>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Encerramento de Conta */}
+                <section className="bg-white border border-red-100 rounded-[32px] p-10 shadow-sm space-y-8 lg:col-span-2 relative overflow-hidden group">
+                    <div className="flex items-center gap-4 relative z-10">
+                        <div className="p-4 bg-red-50 rounded-2xl text-red-500 border border-red-100">
+                            <Shield size={24} strokeWidth={2.5} />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-black uppercase tracking-tighter text-red-600 leading-none">Zona de Risco</h2>
+                            <p className="text-[10px] font-bold uppercase tracking-[2px] text-slate-400 mt-2">Ações irreversíveis sobre o seu ecossistema.</p>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col md:flex-row gap-8 relative z-10 items-start md:items-center justify-between bg-red-50/50 p-6 rounded-3xl border border-red-100">
+                        <div>
+                            <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Encerramento Definitivo</h3>
+                            <p className="text-xs text-slate-500 font-medium mt-1">Ao excluir sua conta, todos os seus dados, alunos, comentários e faturamentos pendentes serão apagados permanentemente. Esta ação não pode ser desfeita.</p>
+                        </div>
+                        <div className="flex-shrink-0">
+                            <Button variant="destructive" className="bg-red-600 hover:bg-red-700 text-white h-14 px-8 rounded-2xl font-black uppercase tracking-[2px] text-[10px] shadow-lg shadow-red-600/20 transition-all w-full md:w-auto">
+                                Excluir Minha Conta
+                            </Button>
                         </div>
                     </div>
                 </section>

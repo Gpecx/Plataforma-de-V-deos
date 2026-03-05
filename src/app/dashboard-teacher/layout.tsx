@@ -11,7 +11,7 @@ export default function TeacherLayout({
             <Navbar />
 
             {/* Main Content Area */}
-            <main className="pt-24">
+            <main className="pt-0">
                 {children}
             </main>
 
