@@ -38,15 +38,30 @@ function LoginContent() {
             const user = userCredential.user;
 
             if (user) {
-                // Se houver um redirecionamento pendente, use-o
+                const docRef = doc(db, 'profiles', user.uid);
+                const docSnap = await getDoc(docRef);
+                const profile = docSnap.exists() ? docSnap.data() : null;
+                const userRole = profile?.role || 'student';
+                const isActualTeacher = userRole === 'teacher' || userRole === 'admin';
+
+                // Validação de Papel (Role Validation)
+                if (isTeacherRole && !isActualTeacher) {
+                    await auth.signOut();
+                    alert("Acesso negado: Esta é uma conta de aluno. Por favor, entre pela Área do Aluno.");
+                    return;
+                }
+
+                if (!isTeacherRole && isActualTeacher) {
+                    await auth.signOut();
+                    alert("Acesso negado: Esta é uma conta de professor. Por favor, entre pela Área do Professor.");
+                    return;
+                }
+
+                // Se houver um redirecionamento pendente (ex: vindo de um link protegido), use-o
                 if (nextRedirect) {
                     router.push(nextRedirect)
                 } else {
-                    const docRef = doc(db, 'profiles', user.uid);
-                    const docSnap = await getDoc(docRef);
-                    const profile = docSnap.exists() ? docSnap.data() : null;
-
-                    if (profile?.role === 'teacher' || profile?.role === 'admin') {
+                    if (isActualTeacher) {
                         router.push('/dashboard-teacher')
                     } else {
                         router.push('/dashboard-student')

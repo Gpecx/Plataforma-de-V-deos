@@ -85,6 +85,9 @@ export async function updateCourseAction(courseId: string, formData: any) {
         // 2. Atualiza os dados básicos do curso
         const updateData: any = {}
         if (formData.title !== undefined) updateData.title = formData.title
+        if (formData.subtitle !== undefined) updateData.subtitle = formData.subtitle
+        if (formData.description !== undefined) updateData.description = formData.description
+        if (formData.category !== undefined) updateData.category = formData.category
         if (formData.price !== undefined && !isNaN(formData.price)) updateData.price = formData.price
         if (formData.status !== undefined) updateData.status = formData.status
         if (formData.image_url !== undefined) updateData.image_url = formData.image_url
