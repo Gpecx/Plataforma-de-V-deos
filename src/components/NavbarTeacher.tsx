@@ -75,8 +75,8 @@ export default function NavbarTeacher() {
     }
 
     return (
-        <header className="sticky top-0 left-0 right-0 z-[100] w-full bg-white shadow-sm border-b border-slate-100 transition-all duration-300 pointer-events-auto">
-            <nav className="flex items-center justify-between px-4 sm:px-8 md:px-12 py-4 text-slate-800 font-exo">
+        <header className="sticky top-0 left-0 right-0 z-[100] w-full bg-white border-b border-[#E5E7EB] transition-all duration-300 pointer-events-auto" style={{ height: '64px' }}>
+            <nav className="flex items-center justify-between px-4 sm:px-8 md:px-12 h-full text-slate-800" style={{ fontFamily: "'Inter', 'Geist', sans-serif" }}>
 
                 {/* Logo & Navigation */}
                 <div className="flex items-center gap-4 lg:gap-10">
@@ -90,12 +90,13 @@ export default function NavbarTeacher() {
                                 </button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="start" sideOffset={8} className="w-56 bg-white p-2 rounded-2xl border-none shadow-2xl z-[200]">
-                                <div className="px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-900 mb-1">
+                                <div className="px-3 py-2 text-[10px] font-medium text-slate-500 mb-1">
                                     Painel do Professor
                                 </div>
-                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher")} className="px-3 py-3 text-xs font-bold uppercase tracking-widest text-slate-700 focus:bg-slate-50 rounded-xl cursor-pointer">DASHBOARD</DropdownMenuItem>
-                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/courses")} className="px-3 py-3 text-xs font-bold uppercase tracking-widest text-slate-700 focus:bg-slate-50 rounded-xl cursor-pointer">MEUS CURSOS</DropdownMenuItem>
-                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/analytics")} className="px-3 py-3 text-xs font-bold uppercase tracking-widest text-slate-700 focus:bg-slate-50 rounded-xl cursor-pointer">VENDAS</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-slate-50 rounded-xl cursor-pointer hover:text-black">Dashboard</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/courses")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-slate-50 rounded-xl cursor-pointer hover:text-black">Meus Cursos</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/analytics")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-slate-50 rounded-xl cursor-pointer hover:text-black">Vendas</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/settings")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-slate-50 rounded-xl cursor-pointer hover:text-black">Configurações</DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
@@ -104,15 +105,15 @@ export default function NavbarTeacher() {
                         <img
                             src="/images/SPCS academy 2.png"
                             alt="SPCS Academy"
-                            className="h-12 sm:h-16 md:h-20 w-auto"
+                            className="h-10 sm:h-12 md:h-14 w-auto"
                         />
-                        <span className="ml-3 text-[8px] bg-slate-900 text-white px-2 py-0.5 rounded font-black tracking-widest uppercase hidden sm:inline-block">Professor</span>
                     </Link>
 
-                    <div className="hidden md:flex gap-4 lg:gap-6 text-xs lg:text-sm font-black text-slate-900 uppercase tracking-tighter">
-                        <Link href="/dashboard-teacher" className="hover:text-slate-500 transition-colors">Dashboard</Link>
-                        <Link href="/dashboard-teacher/courses" className="hover:text-slate-500 transition-colors">Meus Cursos</Link>
-                        <Link href="/dashboard-teacher/analytics" className="hover:text-slate-500 transition-colors">Vendas</Link>
+                    <div className="hidden md:flex gap-6 items-center">
+                        <Link href="/dashboard-teacher" className="text-sm font-medium text-[#374151] hover:text-black transition-colors py-3">Dashboard</Link>
+                        <Link href="/dashboard-teacher/courses" className="text-sm font-medium text-[#374151] hover:text-black transition-colors py-3">Meus Cursos</Link>
+                        <Link href="/dashboard-teacher/analytics" className="text-sm font-medium text-[#374151] hover:text-black transition-colors py-3">Vendas</Link>
+                        <Link href="/dashboard-teacher/settings" className="text-sm font-medium text-[#374151] hover:text-black transition-colors py-3">Configurações</Link>
                     </div>
                 </div>
 
