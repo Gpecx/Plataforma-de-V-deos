@@ -49,11 +49,18 @@ export default function TeacherCoursesPage() {
             try {
                 const q = query(
                     collection(db, 'courses'),
-                    where('teacher_id', '==', user.uid),
-                    orderBy('created_at', 'desc')
+                    where('teacher_id', '==', user.uid)
                 )
                 const querySnapshot = await getDocs(q)
                 const data = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+
+                // Ordenação manual no lado do cliente para evitar erro de índice composto faltando
+                data.sort((a: any, b: any) => {
+                    const dateA = new Date(a.created_at || 0).getTime();
+                    const dateB = new Date(b.created_at || 0).getTime();
+                    return dateB - dateA;
+                });
+
                 setCourses(data)
             } catch (error) {
                 console.error("Error loading courses:", error)

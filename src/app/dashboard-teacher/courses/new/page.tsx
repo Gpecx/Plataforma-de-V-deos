@@ -19,6 +19,23 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+    Code,
+    Paintbrush,
+    Megaphone,
+    Briefcase,
+    DollarSign,
+    HeartPulse,
+    LayoutGrid,
+    ChevronDown,
+    Zap,
+    Database,
+    BrainCircuit,
+    ClipboardList,
+    Scale,
+    Languages,
+    Search
+} from 'lucide-react'
 
 // Importamos a Store, a Action e o utilitário de Storage
 import { useCourseFormStore, Lesson } from "@/store/useCourseFormStore"
@@ -46,13 +63,19 @@ const STEPS = [
 ]
 
 const CATEGORIES = [
-    'Desenvolvimento Web',
-    'Design',
-    'Marketing Digital',
-    'Negócios',
-    'Finanças',
-    'Saúde',
-    'Outros'
+    { id: 'Desenvolvimento Web', label: 'Desenvolvimento Web', icon: Code },
+    { id: 'Design', label: 'Design', icon: Paintbrush },
+    { id: 'Marketing Digital', label: 'Marketing Digital', icon: Megaphone },
+    { id: 'Negócios', label: 'Negócios', icon: Briefcase },
+    { id: 'Finanças', label: 'Finanças', icon: DollarSign },
+    { id: 'Saúde', label: 'Saúde', icon: HeartPulse },
+    { id: 'Engenharia Elétrica', label: 'Engenharia Elétrica', icon: Zap },
+    { id: 'Data Science', label: 'Data Science', icon: Database },
+    { id: 'Inteligência Artificial', label: 'Inteligência Artificial', icon: BrainCircuit },
+    { id: 'Gestão de Projetos', label: 'Gestão de Projetos', icon: ClipboardList },
+    { id: 'Direito', label: 'Direito', icon: Scale },
+    { id: 'Idiomas', label: 'Idiomas', icon: Languages },
+    { id: 'Outros', label: 'Outros', icon: LayoutGrid }
 ]
 
 export default function NewCoursePage() {
@@ -61,6 +84,8 @@ export default function NewCoursePage() {
     const [currentStep, setCurrentStep] = useState(1)
     const [isPublishing, setIsPublishing] = useState(false)
     const [isUploading, setIsUploading] = useState(false)
+    const [isCategoryOpen, setIsCategoryOpen] = useState(false)
+    const [categorySearch, setCategorySearch] = useState('')
 
     // Usamos a Store em vez do useState local
     const { formData, setStepData, setLessons, resetForm } = useCourseFormStore()
@@ -236,7 +261,7 @@ export default function NewCoursePage() {
                     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-700">
                         {/* Upload de Capa */}
                         <div className="space-y-4">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Capa do Treinamento</Label>
+                            <Label className="text-[11px] font-black uppercase tracking-widest text-slate-700 px-1">Capa do Treinamento</Label>
                             <div className="relative group overflow-hidden rounded-3xl border-2 border-dashed border-slate-100 hover:border-[#00C402]/30 transition-all duration-500 bg-slate-50/50 aspect-video flex flex-col items-center justify-center cursor-pointer">
                                 {formData.image_url ? (
                                     <>
@@ -279,39 +304,116 @@ export default function NewCoursePage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                             <div className="space-y-2">
-                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Nome do Curso</Label>
+                                <Label className="text-[11px] font-black uppercase tracking-widest text-slate-700 px-1">Nome do Curso</Label>
                                 <Input
                                     placeholder="Ex: Do Zero ao Mestre em React"
-                                    className="bg-slate-50 border-slate-100 focus:border-[#00C402] focus:ring-[#00C402] h-14 rounded-2xl text-sm font-medium transition-all"
+                                    className="bg-slate-50 border-slate-100 focus:border-[#00C402] focus:ring-[#00C402] h-14 rounded-2xl text-sm font-semibold transition-all placeholder:text-slate-500 text-slate-900"
                                     value={formData.title}
                                     onChange={(e) => setStepData({ title: e.target.value })}
                                 />
                             </div>
-                            <div className="space-y-2">
-                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Categoria Principal</Label>
-                                <select
-                                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 h-14 focus:border-[#00C402] focus:ring-[#00C402] focus:ring-4 focus:ring-[#00C402]/5 outline-none text-sm font-medium transition-all appearance-none"
-                                    value={formData.category}
-                                    onChange={(e) => setStepData({ category: e.target.value })}
-                                >
-                                    <option value="" disabled>Escolha o nicho...</option>
-                                    {CATEGORIES.map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                                </select>
+                            <div className="space-y-2 relative">
+                                <Label className="text-[11px] font-black uppercase tracking-widest text-slate-700 px-1">Categoria Principal</Label>
+
+                                {/* Custom Select Dropdown */}
+                                <div className="relative">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+                                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 h-14 focus:border-[#00C402] focus:outline-none focus:ring-4 focus:ring-[#00C402]/5 text-sm font-semibold transition-all flex items-center justify-between text-slate-900"
+                                    >
+                                        {formData.category ? (
+                                            <div className="flex items-center gap-3">
+                                                {(() => {
+                                                    const selectedCat = CATEGORIES.find(c => c.id === formData.category);
+                                                    const Icon = selectedCat?.icon || LayoutGrid;
+                                                    return <Icon size={18} className="text-[#00C402]" />;
+                                                })()}
+                                                <span>{CATEGORIES.find(c => c.id === formData.category)?.label || formData.category}</span>
+                                            </div>
+                                        ) : (
+                                            <span className="text-slate-500">Escolha o nicho...</span>
+                                        )}
+                                        <ChevronDown size={20} className={`text-slate-400 transition-transform ${isCategoryOpen ? 'rotate-180' : ''}`} />
+                                    </button>
+
+                                    {isCategoryOpen && (
+                                        <>
+                                            {/* Backdrop invisível para fechar o menu ao clicar fora */}
+                                            <div
+                                                className="fixed inset-0 z-40"
+                                                onClick={() => setIsCategoryOpen(false)}
+                                            />
+                                            <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-white border border-slate-100 rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 flex flex-col max-h-[300px]">
+                                                {/* Search Input */}
+                                                <div className="p-3 border-b border-slate-100 shrink-0 sticky top-0 bg-white z-10">
+                                                    <div className="relative">
+                                                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                                        <Input
+                                                            type="text"
+                                                            placeholder="Buscar categoria..."
+                                                            className="w-full bg-slate-50 border-slate-100 focus:border-[#00C402] focus:ring-[#00C402] h-10 pl-9 rounded-xl text-sm transition-all focus-visible:ring-1"
+                                                            value={categorySearch}
+                                                            onChange={(e) => setCategorySearch(e.target.value)}
+                                                            autoFocus
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                {/* Category List */}
+                                                <div className="overflow-y-auto py-2">
+                                                    {(() => {
+                                                        const filteredCategories = CATEGORIES.filter(cat =>
+                                                            cat.label.toLowerCase().includes(categorySearch.toLowerCase())
+                                                        );
+
+                                                        if (filteredCategories.length === 0) {
+                                                            return <div className="px-5 py-4 text-sm text-slate-500 text-center">Nenhuma categoria encontrada.</div>;
+                                                        }
+
+                                                        return filteredCategories.map(cat => {
+                                                            const Icon = cat.icon;
+                                                            const isSelected = formData.category === cat.id;
+                                                            return (
+                                                                <button
+                                                                    key={cat.id}
+                                                                    type="button"
+                                                                    className={`w-full flex items-center gap-3 px-5 py-3 hover:bg-blue-50 hover:border-l-4 hover:border-blue-500 border-l-4 transition-all text-sm font-medium text-left
+                                                                        ${isSelected ? 'bg-blue-50/50 border-[#00C402] text-slate-900' : 'border-transparent text-slate-600'}
+                                                                    `}
+                                                                    onClick={() => {
+                                                                        setStepData({ category: cat.id });
+                                                                        setIsCategoryOpen(false);
+                                                                        setCategorySearch('');
+                                                                    }}
+                                                                >
+                                                                    <Icon size={18} className={isSelected ? 'text-[#00C402]' : 'text-slate-400'} />
+                                                                    {cat.label}
+                                                                    {isSelected && <Check size={16} className="ml-auto text-[#00C402]" />}
+                                                                </button>
+                                                            );
+                                                        });
+                                                    })()}
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Subtítulo Estratégico</Label>
+                            <Label className="text-[11px] font-black uppercase tracking-widest text-slate-700 px-1">Subtítulo Estratégico</Label>
                             <Input
                                 placeholder="Uma frase curta que resume a transformação"
-                                className="bg-slate-50 border-slate-100 focus:border-[#00C402] h-14 rounded-2xl text-sm font-medium transition-all"
+                                className="bg-slate-50 border-slate-100 focus:border-[#00C402] h-14 rounded-2xl text-sm font-semibold transition-all placeholder:text-slate-500 text-slate-900"
                                 value={formData.subtitle}
                                 onChange={(e) => setStepData({ subtitle: e.target.value })}
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Descrição Completa</Label>
+                            <Label className="text-[11px] font-black uppercase tracking-widest text-slate-700 px-1">Descrição Completa</Label>
                             <textarea
-                                className="w-full bg-slate-50 border border-slate-100 rounded-[32px] p-6 min-h-[180px] focus:border-[#00C402] focus:ring-4 focus:ring-[#00C402]/5 outline-none text-sm font-medium transition-all leading-relaxed"
+                                className="w-full bg-slate-50 border border-slate-100 rounded-[32px] p-6 min-h-[180px] focus:border-[#00C402] focus:outline-none focus:ring-4 focus:ring-[#00C402]/5 text-sm font-semibold transition-all leading-relaxed placeholder:text-slate-500 text-slate-900"
                                 placeholder="Descreva os benefícios e o que o aluno vai aprender..."
                                 value={formData.description}
                                 onChange={(e) => setStepData({ description: e.target.value })}
@@ -323,9 +425,9 @@ export default function NewCoursePage() {
                 {currentStep === 2 && (
                     <div className="space-y-12 animate-in fade-in duration-700">
                         <div className="space-y-6">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1 text-center block">Investimento Sugerido</Label>
+                            <Label className="text-[11px] font-black uppercase tracking-widest text-slate-700 px-1 text-center block">Investimento Sugerido</Label>
                             <div className="relative max-w-sm mx-auto group">
-                                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 font-black text-2xl group-focus-within:text-[#00C402] transition-colors">R$</span>
+                                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-400 font-black text-2xl group-focus-within:text-[#00C402] transition-colors">R$</span>
                                 <Input
                                     type="number"
                                     className="bg-slate-50 border-slate-100 focus:border-[#00C402] focus:ring-[#00C402] focus:ring-8 focus:ring-[#00C402]/5 h-24 pl-16 rounded-[40px] text-4xl font-black text-slate-900 shadow-sm transition-all text-center pr-8"
@@ -375,10 +477,10 @@ export default function NewCoursePage() {
                                                     </button>
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">Título da Aula</Label>
+                                                    <Label className="text-[11px] font-black uppercase tracking-widest text-slate-700 px-1">Título da Aula</Label>
                                                     <Input
                                                         placeholder="Ex: Introdução ao Módulo 1"
-                                                        className="bg-white border-slate-100 focus:border-[#00C402] h-12 rounded-xl text-sm font-medium"
+                                                        className="bg-white border-slate-100 focus:border-[#00C402] h-12 rounded-xl text-sm font-semibold placeholder:text-slate-500 text-slate-900"
                                                         value={lesson.title}
                                                         onChange={(e) => handleUpdateLesson(index, { title: e.target.value })}
                                                     />

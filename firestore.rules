@@ -16,20 +16,16 @@ service cloud.firestore {
       allow read, write: if isSignedIn() && isOwner(userId);
     }
 
-    // Courses: qualquer autenticado lê publicados; teacher cria/edita os seus
+    // Courses: qualquer um lê publicados; teacher cria/edita os seus
     match /courses/{courseId} {
-      allow read: if isSignedIn() && resource.data.status == 'published';
-      allow read, write: if isSignedIn() && isTeacherOrAdmin();
-      allow create: if isSignedIn() && isTeacherOrAdmin();
-      allow delete: if isSignedIn() && isTeacherOrAdmin();
+      allow read: if resource.data.status == 'published' || (isSignedIn() && isTeacherOrAdmin());
+      allow write, create, delete: if isSignedIn() && isTeacherOrAdmin();
     }
 
-    // Lessons: qualquer autenticado lê; teacher escreve
+    // Lessons: qualquer um lê; teacher escreve
     match /lessons/{lessonId} {
-      allow read: if isSignedIn();
-      allow write: if isSignedIn() && isTeacherOrAdmin();
-      allow create: if isSignedIn() && isTeacherOrAdmin();
-      allow delete: if isSignedIn() && isTeacherOrAdmin();
+      allow read: if true;
+      allow write, create, delete: if isSignedIn() && isTeacherOrAdmin();
     }
 
     // Enrollments: aluno lê as suas, teacher lê as dos seus cursos

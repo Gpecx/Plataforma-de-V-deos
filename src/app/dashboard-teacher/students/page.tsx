@@ -45,12 +45,16 @@ export default function StudentsPage() {
                     const studentMap = new Map<string, any>()
                     const uniqueUserIds = Array.from(new Set(allEnrollments.map(e => e.user_id)))
 
-                    // Buscamos os perfis necessários
+                    // Buscamos os perfis necessários individualmente para evitar que um erro impeça a lista toda
                     const profilesMap = new Map<string, any>()
                     await Promise.all(uniqueUserIds.map(async (uid) => {
-                        const profileSnap = await getDoc(doc(db, 'profiles', uid))
-                        if (profileSnap.exists()) {
-                            profilesMap.set(uid, profileSnap.data())
+                        try {
+                            const profileSnap = await getDoc(doc(db, 'profiles', uid))
+                            if (profileSnap.exists()) {
+                                profilesMap.set(uid, profileSnap.data())
+                            }
+                        } catch (err) {
+                            console.error(`Erro ao buscar perfil do aluno ${uid}:`, err)
                         }
                     }))
 
@@ -78,9 +82,13 @@ export default function StudentsPage() {
                         (a.profiles?.full_name || '').localeCompare(b.profiles?.full_name || '')
                     )
                     setStudentsData(data)
+                } else {
+                    // Se não tem cursos, a lista é vazia
+                    setStudentsData([])
                 }
             } catch (error) {
                 console.error("Error loading students data:", error)
+                setStudentsData([])
             } finally {
                 setLoading(false)
             }

@@ -48,18 +48,29 @@ export default function FinancialDashboardPage() {
 
                 if (courseIds.length > 0) {
                     // 2. Fetch Enrollments
-                    const enrollmentsSnap = await getDocs(query(collection(db, 'enrollments'), orderBy('created_at', 'desc')))
+                    const enrollmentsSnap = await getDocs(query(collection(db, 'enrollments')))
                     const teacherEnrollments = enrollmentsSnap.docs
                         .map(doc => ({ id: doc.id, ...doc.data() as any }))
                         .filter(e => courseIds.includes(e.course_id))
 
-                    // 3. Fetch unique profiles
+                    // Ordenação manual para evitar erro de índice composto ou faltando
+                    teacherEnrollments.sort((a, b) => {
+                        const dateA = new Date(a.created_at || 0).getTime();
+                        const dateB = new Date(b.created_at || 0).getTime();
+                        return dateB - dateA;
+                    });
+
+                    // 3. Fetch unique profiles com tratamento de erro individual
                     const uniqueUserIds = Array.from(new Set(teacherEnrollments.map(e => e.user_id)))
                     const profilesMap = new Map<string, any>()
                     await Promise.all(uniqueUserIds.map(async (uid) => {
-                        const profileSnap = await getDoc(doc(db, 'profiles', uid))
-                        if (profileSnap.exists()) {
-                            profilesMap.set(uid, profileSnap.data())
+                        try {
+                            const profileSnap = await getDoc(doc(db, 'profiles', uid))
+                            if (profileSnap.exists()) {
+                                profilesMap.set(uid, profileSnap.data())
+                            }
+                        } catch (err) {
+                            console.error(`Erro ao buscar perfil do aluno ${uid}:`, err)
                         }
                     }))
 
@@ -95,9 +106,12 @@ export default function FinancialDashboardPage() {
                     setSalesHistory(processedSales)
                     setTotalRevenue(revAccumulator)
                     setPendingBalance(pendingAccumulator)
+                } else {
+                    setSalesHistory([])
                 }
             } catch (error) {
                 console.error("Error loading financial data:", error)
+                setSalesHistory([])
             } finally {
                 setLoading(false)
             }

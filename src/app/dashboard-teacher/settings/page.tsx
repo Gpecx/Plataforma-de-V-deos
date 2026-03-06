@@ -137,7 +137,7 @@ export default function TeacherSettingsPage() {
                             <p className="text-xs text-slate-500 font-medium mt-1">Ao excluir sua conta, todos os seus dados, alunos, comentários e faturamentos pendentes serão apagados permanentemente. Esta ação não pode ser desfeita.</p>
                         </div>
                         <div className="flex-shrink-0">
-                            <Button variant="destructive" className="bg-red-600 hover:bg-red-700 text-white h-14 px-8 rounded-2xl font-black uppercase tracking-[2px] text-[10px] shadow-lg shadow-red-600/20 transition-all w-full md:w-auto">
+                            <Button className="bg-black hover:bg-slate-900 text-white h-14 px-8 rounded-2xl font-black uppercase tracking-[2px] text-[10px] shadow-lg transition-all w-full md:w-auto">
                                 Excluir Minha Conta
                             </Button>
                         </div>
@@ -145,7 +145,8 @@ export default function TeacherSettingsPage() {
                 </section>
             </div>
 
-            <div className="flex justify-end pt-8 max-w-6xl mx-auto">
+            <div className="flex justify-between items-center pt-8 max-w-6xl mx-auto">
+                <div /> {/* Spacer para alinhar à direita se necessário, mas o usuário quer alinhar o de excluir com este */}
                 <Button className="bg-[#00C402] text-white font-black uppercase tracking-[3px] h-14 px-12 rounded-2xl hover:brightness-110 shadow-xl shadow-[#00C402]/20 transition-all gap-4 animate-in fade-in slide-in-from-bottom-4 text-[11px]">
                     <Save size={18} strokeWidth={3} />
                     Salvar Alterações

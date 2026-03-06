@@ -1,9 +1,12 @@
+"use client"
+
+import { use, useState, useEffect } from "react"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { BuyButton } from "@/components/BuyButton"
 import Navbar from "@/components/Navbar"
 import { db } from "@/lib/firebase";
-import { doc, getDoc, collection, query, where, getDocs, orderBy } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import {
     CheckCircle2,
     PlayCircle,
@@ -11,26 +14,66 @@ import {
     Star,
     Users,
     ShieldCheck,
-    ChevronDown,
     ArrowLeft,
+    Loader2
 } from "lucide-react"
 
-export default async function CourseDetailPage({ params }: { params: { slug: string } }) {
-    const { slug } = await params
-    // 1. Busca o curso por ID
-    const courseSnap = await getDoc(doc(db, 'courses', slug));
+export default function CourseDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+    const { slug } = use(params)
+    const [course, setCourse] = useState<any>(null)
+    const [lessons, setLessons] = useState<any[]>([])
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(false)
 
-    if (!courseSnap.exists()) return notFound();
-    const course = { id: courseSnap.id, ...courseSnap.data() as any };
+    useEffect(() => {
+        async function fetchData() {
+            setLoading(true)
+            try {
+                // 1. Busca o curso por ID
+                const courseSnap = await getDoc(doc(db, 'courses', slug));
 
-    const lessonsSnap = await getDocs(
-        query(
-            collection(db, 'lessons'),
-            where('course_id', '==', slug),
-            orderBy('position', 'asc')
+                if (!courseSnap.exists()) {
+                    setError(true)
+                    setLoading(false)
+                    return
+                }
+
+                const courseData = { id: courseSnap.id, ...courseSnap.data() as any };
+                setCourse(courseData)
+
+                // 2. Busca as aulas
+                const lessonsSnap = await getDocs(
+                    query(
+                        collection(db, 'lessons'),
+                        where('course_id', '==', slug)
+                    )
+                );
+
+                const lessonsData = lessonsSnap.docs
+                    .map(doc => ({ id: doc.id, ...doc.data() as any }))
+                    .sort((a, b) => (a.position || 0) - (b.position || 0));
+
+                setLessons(lessonsData)
+            } catch (err) {
+                console.error("Error fetching course details:", err)
+                setError(true)
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchData()
+    }, [slug])
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-white flex items-center justify-center">
+                <Loader2 className="animate-spin text-[#00C402]" size={48} />
+            </div>
         )
-    );
-    const lessons = lessonsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
+    }
+
+    if (error || !course) return notFound();
 
     const curriculum = [
         {
@@ -40,14 +83,14 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
     ]
 
     const totalLessons = lessons?.length || 0
-    const coursePrice = typeof course.price === 'number' ? course.price : parseFloat(course.price)
+    const coursePrice = typeof course.price === 'number' ? course.price : parseFloat(course.price || "0")
 
     return (
-        <div className="min-h-screen bg-[#F4F7F9] text-slate-800 font-exo">
-            <Navbar />
+        <div className="min-h-screen bg-white text-slate-800 font-exo">
+            {/* O Navbar agora é provido pelo (marketing)/layout.tsx */}
 
             {/* HERO & VIDEO SECTION */}
-            <section className="relative pt-32 pb-20 overflow-hidden">
+            <section className="relative pt-12 pb-20 overflow-hidden">
                 <div className="max-w-7xl mx-auto px-6 md:px-12 w-full grid lg:grid-cols-5 gap-16 items-start">
 
                     {/* Left: Video & Info */}
@@ -104,7 +147,7 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
 
                     {/* Right: Pricing & Benefits */}
                     <div className="lg:col-span-2 space-y-8 sticky top-32">
-                        <div className="bg-white border border-slate-100 rounded-[40px] p-10 space-y-8 shadow-2xl shadow-slate-200/50">
+                        <div className="bg-white border border-slate-100 rounded-[40px] p-10 space-y-8 shadow-sm">
                             <div className="space-y-2 text-center pb-6 border-b border-slate-50">
                                 <p className="text-[10px] text-slate-400 uppercase tracking-[4px] font-black">Investimento Único</p>
                                 <div className="flex items-baseline justify-center gap-1">
@@ -125,44 +168,13 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                                     <span>Garantia de 7 Dias SPCS Shield</span>
                                 </div>
                             </div>
-
-                            <div className="space-y-4 border-t border-slate-50 pt-8">
-                                {[
-                                    { icon: <Clock size={18} />, text: `${course.hours || 24} Horas de Conteúdo` },
-                                    { icon: <PlayCircle size={18} />, text: `${totalLessons} Aulas Práticas` },
-                                    { icon: <CheckCircle2 size={18} />, text: "Material Complementar" },
-                                    { icon: <Users size={18} />, text: "Comunidade Exclusiva" },
-                                ].map((item, i) => (
-                                    <div key={i} className="flex items-center gap-4 text-slate-600 font-bold text-xs uppercase tracking-wider">
-                                        <div className="text-[#00C402]">{item.icon}</div>
-                                        {item.text}
-                                    </div>
-                                ))}
-                            </div>
                         </div>
-
-                        {/* Social Proof Mini Card */}
-                        <div className="bg-slate-900 rounded-[32px] p-8 flex items-center gap-6 shadow-xl">
-                            <div className="flex -space-x-4">
-                                {[1, 2, 3].map(i => (
-                                    <div key={i} className="w-12 h-12 rounded-full border-4 border-slate-900 bg-slate-800 overflow-hidden">
-                                        <img src={`https://i.pravatar.cc/150?u=${i}`} className="w-full h-full object-cover" />
-                                    </div >
-                                ))}
-                            </div >
-                            <div>
-                                <p className="text-white text-xs font-black tracking-widest uppercase">+{course.students || 1240} ALUNOS</p>
-                                <div className="flex text-yellow-500 gap-0.5 mt-1">
-                                    {[1, 2, 3, 4, 5].map(i => <Star key={i} size={10} fill="currentColor" />)}
-                                </div>
-                            </div>
-                        </div >
-                    </div >
-                </div >
-            </section >
+                    </div>
+                </div>
+            </section>
 
             {/* CURRÍCULO SECTION */}
-            < section className="py-24 bg-white border-t border-slate-100" >
+            <section className="py-24 bg-white border-t border-slate-100">
                 <div className="max-w-4xl mx-auto px-6">
                     <div className="flex flex-col items-center text-center space-y-4 mb-16">
                         <div className="w-16 h-1 bg-[#00C402] rounded-full"></div>
@@ -209,10 +221,10 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                         ))}
                     </div>
                 </div>
-            </section >
+            </section>
 
             {/* WHAT YOU WILL LEARN GRID */}
-            < section className="py-24 px-6 md:px-12 max-w-7xl mx-auto space-y-16" >
+            <section className="py-24 px-6 md:px-12 max-w-7xl mx-auto space-y-16">
                 <div className="flex flex-col items-center text-center space-y-4">
                     <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter uppercase leading-none">
                         Tópicos <span className="text-[#00C402]">Abordados</span>
@@ -240,23 +252,23 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                         </div>
                     ))}
                 </div>
-            </section >
+            </section>
 
             {/* CTA FINAL */}
-            < section className="pb-32 px-6" >
-                <div className="max-w-4xl mx-auto text-center bg-slate-900 rounded-[40px] p-16 shadow-2xl space-y-8 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-[#00C402]/10 blur-[100px] -mr-32 -mt-32"></div>
-                    <h3 className="text-3xl md:text-6xl font-black text-white tracking-tighter uppercase leading-[0.9] relative z-10">
+            <section className="pb-32 px-6">
+                <div className="max-w-4xl mx-auto text-center bg-white border border-slate-100 rounded-[40px] p-16 shadow-sm space-y-8 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-[#00C402]/5 blur-[100px] -mr-32 -mt-32"></div>
+                    <h3 className="text-3xl md:text-6xl font-black text-slate-900 tracking-tighter uppercase leading-[0.9] relative z-10">
                         Comece sua <span className="text-[#00C402]">transformação</span> agora
                     </h3>
-                    <p className="text-slate-400 text-lg font-medium max-w-xl mx-auto relative z-10 font-exo">
+                    <p className="text-slate-500 text-lg font-medium max-w-xl mx-auto relative z-10 font-exo">
                         Invista no seu futuro profissional com acesso imediato à maior plataforma de treinamentos estratégicos.
                     </p>
                     <div className="flex justify-center relative z-10">
-                        <BuyButton course={course} size="large" label="Garanta sua vaga" className="bg-[#00C402] hover:brightness-110 text-white h-20 px-16 text-md tracking-[4px] uppercase font-black rounded-3xl" />
+                        <BuyButton course={course} label="Inscreva-se" className="bg-[#00C402] hover:brightness-110 text-white h-14 px-12 text-sm tracking-[2px] uppercase font-black rounded-2xl" />
                     </div>
                 </div>
-            </section >
-        </div >
+            </section>
+        </div>
     )
 }
