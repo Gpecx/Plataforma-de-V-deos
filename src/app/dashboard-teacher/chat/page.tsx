@@ -61,7 +61,7 @@ function ChatManagementContent() {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             if (!user) {
-                router.push('/login')
+                router.push('/')
                 return
             }
 

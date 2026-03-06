@@ -21,7 +21,7 @@ export default function SettingsPage() {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             if (!currentUser) {
-                router.push('/login')
+                router.push('/')
             } else {
                 setUser(currentUser)
                 setLoading(false)

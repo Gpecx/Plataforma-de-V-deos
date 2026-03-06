@@ -345,7 +345,7 @@ export default function CourseBuilder() {
     // 1. Carrega dados do Firebase
     useEffect(() => {
         if (!authLoading && !user) {
-            router.push('/login')
+            router.push('/')
             return
         }
 

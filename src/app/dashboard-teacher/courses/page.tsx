@@ -33,7 +33,7 @@ export default function TeacherCoursesPage() {
     // 1. Busca os cursos do banco
     useEffect(() => {
         if (!authLoading && !user) {
-            router.push('/login')
+            router.push('/')
             return
         }
 

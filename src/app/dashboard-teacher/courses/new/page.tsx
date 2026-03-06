@@ -93,7 +93,7 @@ export default function NewCoursePage() {
     // Proteção de Rota
     useEffect(() => {
         if (!authLoading && !user) {
-            router.push('/login')
+            router.push('/')
         } else if (!authLoading && user && role !== 'teacher' && role !== 'admin') {
             router.push('/dashboard-student')
         }

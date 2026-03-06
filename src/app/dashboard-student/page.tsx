@@ -22,7 +22,7 @@ export default function StudentDashboard() {
 
     useEffect(() => {
         if (!authLoading && !user) {
-            router.push('/login')
+            router.push('/')
             return
         }
 

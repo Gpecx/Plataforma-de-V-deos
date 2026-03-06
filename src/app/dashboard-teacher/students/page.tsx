@@ -19,7 +19,7 @@ export default function StudentsPage() {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
             if (!currentUser) {
-                router.push('/login')
+                router.push('/')
                 return
             }
             setUser(currentUser)
