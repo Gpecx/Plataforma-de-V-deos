@@ -116,6 +116,7 @@ export default function Navbar() {
                                         <DropdownMenuItem onSelect={() => router.push("/")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-slate-50 rounded-xl cursor-pointer hover:text-black">Início</DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => router.push("/course")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-slate-50 rounded-xl cursor-pointer hover:text-black">Cursos</DropdownMenuItem>
                                         <DropdownMenuItem onSelect={() => router.push("/dashboard-student")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-slate-50 rounded-xl cursor-pointer hover:text-black">Meu Progresso</DropdownMenuItem>
+                                        {isLoggedIn && <DropdownMenuItem onSelect={() => router.push("/dashboard-student/compras")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-slate-50 rounded-xl cursor-pointer hover:text-black">Minhas Compras</DropdownMenuItem>}
                                         {isLoggedIn && <DropdownMenuItem onSelect={() => router.push("/dashboard-student/chat")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-slate-50 rounded-xl cursor-pointer hover:text-black">Professores</DropdownMenuItem>}
                                     </>
                                 ) : (
@@ -302,9 +303,9 @@ export default function Navbar() {
                                                 <Award size={18} className="text-slate-400" />
                                                 <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Certificados</span>
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem onSelect={() => router.push("/dashboard-student")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors focus:bg-slate-50">
-                                                <History size={18} className="text-slate-400" />
-                                                <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Histórico Escolar</span>
+                                            <DropdownMenuItem onSelect={() => router.push("/dashboard-student/compras")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors focus:bg-slate-50">
+                                                <CreditCard size={18} className="text-slate-400" />
+                                                <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Minhas Compras</span>
                                             </DropdownMenuItem>
                                         </>
                                     )}

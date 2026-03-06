@@ -1,9 +1,14 @@
 "use client"
 
-import { X, Play, Info, CheckCircle2, Clock, Globe, ShieldCheck } from "lucide-react"
+import { X, Play, Info, CheckCircle2, Clock, Globe, ShieldCheck, ShoppingCart } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useCartStore } from "@/store/useCartStore"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/context/AuthProvider"
+import { auth, db } from "@/lib/firebase"
+import { collection, query, where, getDocs } from "firebase/firestore"
 
 interface CourseModalProps {
     course: any
@@ -13,12 +18,48 @@ interface CourseModalProps {
 
 export default function CourseModal({ course, isOpen, onClose }: CourseModalProps) {
     const [isMounted, setIsMounted] = useState(false)
+    const [isEnrolled, setIsEnrolled] = useState(false)
+    const { user } = useAuth()
+    const { addItem } = useCartStore()
+    const router = useRouter()
 
     useEffect(() => {
         setIsMounted(true)
-    }, [])
+
+        async function checkEnrollment() {
+            if (user && course?.id) {
+                try {
+                    const q = query(collection(db, 'enrollments'),
+                        where('user_id', '==', user.uid),
+                        where('course_id', '==', course.id)
+                    )
+                    const snap = await getDocs(q)
+                    setIsEnrolled(!snap.empty)
+                } catch (error) {
+                    console.error("Error checking enrollment:", error)
+                }
+            } else {
+                setIsEnrolled(false)
+            }
+        }
+
+        if (isOpen) {
+            checkEnrollment()
+        }
+    }, [user, course, isOpen])
 
     if (!isOpen || !course) return null
+
+    const handleEnroll = () => {
+        addItem({
+            id: course.id,
+            title: course.title,
+            price: Number(course.price),
+            image_url: course.image_url
+        })
+        onClose()
+        router.push('/cart')
+    }
 
     return (
         <div className="fixed inset-0 z-[100] overflow-y-auto flex justify-center items-start p-4 md:p-12 lg:p-20 py-12 md:py-24 animate-in fade-in duration-300 pointer-events-auto">
@@ -93,7 +134,7 @@ export default function CourseModal({ course, isOpen, onClose }: CourseModalProp
                         </div>
                     </div>
 
-                    <div className="bg-slate-50 p-6 rounded-2xl border border-slate-100 flex flex-col justify-between">
+                    <div className="bg-white p-6 rounded-2xl border border-slate-100 flex flex-col justify-between shadow-sm">
                         <div>
                             <span className="text-[10px] uppercase font-black text-slate-500 tracking-[3px] block mb-2">Investimento Total</span>
                             <div className="flex items-baseline gap-1">
@@ -107,9 +148,24 @@ export default function CourseModal({ course, isOpen, onClose }: CourseModalProp
                             </p>
                         </div>
 
-                        <Button className="w-full bg-[#00C402] text-white hover:brightness-105 font-black uppercase tracking-widest text-xs py-7 rounded-xl mt-8 shadow-md">
-                            Matricular Agora
-                        </Button>
+                        {isEnrolled ? (
+                            <Button
+                                onClick={() => {
+                                    onClose()
+                                    router.push(`/classroom/${course.id}`)
+                                }}
+                                className="w-full bg-slate-900 text-white hover:bg-slate-800 font-black uppercase tracking-widest text-xs py-7 rounded-xl mt-8 shadow-md"
+                            >
+                                Você já possui este treinamento
+                            </Button>
+                        ) : (
+                            <Button
+                                onClick={handleEnroll}
+                                className="w-full bg-[#00C402] text-white hover:brightness-105 font-black uppercase tracking-widest text-xs py-7 rounded-xl mt-8 shadow-md"
+                            >
+                                Matricular Agora
+                            </Button>
+                        )}
                     </div>
                 </div>
             </div>

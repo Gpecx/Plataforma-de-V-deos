@@ -71,7 +71,7 @@ function CoursesContent() {
     const dynamicCategories = Array.from(new Set(courses.map(c => c.category || "Lançamentos"))).sort();
 
     return (
-        <div className="min-h-screen bg-[#F4F7F9] text-slate-800 font-exo">
+        <div className="min-h-screen bg-white text-slate-800 font-exo">
 
             {/* Carrossel Hero - High Impact Design */}
             <section className="relative h-[65vh] w-full overflow-hidden">

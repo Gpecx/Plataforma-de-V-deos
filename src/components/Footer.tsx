@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 export default function Footer() {
     return (
-        <footer className="relative bg-[#F4F7F9] pt-20 pb-16 overflow-hidden border-t border-slate-100 font-exo">
+        <footer className="relative bg-white pt-20 pb-16 overflow-hidden border-t border-slate-100 font-exo">
             <div className="max-w-7xl mx-auto px-8 md:px-12 relative z-10 flex flex-col items-center space-y-8">
                 {/* Logo Principal (Aumentada) */}
                 <Link href="/" className="hover:scale-105 transition-transform duration-500">

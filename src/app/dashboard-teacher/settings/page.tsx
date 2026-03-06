@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Settings, DollarSign, Bell, Shield, Wallet, Save } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { PasswordForm } from '@/components/settings/PasswordForm'
 
 export default function TeacherSettingsPage() {
     const [pixKey, setPixKey] = useState('')
@@ -105,17 +106,8 @@ export default function TeacherSettingsPage() {
                         </div>
                     </div>
 
-                    <div className="flex flex-col md:flex-row gap-12 relative z-10">
-                        <div className="flex-grow space-y-6">
-                            <h3 className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 px-1">Redefinição de Credenciais</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <Input type="password" placeholder="Nova senha master" className="bg-slate-50 border-slate-100 h-14 rounded-2xl text-slate-900 focus:border-[#00C402] placeholder:text-slate-400 font-bold text-sm" />
-                                <Input type="password" placeholder="Confirmar nova senha" className="bg-slate-50 border-slate-100 h-14 rounded-2xl text-slate-900 focus:border-[#00C402] placeholder:text-slate-400 font-bold text-sm" />
-                            </div>
-                        </div>
-                        <div className="flex items-end">
-                            <Button variant="outline" className="border-slate-100 text-slate-400 hover:bg-slate-50 hover:text-slate-900 h-14 px-8 rounded-2xl font-black uppercase tracking-[2px] text-[10px] transition-all">Sincronizar Acesso</Button>
-                        </div>
+                    <div className="relative z-10">
+                        <PasswordForm />
                     </div>
                 </section>
 

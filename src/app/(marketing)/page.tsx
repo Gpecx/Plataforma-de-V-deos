@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, TrendingUp, Handshake, BarChart3, Volume2, VolumeX } from "lucide-react";
+import { useAuth } from "@/context/AuthProvider";
 
 const backgroundImages = [
     "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=2000",
@@ -23,6 +24,7 @@ export default function WelcomePage() {
     const [isMuted, setIsMuted] = useState(true);
     const [selectedCourse, setSelectedCourse] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const { user, loading: authLoading } = useAuth();
     const videoRef = useRef<HTMLVideoElement>(null);
     useEffect(() => {
         async function fetchTopCourses() {
@@ -68,19 +70,21 @@ export default function WelcomePage() {
                         Conectamos tecnologia e crescimento profissional em uma experiência de aprendizado moderna e imediata.
                     </p>
 
-                    <div className="flex flex-col sm:flex-row gap-4 pt-2">
-                        <Link href="/login">
-                            <Button size="lg" className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-6 text-sm group font-bold uppercase tracking-widest rounded-xl transition-all shadow-md">
-                                Conecte-se
-                                <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
-                            </Button>
-                        </Link>
-                        <Link href="/register">
-                            <Button size="lg" variant="outline" className="border-slate-200 hover:bg-slate-50 text-slate-700 px-8 py-6 text-sm font-bold uppercase tracking-widest rounded-xl transition-all shadow-sm">
-                                Inscrever-se
-                            </Button>
-                        </Link>
-                    </div>
+                    {!authLoading && !user && (
+                        <div className="flex flex-col sm:flex-row gap-4 pt-2">
+                            <Link href="/login">
+                                <Button size="lg" className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-6 text-sm group font-bold uppercase tracking-widest rounded-xl transition-all shadow-md">
+                                    Conecte-se
+                                    <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+                                </Button>
+                            </Link>
+                            <Link href="/register">
+                                <Button size="lg" variant="outline" className="border-slate-200 hover:bg-slate-50 text-slate-700 px-8 py-6 text-sm font-bold uppercase tracking-widest rounded-xl transition-all shadow-sm">
+                                    Inscrever-se
+                                </Button>
+                            </Link>
+                        </div>
+                    )}
                 </div>
 
                 <div className="relative group">
@@ -179,11 +183,13 @@ export default function WelcomePage() {
                                 <p className="!text-white text-lg font-bold leading-relaxed max-w-lg">
                                     Trilhas de conhecimento desenhadas por profissionais que lideram grandes projetos de engenharia e tecnologia.
                                 </p>
-                                <Link href="/register">
-                                    <Button size="lg" className="bg-[#00C402] hover:bg-[#00b302] text-white px-8 py-6 text-sm font-black uppercase tracking-widest rounded-xl transition-all shadow-lg mt-4">
-                                        Começar agora
-                                    </Button>
-                                </Link>
+                                {!authLoading && !user && (
+                                    <Link href="/register">
+                                        <Button size="lg" className="bg-[#00C402] hover:bg-[#00b302] text-white px-8 py-6 text-sm font-black uppercase tracking-widest rounded-xl transition-all shadow-lg mt-4">
+                                            Começar agora
+                                        </Button>
+                                    </Link>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -229,11 +235,13 @@ export default function WelcomePage() {
                             <p className="!text-white text-xl font-bold leading-relaxed max-w-2xl mx-auto">
                                 Junte-se a milhares de alunos que já alcançaram cargos de destaque nas maiores empresas do Brasil.
                             </p>
-                            <Link href="/login">
-                                <Button size="lg" variant="outline" className="border-white/20 hover:bg-white/10 text-white px-10 py-8 text-base font-black uppercase tracking-[3px] rounded-2xl transition-all shadow-2xl backdrop-blur-xl">
-                                    Conecte-se à Comunidade
-                                </Button>
-                            </Link>
+                            {!authLoading && !user && (
+                                <Link href="/login">
+                                    <Button size="lg" variant="outline" className="border-white/20 hover:bg-white/10 text-white px-10 py-8 text-base font-black uppercase tracking-[3px] rounded-2xl transition-all shadow-2xl backdrop-blur-xl">
+                                        Conecte-se à Comunidade
+                                    </Button>
+                                </Link>
+                            )}
                         </div>
                     </div>
                 </div>

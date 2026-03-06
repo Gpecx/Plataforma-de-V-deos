@@ -21,7 +21,7 @@ export default function CartPage() {
     const subtotal = getTotal()
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-exo border-t border-slate-100">
+        <div className="min-h-screen bg-white text-slate-900 font-exo border-t border-slate-100">
             <div className="max-w-6xl mx-auto p-8 md:p-12">
                 <div className="mb-12 flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div className="flex items-center gap-5">
