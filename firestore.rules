@@ -41,5 +41,22 @@ service cloud.firestore {
         resource.data.user_id == request.auth.uid || isTeacherOrAdmin()
       );
     }
+
+    // Sales: Aluno lê as suas, teacher/admin lê todas as de seus cursos
+    match /sales/{saleId} {
+      allow read: if isSignedIn() && (
+        resource.data.studentId == request.auth.uid || isTeacherOrAdmin()
+      );
+      allow create: if isSignedIn() && request.resource.data.studentId == request.auth.uid;
+      allow update, delete: if false; // Vendas são registros permanentes
+    }
+
+    // Notifications: Apenas leitura e atualização do campo 'read' pelo professor dono
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn() && resource.data.teacherId == request.auth.uid;
+      allow update: if isSignedIn() && resource.data.teacherId == request.auth.uid 
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+      allow create, delete: if false; // Bloqueado no Client, permitido apenas via Cloud Functions/Admin
+    }
   }
 }

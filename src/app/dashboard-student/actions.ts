@@ -1,17 +1,39 @@
 import { auth, db } from '@/lib/firebase'
 import { signOut as firebaseSignOut, updatePassword as firebaseUpdatePassword } from 'firebase/auth'
-import { collection, addDoc, doc, updateDoc, setDoc } from 'firebase/firestore'
+import { collection, addDoc, doc, updateDoc, setDoc, getDoc } from 'firebase/firestore'
+import { useCartStore } from '@/store/useCartStore'
 
-export async function buyCourse(courseId: string) {
+export async function buyCourse(courseId: string, userId: string) {
     const user = auth.currentUser
-    if (!user) throw new Error('Não autorizado')
+
+    console.log(`[buyCourse] Iniciando compra. Auth UID: ${user?.uid}, Form UID: ${userId}`)
+
+    if (!user || user.uid !== userId) {
+        throw new Error('Inconsistência de sessão: Usuário não autorizado ou IDs não coincidem.')
+    }
 
     try {
+        const courseSnap = await getDoc(doc(db, 'courses', courseId))
+        const courseData = courseSnap.data()
+
         await addDoc(collection(db, 'enrollments'), {
             user_id: user.uid,
             course_id: courseId,
             created_at: new Date().toISOString()
         })
+
+        if (courseData) {
+            await addDoc(collection(db, 'sales'), {
+                teacherId: courseData.teacher_id,
+                courseId: courseId,
+                courseName: courseData.title,
+                studentId: user.uid,
+                amount: courseData.price || 0,
+                status: 'confirmed',
+                createdAt: new Date().toISOString()
+            })
+        }
+
         return { success: true }
     } catch (error: any) {
         console.error('Erro na compra:', error.message)
@@ -22,19 +44,38 @@ export async function buyCourse(courseId: string) {
 /**
  * Action para processar o checkout de múltiplos cursos de uma vez
  */
-export async function processCheckoutAction(courseIds: string[]) {
+export async function processCheckoutAction(courseIds: string[], userId: string) {
     const user = auth.currentUser
-    if (!user) return { success: false, error: 'Não autorizado' }
+
+    console.log(`[processCheckoutAction] Iniciando checkout. Auth UID: ${user?.uid}, Form UID: ${userId}`)
+
+    if (!user || user.uid !== userId) {
+        return { success: false, error: 'Inconsistência de sessão: Por favor, faça login novamente.' }
+    }
 
     try {
-        const promises = courseIds.map(id =>
-            addDoc(collection(db, 'enrollments'), {
+        for (const id of courseIds) {
+            const courseSnap = await getDoc(doc(db, 'courses', id))
+            const courseData = courseSnap.data()
+
+            await addDoc(collection(db, 'enrollments'), {
                 user_id: user.uid,
                 course_id: id,
                 created_at: new Date().toISOString()
             })
-        )
-        await Promise.all(promises)
+
+            if (courseData) {
+                await addDoc(collection(db, 'sales'), {
+                    teacherId: courseData.teacher_id,
+                    courseId: id,
+                    courseName: courseData.title,
+                    studentId: user.uid,
+                    amount: courseData.price || 0,
+                    status: 'confirmed',
+                    createdAt: new Date().toISOString()
+                })
+            }
+        }
         return { success: true }
     } catch (error: any) {
         console.error('Erro no checkout:', error.message)
@@ -82,6 +123,7 @@ export async function updatePassword(formData: FormData) {
 export async function signOut() {
     try {
         await firebaseSignOut(auth)
+        useCartStore.getState().clearCart() // Limpa o carrinho ao sair
         window.location.href = '/'
     } catch (error) {
         console.error('Erro ao sair:', error)

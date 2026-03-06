@@ -23,9 +23,21 @@ const heroSlides = [
         tag: "LANÇAMENTO"
     },
     {
+        title: "FUTURE OF AI",
+        subtitle: "Domine a integração de Inteligência Artificial.",
+        image: "https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=1600",
+        tag: "INOVAÇÃO"
+    },
+    {
+        title: "CRIATIVIDADE & PERFORMANCE",
+        subtitle: "Eleve seu mindset e alcance a alta performance.",
+        image: "https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80&w=1600",
+        tag: "INSPIRAÇÃO"
+    },
+    {
         title: "TECH INSIGHTS",
         subtitle: "Inovação e performance para o setor de energia.",
-        image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800",
+        image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=1600",
         tag: "ENGENHARIA"
     }
 ];
@@ -38,6 +50,15 @@ function CoursesContent() {
     const [loading, setLoading] = useState(true);
     const [selectedCourse, setSelectedCourse] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    // Auto-advance slides
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+        }, 5000);
+        return () => clearInterval(timer);
+    }, []);
+
     useEffect(() => {
         async function fetchCourses() {
             setLoading(true);
@@ -93,7 +114,7 @@ function CoursesContent() {
                                 {slide.title}
                             </h1>
 
-                            <p className="text-xl text-slate-200/90 max-w-xl font-medium leading-relaxed animate-in slide-in-from-left-12 duration-1000">
+                            <p className="text-xl text-white max-w-xl font-medium leading-relaxed animate-in slide-in-from-left-12 duration-1000">
                                 {slide.subtitle}
                             </p>
 
@@ -108,6 +129,8 @@ function CoursesContent() {
                         </div>
                     </div>
                 ))}
+
+
             </section>
 
             {/* Título de Destaque */}

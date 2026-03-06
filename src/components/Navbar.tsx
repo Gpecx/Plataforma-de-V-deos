@@ -13,7 +13,6 @@ import {
     Settings,
     ShoppingCart,
     LogOut,
-    GraduationCap,
     X,
     Award,
     CreditCard,
@@ -48,7 +47,7 @@ export default function Navbar() {
     const router = useRouter()
     const [userProfile, setUserProfile] = useState<{ full_name: string | null, role: string | null, created_at: string | null, avatar_url?: string } | null>(null)
     const [isLoggedIn, setIsLoggedIn] = useState(false)
-    const { items } = useCartStore()
+    const { items, clearCart } = useCartStore()
     const [mounted, setMounted] = useState(false)
     const [isSearchOpen, setIsSearchOpen] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
@@ -78,6 +77,7 @@ export default function Navbar() {
     const handleSignOut = async () => {
         try {
             await firebaseSignOut(auth);
+            clearCart(); // Limpa o carrinho ao sair
             router.push('/');
         } catch (error) {
             console.error("Error signing out:", error);
@@ -88,9 +88,11 @@ export default function Navbar() {
         return formatDateBR(dateValue)
     }
 
+    const isTeacherRole = userProfile?.role === 'teacher' || userProfile?.role === 'admin'
     const isTeacherMode = pathname.startsWith('/dashboard-teacher') ||
         pathname.startsWith('/instructor') ||
-        pathname.startsWith('/painel-professor')
+        pathname.startsWith('/painel-professor') ||
+        (isTeacherRole && (pathname === '/' || pathname === '/contact'))
 
     return (
         <header className="sticky top-0 left-0 right-0 z-[100] w-full bg-white border-b border-[#E5E7EB] transition-all duration-300 pointer-events-auto" style={{ height: '64px' }}>
@@ -162,22 +164,7 @@ export default function Navbar() {
                 <div className="flex items-center gap-3 sm:gap-6 justify-end">
 
                     {/* View Switcher Mobile Hidden */}
-                    {isTeacherMode ? (
-                        <Link
-                            href="/"
-                            className="hidden md:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-900 border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-all outline-none"
-                        >
-                            <GraduationCap size={14} />
-                            ALUNO
-                        </Link>
-                    ) : userProfile?.role === 'teacher' && (
-                        <Link
-                            href="/dashboard-teacher"
-                            className="hidden md:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-900 border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-all outline-none"
-                        >
-                            PROFESSOR
-                        </Link>
-                    )}
+
 
                     {/* Search Component */}
                     <div className="flex items-center gap-2 relative">
@@ -319,7 +306,7 @@ export default function Navbar() {
                                                 <HelpCircle size={20} className="mb-2 text-slate-400" />
                                                 <span className="text-[9px] font-bold uppercase tracking-widest">FAQ</span>
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem onSelect={() => router.push("/dashboard-student/chat")} className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-[#00C402] transition-colors cursor-pointer focus:bg-slate-100">
+                                            <DropdownMenuItem onSelect={() => router.push(isTeacherMode || userProfile?.role === 'teacher' || userProfile?.role === 'admin' ? "/dashboard-teacher/chat" : "/dashboard-student/chat")} className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-[#00C402] transition-colors cursor-pointer focus:bg-slate-100">
                                                 <MessageSquare size={20} className="mb-2" />
                                                 <span className="text-[9px] font-bold uppercase tracking-widest text-slate-600">Chat</span>
                                             </DropdownMenuItem>

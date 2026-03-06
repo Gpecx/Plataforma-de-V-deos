@@ -19,6 +19,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { processCheckoutAction } from '@/app/dashboard-student/actions'
+import { useAuth } from '@/context/AuthProvider'
 
 type PaymentMethod = 'card' | 'pix' | 'boleto'
 
@@ -32,6 +33,8 @@ export default function CheckoutPage() {
 
     useEffect(() => {
         setMounted(true)
+        setIsFinished(false)
+        setIsProcessing(false)
         if (mounted && items.length === 0 && !isFinished) {
             router.push('/dashboard-student')
         }
@@ -39,17 +42,24 @@ export default function CheckoutPage() {
 
     if (!mounted) return null
 
+    const { user } = useAuth()
     const total = getTotal()
 
     const handlePayment = async () => {
+        if (!user) {
+            alert("Sessão expirada. Por favor, faça login novamente.")
+            router.push('/login?next=/checkout')
+            return
+        }
+
         setIsProcessing(true)
 
         try {
             // 1. Pega os IDs dos cursos no carrinho
             const courseIds = items.map(item => item.id)
 
-            // 2. Chama a action para gravar no banco
-            const result = await processCheckoutAction(courseIds)
+            // 2. Chama a action para gravar no banco, passando o UID atual da sessão
+            const result = await processCheckoutAction(courseIds, user.uid)
 
             if (result.success) {
                 // 3. Feedback e Limpeza

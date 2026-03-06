@@ -12,7 +12,6 @@ import {
     User,
     Settings,
     LogOut,
-    GraduationCap,
     X,
     HelpCircle,
     MessageSquare,
@@ -120,14 +119,7 @@ export default function NavbarTeacher() {
                 {/* Right Side Actions */}
                 <div className="flex items-center gap-3 sm:gap-6 justify-end">
 
-                    {/* View Switcher Mobile Hidden */}
-                    <Link
-                        href="/"
-                        className="hidden md:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-900 border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-all outline-none"
-                    >
-                        <GraduationCap size={14} />
-                        VISÃO ALUNO
-                    </Link>
+
 
                     {/* Search Component */}
                     <div className="flex items-center gap-2 relative">

@@ -54,7 +54,7 @@ export function BuyButton({ course, size = "default", label = "Comprar Agora", c
     }
 
     const baseClass =
-        "flex items-center justify-center gap-3 font-black uppercase italic tracking-widest rounded-2xl transition-all shadow-[0_0_30px_rgba(0,196,2,0.3)] bg-[#00C402] text-black hover:bg-white hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed group"
+        "flex items-center justify-center gap-3 font-black uppercase italic tracking-widest rounded-2xl transition-all shadow-[0_0_30px_rgba(0,196,2,0.3)] bg-[#00C402] text-white hover:brightness-110 hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed group"
 
     const sizeClass =
         size === "large"
@@ -68,7 +68,7 @@ export function BuyButton({ course, size = "default", label = "Comprar Agora", c
             className={`${baseClass} ${sizeClass} ${className}`}
         >
             {loading ? (
-                <Loader2 size={22} className="animate-spin text-black" />
+                <Loader2 size={22} className="animate-spin text-white" />
             ) : (
                 <ShoppingCart size={22} className="group-hover:text-[#00C402] transition-colors" />
             )}

@@ -15,14 +15,16 @@ export function SalesChart({ data }: { data: SalesData[] }) {
                     <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
                     <XAxis
                         dataKey="name"
-                        stroke="#94a3b8"
+                        stroke="#0f172a"
                         fontSize={12}
+                        fontWeight={600}
                         tickLine={false}
                         axisLine={false}
                     />
                     <YAxis
-                        stroke="#94a3b8"
+                        stroke="#0f172a"
                         fontSize={12}
+                        fontWeight={600}
                         tickLine={false}
                         axisLine={false}
                         tickFormatter={(value) => `R$${value}`}
