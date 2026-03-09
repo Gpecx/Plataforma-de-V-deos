@@ -21,12 +21,12 @@ export default async function TeacherLayout({
     }
 
     return (
-        <div className="min-h-screen bg-[#F4F7F9] text-slate-800">
+        <div className="min-h-screen bg-[#F4F7F9] text-slate-800 flex flex-col">
             <ScrollToTop />
             <Navbar />
 
             {/* Main Content Area */}
-            <main>
+            <main className="flex-1">
                 {children}
             </main>
 

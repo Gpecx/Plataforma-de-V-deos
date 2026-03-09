@@ -132,10 +132,10 @@ export default function Navbar({ transparent }: NavbarProps) {
         <>
             <header
                 className={`sticky top-0 z-50 w-full transition-all duration-300 antialiased ${transparent && !isScrolled && !isMobileMenuOpen
-                        ? 'bg-transparent border-none shadow-none'
-                        : isScrolled || isMobileMenuOpen
-                            ? 'bg-white/95 backdrop-blur-md shadow-md border-b border-slate-100'
-                            : 'bg-white shadow-sm border-b border-slate-100'
+                    ? 'bg-transparent border-none shadow-none'
+                    : isScrolled || isMobileMenuOpen
+                        ? 'bg-white/95 backdrop-blur-md shadow-md border-b border-slate-100'
+                        : 'bg-white shadow-sm border-b border-slate-100'
                     }`}
             >
                 <nav className="flex items-center justify-between px-4 md:px-8 lg:px-12 py-4 text-slate-800 font-exo">
@@ -255,7 +255,7 @@ export default function Navbar({ transparent }: NavbarProps) {
                                         <User size={20} />
                                     </div>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent className="bg-white text-slate-900 w-64 shadow-2xl rounded-[24px] overflow-hidden p-3 z-[120] border-none mt-2" align="end" alignOffset={-30} sideOffset={10}>
+                                <DropdownMenuContent className="bg-white text-slate-900 w-[calc(100vw-2rem)] sm:w-64 max-h-[85vh] overflow-y-auto shadow-2xl rounded-[24px] p-3 z-[120] border-none mt-2" align="end" alignOffset={-30} sideOffset={10}>
                                     <div className="px-5 py-6 bg-slate-50/50 mb-2 rounded-[18px]">
                                         <p className="font-black uppercase tracking-tighter text-sm text-slate-800 line-clamp-1">
                                             {isTeacherMode || userProfile?.role === 'teacher' || userProfile?.role === 'admin' ? 'PROFESSOR SPCS' : 'ESTUDANTE SPCS'}
@@ -358,7 +358,7 @@ export default function Navbar({ transparent }: NavbarProps) {
 
                 {/* Mobile Menu Dropdown */}
                 {isMobileMenuOpen && (
-                    <div className="md:hidden bg-white border-t border-slate-100 px-4 py-4 space-y-1 animate-in slide-in-from-top-2 duration-200">
+                    <div className="md:hidden bg-white border-t border-slate-100 px-4 py-4 space-y-1 animate-in slide-in-from-top-2 duration-200 shadow-lg max-h-[calc(100vh-70px)] overflow-y-auto">
                         {navLinks.map(link => (
                             <Link
                                 key={link.href}
