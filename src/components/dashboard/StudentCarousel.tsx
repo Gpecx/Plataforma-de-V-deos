@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
+import { BannerItem } from '@/app/admin/settings/actions'
 
 const CAROUSEL_ITEMS = [
     {
@@ -27,17 +28,19 @@ const CAROUSEL_ITEMS = [
     }
 ]
 
-export function StudentCarousel({ heroBanners }: { heroBanners?: string[] }) {
+export function StudentCarousel({ heroBanners }: { heroBanners?: BannerItem[] }) {
     const [currentIndex, setCurrentIndex] = useState(0)
 
     const displayItems = heroBanners && heroBanners.length > 0
-        ? heroBanners.map((url, idx) => ({
-            id: idx + 1,
-            image: url,
-            title: CAROUSEL_ITEMS[idx % CAROUSEL_ITEMS.length].title,
-            text: CAROUSEL_ITEMS[idx % CAROUSEL_ITEMS.length].text,
-            accent: CAROUSEL_ITEMS[idx % CAROUSEL_ITEMS.length].accent
-        }))
+        ? [...heroBanners]
+            .sort((a, b) => a.order - b.order)
+            .map((banner, idx) => ({
+                id: idx + 1,
+                image: banner.url,
+                title: CAROUSEL_ITEMS[idx % CAROUSEL_ITEMS.length].title,
+                text: CAROUSEL_ITEMS[idx % CAROUSEL_ITEMS.length].text,
+                accent: CAROUSEL_ITEMS[idx % CAROUSEL_ITEMS.length].accent
+            }))
         : CAROUSEL_ITEMS
 
     const next = useCallback(() => {

@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { getSettings, saveSettings, GlobalSettings, BannersData } from './actions'
+import { getSettings, saveSettings, GlobalSettings, BannersData, BannerItem } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Image as ImageIcon, Settings, Palette, Globe, UploadCloud, Loader2 } from 'lucide-react'
+import { Image as ImageIcon, Settings, Palette, Globe, UploadCloud, Loader2, ArrowUp, ArrowDown } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
 import { uploadCourseImage } from '@/lib/storage-helpers'
 
@@ -43,14 +43,37 @@ export default function AdminSettingsPage() {
     const setBranding = (key: keyof GlobalSettings['branding'], value: string) =>
         setSettings(s => ({ ...s, branding: { ...s.branding, [key]: value } }))
 
-    const addBanner = (id: keyof BannersData) => setBanners({ ...settings.banners, [id]: [...settings.banners[id], ''] })
+    const addBanner = (id: keyof BannersData) => {
+        const newList = [...settings.banners[id], { url: '', order: settings.banners[id].length + 1 }]
+        setBanners({ ...settings.banners, [id]: newList })
+    }
+
     const removeBanner = (id: keyof BannersData, index: number) => {
         const list = [...settings.banners[id]]; list.splice(index, 1)
+        // Adjust orders
+        const adjusted = list.map((item, i) => ({ ...item, order: i + 1 }))
+        setBanners({ ...settings.banners, [id]: adjusted })
+    }
+
+    const updateBanner = (id: keyof BannersData, index: number, field: keyof BannerItem, value: any) => {
+        const list = [...settings.banners[id]]
+        list[index] = { ...list[index], [field]: field === 'order' ? Number(value) : value }
         setBanners({ ...settings.banners, [id]: list })
     }
-    const updateBanner = (id: keyof BannersData, index: number, value: string) => {
-        const list = [...settings.banners[id]]; list[index] = value
-        setBanners({ ...settings.banners, [id]: list })
+
+    const moveBanner = (id: keyof BannersData, index: number, direction: 'up' | 'down') => {
+        const list = [...settings.banners[id]]
+        const targetIndex = direction === 'up' ? index - 1 : index + 1
+        if (targetIndex < 0 || targetIndex >= list.length) return
+
+        // Swap
+        const temp = list[index]
+        list[index] = list[targetIndex]
+        list[targetIndex] = temp
+
+        // Re-calculate orders based on new positions
+        const adjusted = list.map((item, i) => ({ ...item, order: i + 1 }))
+        setBanners({ ...settings.banners, [id]: adjusted })
     }
 
     const onDropLogo = async (acceptedFiles: File[]) => {
@@ -78,7 +101,7 @@ export default function AdminSettingsPage() {
         </div>
     )
 
-    const BannerField = ({ id, label, description, items }: { id: keyof BannersData; label: string; description: string; items: string[] }) => (
+    const BannerField = ({ id, label, description, items }: { id: keyof BannersData; label: string; description: string; items: BannerItem[] }) => (
         <Card className="mb-6 rounded-2xl border border-slate-100 shadow-sm bg-white">
             <CardHeader className="bg-slate-50 border-b border-slate-100 flex flex-row items-center justify-between py-4 rounded-t-2xl">
                 <div>
@@ -95,18 +118,47 @@ export default function AdminSettingsPage() {
                         <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Nenhum banner adicionado</p>
                     </div>
                 )}
-                {items.map((url, index) => (
+                {items.sort((a, b) => a.order - b.order).map((item, index) => (
                     <div key={index} className="space-y-3 p-4 border border-slate-100 rounded-xl bg-slate-50/50">
                         <div className="flex gap-3 items-start">
+                            <div className="flex flex-col gap-1">
+                                <Label className="text-[9px] font-black uppercase tracking-widest text-slate-500">Ordem</Label>
+                                <Input
+                                    type="number"
+                                    value={item.order}
+                                    onChange={(e) => updateBanner(id, index, 'order', e.target.value)}
+                                    className="w-16 bg-white border-slate-200 rounded-xl h-9 text-xs font-bold text-center"
+                                />
+                                <div className="flex gap-1 mt-1">
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() => moveBanner(id, index, 'up')}
+                                        disabled={index === 0}
+                                        className="h-7 w-7 rounded-lg border-slate-100 text-slate-400"
+                                    >
+                                        <ArrowUp size={12} />
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() => moveBanner(id, index, 'down')}
+                                        disabled={index === items.length - 1}
+                                        className="h-7 w-7 rounded-lg border-slate-100 text-slate-400"
+                                    >
+                                        <ArrowDown size={12} />
+                                    </Button>
+                                </div>
+                            </div>
                             <div className="flex-1 space-y-1">
-                                <Label className="text-[9px] font-black uppercase tracking-widest text-slate-500">Banner #{index + 1}</Label>
-                                <Input value={url} onChange={(e) => updateBanner(id, index, e.target.value)} placeholder="https://..." className="bg-white border-slate-200 rounded-xl h-9 text-xs" />
+                                <Label className="text-[9px] font-black uppercase tracking-widest text-slate-500">URL da Imagem</Label>
+                                <Input value={item.url} onChange={(e) => updateBanner(id, index, 'url', e.target.value)} placeholder="https://..." className="bg-white border-slate-200 rounded-xl h-9 text-xs" />
                             </div>
                             <Button variant="outline" onClick={() => removeBanner(id, index)} className="mt-5 border-red-100 text-red-400 hover:bg-red-50 h-9 px-3 rounded-xl text-xs">✕</Button>
                         </div>
-                        {url && (
-                            <div className="rounded-xl overflow-hidden bg-slate-100 aspect-video max-w-xs">
-                                <img src={url} alt={label} className="object-cover w-full h-full" />
+                        {item.url && (
+                            <div className="rounded-xl overflow-hidden bg-slate-100 aspect-video max-w-xs transition-all hover:shadow-md">
+                                <img src={item.url} alt={label} className="object-cover w-full h-full" />
                             </div>
                         )}
                     </div>

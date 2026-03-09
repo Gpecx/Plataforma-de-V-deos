@@ -172,113 +172,82 @@ export default function WelcomePage() {
                 </div>
             </section>
 
-            {/* SEÇÃO DE BANNERS IMERSIVOS (Clean & Professional) */}
+            {/* SEÇÃO DE BANNERS DINÂMICOS */}
             <section className="relative z-10">
-                {/* BANNER 1: OFFICE / EXPERIENCE (NOW A CAROUSEL) */}
-                <div className="relative h-[600px] w-full overflow-hidden group">
-                    {banners?.hero_home && banners.hero_home.length > 0 ? (
-                        <div className="h-full w-full relative">
-                            {banners.hero_home.map((url, idx) => (
-                                <img
-                                    key={idx}
-                                    src={url}
-                                    alt={`Experience ${idx + 1}`}
-                                    className={`absolute inset-0 object-cover w-full h-full transition-opacity duration-1000 ${
-                                        // Simple interval logic for home carousel
-                                        (Math.floor(Date.now() / 5000) % banners.hero_home.length) === idx ? 'opacity-100 shadow-xl' : 'opacity-0'
-                                        } brightness-50`}
-                                />
-                            ))}
-                        </div>
-                    ) : (
+                {banners?.hero_home && banners.hero_home.length > 0 ? (
+                    banners.hero_home
+                        .sort((a, b) => a.order - b.order)
+                        .map((banner, idx) => {
+                            const isOdd = idx % 2 !== 0; // Layout Direita
+                            const isCenter = idx >= 2;   // Layout Centralizado para extras
+
+                            return (
+                                <div key={idx} className="relative h-[600px] w-full overflow-hidden group border-b border-slate-100 last:border-0">
+                                    <img
+                                        src={banner.url}
+                                        alt={`Banner ${idx + 1}`}
+                                        className="object-cover w-full h-full group-hover:scale-105 transition duration-[2s] brightness-50"
+                                    />
+
+                                    <div className={`absolute inset-0 flex items-center ${isCenter ? 'justify-center text-center' :
+                                            isOdd ? 'justify-end text-right' : 'justify-start text-left'
+                                        }`}>
+                                        <div className="max-w-7xl mx-auto px-6 w-full flex flex-col items-center sm:block">
+                                            <div className={`max-w-2xl space-y-6 animate-in fade-in duration-1000 ${isCenter ? 'mx-auto' :
+                                                    isOdd ? 'ml-auto slide-in-from-right' : 'mr-auto slide-in-from-left'
+                                                }`}>
+                                                <span className="text-[10px] font-black uppercase tracking-[4px] !text-white bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 inline-block">
+                                                    {idx === 0 ? 'Experiência' : idx === 1 ? 'Metodologia' : 'Inovação'}
+                                                </span>
+                                                <h2 className="text-4xl md:text-6xl font-black !text-white tracking-tighter leading-tight uppercase">
+                                                    {idx === 0 ? (
+                                                        <>APRENDA COM <br /> <span className="!text-white">ESPECIALISTAS</span></>
+                                                    ) : idx === 1 ? (
+                                                        <>LABORATÓRIOS DA <br /> <span className="!text-white">VIDA REAL</span></>
+                                                    ) : (
+                                                        <>TRANSFORME SUA <br /> <span className="!text-white">CARREIRA</span> AGORA</>
+                                                    )}
+                                                </h2>
+                                                <p className={`!text-white text-lg font-bold leading-relaxed max-w-lg ${isCenter || isOdd ? 'mx-auto' : ''}`}>
+                                                    {idx === 0
+                                                        ? 'Trilhas de conhecimento desenhadas por profissionais que lideram grandes projetos.'
+                                                        : idx === 1
+                                                            ? 'Nossa metodologia foca na resolução de desafios reais com ferramentas de ponta.'
+                                                            : 'Junte-se a milhares de alunos que já alcançaram cargos de destaque.'
+                                                    }
+                                                </p>
+                                                <Link href="/register">
+                                                    <Button size="lg" className="bg-[#00C402] hover:bg-[#00b302] text-white px-8 py-6 text-sm font-black uppercase tracking-widest rounded-xl transition-all shadow-lg mt-4">
+                                                        {idx >= 2 ? 'Explorar Cursos' : 'Começar agora'}
+                                                    </Button>
+                                                </Link>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })
+                ) : (
+                    /* Fallback Fallback elegant */
+                    <div className="relative h-[600px] w-full overflow-hidden group">
                         <img
                             src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1976&auto=format&fit=crop"
-                            alt="Professional Engineering"
-                            className="object-cover w-full h-full group-hover:scale-105 transition duration-[2s] brightness-50"
+                            alt="Standard Banner"
+                            className="object-cover w-full h-full brightness-50"
                         />
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-r from-slate-900/95 via-slate-900/70 to-transparent flex items-center">
-                        <div className="max-w-7xl mx-auto px-6 w-full">
-                            <div className="max-w-2xl space-y-6 animate-in fade-in slide-in-from-left duration-1000">
-                                <span className="text-[10px] font-black uppercase tracking-[4px] !text-white bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">Experiência</span>
-                                <h2 className="text-4xl md:text-6xl font-black !text-white tracking-tighter leading-tight">
-                                    APRENDA COM <br />
-                                    <span className="!text-white">ESPECIALISTAS</span> DO MERCADO
-                                </h2>
-                                <p className="!text-white text-lg font-bold leading-relaxed max-w-lg">
-                                    Trilhas de conhecimento desenhadas por profissionais que lideram grandes projetos de engenharia e tecnologia.
-                                </p>
-                                <Link href="/register">
-                                    <Button size="lg" className="bg-[#00C402] hover:bg-[#00b302] text-white px-8 py-6 text-sm font-black uppercase tracking-widest rounded-xl transition-all shadow-lg mt-4">
-                                        Começar agora
-                                    </Button>
-                                </Link>
+                        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 flex items-center">
+                            <div className="max-w-7xl mx-auto px-6 w-full">
+                                <div className="max-w-xl space-y-6">
+                                    <h2 className="text-5xl font-black text-white tracking-tighter uppercase">Potencialize seu Futuro</h2>
+                                    <p className="text-white/80 text-lg font-bold">Inicie sua jornada na SPCS Academy e domine o mercado.</p>
+                                    <Link href="/register">
+                                        <Button className="bg-[#00C402] text-white px-8 py-6 uppercase font-black">Registrar Conta</Button>
+                                    </Link>
+                                </div>
                             </div>
                         </div>
                     </div>
-
-                    {/* Simple dots for home carousel if more than 1 */}
-                    {banners?.hero_home && banners.hero_home.length > 1 && (
-                        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-                            {banners.hero_home.map((_, i) => (
-                                <div
-                                    key={i}
-                                    className={`w-1.5 h-1.5 rounded-full transition-all ${(Math.floor(Date.now() / 5000) % banners.hero_home.length) === i ? 'bg-[#00C402] w-4' : 'bg-white/30'
-                                        }`}
-                                />
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                {/* BANNER 2: LABORATORY / METHODOLOGY */}
-                <div className="relative h-[600px] w-full overflow-hidden group">
-                    <img
-                        src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=2070&auto=format&fit=crop"
-                        alt="High-Tech Laboratory"
-                        className="object-cover w-full h-full group-hover:scale-105 transition duration-[2s] brightness-50"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-l from-slate-900/95 via-slate-900/70 to-transparent flex items-center justify-end">
-                        <div className="max-w-7xl mx-auto px-6 w-full text-right flex justify-end">
-                            <div className="max-w-2xl space-y-6 animate-in fade-in slide-in-from-right duration-1000">
-                                <span className="text-[10px] font-black uppercase tracking-[4px] !text-white bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">Metodologia</span>
-                                <h2 className="text-4xl md:text-6xl font-black !text-white tracking-tighter leading-tight">
-                                    LABORATÓRIOS DA <br />
-                                    <span className="!text-white">VIDA REAL</span>
-                                </h2>
-                                <p className="!text-white text-lg font-bold leading-relaxed max-w-lg ml-auto">
-                                    Nossa metodologia foca na resolução de desafios reais, utilizando simuladores e ferramentas de ponta.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* BANNER 3: COLLABORATION / RESULTS */}
-                <div className="relative h-[600px] w-full overflow-hidden group">
-                    <img
-                        src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070&auto=format&fit=crop"
-                        alt="Collaborative Workspace"
-                        className="object-cover w-full h-full group-hover:scale-105 transition duration-[2s] brightness-50"
-                    />
-                    <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-[2px] flex items-center justify-center text-center">
-                        <div className="max-w-4xl mx-auto px-6 space-y-8 animate-in fade-in zoom-in duration-1000">
-                            <span className="text-[10px] font-black uppercase tracking-[4px] !text-white bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 inline-block">Resultados</span>
-                            <h2 className="text-5xl md:text-7xl font-black !text-white tracking-tighter leading-tight">
-                                TRANSFORME SUA <br />
-                                <span className="!text-white">CARREIRA</span> HOJE
-                            </h2>
-                            <p className="!text-white text-xl font-bold leading-relaxed max-w-2xl mx-auto">
-                                Junte-se a milhares de alunos que já alcançaram cargos de destaque nas maiores empresas do Brasil.
-                            </p>
-                            <Link href="/login">
-                                <Button size="lg" variant="outline" className="border-white/20 hover:bg-white/10 text-white px-10 py-8 text-base font-black uppercase tracking-[3px] rounded-2xl transition-all shadow-2xl backdrop-blur-xl">
-                                    Conecte-se à Comunidade
-                                </Button>
-                            </Link>
-                        </div>
-                    </div>
-                </div>
+                )}
             </section>
 
             {/* GRID DE BENEFÍCIOS (Final Clean Section) */}

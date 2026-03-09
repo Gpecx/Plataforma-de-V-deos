@@ -16,7 +16,10 @@ export default async function CoursesPage() {
             getBanners()
         ]);
 
-        heroBanners = banners.hero_course;
+        heroBanners = banners.hero_course
+            .sort((a, b) => a.order - b.order)
+            .map(b => b.url)
+            .filter(url => !!url);
 
         courses = snapshot.docs.map(doc => {
             const data = doc.data();
