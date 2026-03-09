@@ -7,7 +7,6 @@ import { BrandingData } from '@/app/admin/settings/actions'
 export const DEFAULT_BRANDING: BrandingData = {
     logoUrl: '',
     siteName: 'SPCS Academy',
-    theme: 'modern',
     primaryColor: '#00C402',
 }
 
@@ -21,9 +20,6 @@ export function BrandingProvider({ children, value }: { children: ReactNode; val
                 :root {
                     --color-primary: ${value.primaryColor};
                     --color-primary-hover: ${value.primaryColor}CC;
-                }
-                [data-theme="${value.theme}"] {
-                    font-family: ${value.theme === 'classic' ? '"Georgia", serif' : value.theme === 'minimalist' ? '"Inter", sans-serif' : '"Exo 2", sans-serif'};
                 }
             `}</style>
             {children}

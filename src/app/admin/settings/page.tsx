@@ -6,22 +6,19 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Image as ImageIcon, Settings, Palette, Globe } from 'lucide-react'
-
-const THEMES = [
-    { value: 'modern', label: 'Modern', desc: 'Fonte Exo 2, arredondamentos generosos, visual vibrante' },
-    { value: 'classic', label: 'Classic', desc: 'Serifa elegante, cores terrosas, aspecto acadêmico' },
-    { value: 'minimalist', label: 'Minimalist', desc: 'Inter clean, muito espaçamento, paleta neutral' },
-] as const
+import { Image as ImageIcon, Settings, Palette, Globe, UploadCloud, Loader2 } from 'lucide-react'
+import { useDropzone } from 'react-dropzone'
+import { uploadCourseImage } from '@/lib/storage-helpers'
 
 export default function AdminSettingsPage() {
     const [settings, setSettings] = useState<GlobalSettings>({
         banners: { hero_home: [], hero_dashboard: [], hero_course: [] },
-        branding: { logoUrl: '', siteName: 'SPCS Academy', theme: 'modern', primaryColor: '#00C402' }
+        branding: { logoUrl: '', siteName: 'SPCS Academy', primaryColor: '#00C402' }
     })
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
     const [saved, setSaved] = useState(false)
+    const [uploadingLogo, setUploadingLogo] = useState(false)
 
     useEffect(() => {
         getSettings().then(data => {
@@ -55,6 +52,25 @@ export default function AdminSettingsPage() {
         const list = [...settings.banners[id]]; list[index] = value
         setBanners({ ...settings.banners, [id]: list })
     }
+
+    const onDropLogo = async (acceptedFiles: File[]) => {
+        if (acceptedFiles.length === 0) return
+        setUploadingLogo(true)
+        try {
+            const url = await uploadCourseImage(acceptedFiles[0])
+            setBranding('logoUrl', url)
+        } catch (error: any) {
+            alert("Erro no upload: " + error.message)
+        } finally {
+            setUploadingLogo(false)
+        }
+    }
+
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+        onDrop: onDropLogo,
+        accept: { 'image/*': [] },
+        multiple: false
+    })
 
     if (loading) return (
         <div className="p-8 text-center text-slate-500 font-bold uppercase tracking-widest text-sm">
@@ -121,7 +137,7 @@ export default function AdminSettingsPage() {
                 </div>
 
                 <Card className="rounded-2xl border border-slate-100 shadow-sm bg-white mb-6">
-                    <CardContent className="pt-6 space-y-6">
+                    <CardContent className="pt-6 space-y-8">
                         {/* Site Name */}
                         <div className="space-y-2">
                             <Label className="text-[10px] font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
@@ -135,28 +151,46 @@ export default function AdminSettingsPage() {
                             />
                         </div>
 
-                        {/* Logo URL */}
-                        <div className="space-y-2">
+                        {/* Logo Upload */}
+                        <div className="space-y-4">
                             <Label className="text-[10px] font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
-                                <ImageIcon size={12} /> URL da Logo
+                                <ImageIcon size={12} /> Logotipo da Plataforma
                             </Label>
-                            <Input
-                                value={settings.branding.logoUrl}
-                                onChange={(e) => setBranding('logoUrl', e.target.value)}
-                                placeholder="https://... (deixe vazio para usar a logo padrão)"
-                                className="rounded-xl h-11 font-medium text-slate-800 text-sm"
-                            />
-                            {settings.branding.logoUrl && (
-                                <div className="mt-3 inline-block bg-slate-50 border border-slate-100 rounded-xl p-3">
-                                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-2">Preview da Logo</p>
-                                    <img src={settings.branding.logoUrl} alt="Logo Preview" className="h-12 w-auto object-contain" />
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                                <div
+                                    {...getRootProps()}
+                                    className={`
+                                        border-2 border-dashed rounded-2xl p-8 transition-all cursor-pointer flex flex-col items-center justify-center gap-3 text-center
+                                        ${isDragActive ? 'border-[#00C402] bg-[#00C402]/5' : 'border-slate-100 hover:border-slate-200 bg-slate-50/50'}
+                                    `}
+                                >
+                                    <input {...getInputProps()} />
+                                    {uploadingLogo ? (
+                                        <Loader2 className="animate-spin text-[#00C402]" size={24} />
+                                    ) : (
+                                        <UploadCloud size={24} className="text-slate-400" />
+                                    )}
+                                    <div>
+                                        <p className="text-[10px] font-black uppercase tracking-tight text-slate-700">Carregar nova Logo</p>
+                                        <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest">Arraste ou clique para selecionar</p>
+                                    </div>
                                 </div>
-                            )}
-                            {!settings.branding.logoUrl && (
-                                <p className="text-[10px] text-slate-400 font-medium mt-1">
-                                    Usando logo padrão: <span className="font-bold text-slate-600">/images/SPCSacademy2.png</span>
-                                </p>
-                            )}
+
+                                <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6 flex flex-col items-center justify-center min-h-[140px]">
+                                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-4">Logo Atual</p>
+                                    <div className="h-16 w-full flex items-center justify-center">
+                                        <img
+                                            src={settings.branding.logoUrl || '/images/SPCSacademy2.png'}
+                                            alt="Logo Preview"
+                                            className="h-full w-auto object-contain"
+                                        />
+                                    </div>
+                                    {!settings.branding.logoUrl && (
+                                        <p className="text-[8px] text-slate-400 font-medium mt-2 italic">(Usando padrão do sistema)</p>
+                                    )}
+                                </div>
+                            </div>
                         </div>
 
                         {/* Primary Color */}
@@ -178,27 +212,6 @@ export default function AdminSettingsPage() {
                                 <div className="h-11 px-4 flex items-center rounded-xl text-white text-xs font-black uppercase tracking-widest" style={{ backgroundColor: settings.branding.primaryColor }}>
                                     Preview
                                 </div>
-                            </div>
-                        </div>
-
-                        {/* Theme */}
-                        <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-700">Tema Visual dos Templates</Label>
-                            <div className="grid grid-cols-3 gap-3">
-                                {THEMES.map(t => (
-                                    <button
-                                        key={t.value}
-                                        type="button"
-                                        onClick={() => setBranding('theme', t.value)}
-                                        className={`p-4 rounded-xl border-2 text-left transition-all ${settings.branding.theme === t.value
-                                                ? 'border-[#00C402] bg-[#00C402]/5 shadow-sm'
-                                                : 'border-slate-100 hover:border-slate-200 bg-white'
-                                            }`}
-                                    >
-                                        <span className={`text-[11px] font-black uppercase tracking-widest block mb-1 ${settings.branding.theme === t.value ? 'text-[#00C402]' : 'text-slate-700'}`}>{t.label}</span>
-                                        <span className="text-[9px] text-slate-400 font-medium leading-tight block">{t.desc}</span>
-                                    </button>
-                                ))}
                             </div>
                         </div>
                     </CardContent>
@@ -232,3 +245,4 @@ export default function AdminSettingsPage() {
         </div>
     )
 }
+

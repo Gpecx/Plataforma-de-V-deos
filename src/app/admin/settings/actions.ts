@@ -12,7 +12,6 @@ export interface BannersData {
 export interface BrandingData {
     logoUrl: string
     siteName: string
-    theme: 'modern' | 'classic' | 'minimalist'
     primaryColor: string
 }
 
@@ -30,7 +29,6 @@ const DEFAULT_SETTINGS: GlobalSettings = {
     branding: {
         logoUrl: '',
         siteName: 'SPCS Academy',
-        theme: 'modern',
         primaryColor: '#00C402',
     }
 }
@@ -51,7 +49,6 @@ export async function getSettings(): Promise<GlobalSettings> {
                 branding: {
                     logoUrl: br?.logoUrl || DEFAULT_SETTINGS.branding.logoUrl,
                     siteName: br?.siteName || DEFAULT_SETTINGS.branding.siteName,
-                    theme: br?.theme || DEFAULT_SETTINGS.branding.theme,
                     primaryColor: br?.primaryColor || DEFAULT_SETTINGS.branding.primaryColor,
                 }
             }

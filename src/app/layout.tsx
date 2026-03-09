@@ -18,7 +18,6 @@ export default async function RootLayout({
   let branding: BrandingData = {
     logoUrl: '',
     siteName: 'SPCS Academy',
-    theme: 'modern',
     primaryColor: '#00C402',
   }
   try {
@@ -27,7 +26,7 @@ export default async function RootLayout({
   } catch { }
 
   return (
-    <html lang="pt-br" className={exo.variable} data-theme={branding.theme}>
+    <html lang="pt-br" className={exo.variable}>
       <body className="font-exo">
         <BrandingProvider value={branding}>
           <ToastNotification />
