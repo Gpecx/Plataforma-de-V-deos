@@ -19,6 +19,8 @@ import { cookies } from "next/headers"
 import { parseFirebaseDate } from '@/lib/date-utils'
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
 
+import { CourseIntroPlayer } from "@/components/CourseIntroPlayer"
+
 export default async function CourseDetailPage({ params }: { params: { slug: string } }) {
     const { slug } = await params
 
@@ -129,25 +131,10 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                         </div>
 
                         {/* Video Player - High Quality Impression */}
-                        <div className="relative aspect-video w-full bg-black rounded-[40px] overflow-hidden shadow-2xl group border-[12px] border-white ring-1 ring-slate-100">
-                            <img
-                                src={course.image_url || "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=2070"}
-                                className="w-full h-full object-cover opacity-60 brightness-50"
-                                alt="Course Preview"
-                            />
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <button className="w-24 h-24 bg-white text-[#00C402] rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(255,255,255,0.3)] hover:scale-110 transition-transform group-active:scale-95">
-                                    <PlayCircle size={48} fill="currentColor" className="text-[#00C402] opacity-20" />
-                                    <PlayCircle size={48} className="absolute" />
-                                </button>
-                            </div>
-                            <div className="absolute bottom-8 left-8 flex items-center gap-3">
-                                <div className="p-2 bg-white/10 backdrop-blur-md rounded-lg text-white">
-                                    <PlayCircle size={20} />
-                                </div>
-                                <span className="text-white text-xs font-black uppercase tracking-widest">Aprenda com quem faz na prática</span>
-                            </div>
-                        </div>
+                        <CourseIntroPlayer
+                            videoUrl={course.intro_video_url}
+                            thumbnail={course.image_url}
+                        />
 
                         <div className="space-y-4">
                             <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter">Sobre este treinamento</h3>

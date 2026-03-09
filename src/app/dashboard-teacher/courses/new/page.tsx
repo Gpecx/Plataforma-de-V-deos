@@ -50,6 +50,7 @@ export default function NewCoursePage() {
     const [currentStep, setCurrentStep] = useState(1)
     const [isPublishing, setIsPublishing] = useState(false)
     const [isUploading, setIsUploading] = useState(false)
+    const [isUploadingIntro, setIsUploadingIntro] = useState(false)
 
     // Automatiza o scroll para o topo ao mudar de passo
     useEffect(() => {
@@ -309,8 +310,92 @@ export default function NewCoursePage() {
 
                 {currentStep === 2 && (
                     <div className="space-y-12 animate-in fade-in duration-700">
+                        {/* Seção de Vídeo de Introdução */}
+                        <div className="space-y-6 pb-8 border-b border-slate-100">
+                            <div className="text-center space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-[#00C402] block">Vídeo de Apresentação (Intro)</Label>
+                                <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Atraia mais alunos com um pitch de vendas visual.</p>
+                            </div>
+
+                            <div className="grid md:grid-cols-2 gap-8">
+                                {/* Opção Upload */}
+                                <div className="space-y-4">
+                                    <Label className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-1">Upload Direto</Label>
+                                    <div className={`
+                                        relative h-40 rounded-3xl border-2 border-dashed transition-all flex flex-col items-center justify-center overflow-hidden cursor-pointer
+                                        ${formData.intro_video_url && !formData.intro_video_url.includes('youtube.com') && !formData.intro_video_url.includes('vimeo.com')
+                                            ? 'border-[#00C402] bg-[#00C402]/5' : 'border-slate-100 bg-slate-50/50 hover:border-slate-200'}
+                                    `}>
+                                        {isUploadingIntro ? (
+                                            <div className="flex flex-col items-center gap-3">
+                                                <Loader2 className="animate-spin text-[#00C402]" size={24} />
+                                                <span className="text-[8px] font-black uppercase tracking-[2px] animate-pulse">UPLOADING...</span>
+                                            </div>
+                                        ) : formData.intro_video_url && !formData.intro_video_url.includes('youtube.com') && !formData.intro_video_url.includes('vimeo.com') ? (
+                                            <div className="flex flex-col items-center gap-2">
+                                                <div className="w-10 h-10 bg-[#00C402] rounded-full flex items-center justify-center text-white">
+                                                    <Check size={20} strokeWidth={4} />
+                                                </div>
+                                                <span className="text-[9px] font-black uppercase tracking-widest text-[#00C402]">VÍDEO CARREGADO</span>
+                                                <button
+                                                    className="text-[8px] text-slate-400 hover:text-slate-900 font-bold uppercase"
+                                                    onClick={() => setStepData({ intro_video_url: '' })}
+                                                >
+                                                    [ REMOVER ]
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div className="text-center px-6">
+                                                <Upload size={24} className="mx-auto text-slate-200 mb-3" />
+                                                <span className="text-[9px] font-black uppercase tracking-widest text-black">SUBIR MP4</span>
+                                                <p className="text-[8px] text-slate-400 mt-2 font-bold uppercase tracking-tighter">MÁXIMO 5 MINUTOS</p>
+                                            </div>
+                                        )}
+                                        {!isUploadingIntro && (
+                                            <input
+                                                type="file"
+                                                accept="video/*"
+                                                className="absolute inset-0 opacity-0 cursor-pointer"
+                                                onChange={async (e) => {
+                                                    const file = e.target.files?.[0]
+                                                    if (!file) return
+
+                                                    // Validação simples de duração se possível (via URL.createObjectURL e metadata)
+                                                    setIsUploadingIntro(true)
+                                                    try {
+                                                        const publicUrl = await uploadCourseVideo(file)
+                                                        setStepData({ intro_video_url: publicUrl })
+                                                    } catch (err) {
+                                                        alert("Erro no upload do vídeo.")
+                                                    } finally {
+                                                        setIsUploadingIntro(false)
+                                                    }
+                                                }}
+                                            />
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Opção Link Externo */}
+                                <div className="space-y-4">
+                                    <Label className="text-[9px] font-black uppercase tracking-widest text-slate-400 px-1">Link YouTube / Vimeo</Label>
+                                    <div className="h-40 bg-slate-50/50 border border-slate-100 rounded-3xl p-6 flex flex-col justify-center gap-4">
+                                        <Input
+                                            placeholder="https://youtube.com/watch?v=..."
+                                            className="bg-white border-slate-100 focus:border-[#00C402] h-12 rounded-xl text-xs"
+                                            value={formData.intro_video_url || ''}
+                                            onChange={(e) => setStepData({ intro_video_url: e.target.value })}
+                                        />
+                                        <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed">
+                                            Recomendado para vídeos hospedados externamente. Certifique-se de que o vídeo seja público ou não listado.
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <div className="space-y-6">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-black px-1 text-center block">Investimento Sugerido</Label>
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-black text-center block">Investimento Sugerido</Label>
                             <div className="relative max-w-sm mx-auto group">
                                 <span className="absolute left-6 top-1/2 -translate-y-1/2 text-black font-black text-2xl group-focus-within:text-[#00C402] transition-colors">R$</span>
                                 <Input

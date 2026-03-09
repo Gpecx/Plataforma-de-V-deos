@@ -369,6 +369,8 @@ export default function CourseBuilder() {
     const [courseDuration, setCourseDuration] = useState(0)
     const [coursePrice, setCoursePrice] = useState('0.00')
     const [courseImage, setCourseImage] = useState('')
+    const [courseIntroVideo, setCourseIntroVideo] = useState('')
+    const [isUploadingIntro, setIsUploadingIntro] = useState(false)
 
     // 1. Carrega dados do Firestore
     useEffect(() => {
@@ -390,6 +392,7 @@ export default function CourseBuilder() {
                         setCourseDuration(cData.duration || 0)
                         setCoursePrice(cData.price.toString().replace('.', ','))
                         setCourseImage(cData.image_url || '')
+                        setCourseIntroVideo(cData.intro_video_url || '')
 
                         // Busca as aulas
                         const lessonsRef = collection(db, 'lessons')
@@ -483,6 +486,7 @@ export default function CourseBuilder() {
                 price: formattedPrice,
                 duration: courseDuration,
                 image_url: courseImage,
+                intro_video_url: courseIntroVideo,
                 lessons: allLessons,
                 status: course?.status // Preserve status
             })
@@ -781,6 +785,63 @@ export default function CourseBuilder() {
                                         className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-12 py-5 focus:border-[#00C402] outline-none font-black text-2xl text-slate-800 transition-all shadow-sm"
                                     />
                                 </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section>
+                        <h3 className="text-[10px] font-black uppercase tracking-[5px] text-slate-500 mb-6 px-1">Vídeo de Apresentação (Intro)</h3>
+                        <div className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm space-y-6">
+                            <div className="space-y-4">
+                                <label className="text-[9px] font-black uppercase tracking-[3px] text-slate-400 px-1">Upload ou Link</label>
+                                <div className={`
+                                    relative h-32 rounded-2xl border-2 border-dashed transition-all flex flex-col items-center justify-center overflow-hidden cursor-pointer
+                                    ${courseIntroVideo && !courseIntroVideo.includes('youtube.com') && !courseIntroVideo.includes('vimeo.com')
+                                        ? 'border-[#00C402] bg-[#00C402]/5' : 'border-slate-50 bg-slate-50/30 hover:border-slate-100'}
+                                `}>
+                                    {isUploadingIntro ? (
+                                        <Loader2 className="animate-spin text-[#00C402]" size={20} />
+                                    ) : courseIntroVideo && !courseIntroVideo.includes('youtube.com') && !courseIntroVideo.includes('vimeo.com') ? (
+                                        <div className="flex flex-col items-center gap-1">
+                                            <Check size={16} className="text-[#00C402]" />
+                                            <span className="text-[8px] font-black text-[#00C402]">VÍDEO CARREGADO</span>
+                                        </div>
+                                    ) : (
+                                        <div className="text-center">
+                                            <UploadCloud size={20} className="mx-auto text-slate-200 mb-2" />
+                                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">SUBIR MP4</span>
+                                        </div>
+                                    )}
+                                    {!isUploadingIntro && (
+                                        <input
+                                            type="file"
+                                            accept="video/*"
+                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                            onChange={async (e) => {
+                                                const file = e.target.files?.[0]
+                                                if (!file) return
+                                                setIsUploadingIntro(true)
+                                                try {
+                                                    const url = await uploadCourseVideo(file)
+                                                    setCourseIntroVideo(url)
+                                                } catch (err) { alert("Erro no upload.") }
+                                                finally { setIsUploadingIntro(false) }
+                                            }}
+                                        />
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <label className="text-[9px] font-black uppercase tracking-[3px] text-slate-400 px-1">Ou Link Externo</label>
+                                <input
+                                    type="text"
+                                    value={courseIntroVideo}
+                                    onChange={(e) => setCourseIntroVideo(e.target.value)}
+                                    placeholder="Link YouTube/Vimeo"
+                                    className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 focus:border-[#00C402] outline-none text-xs text-slate-800 transition-all shadow-sm"
+                                />
+                                <p className="text-[8px] text-slate-400 font-bold uppercase tracking-tighter">Máximo 5 minutos recomentados para conversão.</p>
                             </div>
                         </div>
                     </section>
