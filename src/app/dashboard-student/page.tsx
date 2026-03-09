@@ -8,6 +8,7 @@ import { StudentCarousel } from '@/components/dashboard/StudentCarousel'
 import { MyLearningSidebar } from '@/components/dashboard/MyLearningSidebar'
 import { StoreInitializer } from '@/components/dashboard/StoreInitializer'
 import { parseFirebaseDate } from '@/lib/date-utils'
+import { getBanners } from '@/app/admin/settings/actions'
 
 
 export default async function StudentDashboard() {
@@ -24,10 +25,11 @@ export default async function StudentDashboard() {
     }
 
     // 2. Busca perfil, cursos totais e matrículas em paralelo no Firestore
-    const [profileDoc, coursesSnapshot, enrollmentsSnapshot] = await Promise.all([
+    const [profileDoc, coursesSnapshot, enrollmentsSnapshot, banners] = await Promise.all([
         adminDb.collection('profiles').doc(user.uid).get(),
         adminDb.collection('courses').get(),
-        adminDb.collection('enrollments').where('user_id', '==', user.uid).get()
+        adminDb.collection('enrollments').where('user_id', '==', user.uid).get(),
+        getBanners()
     ])
 
     const profile = profileDoc.data()
@@ -67,7 +69,7 @@ export default async function StudentDashboard() {
 
                 {/* Banner de Inspiração (Carrossel Dinâmico) - 100% da Largura Total */}
                 <div className="w-full">
-                    <StudentCarousel />
+                    <StudentCarousel heroBanners={banners.hero_dashboard} />
                 </div>
 
                 {/* Seções com Padding Lateral */}

@@ -18,6 +18,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
 import { Loader2 } from "lucide-react";
 import CourseModal from "@/components/CourseModal";
+import { getBanners, BannersData } from "@/app/admin/settings/actions";
 
 export default function WelcomePage() {
     const [courses, setCourses] = useState<any[]>([]);
@@ -25,6 +26,7 @@ export default function WelcomePage() {
     const [isMuted, setIsMuted] = useState(true);
     const [selectedCourse, setSelectedCourse] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [banners, setBanners] = useState<BannersData | null>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
 
     useEffect(() => {
@@ -53,6 +55,8 @@ export default function WelcomePage() {
             }
             fetchTopCourses();
         });
+
+        getBanners().then(data => setBanners(data));
 
         return () => unsubscribe();
     }, []);
@@ -170,13 +174,29 @@ export default function WelcomePage() {
 
             {/* SEÇÃO DE BANNERS IMERSIVOS (Clean & Professional) */}
             <section className="relative z-10">
-                {/* BANNER 1: OFFICE / EXPERIENCE */}
+                {/* BANNER 1: OFFICE / EXPERIENCE (NOW A CAROUSEL) */}
                 <div className="relative h-[600px] w-full overflow-hidden group">
-                    <img
-                        src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1976&auto=format&fit=crop"
-                        alt="Professional Engineering"
-                        className="object-cover w-full h-full group-hover:scale-105 transition duration-[2s] brightness-50"
-                    />
+                    {banners?.hero_home && banners.hero_home.length > 0 ? (
+                        <div className="h-full w-full relative">
+                            {banners.hero_home.map((url, idx) => (
+                                <img
+                                    key={idx}
+                                    src={url}
+                                    alt={`Experience ${idx + 1}`}
+                                    className={`absolute inset-0 object-cover w-full h-full transition-opacity duration-1000 ${
+                                        // Simple interval logic for home carousel
+                                        (Math.floor(Date.now() / 5000) % banners.hero_home.length) === idx ? 'opacity-100 shadow-xl' : 'opacity-0'
+                                        } brightness-50`}
+                                />
+                            ))}
+                        </div>
+                    ) : (
+                        <img
+                            src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1976&auto=format&fit=crop"
+                            alt="Professional Engineering"
+                            className="object-cover w-full h-full group-hover:scale-105 transition duration-[2s] brightness-50"
+                        />
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-r from-slate-900/95 via-slate-900/70 to-transparent flex items-center">
                         <div className="max-w-7xl mx-auto px-6 w-full">
                             <div className="max-w-2xl space-y-6 animate-in fade-in slide-in-from-left duration-1000">
@@ -196,6 +216,19 @@ export default function WelcomePage() {
                             </div>
                         </div>
                     </div>
+
+                    {/* Simple dots for home carousel if more than 1 */}
+                    {banners?.hero_home && banners.hero_home.length > 1 && (
+                        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+                            {banners.hero_home.map((_, i) => (
+                                <div
+                                    key={i}
+                                    className={`w-1.5 h-1.5 rounded-full transition-all ${(Math.floor(Date.now() / 5000) % banners.hero_home.length) === i ? 'bg-[#00C402] w-4' : 'bg-white/30'
+                                        }`}
+                                />
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* BANNER 2: LABORATORY / METHODOLOGY */}

@@ -7,6 +7,7 @@ const PROTECTED_ROUTES = [
     '/classroom',
     '/cart',
     '/payouts',
+    '/admin',
 ]
 
 export function middleware(request: NextRequest) {
@@ -41,6 +42,7 @@ export const config = {
         "/classroom/:path*",
         "/payouts/:path*",
         "/cart/:path*",
+        "/admin/:path*",
     ],
 }
 

@@ -1,17 +1,22 @@
 import { adminDb } from "@/lib/firebase-admin";
 import { parseFirebaseDate } from "@/lib/date-utils";
 import CoursesClient from "./CoursesClient";
+import { getBanners } from "@/app/admin/settings/actions";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export default async function CoursesPage() {
     let courses: any[] = [];
+    let heroBanners: string[] = [];
 
     try {
-        const snapshot = await adminDb.collection('courses')
-            .where('status', '==', 'published')
-            .get();
+        const [snapshot, banners] = await Promise.all([
+            adminDb.collection('courses').where('status', '==', 'published').get(),
+            getBanners()
+        ]);
+
+        heroBanners = banners.hero_course;
 
         courses = snapshot.docs.map(doc => {
             const data = doc.data();
@@ -33,5 +38,5 @@ export default async function CoursesPage() {
         console.error("Erro ao buscar cursos no servidor:", error);
     }
 
-    return <CoursesClient initialCourses={courses} />;
+    return <CoursesClient initialCourses={courses} heroBanners={heroBanners} />;
 }

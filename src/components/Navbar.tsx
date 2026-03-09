@@ -162,23 +162,6 @@ export default function Navbar({ transparent }: NavbarProps) {
 
                     {/* Right: Actions */}
                     <div className="flex items-center gap-3 md:gap-6 ml-auto">
-                        {/* Mode Switcher */}
-                        {isTeacherMode ? (
-                            <Link
-                                href="/"
-                                className="hidden md:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-600 border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-all"
-                            >
-                                <GraduationCap size={14} />
-                                Modo Aluno
-                            </Link>
-                        ) : (userProfile?.role === 'teacher' || userProfile?.role === 'admin') && (
-                            <Link
-                                href="/dashboard-teacher"
-                                className="hidden md:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-600 border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-50 transition-all"
-                            >
-                                Modo Professor
-                            </Link>
-                        )}
 
                         {/* Search */}
                         <div className="flex items-center gap-2 relative">
@@ -271,6 +254,11 @@ export default function Navbar({ transparent }: NavbarProps) {
                                     <div className="p-1 space-y-1">
                                         {isTeacherMode || userProfile?.role === 'teacher' || userProfile?.role === 'admin' ? (
                                             <>
+                                                {userProfile?.role === 'admin' && (
+                                                    <DropdownMenuItem onSelect={() => router.push("/admin/settings")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors outline-none focus:bg-slate-50 border border-slate-100 mb-1">
+                                                        <Settings size={18} className="text-slate-400" /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Configurações do Site</span>
+                                                    </DropdownMenuItem>
+                                                )}
                                                 <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/profile")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors outline-none focus:bg-slate-50">
                                                     <UserCog size={18} className="text-slate-400" /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Editar Perfil</span>
                                                 </DropdownMenuItem>
@@ -386,20 +374,14 @@ export default function Navbar({ transparent }: NavbarProps) {
                             </div>
                         )}
 
-                        {isTeacherMode && isLoggedIn && (
+                        {userProfile?.role === 'admin' && (
                             <div className="pt-3 border-t border-slate-100 mt-3">
-                                <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-sm text-slate-500 hover:bg-slate-50 transition">
-                                    <GraduationCap size={16} /> Alternar para Aluno
+                                <Link href="/admin/settings" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-sm text-slate-500 hover:bg-slate-50 transition">
+                                    <Settings size={16} /> Configurações do Site
                                 </Link>
                             </div>
                         )}
-                        {!isTeacherMode && (userProfile?.role === 'teacher' || userProfile?.role === 'admin') && (
-                            <div className="pt-3 border-t border-slate-100 mt-3">
-                                <Link href="/dashboard-teacher" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-sm text-slate-500 hover:bg-slate-50 transition">
-                                    Modo Professor
-                                </Link>
-                            </div>
-                        )}
+
                     </div>
                 )}
             </header>

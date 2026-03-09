@@ -3,9 +3,9 @@
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { auth, db } from '@/lib/firebase'
+import { auth } from '@/lib/firebase'
 import { createUserWithEmailAndPassword, updateProfile as firebaseUpdateProfile } from 'firebase/auth'
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore'
+import { createProfile } from './actions'
 import Logo from '@/components/Logo'
 
 // ─── Validação CPF ──────────────────────────────────────────────────────────
@@ -98,6 +98,7 @@ export default function RegisterPage() {
     const [personType, setPersonType] = useState<'CPF' | 'CNPJ'>('CPF')
     const [cpfCnpj, setCpfCnpj] = useState('')
     const [birthDate, setBirthDate] = useState('')
+    const [role, setRole] = useState<'student' | 'teacher'>('student')
     const [loading, setLoading] = useState(false)
     const [cpfCnpjTouched, setCpfCnpjTouched] = useState(false)
     const router = useRouter()
@@ -149,22 +150,29 @@ export default function RegisterPage() {
                 displayName: fullName
             })
 
-            await setDoc(doc(db, 'profiles', user.uid), {
-                id: user.uid,
+            const result = await createProfile({
+                uid: user.uid,
+                email,
                 full_name: fullName,
-                email: email,
                 cpf_cnpj: cpfCnpj,
                 person_type: personType,
                 birth_date: birthDate,
-                role: 'student',
-                created_at: serverTimestamp()
+                role
             })
+
+            if (!result.success) {
+                throw new Error(result.error)
+            }
 
             const idToken = await user.getIdToken()
             const { setSessionCookie } = await import('@/app/actions/auth')
             await setSessionCookie(idToken)
 
-            router.push('/dashboard-student')
+            if (role === 'teacher') {
+                router.push('/dashboard-teacher')
+            } else {
+                router.push('/dashboard-student')
+            }
             router.refresh()
         } catch (error: any) {
             console.error('Erro no cadastro:', error)
@@ -194,6 +202,27 @@ export default function RegisterPage() {
 
             <form onSubmit={handleRegister} className="space-y-6">
                 <div className="space-y-4">
+
+                    {/* Tipo de Conta */}
+                    <div className="space-y-1.5 mb-4">
+                        <label className={labelClass}>Tipo de Conta</label>
+                        <div className="flex gap-4 p-1 bg-slate-100 rounded-xl border border-slate-200">
+                            <button
+                                type="button"
+                                onClick={() => setRole('student')}
+                                className={`flex-1 py-3 text-xs font-black uppercase rounded-lg transition-all ${role === 'student' ? 'bg-white text-[#00C402] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            >
+                                Aluno
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setRole('teacher')}
+                                className={`flex-1 py-3 text-xs font-black uppercase rounded-lg transition-all ${role === 'teacher' ? 'bg-white text-[#00C402] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                            >
+                                Professor
+                            </button>
+                        </div>
+                    </div>
 
                     {/* Nome Completo */}
                     <div className="space-y-1.5">
@@ -244,8 +273,8 @@ export default function RegisterPage() {
                                         type="button"
                                         onClick={() => handleTypeChange('CPF')}
                                         className={`px-2 py-0.5 text-[9px] font-black uppercase rounded-md transition-all ${personType === 'CPF'
-                                                ? 'bg-white text-[#00C402] shadow-sm'
-                                                : 'text-slate-400 hover:text-slate-600'
+                                            ? 'bg-white text-[#00C402] shadow-sm'
+                                            : 'text-slate-400 hover:text-slate-600'
                                             }`}
                                     >
                                         CPF
@@ -254,8 +283,8 @@ export default function RegisterPage() {
                                         type="button"
                                         onClick={() => handleTypeChange('CNPJ')}
                                         className={`px-2 py-0.5 text-[9px] font-black uppercase rounded-md transition-all ${personType === 'CNPJ'
-                                                ? 'bg-white text-[#00C402] shadow-sm'
-                                                : 'text-slate-400 hover:text-slate-600'
+                                            ? 'bg-white text-[#00C402] shadow-sm'
+                                            : 'text-slate-400 hover:text-slate-600'
                                             }`}
                                     >
                                         CNPJ

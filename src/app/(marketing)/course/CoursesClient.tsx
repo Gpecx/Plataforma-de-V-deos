@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useSearchParams } from "next/navigation";
@@ -42,15 +42,31 @@ interface Course {
 
 interface CoursesClientProps {
     initialCourses: Course[];
+    heroBanners?: string[];
 }
 
-function CoursesInner({ initialCourses }: CoursesClientProps) {
+function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
     const searchParams = useSearchParams();
     const searchQuery = searchParams.get('s')?.toLowerCase() || "";
 
     const [currentSlide, setCurrentSlide] = useState(0);
     const [selectedCourse, setSelectedCourse] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const displaySlides = heroBanners && heroBanners.length > 0
+        ? heroBanners.map((url, idx) => ({
+            ...heroSlides[idx % heroSlides.length],
+            image: url
+        }))
+        : heroSlides;
+
+    useEffect(() => {
+        if (displaySlides.length <= 1) return;
+        const timer = setInterval(() => {
+            setCurrentSlide(prev => (prev + 1) % displaySlides.length);
+        }, 6000);
+        return () => clearInterval(timer);
+    }, [displaySlides.length]);
 
     const filteredCourses = searchQuery
         ? initialCourses.filter(c =>
@@ -72,7 +88,7 @@ function CoursesInner({ initialCourses }: CoursesClientProps) {
 
             {/* Carrossel Hero */}
             <section className="relative h-[65vh] w-full overflow-hidden">
-                {heroSlides.map((slide, index) => (
+                {displaySlides.map((slide, index) => (
                     <div key={index} className={`absolute inset-0 transition-opacity duration-1000 ${index === currentSlide ? "opacity-100" : "opacity-0"}`}>
                         <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent z-10" />
                         <img src={slide.image} className="w-full h-full object-cover scale-105" alt={slide.title} />
@@ -106,15 +122,17 @@ function CoursesInner({ initialCourses }: CoursesClientProps) {
                 ))}
 
                 {/* Slide Dots */}
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex gap-2">
-                    {heroSlides.map((_, i) => (
-                        <button
-                            key={i}
-                            onClick={() => setCurrentSlide(i)}
-                            className={`w-2 h-2 rounded-full transition-all ${i === currentSlide ? 'bg-[#00C402] w-6' : 'bg-white/40'}`}
-                        />
-                    ))}
-                </div>
+                {displaySlides.length > 1 && (
+                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex gap-2">
+                        {displaySlides.map((_, i) => (
+                            <button
+                                key={i}
+                                onClick={() => setCurrentSlide(i)}
+                                className={`w-2 h-2 rounded-full transition-all ${i === currentSlide ? 'bg-[#00C402] w-6' : 'bg-white/40'}`}
+                            />
+                        ))}
+                    </div>
+                )}
             </section>
 
             {/* Título */}
@@ -208,7 +226,7 @@ function CoursesInner({ initialCourses }: CoursesClientProps) {
     );
 }
 
-export default function CoursesClient({ initialCourses }: CoursesClientProps) {
+export default function CoursesClient({ initialCourses, heroBanners }: CoursesClientProps) {
     return (
         <Suspense fallback={
             <div className="min-h-screen bg-[#F4F7F9] flex items-center justify-center">
@@ -218,7 +236,7 @@ export default function CoursesClient({ initialCourses }: CoursesClientProps) {
                 </div>
             </div>
         }>
-            <CoursesInner initialCourses={initialCourses} />
+            <CoursesInner initialCourses={initialCourses} heroBanners={heroBanners} />
         </Suspense>
     );
 }

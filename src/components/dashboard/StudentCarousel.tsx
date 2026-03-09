@@ -27,21 +27,32 @@ const CAROUSEL_ITEMS = [
     }
 ]
 
-export function StudentCarousel() {
+export function StudentCarousel({ heroBanners }: { heroBanners?: string[] }) {
     const [currentIndex, setCurrentIndex] = useState(0)
 
+    const displayItems = heroBanners && heroBanners.length > 0
+        ? heroBanners.map((url, idx) => ({
+            id: idx + 1,
+            image: url,
+            title: CAROUSEL_ITEMS[idx % CAROUSEL_ITEMS.length].title,
+            text: CAROUSEL_ITEMS[idx % CAROUSEL_ITEMS.length].text,
+            accent: CAROUSEL_ITEMS[idx % CAROUSEL_ITEMS.length].accent
+        }))
+        : CAROUSEL_ITEMS
+
     const next = useCallback(() => {
-        setCurrentIndex((prev) => (prev + 1) % CAROUSEL_ITEMS.length)
-    }, [])
+        setCurrentIndex((prev) => (prev + 1) % displayItems.length)
+    }, [displayItems.length])
 
     const prev = useCallback(() => {
-        setCurrentIndex((prev) => (prev - 1 + CAROUSEL_ITEMS.length) % CAROUSEL_ITEMS.length)
-    }, [])
+        setCurrentIndex((prev) => (prev - 1 + displayItems.length) % displayItems.length)
+    }, [displayItems.length])
 
     useEffect(() => {
+        if (displayItems.length <= 1) return
         const timer = setInterval(next, 5000)
         return () => clearInterval(timer)
-    }, [next])
+    }, [next, displayItems.length])
 
     return (
         <section className="mb-12 relative overflow-hidden rounded-2xl bg-slate-100 aspect-[21/9] md:aspect-[32/10] group shadow-xl">
@@ -50,7 +61,7 @@ export function StudentCarousel() {
                 className="flex w-full h-full transition-transform duration-700 ease-in-out"
                 style={{ transform: `translateX(-${currentIndex * 100}%)` }}
             >
-                {CAROUSEL_ITEMS.map((item) => (
+                {displayItems.map((item) => (
                     <div key={item.id} className="relative w-full h-full shrink-0">
                         <img
                             src={item.image}
@@ -66,42 +77,48 @@ export function StudentCarousel() {
                 <div className="bg-white/95 backdrop-blur-sm p-6 md:p-10 rounded-2xl shadow-2xl max-w-lg animate-in fade-in slide-in-from-left-4 duration-700 pointer-events-auto border border-slate-100">
                     <div className="flex items-center gap-2 mb-3">
                         <Sparkles size={14} className="text-[#00C402]" />
-                        <span className="text-[9px] font-black uppercase tracking-[3px] text-[#00C402]">{CAROUSEL_ITEMS[currentIndex].accent}</span>
+                        <span className="text-[9px] font-black uppercase tracking-[3px] text-[#00C402]">{displayItems[currentIndex].accent}</span>
                     </div>
                     <h2 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tighter leading-none mb-4">
-                        {CAROUSEL_ITEMS[currentIndex].title.split(' ')[0]} <br />
-                        <span className="text-[#00C402]">{CAROUSEL_ITEMS[currentIndex].title.split(' ').slice(1).join(' ')}</span>
+                        {displayItems[currentIndex].title.split(' ')[0]} <br />
+                        <span className="text-[#00C402]">{displayItems[currentIndex].title.split(' ').slice(1).join(' ')}</span>
                     </h2>
                     <p className="text-slate-500 text-xs md:text-sm font-medium leading-relaxed">
-                        {CAROUSEL_ITEMS[currentIndex].text}
+                        {displayItems[currentIndex].text}
                     </p>
                 </div>
             </div>
 
             {/* Navegação: Setas */}
-            <button
-                onClick={prev}
-                className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 hover:bg-white/90 text-white hover:text-slate-900 rounded-full backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 shadow-lg"
-            >
-                <ChevronLeft size={24} />
-            </button>
-            <button
-                onClick={next}
-                className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 hover:bg-white/90 text-white hover:text-slate-900 rounded-full backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 shadow-lg"
-            >
-                <ChevronRight size={24} />
-            </button>
+            {displayItems.length > 1 && (
+                <>
+                    <button
+                        onClick={prev}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 hover:bg-white/90 text-white hover:text-slate-900 rounded-full backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 shadow-lg"
+                    >
+                        <ChevronLeft size={24} />
+                    </button>
+                    <button
+                        onClick={next}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/10 hover:bg-white/90 text-white hover:text-slate-900 rounded-full backdrop-blur-sm transition-all opacity-0 group-hover:opacity-100 shadow-lg"
+                    >
+                        <ChevronRight size={24} />
+                    </button>
+                </>
+            )}
 
             {/* Pontos de Paginação */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
-                {CAROUSEL_ITEMS.map((_, i) => (
-                    <button
-                        key={i}
-                        onClick={() => setCurrentIndex(i)}
-                        className={`h-1.5 rounded-full transition-all ${currentIndex === i ? 'w-8 bg-[#00C402]' : 'w-2 bg-white/40 hover:bg-white/60'}`}
-                    />
-                ))}
-            </div>
+            {displayItems.length > 1 && (
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
+                    {displayItems.map((_, i) => (
+                        <button
+                            key={i}
+                            onClick={() => setCurrentIndex(i)}
+                            className={`h-1.5 rounded-full transition-all ${currentIndex === i ? 'w-8 bg-[#00C402]' : 'w-2 bg-white/40 hover:bg-white/60'}`}
+                        />
+                    ))}
+                </div>
+            )}
         </section>
     )
 }

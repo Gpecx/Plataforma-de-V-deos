@@ -1,6 +1,8 @@
 import { Exo } from 'next/font/google'
 import "./globals.css"
 import { ToastNotification } from '@/components/ui/ToastNotification'
+import { BrandingProvider } from '@/context/BrandingContext'
+import { BrandingData, getSettings } from '@/app/admin/settings/actions'
 
 const exo = Exo({
   subsets: ['latin'],
@@ -8,17 +10,29 @@ const exo = Exo({
   variable: '--font-exo'
 })
 
-
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  let branding: BrandingData = {
+    logoUrl: '',
+    siteName: 'SPCS Academy',
+    theme: 'modern',
+    primaryColor: '#00C402',
+  }
+  try {
+    const settings = await getSettings()
+    branding = settings.branding
+  } catch { }
+
   return (
-    <html lang="pt-br" className={exo.variable}>
+    <html lang="pt-br" className={exo.variable} data-theme={branding.theme}>
       <body className="font-exo">
-        <ToastNotification />
-        {children}
+        <BrandingProvider value={branding}>
+          <ToastNotification />
+          {children}
+        </BrandingProvider>
       </body>
     </html>
   )

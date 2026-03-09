@@ -1,7 +1,13 @@
+'use client'
+
 import Link from 'next/link'
 import Logo from '@/components/Logo'
+import { useBranding } from '@/context/BrandingContext'
 
 export default function Footer() {
+    const { siteName } = useBranding()
+    const year = new Date().getFullYear()
+
     return (
         <footer className="relative bg-[#F4F7F9] pt-24 pb-20 overflow-hidden border-t border-slate-100 font-exo">
             <div className="max-w-7xl mx-auto px-8 md:px-12 relative z-10 flex flex-col items-center space-y-12">
@@ -19,7 +25,7 @@ export default function Footer() {
                 {/* Copyright Sutil */}
                 <div className="pt-10 w-full border-t border-slate-200/50 text-center">
                     <p className="text-slate-600 text-[10px] font-bold uppercase tracking-[0.5em]">
-                        © 2024 SPCS Academy - Excelência em Tecnologia
+                        © {year} {siteName} - Excelência em Tecnologia
                     </p>
                 </div>
             </div>
