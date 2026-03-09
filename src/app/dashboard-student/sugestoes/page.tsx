@@ -32,7 +32,7 @@ export default function SugestoesPage() {
                 <div className="bg-white rounded-[48px] shadow-sm border border-slate-100 overflow-hidden">
                     <div className="p-8 md:p-16">
                         <div className="mb-12">
-                            <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tighter text-slate-900 mb-4">
+                            <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-slate-900 mb-6 drop-shadow-sm">
                                 MELHORIAS & <span className="text-[#00C402]">SUGESTÕES</span>
                             </h1>
                             <p className="text-xs md:text-sm font-bold uppercase tracking-widest text-slate-400 leading-relaxed max-w-xl">
@@ -42,17 +42,17 @@ export default function SugestoesPage() {
 
                         {!isSubmitted ? (
                             <form onSubmit={handleSubmit} className="space-y-8">
-                                <div className="space-y-3">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">
+                                <div className="space-y-4">
+                                    <label className="text-xs font-black uppercase tracking-[2px] text-slate-900 ml-1">
                                         Como podemos melhorar sua experiência?
                                     </label>
                                     <textarea
                                         required
-                                        rows={6}
+                                        rows={8}
                                         value={message}
                                         onChange={(e) => setMessage(e.target.value)}
-                                        placeholder="ESCREVA AQUI SUA IDEIA OU SUGESTÃO..."
-                                        className="w-full bg-slate-50 border border-slate-100 text-slate-700 placeholder:text-slate-300 rounded-[32px] p-8 text-sm font-bold uppercase tracking-widest focus:outline-none focus:border-[#00C402] transition-all resize-none min-h-[240px] shadow-inner"
+                                        placeholder="DESCREVA AQUI SUA IDEIA, SUGESTÃO OU FEEDBACK..."
+                                        className="w-full bg-white border-2 border-slate-100 text-slate-900 placeholder:text-slate-300 rounded-[40px] p-10 text-sm font-bold uppercase tracking-widest focus:outline-none focus:border-[#00C402] transition-all resize-none min-h-[300px] shadow-sm hover:border-slate-200"
                                     />
                                 </div>
 

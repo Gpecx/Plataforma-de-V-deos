@@ -19,10 +19,12 @@ import {
 } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import { ClassroomTabs } from './ClassroomTabs'
-import { db } from '@/lib/firebase'
+import { db, auth } from '@/lib/firebase'
+import Logo from '@/components/Logo'
+import { onAuthStateChanged } from 'firebase/auth'
 import { doc, getDoc, collection, query, where, orderBy, getDocs } from 'firebase/firestore'
 
-// Mock Data removido para usar dados reais do banco
+// ... (imports)
 
 export default function ClassroomPage() {
     const params = useParams()
@@ -37,37 +39,50 @@ export default function ClassroomPage() {
     const [isDark, setIsDark] = useState(false)
 
     useEffect(() => {
-        async function loadContent() {
-            setLoading(true)
-            try {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                setLoading(false)
+                return
+            }
+
+            async function loadContent() {
+                setLoading(true)
                 const courseId = params.id as string
 
-                // 1. Busca curso
-                const courseSnap = await getDoc(doc(db, 'courses', courseId))
-                if (courseSnap.exists()) {
-                    setCourse({ id: courseSnap.id, ...courseSnap.data() })
-                }
+                try {
+                    // 1. Busca curso
+                    const courseDoc = await getDoc(doc(db, 'courses', courseId))
+                    if (courseDoc.exists()) {
+                        setCourse({ id: courseDoc.id, ...courseDoc.data() })
+                    }
 
-                // 2. Busca aulas
-                const q = query(
-                    collection(db, 'lessons'),
-                    where('course_id', '==', courseId),
-                    orderBy('position', 'asc')
-                )
-                const lessonsSnap = await getDocs(q)
-                const lessonsData = lessonsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+                    // 2. Busca lições
+                    const lessonsRef = collection(db, 'lessons')
+                    const q = query(
+                        lessonsRef,
+                        where('course_id', '==', courseId),
+                        orderBy('position', 'asc')
+                    )
+                    const lessonsSnapshot = await getDocs(q)
+                    const lessonsData = lessonsSnapshot.docs.map(doc => ({
+                        id: doc.id,
+                        ...doc.data()
+                    }))
 
-                if (lessonsData.length > 0) {
-                    setLessons(lessonsData)
-                    setCurrentLesson(lessonsData[0])
+                    if (lessonsData.length > 0) {
+                        setLessons(lessonsData)
+                        setCurrentLesson(lessonsData[0])
+                    }
+                } catch (error) {
+                    console.error("Erro ao carregar conteúdo:", error)
+                } finally {
+                    setLoading(false)
                 }
-            } catch (error) {
-                console.error("Error loading classroom content:", error)
-            } finally {
-                setLoading(false)
             }
-        }
-        loadContent()
+            loadContent()
+        })
+
+        return () => unsubscribe()
     }, [params.id])
 
     const goToNextLesson = () => {
@@ -115,61 +130,62 @@ export default function ClassroomPage() {
     return (
         <div className={`flex flex-col h-screen overflow-hidden font-exo transition-colors duration-500 ${isDark ? 'bg-[#000000] text-white' : 'bg-[#F4F7F9] text-slate-800'}`}>
             {/* Header Imersivo */}
-            <header className={`h-16 flex items-center justify-between px-6 border-b transition-colors duration-500 z-50 ${isDark ? 'bg-[#0a0a0a] border-white/5 shadow-2xl' : 'bg-white border-slate-100 shadow-sm'}`}>
-                <div className="flex items-center gap-6">
-                    <Link
-                        href="/dashboard-student"
-                        className={`flex items-center gap-3 group transition-all ${isDark ? 'text-slate-500 hover:text-white' : 'text-slate-400 hover:text-slate-900'}`}
-                    >
-                        <div className={`p-1.5 border rounded-lg transition-all ${isDark ? 'bg-white/5 border-white/10 group-hover:bg-[#00C402]/20 group-hover:border-[#00C402]/30' : 'bg-slate-50 border-slate-100 group-hover:bg-[#00C402]/10 group-hover:border-[#00C402]/20'}`}>
-                            <ChevronLeft size={20} className="group-hover:text-[#00C402]" />
-                        </div>
-                        <span className="text-[10px] font-black uppercase tracking-widest hidden md:block">Sair da Sala</span>
-                    </Link>
-                    <div className={`h-6 w-px ${isDark ? 'bg-white/10' : 'bg-slate-100'}`}></div>
-                    <div>
-                        <h1 className={`text-base font-black uppercase tracking-tighter truncate max-w-[150px] md:max-w-md ${isDark ? 'text-white' : 'text-slate-700'}`}>
-                            {currentLesson?.title || 'Carregando...'}
-                        </h1>
-                    </div>
+            <header className={`h-16 flex items-center justify-between px-6 border-b transition-all duration-500 z-50 bg-white/95 backdrop-blur-md border-slate-100 shadow-sm ${isDark ? 'opacity-30 hover:opacity-100' : 'opacity-100'}`}>
+                {/* Lado Esquerdo: Logo */}
+                <div className="flex items-center w-1/4">
+                    <Logo href="/dashboard-student" className="h-12 md:h-14" />
                 </div>
 
-                <div className="flex items-center gap-6">
-                    <button
-                        onClick={() => setIsDark(!isDark)}
-                        className={`group relative p-2.5 rounded-xl transition-all duration-300 border ${isDark
-                            ? 'bg-[#00C402]/20 border-[#00C402]/30 text-[#00C402] shadow-[0_0_15px_rgba(0,196,2,0.2)]'
-                            : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100 hover:text-slate-600'
-                            }`}
-                        title={isDark ? "Apagar as luzes" : "Modo Cinema"}
-                    >
-                        <div className="relative">
-                            {isDark ? (
-                                <Lightbulb size={18} className="fill-[#00C402]/20 animate-pulse" />
-                            ) : (
-                                <Moon size={18} />
-                            )}
-                        </div>
-                    </button>
+                {/* Centro: Título do Curso */}
+                <div className="flex-1 flex justify-center items-center px-4">
+                    <h1 className={`text-sm md:text-base font-bold font-exo tracking-tight text-center line-clamp-1 text-slate-900`}>
+                        {course?.title || 'Carregando...'}
+                    </h1>
+                </div>
 
-                    <div className="hidden lg:flex flex-col items-end">
-                        <div className="flex items-center gap-2 mb-1">
-                            <span className={`text-[9px] font-black uppercase tracking-widest ${isDark ? 'text-slate-500' : 'text-slate-500'}`}>Progresso Final</span>
-                            <span className="text-xs font-black text-[#00C402]">{progressPercent}%</span>
+                {/* Lado Direito: Progresso e Botões */}
+                <div className="flex items-center justify-end gap-6 w-1/4">
+                    <div className="hidden lg:flex items-center gap-3">
+                        <div className="flex flex-col items-end">
+                            <div className="flex items-center gap-2">
+                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Progresso Final</span>
+                                <span className="text-xs font-black text-[#00C402]">{progressPercent}%</span>
+                            </div>
+                            <div className="w-20 h-1 rounded-full overflow-hidden mt-1 bg-slate-100">
+                                <div
+                                    className="h-full bg-[#00C402] transition-all duration-1000 shadow-[0_0_10px_rgba(0,196,2,0.5)]"
+                                    style={{ width: `${progressPercent}%` }}
+                                ></div>
+                            </div>
                         </div>
-                        <div className={`w-32 h-1 rounded-full overflow-hidden ${isDark ? 'bg-white/5' : 'bg-slate-100'}`}>
-                            <div
-                                className="h-full bg-[#00C402] transition-all duration-1000 shadow-[0_0_10px_rgba(0,196,2,0.5)]"
-                                style={{ width: `${progressPercent}%` }}
-                            ></div>
-                        </div>
+                        <div className="h-8 w-px bg-slate-100 mx-1"></div>
                     </div>
-                    <button
-                        onClick={() => setSidebarOpen(!sidebarOpen)}
-                        className="p-2 bg-slate-900 text-white rounded-lg transition-colors hover:bg-slate-800"
-                    >
-                        {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
-                    </button>
+
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setIsDark(!isDark)}
+                            className={`group relative p-2 rounded-xl transition-all duration-300 border ${isDark
+                                ? 'bg-[#00C402]/20 border-[#00C402]/30 text-[#00C402] shadow-[0_0_15px_rgba(0,196,2,0.2)]'
+                                : 'bg-slate-50 border-slate-100 text-slate-400 hover:bg-slate-100 hover:text-slate-600'
+                                }`}
+                            title={isDark ? "Apagar as luzes" : "Modo Cinema"}
+                        >
+                            <div className="relative">
+                                {isDark ? (
+                                    <Lightbulb size={18} className="fill-[#00C402]/20 animate-pulse" />
+                                ) : (
+                                    <Moon size={18} />
+                                )}
+                            </div>
+                        </button>
+
+                        <button
+                            onClick={() => setSidebarOpen(!sidebarOpen)}
+                            className="p-2 bg-slate-900 text-white rounded-lg transition-colors hover:bg-slate-800 flex items-center justify-center"
+                        >
+                            {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+                        </button>
+                    </div>
                 </div>
             </header>
 

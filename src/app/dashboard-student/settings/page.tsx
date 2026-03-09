@@ -1,15 +1,15 @@
 "use client"
 
-import { useState, useEffect } from 'react'
 import { auth } from '@/lib/firebase'
-import { onAuthStateChanged } from 'firebase/auth'
+import { onAuthStateChanged, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth'
 import { useRouter } from 'next/navigation'
-import { updatePassword } from '../actions'
-import { Lock, CreditCard, Trash2, ArrowLeft, Save } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Lock, CreditCard, Trash2, ArrowLeft, Save, Key } from 'lucide-react'
 import Link from 'next/link'
 import DeleteAccountButton from '@/components/DeleteAccountButton'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { useCartStore } from '@/store/useCartStore'
 
 export default function SettingsPage() {
     const router = useRouter()
@@ -18,17 +18,72 @@ export default function SettingsPage() {
     const [pixKey, setPixKey] = useState('')
     const [bank, setBank] = useState('')
 
+    // States para troca de senha
+    const [newPassword, setNewPassword] = useState('')
+    const [confirmPassword, setConfirmPassword] = useState('')
+    const [currentPassword, setCurrentPassword] = useState('')
+    const [isUpdatingPassword, setIsUpdatingPassword] = useState(false)
+    const [needsReauth, setNeedsReauth] = useState(false)
+
+    const showNotification = useCartStore(state => state.showNotification)
+
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-            if (!currentUser) {
-                router.push('/')
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            if (!user) {
+                router.push('/login')
             } else {
-                setUser(currentUser)
+                setUser(user)
                 setLoading(false)
             }
         })
         return () => unsubscribe()
     }, [router])
+
+    const handleUpdatePassword = async (e: React.FormEvent) => {
+        e.preventDefault()
+
+        if (newPassword !== confirmPassword) {
+            showNotification('As senhas não coincidem', 'error')
+            return
+        }
+
+        if (newPassword.length < 6) {
+            showNotification('A senha deve ter pelo menos 6 caracteres', 'error')
+            return
+        }
+
+        setIsUpdatingPassword(true)
+
+        try {
+            if (user) {
+                // Se o usuário precisa se reautenticar (currentPassword preenchida)
+                if (currentPassword) {
+                    const credential = EmailAuthProvider.credential(user.email!, currentPassword)
+                    await reauthenticateWithCredential(user, credential)
+                    setNeedsReauth(false)
+                }
+
+                await updatePassword(user, newPassword)
+                showNotification('Senha atualizada com sucesso!', 'success')
+                setNewPassword('')
+                setConfirmPassword('')
+                setCurrentPassword('')
+            }
+        } catch (error: any) {
+            console.error("Erro ao atualizar senha:", error)
+
+            if (error.code === 'auth/requires-recent-login') {
+                setNeedsReauth(true)
+                showNotification('Para sua segurança, confirme sua senha atual antes de prosseguir.', 'info')
+            } else if (error.code === 'auth/wrong-password') {
+                showNotification('Senha atual incorreta.', 'error')
+            } else {
+                showNotification('Erro ao atualizar senha: ' + (error.message || 'Erro desconhecido'), 'error')
+            }
+        } finally {
+            setIsUpdatingPassword(false)
+        }
+    }
 
     if (loading) {
         return (
@@ -70,31 +125,62 @@ export default function SettingsPage() {
                             </div>
                         </div>
 
-                        <form action={async (formData) => {
-                            const res = await updatePassword(formData)
-                            if (res.success) {
-                                alert('Senha atualizada com sucesso!')
-                            } else {
-                                alert('Erro ao atualizar senha: ' + res.error)
-                            }
-                        }} className="space-y-6">
-                            <div className="max-w-md space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Nova Senha</label>
-                                <Input
-                                    type="password"
-                                    name="password"
-                                    className="bg-slate-50 border-slate-100 focus:border-[#00C402] focus:ring-[#00C402] rounded-xl h-14 text-sm font-medium transition-all"
-                                    placeholder="••••••••"
-                                    required
-                                    minLength={6}
-                                />
+                        <form onSubmit={handleUpdatePassword} className="space-y-6">
+                            {needsReauth && (
+                                <div className="max-w-md space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-[#00C402] px-1 flex items-center gap-2">
+                                        <Key size={12} />
+                                        Senha Atual Necessária
+                                    </label>
+                                    <Input
+                                        type="password"
+                                        value={currentPassword}
+                                        onChange={(e) => setCurrentPassword(e.target.value)}
+                                        className="bg-[#00C402]/5 border-[#00C402]/20 focus:border-[#00C402] focus:ring-[#00C402] rounded-xl h-14 text-sm font-medium transition-all"
+                                        placeholder="Confirme sua senha atual"
+                                        required
+                                    />
+                                </div>
+                            )}
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Nova Senha</label>
+                                    <Input
+                                        type="password"
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        className="bg-slate-50 border-slate-100 focus:border-[#00C402] focus:ring-[#00C402] rounded-xl h-14 text-sm font-medium transition-all"
+                                        placeholder="Mínimo 6 caracteres"
+                                        required
+                                        minLength={6}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Confirmar Senha</label>
+                                    <Input
+                                        type="password"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        className="bg-slate-50 border-slate-100 focus:border-[#00C402] focus:ring-[#00C402] rounded-xl h-14 text-sm font-medium transition-all"
+                                        placeholder="Repita a nova senha"
+                                        required
+                                        minLength={6}
+                                    />
+                                </div>
                             </div>
+
                             <Button
                                 type="submit"
+                                disabled={isUpdatingPassword}
                                 className="bg-slate-900 hover:bg-slate-800 text-white font-black uppercase tracking-[2px] rounded-xl px-10 h-14 shadow-lg shadow-slate-100 transition-all flex items-center justify-center gap-2"
                             >
-                                <Save size={18} />
-                                Atualizar Senha
+                                {isUpdatingPassword ? (
+                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                ) : (
+                                    <Save size={18} />
+                                )}
+                                {needsReauth ? 'Confirmar e Atualizar' : 'Atualizar Senha'}
                             </Button>
                         </form>
                     </section>
@@ -163,3 +249,4 @@ export default function SettingsPage() {
         </div>
     )
 }
+

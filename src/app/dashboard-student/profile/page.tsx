@@ -1,51 +1,25 @@
-"use client"
-
-import { auth, db } from '@/lib/firebase'
-import { onAuthStateChanged } from 'firebase/auth'
-import { doc, getDoc } from 'firebase/firestore'
-import { useRouter } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { adminAuth, adminDb } from '@/lib/firebase-admin'
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 import { ProfileForm } from './ProfileForm'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
-export default function ProfilePage() {
-    const router = useRouter()
-    const [user, setUser] = useState<any>(null)
-    const [profile, setProfile] = useState<any>(null)
-    const [loading, setLoading] = useState(true)
+export default async function ProfilePage() {
+    const cookieStore = cookies()
+    const token = (await cookieStore).get('firebase-token')?.value
 
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-            if (!currentUser) {
-                router.push('/')
-                return
-            }
-            setUser(currentUser)
+    if (!token) redirect('/login')
 
-            try {
-                const profileSnap = await getDoc(doc(db, 'profiles', currentUser.uid))
-                if (profileSnap.exists()) {
-                    setProfile(profileSnap.data())
-                }
-            } catch (error) {
-                console.error("Error fetching profile:", error)
-            } finally {
-                setLoading(false)
-            }
-        })
-        return () => unsubscribe()
-    }, [router])
-
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-screen bg-[#F4F7F9]">
-                <Loader2 className="animate-spin text-[#00C402]" size={48} />
-            </div>
-        )
+    let user;
+    try {
+        user = await adminAuth.verifyIdToken(token)
+    } catch (error) {
+        redirect('/login')
     }
 
-    if (!user) return null
+    const profileDoc = await adminDb.collection('profiles').doc(user.uid).get()
+    const profile = profileDoc.data()
 
     return (
         <div className="min-h-screen bg-[#F5F7FA] font-exo p-8 md:p-12 border-t border-slate-100">
@@ -67,10 +41,7 @@ export default function ProfilePage() {
                 </div>
 
                 <div className="bg-white border border-slate-100 rounded-[32px] p-8 md:p-12 shadow-sm">
-                    <ProfileForm
-                        initialFullName={profile?.full_name || ''}
-                        initialAvatarUrl={profile?.avatar_url}
-                    />
+                    <ProfileForm initialFullName={profile?.full_name || ''} />
                 </div>
             </div>
         </div>

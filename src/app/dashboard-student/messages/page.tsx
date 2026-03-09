@@ -17,7 +17,7 @@ interface Message {
     avatarInitials: string
 }
 
-// Mock data — wire up to Firestore as needed
+// Mock data — wire up to Firebase as needed
 const MOCK_MESSAGES: Message[] = [
     {
         id: '1',

@@ -1,148 +1,120 @@
-import { auth, db } from '@/lib/firebase'
-import { signOut as firebaseSignOut, updatePassword as firebaseUpdatePassword } from 'firebase/auth'
-import { collection, addDoc, doc, updateDoc, setDoc, getDoc } from 'firebase/firestore'
-import { useCartStore } from '@/store/useCartStore'
+'use server'
+import { adminAuth, adminDb } from '@/lib/firebase-admin'
+import { cookies } from 'next/headers'
+import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 
-export async function buyCourse(courseId: string, userId: string) {
-    const user = auth.currentUser
-
-    console.log(`[buyCourse] Iniciando compra. Auth UID: ${user?.uid}, Form UID: ${userId}`)
-
-    if (!user || user.uid !== userId) {
-        throw new Error('Inconsistência de sessão: Usuário não autorizado ou IDs não coincidem.')
-    }
+async function getAuthUser() {
+    const cookieStore = cookies()
+    const token = (await cookieStore).get('firebase-token')?.value
+    if (!token) return null
 
     try {
-        const courseSnap = await getDoc(doc(db, 'courses', courseId))
-        const courseData = courseSnap.data()
+        return await adminAuth.verifyIdToken(token)
+    } catch (error) {
+        return null
+    }
+}
 
-        await addDoc(collection(db, 'enrollments'), {
+export async function buyCourse(courseId: string) {
+    const user = await getAuthUser()
+    if (!user) throw new Error('Não autorizado')
+
+    try {
+        await adminDb.collection('enrollments').add({
             user_id: user.uid,
             course_id: courseId,
-            created_at: new Date().toISOString()
+            created_at: new Date()
         })
 
-        if (courseData) {
-            await addDoc(collection(db, 'sales'), {
-                teacherId: courseData.teacher_id,
-                courseId: courseId,
-                courseName: courseData.title,
-                studentId: user.uid,
-                amount: courseData.price || 0,
-                status: 'confirmed',
-                createdAt: new Date().toISOString()
-            })
-        }
-
+        revalidatePath('/dashboard-student')
         return { success: true }
-    } catch (error: any) {
-        console.error('Erro na compra:', error.message)
+    } catch (error) {
+        console.error('Erro na compra:', error)
         return { success: false }
     }
 }
 
-/**
- * Action para processar o checkout de múltiplos cursos de uma vez
- */
-export async function processCheckoutAction(courseIds: string[], userId: string) {
-    const user = auth.currentUser
-
-    console.log(`[processCheckoutAction] Iniciando checkout. Auth UID: ${user?.uid}, Form UID: ${userId}`)
-
-    if (!user || user.uid !== userId) {
-        return { success: false, error: 'Inconsistência de sessão: Por favor, faça login novamente.' }
-    }
+export async function processCheckoutAction(courseIds: string[]) {
+    const user = await getAuthUser()
+    if (!user) return { success: false, error: 'Não autorizado' }
 
     try {
-        for (const id of courseIds) {
-            const courseSnap = await getDoc(doc(db, 'courses', id))
-            const courseData = courseSnap.data()
-
-            await addDoc(collection(db, 'enrollments'), {
+        const batch = adminDb.batch()
+        courseIds.forEach(id => {
+            const enrollRef = adminDb.collection('enrollments').doc()
+            batch.set(enrollRef, {
                 user_id: user.uid,
                 course_id: id,
-                created_at: new Date().toISOString()
+                created_at: new Date()
             })
+        })
+        await batch.commit()
 
-            if (courseData) {
-                await addDoc(collection(db, 'sales'), {
-                    teacherId: courseData.teacher_id,
-                    courseId: id,
-                    courseName: courseData.title,
-                    studentId: user.uid,
-                    amount: courseData.price || 0,
-                    status: 'confirmed',
-                    createdAt: new Date().toISOString()
-                })
-            }
-        }
+        revalidatePath('/dashboard-student')
         return { success: true }
-    } catch (error: any) {
-        console.error('Erro no checkout:', error.message)
+    } catch (error) {
+        console.error('Erro no checkout:', error)
         return { success: false, error: 'Falha ao registrar matrículas.' }
     }
 }
 
-export async function updateProfile(
-    prevState: { success: boolean; error?: any },
-    formData: FormData
-) {
-    const user = auth.currentUser
-    if (!user) return { success: false, error: 'Não autorizado' }
+export async function updateProfile(prevState: any, formData: FormData) {
+    const user = await getAuthUser()
+    if (!user) throw new Error('Não autorizado')
 
     const fullName = formData.get('fullName') as string
-    const avatarUrl = formData.get('avatarUrl') as string
 
     try {
-        await updateDoc(doc(db, 'profiles', user.uid), {
+        await adminDb.collection('profiles').doc(user.uid).update({
             full_name: fullName,
-            avatar_url: avatarUrl
+            updated_at: new Date()
         })
+
+        revalidatePath('/dashboard-student')
+        revalidatePath('/dashboard-student/profile')
         return { success: true }
-    } catch (error: any) {
-        console.error('Erro ao atualizar perfil:', error.message)
-        return { success: false, error: error.message }
+    } catch (error) {
+        console.error('Erro ao atualizar perfil:', error)
+        return { success: false, error: 'Falha ao atualizar perfil.' }
     }
 }
 
 export async function updatePassword(formData: FormData) {
-    const user = auth.currentUser
-    if (!user) throw new Error('Não autorizado')
+    const user = await getAuthUser()
+    if (!user) return { success: false, error: 'Não autorizado' }
 
     const password = formData.get('password') as string
 
     try {
-        await firebaseUpdatePassword(user, password)
+        await adminAuth.updateUser(user.uid, {
+            password: password
+        })
         return { success: true }
-    } catch (error: any) {
-        console.error('Erro ao atualizar senha:', error.message)
-        return { success: false, error: error.message }
-    }
-}
-
-export async function signOut() {
-    try {
-        await firebaseSignOut(auth)
-        useCartStore.getState().clearCart() // Limpa o carrinho ao sair
-        window.location.href = '/'
     } catch (error) {
-        console.error('Erro ao sair:', error)
+        console.error('Erro ao atualizar senha:', error)
+        return { success: false, error: 'Falha ao atualizar senha.' }
     }
 }
 
 export async function deleteAccount() {
-    const user = auth.currentUser
-    if (!user) throw new Error('Não autorizado')
-
-    try {
-        // Delete the user's profile from Firestore
-        const { deleteDoc } = await import('firebase/firestore')
-        await deleteDoc(doc(db, 'profiles', user.uid))
-        // Delete the Firebase Auth account
-        await user.delete()
-        window.location.href = '/'
-    } catch (error: any) {
-        console.error('Erro ao excluir conta:', error.message)
-        throw error
+    const user = await getAuthUser()
+    if (user) {
+        try {
+            await adminAuth.deleteUser(user.uid)
+            // Também deveria deletar o profile no Firestore se quiser cleanup completo
+            await adminDb.collection('profiles').doc(user.uid).delete()
+        } catch (error) {
+            console.error('Erro ao deletar conta:', error)
+        }
     }
+    const cookieStore = cookies()
+        ; (await cookieStore).delete('firebase-token')
+    redirect('/')
+}
+
+export async function signOut() {
+    const cookieStore = cookies()
+        ; (await cookieStore).delete('firebase-token')
+    redirect('/')
 }

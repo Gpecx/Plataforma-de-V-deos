@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, TrendingUp, Handshake, BarChart3, Volume2, VolumeX } from "lucide-react";
-import { useAuth } from "@/context/AuthProvider";
+import Navbar from "@/components/Navbar"
 
 const backgroundImages = [
     "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=2000",
@@ -13,7 +13,8 @@ const backgroundImages = [
     "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=80&w=2000"
 ];
 
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
+import { onAuthStateChanged } from "firebase/auth";
 import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
 import { Loader2 } from "lucide-react";
 import CourseModal from "@/components/CourseModal";
@@ -24,31 +25,36 @@ export default function WelcomePage() {
     const [isMuted, setIsMuted] = useState(true);
     const [selectedCourse, setSelectedCourse] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const { user, loading: authLoading } = useAuth();
     const videoRef = useRef<HTMLVideoElement>(null);
+
     useEffect(() => {
-        async function fetchTopCourses() {
-            setLoading(true);
-            try {
-                const q = query(
-                    collection(db, 'courses'),
-                    where('status', '==', 'published'),
-                    orderBy('created_at', 'desc'),
-                    limit(8)
-                );
-                const querySnapshot = await getDocs(q);
-                const coursesData = querySnapshot.docs.map(doc => ({
-                    id: doc.id,
-                    ...doc.data()
-                }));
-                setCourses(coursesData);
-            } catch (error) {
-                console.error("Error fetching courses:", error);
-            } finally {
-                setLoading(false);
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+            async function fetchTopCourses() {
+                setLoading(true);
+                try {
+                    const coursesRef = collection(db, 'courses');
+                    const querySnapshot = await getDocs(coursesRef);
+                    const coursesData = querySnapshot.docs.map(doc => {
+                        const data = doc.data();
+                        return {
+                            id: doc.id,
+                            ...data,
+                            // Garantir que o preço seja tratado como número se vier como string ou indefinido
+                            price: Number(data.price) || 0
+                        };
+                    });
+
+                    setCourses(coursesData);
+                } catch (error) {
+                    console.error("Erro ao buscar cursos:", error);
+                } finally {
+                    setLoading(false);
+                }
             }
-        }
-        fetchTopCourses();
+            fetchTopCourses();
+        });
+
+        return () => unsubscribe();
     }, []);
 
     const handleCourseClick = (course: any) => {
@@ -58,33 +64,32 @@ export default function WelcomePage() {
 
     return (
         <div className="min-h-screen bg-white text-slate-800 font-exo relative overflow-hidden">
+            <Navbar />
 
             {/* HERO SECTION */}
             <main className="relative z-10 max-w-7xl mx-auto px-6 pt-32 pb-20 grid lg:grid-cols-2 gap-12 items-center">
                 <div className="space-y-6 animate-in fade-in slide-in-from-left duration-700">
-                    <h1 className="text-3xl md:text-5xl font-black leading-tight tracking-tighter text-slate-800">
+                    <h1 className="text-5xl md:text-7xl font-black leading-[1.1] tracking-tighter text-slate-900">
                         Domine novas habilidades com a <br />
-                        <span className="text-[#00C402]">SPCS Academy</span>.
+                        <span className="from-[#00C402] to-[#1D5F31] bg-gradient-to-r bg-clip-text text-transparent">SPCS Academy</span>.
                     </h1>
                     <p className="text-slate-700 text-base md:text-lg max-w-lg font-bold">
                         Conectamos tecnologia e crescimento profissional em uma experiência de aprendizado moderna e imediata.
                     </p>
 
-                    {!authLoading && !user && (
-                        <div className="flex flex-col sm:flex-row gap-4 pt-2">
-                            <Link href="/login">
-                                <Button size="lg" className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-6 text-sm group font-bold uppercase tracking-widest rounded-xl transition-all shadow-md">
-                                    Conecte-se
-                                    <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
-                                </Button>
-                            </Link>
-                            <Link href="/register">
-                                <Button size="lg" variant="outline" className="border-slate-200 hover:bg-slate-50 text-slate-700 px-8 py-6 text-sm font-bold uppercase tracking-widest rounded-xl transition-all shadow-sm">
-                                    Inscrever-se
-                                </Button>
-                            </Link>
-                        </div>
-                    )}
+                    <div className="flex flex-col sm:flex-row gap-4 pt-2">
+                        <Link href="/login">
+                            <Button size="lg" className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-6 text-sm group font-bold uppercase tracking-widest rounded-lg transition-all shadow-md shadow-inner">
+                                Conecte-se
+                                <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
+                            </Button>
+                        </Link>
+                        <Link href="/register">
+                            <Button size="lg" variant="outline" className="border-slate-200 hover:bg-slate-50 text-slate-700 px-8 py-6 text-sm font-bold uppercase tracking-widest rounded-lg transition-all shadow-sm">
+                                Inscrever-se
+                            </Button>
+                        </Link>
+                    </div>
                 </div>
 
                 <div className="relative group">
@@ -183,13 +188,11 @@ export default function WelcomePage() {
                                 <p className="!text-white text-lg font-bold leading-relaxed max-w-lg">
                                     Trilhas de conhecimento desenhadas por profissionais que lideram grandes projetos de engenharia e tecnologia.
                                 </p>
-                                {!authLoading && !user && (
-                                    <Link href="/register">
-                                        <Button size="lg" className="bg-[#00C402] hover:bg-[#00b302] text-white px-8 py-6 text-sm font-black uppercase tracking-widest rounded-xl transition-all shadow-lg mt-4">
-                                            Começar agora
-                                        </Button>
-                                    </Link>
-                                )}
+                                <Link href="/register">
+                                    <Button size="lg" className="bg-[#00C402] hover:bg-[#00b302] text-white px-8 py-6 text-sm font-black uppercase tracking-widest rounded-xl transition-all shadow-lg mt-4">
+                                        Começar agora
+                                    </Button>
+                                </Link>
                             </div>
                         </div>
                     </div>
@@ -235,13 +238,11 @@ export default function WelcomePage() {
                             <p className="!text-white text-xl font-bold leading-relaxed max-w-2xl mx-auto">
                                 Junte-se a milhares de alunos que já alcançaram cargos de destaque nas maiores empresas do Brasil.
                             </p>
-                            {!authLoading && !user && (
-                                <Link href="/login">
-                                    <Button size="lg" variant="outline" className="border-white/20 hover:bg-white/10 text-white px-10 py-8 text-base font-black uppercase tracking-[3px] rounded-2xl transition-all shadow-2xl backdrop-blur-xl">
-                                        Conecte-se à Comunidade
-                                    </Button>
-                                </Link>
-                            )}
+                            <Link href="/login">
+                                <Button size="lg" variant="outline" className="border-white/20 hover:bg-white/10 text-white px-10 py-8 text-base font-black uppercase tracking-[3px] rounded-2xl transition-all shadow-2xl backdrop-blur-xl">
+                                    Conecte-se à Comunidade
+                                </Button>
+                            </Link>
                         </div>
                     </div>
                 </div>

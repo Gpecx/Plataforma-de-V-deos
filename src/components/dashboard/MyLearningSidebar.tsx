@@ -20,8 +20,8 @@ export function MyLearningSidebar({ recentCourses }: MyLearningSidebarProps) {
     if (!recentCourses || recentCourses.length === 0) return null
 
     return (
-        <aside className="fixed top-32 right-4 w-64 z-40 hidden xl:flex flex-col gap-4 animate-in fade-in slide-in-from-right-4 duration-500">
-            <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-xl shadow-slate-200/50">
+        <aside className="sticky top-4 w-full flex flex-col gap-4 animate-in fade-in slide-in-from-right-4 duration-500">
+            <div className="bg-white rounded-2xl p-6 shadow-sm">
                 <div className="flex items-center justify-between mb-6">
                     <h3 className="text-xs font-black uppercase tracking-[3px] text-slate-800">MEU APRENDIZADO</h3>
                     <TrendingUp size={14} className="text-[#00C402]" />

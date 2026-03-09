@@ -1,49 +1,71 @@
-import { auth, db } from '@/lib/firebase'
-import { collection, addDoc, doc, updateDoc, deleteDoc, getDocs, query, where, writeBatch } from 'firebase/firestore'
+'use server'
+import { adminAuth, adminDb, adminStorage } from '@/lib/firebase-admin'
+import { cookies } from 'next/headers'
+import { revalidatePath } from 'next/cache'
+
+async function getAuthUser() {
+    const cookieStore = cookies()
+    const token = (await cookieStore).get('firebase-token')?.value
+    if (!token) return null
+
+    try {
+        return await adminAuth.verifyIdToken(token)
+    } catch (error) {
+        return null
+    }
+}
 
 /**
  * Action para criar um novo curso
  */
 export async function createCourseAction(formData: any) {
-    const user = auth.currentUser
+    const user = await getAuthUser()
     if (!user) return { error: "Não autorizado" }
 
     try {
-        // 1. Insere o curso
-        const docRef = await addDoc(collection(db, 'courses'), {
+        const courseData = {
             teacher_id: user.uid,
             title: formData.title,
             subtitle: formData.subtitle,
-            description: formData.description,
-            category: formData.category,
-            price: formData.price || 157.0,
+            description: formData.description || '',
+            category: formData.category || '',
+            price: Number(formData.price) || 157.0,
+            duration: Number(formData.duration) || 0,
             status: 'published',
             image_url: formData.image_url || "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=2070",
-            created_at: new Date().toISOString()
-        });
+            created_at: new Date(),
+            updated_at: new Date()
+        }
 
-        const courseId = docRef.id;
+        const courseRef = await adminDb.collection('courses').add(courseData)
+        const courseId = courseRef.id
 
         // 2. Insere as aulas vinculadas a este curso
         if (formData.lessons && formData.lessons.length > 0) {
-            const batch = writeBatch(db);
+            const batch = adminDb.batch()
             formData.lessons.forEach((lesson: any, index: number) => {
-                const lessonRef = doc(collection(db, 'lessons'));
+                const lessonRef = adminDb.collection('lessons').doc()
                 batch.set(lessonRef, {
                     course_id: courseId,
                     title: lesson.title,
                     video_url: lesson.video_url,
                     position: index + 1,
-                    created_at: new Date().toISOString()
-                });
-            });
-            await batch.commit();
+                    created_at: new Date()
+                })
+            })
+            await batch.commit()
         }
 
-        return { success: true, courseId: courseId }
-    } catch (error: any) {
-        console.error('Erro ao criar curso:', error);
-        return { error: error.message }
+        revalidatePath('/dashboard-teacher/courses')
+        revalidatePath('/dashboard-teacher')
+        revalidatePath('/dashboard-student')
+        revalidatePath('/')
+        revalidatePath('/course')
+
+        return { success: true, courseId }
+    } catch (error) {
+        console.error('Erro ao criar curso:', error)
+        return { error: 'Falha ao criar curso.' }
     }
 }
 
@@ -51,26 +73,29 @@ export async function createCourseAction(formData: any) {
  * Action para excluir um curso existente
  */
 export async function deleteCourseAction(courseId: string) {
-    const user = auth.currentUser
+    const user = await getAuthUser()
     if (!user) return { error: "Não autorizado" }
 
     try {
-        // 1. Excluir o curso
-        await deleteDoc(doc(db, 'courses', courseId));
+        const courseRef = adminDb.collection('courses').doc(courseId)
+        const courseDoc = await courseRef.get()
 
-        // 2. Excluir as aulas associadas
-        const q = query(collection(db, 'lessons'), where('course_id', '==', courseId));
-        const lessonsSnap = await getDocs(q);
-        const batch = writeBatch(db);
-        lessonsSnap.docs.forEach(lessonDoc => {
-            batch.delete(lessonDoc.ref);
-        });
-        await batch.commit();
+        if (!courseDoc.exists || courseDoc.data()?.teacher_id !== user.uid) {
+            return { error: 'Não autorizado ou curso não encontrado.' }
+        }
 
+        // Deleta lições associadas
+        const lessonsSnapshot = await adminDb.collection('lessons').where('course_id', '==', courseId).get()
+        const batch = adminDb.batch()
+        lessonsSnapshot.docs.forEach(doc => batch.delete(doc.ref))
+        batch.delete(courseRef)
+        await batch.commit()
+
+        revalidatePath('/dashboard-teacher/courses')
         return { success: true }
-    } catch (error: any) {
-        console.error('Erro ao excluir curso:', error);
-        return { error: error.message }
+    } catch (error) {
+        console.error('Erro ao excluir curso:', error)
+        return { error: 'Falha ao excluir curso.' }
     }
 }
 
@@ -78,67 +103,113 @@ export async function deleteCourseAction(courseId: string) {
  * Action para atualizar um curso e suas aulas
  */
 export async function updateCourseAction(courseId: string, formData: any) {
-    const user = auth.currentUser
+    const user = await getAuthUser()
     if (!user) return { error: "Não autorizado" }
 
     try {
-        // 2. Atualiza os dados básicos do curso
-        const updateData: any = {}
+        const courseRef = adminDb.collection('courses').doc(courseId)
+        const courseDoc = await courseRef.get()
+
+        if (!courseDoc.exists || courseDoc.data()?.teacher_id !== user.uid) {
+            return { error: "Curso não encontrado ou você não tem permissão para editá-lo." }
+        }
+
+        const updateData: any = { updated_at: new Date() }
         if (formData.title !== undefined) updateData.title = formData.title
+        if (formData.price !== undefined && !isNaN(formData.price)) updateData.price = Number(formData.price)
+        if (formData.status !== undefined) updateData.status = formData.status
         if (formData.subtitle !== undefined) updateData.subtitle = formData.subtitle
         if (formData.description !== undefined) updateData.description = formData.description
         if (formData.category !== undefined) updateData.category = formData.category
-        if (formData.price !== undefined && !isNaN(formData.price)) updateData.price = formData.price
-        if (formData.status !== undefined) updateData.status = formData.status
+        if (formData.duration !== undefined) updateData.duration = Number(formData.duration)
         if (formData.image_url !== undefined) updateData.image_url = formData.image_url
-        updateData.updated_at = new Date().toISOString();
 
-        await updateDoc(doc(db, 'courses', courseId), updateData);
+        await courseRef.update(updateData)
 
         // 3. Gerencia as aulas
         const lessons = formData.lessons || []
+        const lessonsRef = adminDb.collection('lessons')
+        const existingLessonsSnapshot = await lessonsRef.where('course_id', '==', courseId).get()
+        const existingIds = existingLessonsSnapshot.docs.map(doc => doc.id)
 
-        // Pega as IDs atuais no banco para saber o que deletar
-        const q = query(collection(db, 'lessons'), where('course_id', '==', courseId));
-        const existingLessonsSnap = await getDocs(q);
-        const existingLessons = existingLessonsSnap.docs.map(doc => ({ id: doc.id, ref: doc.ref }));
+        const incomingIds = lessons.map((l: any) => l.id).filter((id: string) => id && !id.startsWith('new-'))
+        const idsToDelete = existingIds.filter(id => !incomingIds.includes(id))
 
-        const incomingIds = lessons.map((l: any) => l.id).filter((id: any) => id && !String(id).startsWith('new-'))
-        const lessonsToDelete = existingLessons.filter(l => !incomingIds.includes(l.id))
+        const batch = adminDb.batch()
 
-        const batch = writeBatch(db);
-
-        // Deleção
-        lessonsToDelete.forEach(l => {
-            batch.delete(l.ref);
-        });
+        // Deleta as que não vieram
+        idsToDelete.forEach(id => batch.delete(lessonsRef.doc(id)))
 
         // Upsert
         lessons.forEach((lesson: any, index: number) => {
-            const lessonData = {
+            const isNew = !lesson.id || lesson.id.startsWith('new-')
+            const lessonRef = isNew ? lessonsRef.doc() : lessonsRef.doc(lesson.id)
+
+            const payload: any = {
                 course_id: courseId,
                 title: lesson.title,
                 video_url: lesson.video_url,
                 position: index + 1,
-                updated_at: new Date().toISOString()
-            };
-
-            if (lesson.id && !String(lesson.id).startsWith('new-')) {
-                batch.update(doc(db, 'lessons', lesson.id), lessonData);
-            } else {
-                const newLessonRef = doc(collection(db, 'lessons'));
-                batch.set(newLessonRef, {
-                    ...lessonData,
-                    created_at: new Date().toISOString()
-                });
+                updated_at: new Date()
             }
-        });
+            if (isNew) payload.created_at = new Date()
 
-        await batch.commit();
+            batch.set(lessonRef, payload, { merge: true })
+        })
+
+        await batch.commit()
+
+        revalidatePath(`/dashboard-teacher/courses/${courseId}/edit`)
+        revalidatePath(`/classroom/${courseId}`)
+        revalidatePath('/dashboard-teacher/courses')
 
         return { success: true }
-    } catch (error: any) {
-        console.error('Erro ao atualizar curso:', error);
-        return { error: error.message }
+    } catch (error) {
+        console.error('Erro ao atualizar curso:', error)
+        return { error: 'Falha ao atualizar curso.' }
+    }
+}
+
+/**
+ * Action para remover vídeo fisicamente do Storage e limpar referência no Firestore
+ */
+export async function deleteVideoAction(id: string, collectionName: 'courses' | 'lessons', videoUrl: string) {
+    const user = await getAuthUser()
+    if (!user) return { error: "Não autorizado" }
+
+    try {
+        // 1. Extrai o path do arquivo no Storage a partir da URL
+        // Ex: .../o/courses%2Fabc%2Fvideo.mp4?alt=media... -> courses/abc/video.mp4
+        const baseUrl = "https://firebasestorage.googleapis.com/v0/b/";
+        const decodedUrl = decodeURIComponent(videoUrl);
+
+        // Tenta encontrar a parte entre /o/ e o primeiro ?
+        const parts = decodedUrl.split('/o/');
+        if (parts.length < 2) return { error: "URL de vídeo inválida para remoção." };
+
+        const filePath = parts[1].split('?')[0];
+
+        // 2. Deleta do Storage via Admin SDK
+        const bucket = adminStorage.bucket();
+        const file = bucket.file(filePath);
+
+        const [exists] = await file.exists();
+        if (exists) {
+            await file.delete();
+            console.log(`Arquivo removido do Storage: ${filePath}`);
+        }
+
+        // 3. Limpa a referência no Firestore
+        await adminDb.collection(collectionName).doc(id).update({
+            video_url: "",
+            updated_at: new Date()
+        });
+
+        revalidatePath('/dashboard-teacher/courses');
+
+        return { success: true };
+    } catch (error) {
+        console.error('Erro ao remover vídeo:', error);
+        return { error: 'Falha ao processar remoção física do vídeo.' };
     }
 }

@@ -4,11 +4,15 @@ service cloud.firestore {
     // Funções auxiliares
     function isSignedIn() { return request.auth != null; }
     function isOwner(uid) { return request.auth.uid == uid; }
+    
+    // Função robusta para pegar o papel do usuário
     function getUserRole() {
-      return get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role;
+      let profile = get(/databases/$(database)/documents/profiles/$(request.auth.uid));
+      return profile != null ? profile.data.role : 'student';
     }
+
     function isTeacherOrAdmin() {
-      return getUserRole() in ['teacher', 'admin'];
+      return isSignedIn() && getUserRole() in ['teacher', 'admin'];
     }
 
     // Profiles: cada usuário lê/edita apenas o próprio
@@ -16,47 +20,42 @@ service cloud.firestore {
       allow read, write: if isSignedIn() && isOwner(userId);
     }
 
-    // Courses: qualquer um lê publicados; teacher cria/edita os seus
+    // Courses: qualquer um lê; teacher cria/edita os seus
     match /courses/{courseId} {
-      allow read: if resource.data.status == 'published' || (isSignedIn() && isTeacherOrAdmin());
-      allow write, create, delete: if isSignedIn() && isTeacherOrAdmin();
+      allow read: if true; // Permitir leitura para que o checkout encontre os dados do curso
+      allow write: if isSignedIn() && isTeacherOrAdmin();
     }
 
     // Lessons: qualquer um lê; teacher escreve
     match /lessons/{lessonId} {
       allow read: if true;
-      allow write, create, delete: if isSignedIn() && isTeacherOrAdmin();
+      allow write: if isSignedIn() && isTeacherOrAdmin();
     }
 
-    // Enrollments: aluno lê as suas, teacher lê as dos seus cursos
+    // Enrollments: aluno lê as suas, permite criação pelo aluno
     match /enrollments/{enrollmentId} {
       allow read: if isSignedIn() && (
         resource.data.user_id == request.auth.uid || isTeacherOrAdmin()
       );
       allow create: if isSignedIn() && request.resource.data.user_id == request.auth.uid;
-      allow write: if isSignedIn() && (
-        resource.data.user_id == request.auth.uid || isTeacherOrAdmin()
-      );
-      allow delete: if isSignedIn() && (
-        resource.data.user_id == request.auth.uid || isTeacherOrAdmin()
-      );
+      allow update, delete: if isSignedIn() && isTeacherOrAdmin();
     }
 
-    // Sales: Aluno lê as suas, teacher/admin lê todas as de seus cursos
+    // Sales: Aluno lê as suas, permite criação pelo aluno
     match /sales/{saleId} {
       allow read: if isSignedIn() && (
         resource.data.studentId == request.auth.uid || isTeacherOrAdmin()
       );
       allow create: if isSignedIn() && request.resource.data.studentId == request.auth.uid;
-      allow update, delete: if false; // Vendas são registros permanentes
+      allow update, delete: if false; // Vendas são permanentes
     }
 
-    // Notifications: Apenas leitura e atualização do campo 'read' pelo professor dono
+    // Notifications: Apenas leitura e atualização pelo professor
     match /notifications/{notificationId} {
       allow read: if isSignedIn() && resource.data.teacherId == request.auth.uid;
       allow update: if isSignedIn() && resource.data.teacherId == request.auth.uid 
                     && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
-      allow create, delete: if false; // Bloqueado no Client, permitido apenas via Cloud Functions/Admin
+      allow create, delete: if false;
     }
   }
 }

@@ -1,43 +1,21 @@
 "use client"
 
 import { useCartStore, CartItem } from '@/store/useCartStore'
-import { ShoppingCart, Check } from 'lucide-react'
-import { useState, useEffect } from 'react'
-import { useAuth } from '@/context/AuthProvider'
-import { db } from '@/lib/firebase'
-import { collection, query, where, getDocs } from 'firebase/firestore'
+import { ShoppingCart, Check, PlayCircle } from 'lucide-react'
+import { useState } from 'react'
+import Link from 'next/link'
 
 interface AddToCartButtonProps {
     course: CartItem
+    purchasedCourseIds?: string[]
 }
 
-export function AddToCartButton({ course }: AddToCartButtonProps) {
+export function AddToCartButton({ course, purchasedCourseIds = [] }: AddToCartButtonProps) {
     const { addItem, items } = useCartStore()
     const [isAdded, setIsAdded] = useState(false)
-    const [isEnrolled, setIsEnrolled] = useState(false)
-    const { user } = useAuth()
 
+    const isPurchased = purchasedCourseIds.includes(course.id)
     const isInCart = items.some(item => item.id === course.id)
-
-    useEffect(() => {
-        async function checkEnrollment() {
-            if (user && course.id) {
-                try {
-                    const q = query(collection(db, 'enrollments'),
-                        where('user_id', '==', user.uid),
-                        where('course_id', '==', course.id)
-                    )
-                    const snap = await getDocs(q)
-                    setIsEnrolled(!snap.empty)
-                } catch (error) {
-                    console.error("Error checking enrollment in AddToCart:", error)
-                }
-            } else {
-                setIsEnrolled(false)
-            }
-        }
-        checkEnrollment()
-    }, [user, course.id])
 
     const handleAdd = () => {
         addItem(course)
@@ -45,15 +23,16 @@ export function AddToCartButton({ course }: AddToCartButtonProps) {
         setTimeout(() => setIsAdded(false), 2000)
     }
 
-    if (isEnrolled) {
+    if (isPurchased) {
         return (
-            <button
-                disabled
-                className="w-full font-black uppercase text-[10px] tracking-[2px] py-3 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 group bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed"
-            >
-                <Check size={14} strokeWidth={3} />
-                Treinamento Adquirido
-            </button>
+            <Link href={`/classroom/${course.id}`} className="w-full h-full block">
+                <button
+                    className="w-full bg-slate-900 text-white font-black uppercase text-[10px] tracking-[2px] py-3 rounded-xl hover:bg-slate-800 transition-all shadow-lg flex items-center justify-center gap-2 group"
+                >
+                    <PlayCircle size={14} className="group-hover:scale-110 transition-transform" />
+                    Acessar Curso
+                </button>
+            </Link>
         )
     }
 
@@ -85,3 +64,4 @@ export function AddToCartButton({ course }: AddToCartButtonProps) {
         </button>
     )
 }
+

@@ -1,50 +1,46 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
-// Mapeamento de rotas protegidas pelo papel (role)
-const protectedRoutes = {
-    '/dashboard-student': 'student' as const,
-    '/dashboard-teacher': 'teacher' as const,
-    // Add other roles and routes here if needed, like admin
-}
+// Rotas que exigem que o usuário esteja autenticado
+const PROTECTED_ROUTES = [
+    '/dashboard-student',
+    '/dashboard-teacher',
+    '/classroom',
+    '/cart',
+    '/payouts',
+]
 
 export function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl
 
-    // 1. Identificar se a rota atual é protegida
-    const isProtectedRoute = Object.keys(protectedRoutes).some(route => pathname.startsWith(route))
+    const isProtectedRoute = PROTECTED_ROUTES.some((route) =>
+        pathname.startsWith(route)
+    )
 
     if (!isProtectedRoute) {
         return NextResponse.next()
     }
 
-    // 2. Verificar se o usuário está autenticado
-    // O Firebase Auth usa cookies ou tokens no header. O middleware do Next.js edge-runtime não consegue 
-    // ler o estado do Firebase Auth Client diretamente. Precisamos verificar a presença de um cookie de sessão
-    // ou redirecionar e deixar o layout/páginas lidarem com a autorização baseada em onAuthStateChanged.
-    // 
-    // Como estamos no meio da migração e a autorização baseada em tokens pode não estar totalmente configurada,
-    // vamos garantir que as páginas cliente tenham a proteção principal, 
-    // mas também podemos adicionar um redirecionamento simples se soubermos que não há cookie.
-    // 
-    // Para uma implementação mais robusta usando firebase-admin ou service workers, ver a documentação do Firebase.
-    // 
-    // A abordagem mais segura agora é confiar no AuthProvider no lado do cliente para o redirecionamento preciso 
-    // com base no perfil (role) real lido do Firestore.
+    // Para rotas protegidas: verifica apenas a existência do cookie no Edge Runtime
+    const token = request.cookies.get('firebase-token')?.value
 
-    // No entanto, podemos fazer uma verificação de primeira linha. Se o Firebase tiver criado um cookie (opcional na sua config):
-    // const authCookie = request.cookies.get('__session')
-    // if (!authCookie) {
-    //     return NextResponse.redirect(new URL('/login', request.url))
-    // }
+    if (!token) {
+        const loginUrl = new URL('/login', request.url)
+        loginUrl.searchParams.set('redirectTo', pathname)
+        return NextResponse.redirect(loginUrl)
+    }
 
-    // Deixaremos o Next.js continuar e a proteção final com base na Rule e no AuthProvider cuidará disso.
-    // Mas para o escopo inicial pedido (middleware de rota), vamos configurar um placeholder que você pode expandir
-    // futuramente com cookies de sessão do Firebase.
-
+    // A validação de token e role será feita via Server Components (getServerSession)
+    // nos layouts/páginas, pois o middleware roda no Edge Runtime e não suporta firebase-admin.
     return NextResponse.next()
 }
 
 export const config = {
-    matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+    matcher: [
+        "/dashboard-student/:path*",
+        "/dashboard-teacher/:path*",
+        "/classroom/:path*",
+        "/payouts/:path*",
+        "/cart/:path*",
+    ],
 }
+

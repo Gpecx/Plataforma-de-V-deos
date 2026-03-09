@@ -1,12 +1,8 @@
-"use client"
-
-import { use, useState, useEffect } from "react"
 import { notFound } from "next/navigation"
 import Link from "next/link"
 import { BuyButton } from "@/components/BuyButton"
 import Navbar from "@/components/Navbar"
-import { db } from "@/lib/firebase";
-import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { MotivationalBanner } from "@/components/MotivationalBanner"
 import {
     CheckCircle2,
     PlayCircle,
@@ -14,66 +10,80 @@ import {
     Star,
     Users,
     ShieldCheck,
+    ChevronDown,
     ArrowLeft,
-    Loader2
 } from "lucide-react"
+import { db } from "@/lib/firebase"
+import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore"
+import { cookies } from "next/headers"
+import { parseFirebaseDate } from '@/lib/date-utils'
+import { adminAuth, adminDb } from "@/lib/firebase-admin"
 
-export default function CourseDetailPage({ params }: { params: Promise<{ slug: string }> }) {
-    const { slug } = use(params)
-    const [course, setCourse] = useState<any>(null)
-    const [lessons, setLessons] = useState<any[]>([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState(false)
+export default async function CourseDetailPage({ params }: { params: { slug: string } }) {
+    const { slug } = await params
 
-    useEffect(() => {
-        async function fetchData() {
-            setLoading(true)
-            try {
-                // 1. Busca o curso por ID
-                const courseSnap = await getDoc(doc(db, 'courses', slug));
+    // 0. Verifica se o usuário está logado e já possui o curso
+    let purchasedCourseIds: string[] = []
+    const cookieStore = cookies()
+    const token = (await cookieStore).get('firebase-token')?.value
 
-                if (!courseSnap.exists()) {
-                    setError(true)
-                    setLoading(false)
-                    return
-                }
+    if (token) {
+        try {
+            const decodedToken = await adminAuth.verifyIdToken(token)
+            const enrollmentSnap = await adminDb.collection('enrollments')
+                .where('user_id', '==', decodedToken.uid)
+                .where('course_id', '==', slug)
+                .get()
 
-                const courseData = { id: courseSnap.id, ...courseSnap.data() as any };
-                setCourse(courseData)
-
-                // 2. Busca as aulas
-                const lessonsSnap = await getDocs(
-                    query(
-                        collection(db, 'lessons'),
-                        where('course_id', '==', slug)
-                    )
-                );
-
-                const lessonsData = lessonsSnap.docs
-                    .map(doc => ({ id: doc.id, ...doc.data() as any }))
-                    .sort((a, b) => (a.position || 0) - (b.position || 0));
-
-                setLessons(lessonsData)
-            } catch (err) {
-                console.error("Error fetching course details:", err)
-                setError(true)
-            } finally {
-                setLoading(false)
+            if (!enrollmentSnap.empty) {
+                purchasedCourseIds = [slug]
             }
+        } catch (error) {
+            console.error("Erro ao verificar matrícula no marketing:", error)
         }
-
-        fetchData()
-    }, [slug])
-
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-white flex items-center justify-center">
-                <Loader2 className="animate-spin text-[#00C402]" size={48} />
-            </div>
-        )
     }
 
-    if (error || !course) return notFound();
+    // 1. Busca o curso por ID no Firestore
+    let course: any = null
+    try {
+        const courseRef = doc(db, 'courses', slug)
+        const courseSnap = await getDoc(courseRef)
+
+
+        if (courseSnap.exists()) {
+            const data = courseSnap.data()
+            course = {
+                id: courseSnap.id,
+                ...data,
+                // Garantir que datas sejam serializáveis se existirem
+                created_at: parseFirebaseDate(data.created_at)?.toISOString() || data.created_at,
+                updated_at: parseFirebaseDate(data.updated_at)?.toISOString() || data.updated_at
+            }
+        }
+    } catch (error) {
+        console.error("Erro ao buscar curso (Client SDK):", error)
+    }
+
+    if (!course) return notFound()
+
+    // 2. Busca as lições do curso
+    let lessons: any[] = []
+    try {
+        const lessonsRef = collection(db, 'lessons')
+        const q = query(lessonsRef, where('course_id', '==', slug))
+        const lessonsSnap = await getDocs(q)
+
+        lessons = lessonsSnap.docs.map(d => {
+            const lData = d.data()
+            return {
+                id: d.id,
+                ...lData,
+                created_at: parseFirebaseDate(lData.created_at)?.toISOString() || lData.created_at
+            } as any
+        }).sort((a: any, b: any) => (a.position || 0) - (b.position || 0))
+    } catch (error) {
+        console.error("Erro ao buscar lições (Client SDK):", error)
+    }
 
     const curriculum = [
         {
@@ -83,14 +93,16 @@ export default function CourseDetailPage({ params }: { params: Promise<{ slug: s
     ]
 
     const totalLessons = lessons?.length || 0
-    const coursePrice = typeof course.price === 'number' ? course.price : parseFloat(course.price || "0")
+    // Adicionando fallback para evitar erro de toFixed se o curso/preço não existir corretamente
+    const rawPrice = course?.price ?? 157
+    const coursePrice = typeof rawPrice === 'number' ? rawPrice : parseFloat(rawPrice)
 
     return (
-        <div className="min-h-screen bg-white text-slate-800 font-exo">
-            {/* O Navbar agora é provido pelo (marketing)/layout.tsx */}
+        <div className="min-h-screen bg-[#F4F7F9] text-slate-800 font-exo">
+            <Navbar />
 
             {/* HERO & VIDEO SECTION */}
-            <section className="relative pt-12 pb-20 overflow-hidden">
+            <section className="relative pt-32 pb-20 overflow-hidden">
                 <div className="max-w-7xl mx-auto px-6 md:px-12 w-full grid lg:grid-cols-5 gap-16 items-start">
 
                     {/* Left: Video & Info */}
@@ -146,27 +158,45 @@ export default function CourseDetailPage({ params }: { params: Promise<{ slug: s
                     </div>
 
                     {/* Right: Pricing & Benefits */}
-                    <div className="lg:col-span-2 space-y-8 sticky top-32">
-                        <div className="bg-white border border-slate-100 rounded-[40px] p-10 space-y-8 shadow-sm">
-                            <div className="space-y-2 text-center pb-6 border-b border-slate-50">
-                                <p className="text-[10px] text-slate-400 uppercase tracking-[4px] font-black">Investimento Único</p>
+                    <div className="lg:col-span-2 space-y-6 sticky top-32">
+                        <div className="bg-white border border-slate-100 rounded-[32px] p-8 space-y-6 shadow-xl shadow-slate-200/30">
+                            <div className="space-y-1 text-center pb-4 border-b border-slate-50">
+                                <p className="text-[9px] text-slate-400 uppercase tracking-[4px] font-black">Investimento único</p>
                                 <div className="flex items-baseline justify-center gap-1">
-                                    <span className="text-2xl font-bold text-slate-900 tracking-tighter">R$</span>
-                                    <span className="text-7xl font-black text-slate-900 tracking-tighter leading-none">
+                                    <span className="text-xl font-bold text-slate-900 tracking-tighter">R$</span>
+                                    <span className="text-5xl font-black text-slate-900 tracking-tighter leading-none">
                                         {coursePrice.toFixed(0)}
                                     </span>
-                                    <span className="text-2xl font-bold text-slate-400">,00</span>
+                                    <span className="text-xl font-bold text-slate-400">,00</span>
                                 </div>
-                                <p className="text-[#00C402] text-[10px] font-black uppercase tracking-widest mt-2">Acesso Vitalício Imediato</p>
+                                <p className="text-[#00C402] text-[8px] font-black uppercase tracking-widest mt-1">Acesso vitalício imediato</p>
                             </div>
 
-                            <div className="space-y-4">
-                                <BuyButton course={course} label="Adicionar ao Carrinho" className="w-full py-8 text-sm tracking-[4px] uppercase font-black rounded-2xl bg-[#00C402] hover:bg-[#00C402]/90 shadow-2xl shadow-[#00C402]/20" />
+                            <div className="space-y-3">
+                                <BuyButton
+                                    course={course}
+                                    label="Matricular-se Agora"
+                                    className="w-full py-5 text-[11px] tracking-[3px] uppercase font-black rounded-xl bg-[#00C402] hover:bg-[#00C402]/90 shadow-lg shadow-[#00C402]/10"
+                                    purchasedCourseIds={purchasedCourseIds}
+                                />
 
-                                <div className="flex items-center justify-center gap-3 text-slate-400 text-[10px] font-bold uppercase tracking-widest pt-2">
-                                    <ShieldCheck size={16} className="text-[#00C402]" />
-                                    <span>Garantia de 7 Dias SPCS Shield</span>
+                                <div className="flex items-center justify-center gap-2 text-slate-400 text-[8px] font-bold uppercase tracking-widest">
+                                    <ShieldCheck size={14} className="text-[#00C402]" />
+                                    <span>Garantia de 7 Dias</span>
                                 </div>
+                            </div>
+
+                            <div className="space-y-3 border-t border-slate-50 pt-6">
+                                {[
+                                    { icon: <Clock size={16} />, text: `${course.duration || 24} Horas de Conteúdo` },
+                                    { icon: <PlayCircle size={16} />, text: `${totalLessons} Aulas Práticas` },
+                                    { icon: <CheckCircle2 size={16} />, text: "Material Complementar" },
+                                ].map((item, i) => (
+                                    <div key={i} className="flex items-center gap-3 text-slate-500 font-bold text-[10px] uppercase tracking-wider">
+                                        <div className="text-[#00C402]">{item.icon}</div>
+                                        {item.text}
+                                    </div>
+                                ))}
                             </div>
                         </div>
                     </div>
@@ -233,7 +263,7 @@ export default function CourseDetailPage({ params }: { params: Promise<{ slug: s
                 </div>
 
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {(course.highlights || [
+                    {(Array.isArray(course?.highlights) ? course.highlights : [
                         "Fundamentos e conceitos essenciais",
                         "Práticas e exercícios reais",
                         "Domínio completo da ferramenta",
@@ -254,21 +284,8 @@ export default function CourseDetailPage({ params }: { params: Promise<{ slug: s
                 </div>
             </section>
 
-            {/* CTA FINAL */}
-            <section className="pb-32 px-6">
-                <div className="max-w-4xl mx-auto text-center bg-white border border-slate-100 rounded-[40px] p-16 shadow-sm space-y-8 relative overflow-hidden group">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-[#00C402]/5 blur-[100px] -mr-32 -mt-32"></div>
-                    <h3 className="text-3xl md:text-6xl font-black text-slate-900 tracking-tighter uppercase leading-[0.9] relative z-10">
-                        Comece sua <span className="text-[#00C402]">transformação</span> agora
-                    </h3>
-                    <p className="text-slate-500 text-lg font-medium max-w-xl mx-auto relative z-10 font-exo">
-                        Invista no seu futuro profissional com acesso imediato à maior plataforma de treinamentos estratégicos.
-                    </p>
-                    <div className="flex justify-center relative z-10">
-                        <BuyButton course={course} label="Inscreva-se" className="bg-[#00C402] hover:brightness-110 text-white h-14 px-12 text-sm tracking-[2px] uppercase font-black rounded-2xl" />
-                    </div>
-                </div>
-            </section>
+            {/* MOTIVATIONAL BANNER */}
+            <MotivationalBanner />
         </div>
     )
 }

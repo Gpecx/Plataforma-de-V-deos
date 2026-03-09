@@ -1,115 +1,104 @@
-"use client"
-
-import { auth, db } from '@/lib/firebase'
-import { onAuthStateChanged } from 'firebase/auth'
-import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore'
-import { formatShortDateBR } from '@/lib/date-utils'
-import { useRouter } from 'next/navigation'
-import { useState, useEffect } from 'react'
-import { Search, MessageSquare, ArrowUpDown, Loader2 } from 'lucide-react'
+import { adminAuth, adminDb } from '@/lib/firebase-admin'
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
+import { Search, MessageSquare, ArrowUpDown } from 'lucide-react'
 import Link from 'next/link'
+import { parseFirebaseDate } from '@/lib/date-utils'
 
-export default function StudentsPage() {
-    const router = useRouter()
-    const [user, setUser] = useState<any>(null)
-    const [studentsData, setStudentsData] = useState<any[]>([])
-    const [loading, setLoading] = useState(true)
-    const [searchTerm, setSearchTerm] = useState("")
+export default async function StudentsPage() {
+    const cookieStore = cookies()
+    const token = (await cookieStore).get('firebase-token')?.value
+    if (!token) redirect('/login')
 
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-            if (!currentUser) {
-                router.push('/')
-                return
-            }
-            setUser(currentUser)
-
-            try {
-                // 1. Buscamos os IDs dos cursos vinculados ao professor
-                const coursesRef = collection(db, 'courses')
-                const qCourses = query(coursesRef, where('teacher_id', '==', currentUser.uid))
-                const coursesSnap = await getDocs(qCourses)
-                const courseIds = coursesSnap.docs.map(doc => doc.id)
-
-                if (courseIds.length > 0) {
-                    // 2. Buscamos as matrículas filtrando por esses IDs de curso
-                    // Nota: Firestore 'in' limit é 10/30. Se o professor tiver muitos cursos, 
-                    // poderíamos precisar de múltiplas queries ou filtrar em memória se o volume for baixo.
-                    // Para simplificar, buscamos todas as matrículas e filtramos em memória.
-                    const enrollmentsSnap = await getDocs(collection(db, 'enrollments'))
-                    const allEnrollments = enrollmentsSnap.docs
-                        .map(doc => ({ id: doc.id, ...doc.data() as any }))
-                        .filter(e => courseIds.includes(e.course_id))
-
-                    // Agregamos por aluno para evitar duplicatas e buscamos perfis
-                    const studentMap = new Map<string, any>()
-                    const uniqueUserIds = Array.from(new Set(allEnrollments.map(e => e.user_id)))
-
-                    // Buscamos os perfis necessários individualmente para evitar que um erro impeça a lista toda
-                    const profilesMap = new Map<string, any>()
-                    await Promise.all(uniqueUserIds.map(async (uid) => {
-                        try {
-                            const profileSnap = await getDoc(doc(db, 'profiles', uid))
-                            if (profileSnap.exists()) {
-                                profilesMap.set(uid, profileSnap.data())
-                            }
-                        } catch (err) {
-                            console.error(`Erro ao buscar perfil do aluno ${uid}:`, err)
-                        }
-                    }))
-
-                    allEnrollments.forEach((e: any) => {
-                        const userId = e.user_id
-                        const profileData = profilesMap.get(userId)
-                        const existing = studentMap.get(userId)
-
-                        if (existing) {
-                            existing.courseCount++
-                        } else {
-                            studentMap.set(userId, {
-                                id: userId,
-                                profiles: {
-                                    full_name: profileData?.full_name || 'Aluno sem Perfil',
-                                    email: profileData?.email || 'N/A'
-                                },
-                                joinedAt: e.created_at,
-                                courseCount: 1
-                            })
-                        }
-                    })
-
-                    const data = Array.from(studentMap.values()).sort((a, b) =>
-                        (a.profiles?.full_name || '').localeCompare(b.profiles?.full_name || '')
-                    )
-                    setStudentsData(data)
-                } else {
-                    // Se não tem cursos, a lista é vazia
-                    setStudentsData([])
-                }
-            } catch (error) {
-                console.error("Error loading students data:", error)
-                setStudentsData([])
-            } finally {
-                setLoading(false)
-            }
-        })
-        return () => unsubscribe()
-    }, [router])
-
-    const filteredStudents = studentsData.filter(student =>
-        student.profiles?.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        student.profiles?.email?.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-
-    if (loading) {
-        return (
-            <div className="flex h-screen items-center justify-center bg-[#F4F7F9]">
-                <Loader2 className="animate-spin text-[#00C402]" size={48} />
-            </div>
-        )
+    let decodedToken
+    try {
+        decodedToken = await adminAuth.verifyIdToken(token)
+    } catch (error) {
+        redirect('/login')
     }
 
-    if (!user) return null
+    const teacherId = decodedToken.uid
+
+    // 1. Buscamos os cursos deste professor
+    const coursesSnapshot = await adminDb.collection('courses')
+        .where('teacher_id', '==', teacherId)
+        .get()
+
+    const courseIds = coursesSnapshot.docs.map(doc => doc.id)
+
+    if (courseIds.length === 0) {
+        return <NoStudents />
+    }
+
+    // 2. Buscamos as matrículas para esses cursos (em chunks de 10 porque Firestore 'in' limita a 10)
+    const courseChunks = []
+    for (let i = 0; i < courseIds.length; i += 10) {
+        courseChunks.push(courseIds.slice(i, i + 10))
+    }
+
+    const enrollmentPromises = courseChunks.map(chunk =>
+        adminDb.collection('enrollments')
+            .where('course_id', 'in', chunk)
+            .get()
+    )
+
+    const enrollmentSnapshots = await Promise.all(enrollmentPromises)
+    const enrollments = enrollmentSnapshots.flatMap(snap =>
+        snap.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }))
+    ).sort((a: any, b: any) => {
+        const dateA = parseFirebaseDate(a.created_at)?.getTime() || 0
+        const dateB = parseFirebaseDate(b.created_at)?.getTime() || 0
+        return (dateB as any) - (dateA as any)
+    })
+
+    // 3. Extraímos os user_ids únicos (removendo nulos/indefinidos)
+    const userIds = Array.from(new Set(enrollments.map((e: any) => e.user_id).filter(id => !!id)))
+
+    // 4. Buscamos perfis (em chunks de 10 porque Firestore 'in' limita a 10)
+    let profiles: any[] = []
+    if (userIds.length > 0) {
+        // Para simplificar agora, assumimos menos de 10 ou fazemos um loop
+        const userChunks = []
+        for (let i = 0; i < userIds.length; i += 10) {
+            userChunks.push(userIds.slice(i, i + 10))
+        }
+
+        const profilePromises = userChunks.map(chunk =>
+            adminDb.collection('profiles').where('__name__', 'in', chunk).get()
+        )
+        const profileSnapshots = await Promise.all(profilePromises)
+        profiles = profileSnapshots.flatMap(snap => snap.docs.map(doc => ({ id: doc.id, ...doc.data() })))
+    }
+
+    const profileMap = new Map(profiles.map(p => [p.id, p]))
+
+    const studentMap = new Map<string, any>()
+    enrollments.forEach((e: any) => {
+        const userId = e.user_id
+        const profileData = profileMap.get(userId)
+
+        const existing = studentMap.get(userId)
+        if (existing) {
+            existing.courseCount++
+        } else {
+            studentMap.set(userId, {
+                id: userId,
+                profiles: {
+                    full_name: profileData?.full_name || 'Aluno Sem Perfil',
+                    email: profileData?.email || 'N/A'
+                },
+                joinedAt: parseFirebaseDate(e.created_at),
+                courseCount: 1
+            })
+        }
+    })
+
+    const studentsData = Array.from(studentMap.values()).sort((a, b) =>
+        (a.profiles?.full_name || '').localeCompare(b.profiles?.full_name || '')
+    )
 
     return (
         <div className="p-8 md:p-12 space-y-12 bg-[#F4F7F9] min-h-screen text-slate-800 border-t border-slate-100 font-exo">
@@ -125,8 +114,6 @@ export default function StudentsPage() {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
                         <input
                             placeholder="Buscar aluno..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
                             className="bg-slate-50 border border-slate-100 rounded-xl px-10 py-2.5 text-xs text-slate-700 focus:border-[#00C402] outline-none transition-all w-64 font-bold uppercase tracking-widest placeholder:text-slate-400"
                         />
                     </div>
@@ -146,8 +133,8 @@ export default function StudentsPage() {
                             </tr>
                         </thead>
                         <tbody className="text-sm">
-                            {filteredStudents.length > 0 ? (
-                                filteredStudents.map((student) => (
+                            {studentsData.length > 0 ? (
+                                studentsData.map((student) => (
                                     <tr key={student.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-all group">
                                         <td className="py-5 px-4">
                                             <div className="flex items-center gap-4">
@@ -164,7 +151,7 @@ export default function StudentsPage() {
                                             </span>
                                         </td>
                                         <td className="py-5 px-4 text-[10px] text-slate-400 uppercase font-bold tracking-tight">
-                                            {formatShortDateBR(student.joinedAt)}
+                                            {student.joinedAt ? new Date(student.joinedAt).toLocaleDateString('pt-BR') : '---'}
                                         </td>
                                         <td className="py-5 px-4 text-right">
                                             <Link href={`/dashboard-teacher/chat?userId=${student.id}`}>
@@ -185,6 +172,26 @@ export default function StudentsPage() {
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </div>
+    )
+}
+
+function NoStudents() {
+    return (
+        <div className="p-8 md:p-12 space-y-12 bg-[#F4F7F9] min-h-screen text-slate-800 border-t border-slate-100 font-exo">
+            <header>
+                <h1 className="text-2xl font-black tracking-tighter text-slate-800 uppercase">
+                    GESTÃO DE <span className="text-[#00C402]">ALUNOS</span>
+                </h1>
+            </header>
+            <div className="bg-white border border-slate-100 rounded-2xl p-20 text-center shadow-sm">
+                <p className="text-slate-300 italic font-medium uppercase tracking-widest text-[10px]">
+                    Você ainda não possui cursos ou alunos cadastrados.
+                </p>
+                <Link href="/dashboard-teacher/courses" className="inline-block mt-6 text-[10px] font-black uppercase tracking-[3px] text-[#00C402] hover:underline">
+                    Criar meu Primeiro Curso
+                </Link>
             </div>
         </div>
     )
