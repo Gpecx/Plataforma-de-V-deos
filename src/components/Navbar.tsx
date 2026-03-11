@@ -289,9 +289,6 @@ export default function Navbar({ transparent }: NavbarProps) {
                                                 <DropdownMenuItem onSelect={() => router.push("/dashboard-student/subscriptions")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors outline-none focus:bg-slate-50">
                                                     <Zap size={18} className="text-slate-400" /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Assinaturas</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/activity")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors outline-none focus:bg-slate-50">
-                                                    <History size={18} className="text-slate-400" /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Logs de Atividades</span>
-                                                </DropdownMenuItem>
                                                 <DropdownMenuSeparator className="bg-slate-50 my-2" />
                                                 <DropdownMenuItem onSelect={() => router.push("/contact")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors outline-none focus:bg-slate-50">
                                                     <HelpCircle size={18} className="text-slate-400" /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Central de Ajuda</span>

@@ -3,6 +3,7 @@
 import { X, Play, Info, CheckCircle2, Clock, Globe, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
+import { createPortal } from "react-dom"
 import Link from "next/link"
 import { BuyButton } from "@/components/BuyButton"
 
@@ -13,24 +14,27 @@ interface CourseModalProps {
 }
 
 export default function CourseModal({ course, isOpen, onClose }: CourseModalProps) {
-    const [isMounted, setIsMounted] = useState(false)
+    const [mounted, setMounted] = useState(false)
 
     useEffect(() => {
-        setIsMounted(true)
+        setMounted(true)
     }, [])
 
-    if (!isOpen || !course) return null
+    if (!mounted || !isOpen || !course) return null
 
-    return (
-        <div className="fixed inset-0 z-[100] overflow-y-auto flex justify-center items-start p-4 md:p-12 lg:p-20 py-12 md:py-24 animate-in fade-in duration-300 pointer-events-auto">
+    return createPortal(
+        <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+            style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0 }}
+        >
             {/* Backdrop */}
             <div
-                className="fixed inset-0 bg-black/60 backdrop-blur-sm cursor-pointer z-0"
+                className="absolute inset-0 bg-black/60 backdrop-blur-[8px] cursor-pointer"
                 onClick={onClose}
             />
 
             {/* Modal Content */}
-            <div className="relative bg-white w-full max-w-4xl h-fit rounded-[40px] shadow-2xl animate-in zoom-in-95 slide-in-from-bottom-10 duration-500 z-10">
+            <div className="relative bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar rounded-[32px] md:rounded-[40px] shadow-2xl border border-white/20 animate-in zoom-in-95 slide-in-from-bottom-10 duration-500 z-10">
                 <button
                     onClick={onClose}
                     className="absolute top-6 right-6 z-20 p-3 bg-black/50 text-white rounded-full hover:bg-black/70 transition-all outline-none"
@@ -121,6 +125,7 @@ export default function CourseModal({ course, isOpen, onClose }: CourseModalProp
                     </div>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     )
 }

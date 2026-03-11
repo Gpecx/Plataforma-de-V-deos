@@ -5,47 +5,35 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, TrendingUp, Handshake, BarChart3, Volume2, VolumeX } from "lucide-react";
 import Navbar from "@/components/Navbar"
-
-const backgroundImages = [
-    "https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=2000",
-    "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=2000",
-    "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=2000",
-    "https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&q=80&w=2000"
-];
-
 import { db, auth } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
+import { collection, query, where, limit, getDocs } from "firebase/firestore";
 import { Loader2 } from "lucide-react";
-import CourseModal from "@/components/CourseModal";
 import { getBanners, BannersData } from "@/app/admin/settings/actions";
 
 export default function WelcomePage() {
     const [courses, setCourses] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isMuted, setIsMuted] = useState(true);
-    const [selectedCourse, setSelectedCourse] = useState<any>(null);
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const [banners, setBanners] = useState<BannersData | null>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
+        const unsubscribe = onAuthStateChanged(auth, () => {
             async function fetchTopCourses() {
                 setLoading(true);
                 try {
                     const coursesRef = collection(db, 'courses');
-                    const querySnapshot = await getDocs(coursesRef);
+                    const q = query(coursesRef, where('status', '==', 'published'), limit(4));
+                    const querySnapshot = await getDocs(q);
                     const coursesData = querySnapshot.docs.map(doc => {
                         const data = doc.data();
                         return {
                             id: doc.id,
                             ...data,
-                            // Garantir que o preço seja tratado como número se vier como string ou indefinido
                             price: Number(data.price) || 0
                         };
                     });
-
                     setCourses(coursesData);
                 } catch (error) {
                     console.error("Erro ao buscar cursos:", error);
@@ -60,11 +48,6 @@ export default function WelcomePage() {
 
         return () => unsubscribe();
     }, []);
-
-    const handleCourseClick = (course: any) => {
-        setSelectedCourse(course);
-        setIsModalOpen(true);
-    };
 
     return (
         <div className="min-h-screen bg-white text-slate-800 font-exo relative overflow-hidden">
@@ -136,9 +119,9 @@ export default function WelcomePage() {
                             <Loader2 className="animate-spin text-slate-300" size={32} />
                         </div>
                     ) : courses.map((course: any, i: number) => (
-                        <div
+                        <Link
                             key={i}
-                            onClick={() => handleCourseClick(course)}
+                            href={`/course/${course.id}`}
                             className="group bg-white border border-slate-100 rounded-xl overflow-hidden hover:border-[#00C402]/30 transition-all duration-300 flex flex-col hover:shadow-lg cursor-pointer"
                         >
                             <div className="aspect-video relative overflow-hidden">
@@ -159,7 +142,7 @@ export default function WelcomePage() {
                                     </div>
                                 </div>
                             </div>
-                        </div>
+                        </Link>
                     ))}
                 </div>
 
@@ -216,7 +199,7 @@ export default function WelcomePage() {
                                                             : 'Junte-se a milhares de alunos que já alcançaram cargos de destaque.'
                                                     }
                                                 </p>
-                                                <Link href="/register">
+                                                <Link href={idx >= 2 ? "/course" : "/register"}>
                                                     <Button size="lg" className="bg-[#00C402] hover:bg-[#00b302] text-white px-8 py-6 text-sm font-black uppercase tracking-widest rounded-xl transition-all shadow-lg mt-4">
                                                         {idx >= 2 ? 'Explorar Cursos' : 'Começar agora'}
                                                     </Button>
@@ -279,11 +262,7 @@ export default function WelcomePage() {
                 </div>
             </section>
 
-            <CourseModal
-                course={selectedCourse}
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-            />
+
         </div>
     );
 }
