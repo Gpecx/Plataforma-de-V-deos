@@ -9,8 +9,8 @@ export default function Footer() {
     const year = new Date().getFullYear()
 
     return (
-        <footer className="relative bg-[#F4F7F9] pt-24 pb-20 overflow-hidden border-t border-slate-100 font-exo">
-            <div className="max-w-7xl mx-auto px-8 md:px-12 relative z-10 flex flex-col items-center space-y-12">
+        <footer className="relative bg-[#F4F7F9] pt-24 pb-20 overflow-hidden border-t border-slate-100 font-exo z-[10]">
+            <div className="max-w-7xl mx-auto px-8 md:px-12 flex flex-col items-center space-y-12">
                 {/* Logo Principal (Aumentada) */}
                 <Logo className="h-24 py-2" />
 

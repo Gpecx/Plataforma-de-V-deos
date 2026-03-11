@@ -50,7 +50,7 @@ export default function WelcomePage() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-white text-slate-800 font-exo relative overflow-hidden">
+        <div className="min-h-screen bg-white text-slate-800 font-exo">
             <Navbar />
 
             {/* HERO SECTION */}
@@ -103,7 +103,7 @@ export default function WelcomePage() {
             </main>
 
             {/* CURSOS */}
-            <section className="py-20 max-w-7xl mx-auto px-6 space-y-12 relative z-10 border-t border-slate-100 bg-white">
+            <section className="py-20 max-w-7xl mx-auto px-6 space-y-12 border-t border-slate-100 bg-white">
                 <div className="space-y-3">
                     <h2 className="text-2xl md:text-3xl font-black tracking-tighter text-slate-800">
                         TREINAMENTOS EM <span className="text-[#00C402]">DESTAQUE</span>
@@ -156,7 +156,7 @@ export default function WelcomePage() {
             </section>
 
             {/* SEÇÃO DE BANNERS DINÂMICOS */}
-            <section className="relative z-10">
+            <section className="relative">
                 {banners?.hero_home && banners.hero_home.length > 0 ? (
                     banners.hero_home
                         .sort((a, b) => a.order - b.order)
@@ -234,7 +234,7 @@ export default function WelcomePage() {
             </section>
 
             {/* GRID DE BENEFÍCIOS (Final Clean Section) */}
-            <section className="bg-white py-24 relative z-10 border-t border-slate-100">
+            <section className="bg-white py-24 border-t border-slate-100">
                 <div className="max-w-7xl mx-auto px-6">
                     <div className="grid md:grid-cols-3 gap-16">
                         <div className="space-y-4 text-center group">

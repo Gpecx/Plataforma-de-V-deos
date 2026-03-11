@@ -131,7 +131,7 @@ export default function Navbar({ transparent }: NavbarProps) {
     return (
         <>
             <header
-                className={`sticky top-0 z-50 w-full transition-all duration-300 antialiased ${transparent && !isScrolled && !isMobileMenuOpen
+                className={`sticky top-0 z-[1000] w-full transition-all duration-300 antialiased ${transparent && !isScrolled && !isMobileMenuOpen
                     ? 'bg-transparent border-none shadow-none'
                     : isScrolled || isMobileMenuOpen
                         ? 'bg-white/95 backdrop-blur-md shadow-md border-b border-slate-100'
