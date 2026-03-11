@@ -64,7 +64,7 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
         if (displaySlides.length <= 1) return;
         const timer = setInterval(() => {
             setCurrentSlide(prev => (prev + 1) % displaySlides.length);
-        }, 6000);
+        }, 4000);
         return () => clearInterval(timer);
     }, [displaySlides.length]);
 

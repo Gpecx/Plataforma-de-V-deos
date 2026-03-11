@@ -190,11 +190,11 @@ export default function WelcomePage() {
                                     />
 
                                     <div className={`absolute inset-0 flex items-center ${isCenter ? 'justify-center text-center' :
-                                            isOdd ? 'justify-end text-right' : 'justify-start text-left'
+                                        isOdd ? 'justify-end text-right' : 'justify-start text-left'
                                         }`}>
                                         <div className="max-w-7xl mx-auto px-6 w-full flex flex-col items-center sm:block">
                                             <div className={`max-w-2xl space-y-6 animate-in fade-in duration-1000 ${isCenter ? 'mx-auto' :
-                                                    isOdd ? 'ml-auto slide-in-from-right' : 'mr-auto slide-in-from-left'
+                                                isOdd ? 'ml-auto slide-in-from-right' : 'mr-auto slide-in-from-left'
                                                 }`}>
                                                 <span className="text-[10px] font-black uppercase tracking-[4px] !text-white bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 inline-block">
                                                     {idx === 0 ? 'Experiência' : idx === 1 ? 'Metodologia' : 'Inovação'}
@@ -231,7 +231,7 @@ export default function WelcomePage() {
                     /* Fallback Fallback elegant */
                     <div className="relative h-[600px] w-full overflow-hidden group">
                         <img
-                            src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=1976&auto=format&fit=crop"
+                            src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2671&auto=format&fit=crop"
                             alt="Standard Banner"
                             className="object-cover w-full h-full brightness-50"
                         />
