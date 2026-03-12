@@ -47,3 +47,51 @@ Na sidebar, a foto deve ter dimensões estáticas absolutas usando utilitários 
 - Mantenha sombras sutis em cards `.shadow-sm` mudando para `.shadow-lg` no hover.
 - Elementos realçados e botões devem utilizar a cor primária `text-[{{PRIMARY_COLOR}}]` ou backgrounds configurados.
 - Sempre utilize o padrão de fontes e tipografia do projeto globalmente.
+
+## 2. Synchronized Dashboard Profile Management (Gestão de Perfil Sincronizado)
+
+**Objetivo:** Criar um formulário de dashboard que atualiza uma coleção central de perfis, garantindo a sincronização de dados (bio, especialidade, links sociais, avatar) com a página pública e tratando a serialização de dados não primitivos (como Timestamps).
+
+**Tecnologias:** Next.js (Server & Client Components), Firestore (Firebase Admin), Cloud Storage, Tailwind CSS.
+
+**Variáveis Dinâmicas:**
+- `{{DASHBOARD_ROUTE}}`: Rota do dashboard (ex: `/dashboard-teacher/profile`).
+- `{{ACTION_UPDATE}}`: Nome da Server Action de atualização (ex: `updateTeacherProfile`).
+- `{{PROFILE_COLLECTION}}`: Nome da coleção de perfis (ex: `profiles`).
+- `{{STORAGE_PATH}}`: Caminho para upload de fotos (ex: `profile-images/`).
+
+### Procedimento Passo a Passo:
+
+**Passo 1: Server Action com Guard de Role**
+Crie uma Server Action que verifique a sessão do usuário e restrinja a edição apenas ao próprio `uid`. Valide o `role` (ex: `teacher` ou `admin`) para evitar edições não autorizadas.
+```tsx
+export async function {{ACTION_UPDATE}}(data: any) {
+    const session = await getServerSession();
+    if (!session || (session.role !== 'teacher' && session.role !== 'admin')) {
+        throw new Error('Não autorizado');
+    }
+    await adminDb.collection('{{PROFILE_COLLECTION}}').doc(session.uid).update({ ...data, updated_at: new Date().toISOString() });
+}
+```
+
+**Passo 2: Resolução de Serialização (Server Component)**
+No Server Component da página (`page.tsx`), busque os dados do Firestore e **converta-os em um objeto plano**. Timestamps do Firestore causam erro em Client Components se passados diretamente.
+```tsx
+const raw = profileDoc.exists ? profileDoc.data() : null;
+const initialData = raw ? {
+    full_name: raw.full_name || '',
+    specialty: raw.specialty || '',
+    bio: raw.bio || '',
+    avatar_url: raw.avatar_url || '',
+    // Links sociais extraídos individualmente
+} : null;
+```
+
+**Passo 3: Client Form com Estado e Upload**
+Crie um Client Component (`ClientProfileForm.tsx`) que receba os dados hidratados. Implemente o upload de imagem usando helpers de storage, atualizando o estado local do `avatarUrl` antes de salvar o perfil completo. Use `router.refresh()` após o sucesso para invalidar o cache do Server Component.
+
+**Passo 4: Mapeamento de Links Sociais**
+Inclua campos para URLs de redes sociais agrupados em uma seção dedicada. Use ícones (`Lucide`) condizentes com cada rede (LinkedIn, Twitter, YouTube) para facilitar a identificação visual.
+
+**Passo 5: Feedback de Carregamento**
+Sempre utilize estados de `isSaving` ou `isUploading` com spinners (`Loader2`) nos botões de ação para evitar cliques duplos e informar o progresso ao usuário.

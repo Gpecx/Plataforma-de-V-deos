@@ -1,0 +1,214 @@
+"use client"
+
+import { useState } from 'react'
+import { User, Mail, BookOpen, Camera, Save, Globe, Linkedin, Twitter, Youtube, Loader2 } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { updateTeacherProfile } from './actions'
+import { uploadCourseImage } from '@/lib/storage-helpers'
+import { useRouter } from 'next/navigation'
+
+export default function ClientProfileForm({ initialData, email }: { initialData: any, email: string }) {
+    const router = useRouter()
+    
+    const [name, setName] = useState(initialData?.full_name || '')
+    const [specialization, setSpecialization] = useState(initialData?.specialty || '')
+    const [bio, setBio] = useState(initialData?.bio || '')
+    
+    // Redes sociais
+    const [website, setWebsite] = useState(initialData?.website || '')
+    const [linkedin, setLinkedin] = useState(initialData?.linkedin || '')
+    const [twitter, setTwitter] = useState(initialData?.twitter || '')
+    const [youtube, setYoutube] = useState(initialData?.youtube || '')
+
+    // Avatar
+    const [avatarUrl, setAvatarUrl] = useState(initialData?.avatar_url || '')
+    const [isUploading, setIsUploading] = useState(false)
+    const [isSaving, setIsSaving] = useState(false)
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        setIsUploading(true)
+        try {
+            // Reusing uploadCourseImage helper since it works for generic images, 
+            // but ideally we could have an uploadProfileImage. Here we just use what we have.
+            const url = await uploadCourseImage(file)
+            setAvatarUrl(url)
+        } catch (error) {
+            console.error("Erro ao fazer upload da imagem:", error)
+        } finally {
+            setIsUploading(false)
+        }
+    }
+
+    const handleSave = async () => {
+        setIsSaving(true)
+        try {
+            await updateTeacherProfile({
+                full_name: name,
+                specialty: specialization,
+                bio,
+                avatar_url: avatarUrl,
+                website,
+                linkedin,
+                twitter,
+                youtube
+            })
+            // Opcional: toast de sucesso
+            router.refresh()
+        } catch (error) {
+            console.error("Erro ao salvar:", error)
+        } finally {
+            setIsSaving(false)
+        }
+    }
+
+    return (
+        <div className="max-w-4xl mx-auto bg-white border border-slate-100 rounded-[48px] p-10 md:p-16 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-slate-50 rounded-full blur-3xl -mr-32 -mt-32 -z-10"></div>
+
+            <div className="flex flex-col md:flex-row gap-16 relative z-10">
+                {/* Foto de Perfil */}
+                <div className="flex flex-col items-center space-y-6 shrink-0">
+                    <div className="relative group">
+                        <div className="w-40 h-40 rounded-[40px] bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-300 overflow-hidden transition-all group-hover:border-[#00C402]/30 group-hover:bg-[#00C402]/5">
+                            {avatarUrl ? (
+                                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                            ) : (
+                                <User size={56} strokeWidth={1.5} />
+                            )}
+                        </div>
+                        
+                        <label className="absolute -bottom-4 -right-4 w-14 h-14 bg-slate-900 text-white rounded-[20px] flex items-center justify-center shadow-2xl hover:bg-slate-800 transition-all hover:scale-110 border-4 border-white cursor-pointer group-hover:bg-[#00C402]">
+                            {isUploading ? <Loader2 className="animate-spin" size={24} /> : <Camera size={24} />}
+                            <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={isUploading} />
+                        </label>
+                    </div>
+                    <div className="text-center">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Foto Quadrada</p>
+                        <p className="text-[9px] font-bold text-slate-300 mt-1 uppercase">JPG/PNG Ideal 500x500px</p>
+                    </div>
+                </div>
+
+                {/* Formulário */}
+                <div className="flex-grow space-y-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 px-1">Nome de Exibição</label>
+                            <div className="relative group">
+                                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-[#00C402] transition-colors" size={18} />
+                                <Input
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    className="bg-slate-50 border-slate-100 rounded-2xl pl-12 h-14 focus:border-[#00C402] focus:ring-4 focus:ring-[#00C402]/5 font-bold text-slate-900"
+                                />
+                            </div>
+                        </div>
+                        <div className="space-y-3">
+                            <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 px-1">E-mail Administrativo</label>
+                            <div className="relative">
+                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-200" size={18} />
+                                <Input
+                                    value={email}
+                                    readOnly
+                                    className="bg-slate-50/50 border-slate-50 pl-12 h-14 text-slate-400 cursor-not-allowed rounded-2xl font-medium"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 px-1">Expertise / Especialização</label>
+                        <div className="relative group">
+                            <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-[#00C402] transition-colors" size={18} />
+                            <Input
+                                value={specialization}
+                                onChange={(e) => setSpecialization(e.target.value)}
+                                className="bg-slate-50 border-slate-100 rounded-2xl pl-12 h-14 focus:border-[#00C402] focus:ring-4 focus:ring-[#00C402]/5 font-bold text-slate-900"
+                                placeholder="Ex: Estrategista Digital, Especialista em Performance..."
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 px-1">Biografia Profissional</label>
+                        <textarea
+                            value={bio}
+                            onChange={(e) => setBio(e.target.value)}
+                            className="w-full min-h-[160px] bg-slate-50 border border-slate-100 rounded-[32px] p-6 text-sm font-medium focus:outline-none focus:border-[#00C402] focus:ring-4 focus:ring-[#00C402]/5 transition-all resize-none text-slate-700 leading-relaxed"
+                            placeholder="Descreva sua jornada e o valor que você entrega aos seus alunos..."
+                        />
+                    </div>
+
+                    {/* Redes Sociais */}
+                    <div className="space-y-6 pt-4 border-t border-slate-100">
+                        <h3 className="text-sm font-black text-slate-800 uppercase tracking-tighter">Links Sociais e Contato</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 px-1">Website</label>
+                                <div className="relative group">
+                                    <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-[#00C402] transition-colors" size={18} />
+                                    <Input
+                                        value={website}
+                                        onChange={(e) => setWebsite(e.target.value)}
+                                        className="bg-slate-50 border-slate-100 rounded-2xl pl-12 h-14 focus:border-[#00C402] focus:ring-4 focus:ring-[#00C402]/5 font-bold text-slate-900 text-sm"
+                                        placeholder="https://seu-site.com"
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 px-1">LinkedIn</label>
+                                <div className="relative group">
+                                    <Linkedin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={18} />
+                                    <Input
+                                        value={linkedin}
+                                        onChange={(e) => setLinkedin(e.target.value)}
+                                        className="bg-slate-50 border-slate-100 rounded-2xl pl-12 h-14 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 font-bold text-slate-900 text-sm"
+                                        placeholder="URL do Perfil"
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 px-1">Twitter / X</label>
+                                <div className="relative group">
+                                    <Twitter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-sky-500 transition-colors" size={18} />
+                                    <Input
+                                        value={twitter}
+                                        onChange={(e) => setTwitter(e.target.value)}
+                                        className="bg-slate-50 border-slate-100 rounded-2xl pl-12 h-14 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/5 font-bold text-slate-900 text-sm"
+                                        placeholder="URL do Perfil"
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 px-1">Youtube</label>
+                                <div className="relative group">
+                                    <Youtube className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-red-500 transition-colors" size={18} />
+                                    <Input
+                                        value={youtube}
+                                        onChange={(e) => setYoutube(e.target.value)}
+                                        className="bg-slate-50 border-slate-100 rounded-2xl pl-12 h-14 focus:border-red-500 focus:ring-4 focus:ring-red-500/5 font-bold text-slate-900 text-sm"
+                                        placeholder="URL do Canal"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="pt-6">
+                        <Button 
+                            onClick={handleSave}
+                            disabled={isSaving || isUploading}
+                            className="bg-slate-900 text-white font-black uppercase tracking-[4px] py-8 px-12 rounded-[24px] hover:bg-slate-800 shadow-2xl shadow-slate-200 transition-all gap-4 w-full md:w-auto h-auto"
+                        >
+                            {isSaving ? <Loader2 className="animate-spin" size={24} strokeWidth={3} /> : <Save size={24} strokeWidth={3} />}
+                            {isSaving ? 'Sincronizando...' : 'Sincronizar Perfil'}
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    )
+}
