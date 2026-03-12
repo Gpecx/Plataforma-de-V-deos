@@ -57,6 +57,8 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
             course = {
                 id: courseSnap.id,
                 ...data,
+                teacher_id: data.teacher_id || null,
+                teacher_name: data.teacher_name || 'Equipe SPCS',
                 // Garantir que datas sejam serializáveis se existirem
                 created_at: parseFirebaseDate(data.created_at)?.toISOString() || data.created_at,
                 updated_at: parseFirebaseDate(data.updated_at)?.toISOString() || data.updated_at
@@ -128,6 +130,17 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                             <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-slate-900 leading-[0.9] uppercase">
                                 {course.title}
                             </h1>
+                            {course.teacher_id && (
+                                <div className="flex items-center gap-2 pt-2">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Instrutor:</span>
+                                    <Link 
+                                        href={`/professor/${course.teacher_id}`}
+                                        className="text-[10px] font-black text-[#00C402] uppercase tracking-[2px] hover:underline"
+                                    >
+                                        {course.teacher_name}
+                                    </Link>
+                                </div>
+                            )}
                         </div>
 
                         {/* Video Player - High Quality Impression */}

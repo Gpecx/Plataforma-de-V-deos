@@ -34,6 +34,8 @@ export default async function CoursesPage() {
                 image_url: data.image_url || null,
                 duration: data.duration || 0,
                 status: data.status || 'published',
+                teacher_id: data.teacher_id || null,
+                teacher_name: data.teacher_name || 'Equipe SPCS',
                 created_at: parseFirebaseDate(data.created_at)?.toISOString() || null,
             };
         });

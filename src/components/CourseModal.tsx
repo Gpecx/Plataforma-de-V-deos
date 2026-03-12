@@ -57,6 +57,18 @@ export default function CourseModal({ course, isOpen, onClose }: CourseModalProp
                         <h2 className="text-3xl md:text-4xl font-black text-slate-800 leading-tight">
                             {course.title}
                         </h2>
+                        {course.teacher_id && (
+                            <div className="flex items-center gap-2 pt-1">
+                                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Instrutor:</span>
+                                <Link 
+                                    href={`/professor/${course.teacher_id}`}
+                                    onClick={onClose}
+                                    className="text-[9px] font-black text-[#00C402] uppercase tracking-[2px] hover:underline"
+                                >
+                                    {course.teacher_name}
+                                </Link>
+                            </div>
+                        )}
                         <div className="flex gap-4 pt-2">
                             <Link href={`/course/${course.id}`} className="flex-grow">
                                 <Button className="w-full bg-slate-900 text-white hover:bg-slate-800 h-14 px-8 text-sm font-black uppercase tracking-[2px] flex gap-3 shadow-xl">

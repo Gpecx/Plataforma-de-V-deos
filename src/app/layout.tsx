@@ -30,9 +30,7 @@ export default async function RootLayout({
       <body className="font-exo">
         <BrandingProvider value={branding}>
           <ToastNotification />
-          <div className="page-filter">
-            {children}
-          </div>
+          {children}
         </BrandingProvider>
       </body>
     </html>
