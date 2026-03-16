@@ -104,17 +104,17 @@ export default async function TeacherDashboard() {
     ]
 
     return (
-        <div className="min-h-screen bg-[#F4F7F9] text-slate-800 font-exo pb-16 md:pb-24">
+        <div className="min-h-screen bg-[#0d2b17] text-white font-exo pb-16 md:pb-24 pt-8 md:pt-12">
             {/* Header com Boas-vindas e Botão Criar */}
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center pt-0 px-4 md:px-8 mb-12 gap-8">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center px-4 md:px-8 mb-12 gap-8">
                 <div>
-                    <h1 className="text-4xl font-black tracking-tighter uppercase leading-none text-slate-700">
+                    <h1 className="text-4xl font-black tracking-tighter uppercase leading-none text-white">
                         Bem-vindo, <span className="text-[#00C402]">{profile?.full_name || 'Professor'}!</span>
                     </h1>
-                    <p className="text-slate-500 mt-2 font-bold uppercase text-[10px] tracking-[3px]">Gerencie seus cursos e acompanhe seus resultados com o Creator Studio.</p>
+                    <p className="text-slate-400 mt-2 font-bold uppercase text-[10px] tracking-[3px]">Gerencie seus cursos e acompanhe seus resultados com o Creator Studio.</p>
                 </div>
                 <Link href="/dashboard-teacher/courses/new">
-                    <button className="flex items-center gap-3 bg-slate-900 text-white font-black uppercase tracking-widest px-10 py-5 rounded-2xl hover:bg-slate-800 transition shadow-lg shadow-slate-200 shrink-0 group">
+                    <button className="flex items-center gap-3 bg-[#00C402] text-white font-black uppercase tracking-widest px-10 py-5 rounded-2xl hover:bg-[#28b828] transition shadow-lg shadow-[#00C402]/20 shrink-0 group">
                         <Plus size={20} strokeWidth={3} className="group-hover:rotate-90 transition-transform" />
                         Criar Novo Curso
                     </button>
@@ -125,25 +125,25 @@ export default async function TeacherDashboard() {
                 {/* Grid de Métricas */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                     {metrics.map((metric, idx) => (
-                        <div key={idx} className="bg-white p-8 rounded-[32px] border border-slate-100 shadow-sm group">
+                        <div key={idx} className="bg-[#0f1f14] p-8 rounded-[32px] border border-[#1e4d2b] shadow-sm group">
                             <div className="flex justify-between items-start mb-6">
-                                <div className={`p-4 rounded-2xl bg-slate-50 border border-slate-100 ${metric.color}`}>
+                                <div className={`p-4 rounded-2xl bg-[#0d2b17] border border-[#1e4d2b] ${metric.color}`}>
                                     <metric.icon size={22} />
                                 </div>
                             </div>
                             <p className="text-slate-500 text-[10px] font-black uppercase tracking-[2px]">{metric.label}</p>
-                            <h3 className="text-3xl font-black mt-1 tracking-tighter text-slate-700">{metric.value}</h3>
+                            <h3 className="text-3xl font-black mt-1 tracking-tighter text-white">{metric.value}</h3>
                         </div>
                     ))}
                 </div>
 
                 {/* Gráfico de Desempenho */}
-                <section className="bg-white p-10 rounded-[48px] border border-slate-100 shadow-sm relative overflow-hidden group">
+                <section className="bg-[#0f1f14] p-10 rounded-[48px] border border-[#1e4d2b] shadow-sm relative overflow-hidden group">
                     <div className="relative z-10">
                         <div className="flex items-center justify-between mb-12">
-                            <h2 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-4 text-slate-700">
+                            <h2 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-4 text-white">
                                 <TrendingUp size={24} className="text-[#00C402]" />
-                                Desempenho de Vendas <span className="text-slate-300 font-bold text-sm tracking-widest ml-4">(ÚLTIMOS 7 DIAS)</span>
+                                Desempenho de Vendas <span className="text-slate-500 font-bold text-sm tracking-widest ml-4">(ÚLTIMOS 7 DIAS)</span>
                             </h2>
                         </div>
                         <SalesChart data={chartData} />
@@ -153,30 +153,30 @@ export default async function TeacherDashboard() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
                     {/* Seção: Meus Cursos (2 colunas) */}
                     <section className="lg:col-span-2 space-y-10">
-                        <div className="flex items-center justify-between border-b border-slate-100 pb-6">
-                            <h2 className="text-2xl font-black uppercase tracking-tighter text-slate-700">Meus Cursos</h2>
-                            <Link href="/dashboard-teacher/courses" className="text-[10px] text-slate-500 hover:text-slate-700 font-black uppercase tracking-[3px] transition-colors">Ver todos os cursos</Link>
+                        <div className="flex items-center justify-between border-b border-[#1e4d2b] pb-6">
+                            <h2 className="text-2xl font-black uppercase tracking-tighter text-white">Meus Cursos</h2>
+                            <Link href="/dashboard-teacher/courses" className="text-[10px] text-slate-500 hover:text-white font-black uppercase tracking-[3px] transition-colors">Ver todos os cursos</Link>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                             {courses.length > 0 ? (
                                 courses.map((curso) => (
-                                    <div key={curso.id} className="bg-white rounded-[40px] overflow-hidden border border-slate-100 hover:border-[#00C402]/40 transition-all group shadow-sm flex flex-col">
-                                        <div className="relative h-60 bg-slate-50 overflow-hidden">
+                                    <div key={curso.id} className="bg-[#0f1f14] rounded-none overflow-hidden border border-[#1e4d2b] hover:border-[#00C402]/40 transition-all group shadow-sm flex flex-col">
+                                        <div className="relative h-48 bg-[#0d2b17] overflow-hidden">
                                             <img
                                                 src={curso.image_url || "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400"}
                                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                                                 alt={curso.title}
                                             />
-                                            <div className="absolute top-6 left-6">
-                                                <span className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-[2px] shadow-sm backdrop-blur-md ${curso.status === 'published' ? 'bg-[#00C402] text-white' : 'bg-yellow-500 text-white'}`}>
+                                            <div className="absolute top-4 left-4">
+                                                <span className={`px-3 py-1.5 rounded-none text-[9px] font-black uppercase tracking-[2px] shadow-sm backdrop-blur-md ${curso.status === 'published' ? 'bg-[#00C402] text-white' : 'bg-yellow-500 text-white'}`}>
                                                     {curso.status === 'published' ? 'Publicado' : 'Rascunho'}
                                                 </span>
                                             </div>
                                         </div>
-                                        <div className="p-8 flex-grow flex flex-col">
-                                            <h3 className="font-black text-2xl mb-4 tracking-tighter text-slate-700 line-clamp-1">{curso.title}</h3>
-                                            <div className="flex items-center gap-6 text-[10px] text-slate-500 mb-8 font-black uppercase tracking-widest">
+                                        <div className="p-6 flex-grow flex flex-col">
+                                            <h3 className="font-black text-xl mb-3 tracking-tighter text-white line-clamp-1">{curso.title}</h3>
+                                            <div className="flex items-center gap-6 text-[10px] text-slate-500 mb-6 font-black uppercase tracking-widest">
                                                 <div className="flex items-center gap-2">
                                                     <Users size={16} className="text-[#00C402]" />
                                                     <span>{courseStudentCountMap[curso.id] || 0} {courseStudentCountMap[curso.id] === 1 ? 'Aluno' : 'Alunos'}</span>
@@ -187,8 +187,8 @@ export default async function TeacherDashboard() {
                                                 </div>
                                             </div>
                                             <Link href={`/dashboard-teacher/courses/${curso.id}/edit`} className="mt-auto">
-                                                <button className="w-full flex items-center justify-center gap-3 bg-slate-50 hover:bg-slate-800 hover:text-white border border-slate-100 text-slate-700 font-black uppercase tracking-widest py-5 rounded-2xl transition-all duration-300">
-                                                    <Edit size={18} />
+                                                <button className="w-full flex items-center justify-center gap-3 bg-[#0d2b17] hover:bg-[#1e4d2b] hover:text-white border border-[#1e4d2b] text-white font-black uppercase tracking-widest py-3 rounded-none transition-all duration-300">
+                                                    <Edit size={16} />
                                                     Editar no Studio
                                                 </button>
                                             </Link>
@@ -196,8 +196,8 @@ export default async function TeacherDashboard() {
                                     </div>
                                 ))
                             ) : (
-                                <div className="col-span-full py-24 border-2 border-dashed border-slate-100 rounded-[48px] text-center bg-white">
-                                    <p className="text-slate-400 font-bold uppercase text-xs tracking-[4px]">O Studio está pronto. Comece criando seu primeiro treinamento!</p>
+                                <div className="col-span-full py-24 border-2 border-dashed border-[#1e4d2b] rounded-[48px] text-center bg-[#0f1f14]">
+                                    <p className="text-slate-500 font-bold uppercase text-xs tracking-[4px]">O Studio está pronto. Comece criando seu primeiro treinamento!</p>
                                 </div>
                             )}
                         </div>
@@ -205,20 +205,20 @@ export default async function TeacherDashboard() {
 
                     {/* Seção: Dúvidas Recentes (1 coluna) */}
                     <section className="space-y-10">
-                        <div className="flex items-center justify-between border-b border-slate-100 pb-6">
-                            <h2 className="text-2xl font-black uppercase tracking-tighter text-slate-700">Dúvidas Inbox</h2>
-                            <Link href="/dashboard-teacher/comments" className="text-[10px] text-slate-500 hover:text-slate-700 font-black uppercase tracking-[2px] transition-colors">Acessar Inbox</Link>
+                        <div className="flex items-center justify-between border-b border-[#1e4d2b] pb-6">
+                            <h2 className="text-2xl font-black uppercase tracking-tighter text-white">Dúvidas Inbox</h2>
+                            <Link href="/dashboard-teacher/comments" className="text-[10px] text-slate-500 hover:text-white font-black uppercase tracking-[2px] transition-colors">Acessar Inbox</Link>
                         </div>
 
                         <div className="space-y-6">
                             {recentActivities.map((activity) => (
-                                <div key={activity.id} className="bg-white p-7 rounded-[32px] border border-slate-100 hover:border-slate-200 transition-all flex gap-5 shadow-sm group">
-                                    <div className="h-14 w-14 rounded-2xl bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100 group-hover:border-[#00C402]/30 transition-colors">
+                                <div key={activity.id} className="bg-[#0f1f14] p-7 rounded-[32px] border border-[#1e4d2b] hover:border-[#00C402]/30 transition-all flex gap-5 shadow-sm group">
+                                    <div className="h-14 w-14 rounded-2xl bg-[#0d2b17] flex items-center justify-center shrink-0 border border-[#1e4d2b] group-hover:border-[#00C402]/30 transition-colors">
                                         <MessageSquare size={20} className="text-slate-400 group-hover:text-[#00C402] transition-colors" />
                                     </div>
                                     <div className="flex-grow min-w-0">
                                         <div className="flex justify-between items-start mb-2">
-                                            <h4 className="font-black text-[11px] uppercase tracking-widest text-slate-800 truncate mr-2">{activity.user}</h4>
+                                            <h4 className="font-black text-[11px] uppercase tracking-widest text-white truncate mr-2">{activity.user}</h4>
                                             <span className="text-[9px] font-bold text-slate-500 uppercase shrink-0">{activity.date}</span>
                                         </div>
                                         <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed font-medium italic">

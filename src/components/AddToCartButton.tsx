@@ -27,7 +27,7 @@ export function AddToCartButton({ course, purchasedCourseIds = [] }: AddToCartBu
         return (
             <Link href={`/classroom/${course.id}`} className="w-full h-full block">
                 <button
-                    className="w-full bg-slate-900 text-white font-black uppercase text-[10px] tracking-[2px] py-3 rounded-xl hover:bg-slate-800 transition-all shadow-lg flex items-center justify-center gap-2 group"
+                    className="w-full bg-slate-900 text-white font-black uppercase text-[10px] tracking-[2px] py-3 rounded-none hover:bg-slate-800 transition-all shadow-lg flex items-center justify-center gap-2 group"
                 >
                     <PlayCircle size={14} className="group-hover:scale-110 transition-transform" />
                     Acessar Curso
@@ -40,7 +40,7 @@ export function AddToCartButton({ course, purchasedCourseIds = [] }: AddToCartBu
         <button
             onClick={handleAdd}
             disabled={isInCart}
-            className={`w-full font-black uppercase text-[10px] tracking-[2px] py-3 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 group ${isInCart
+            className={`w-full font-black uppercase text-[10px] tracking-[2px] py-3 rounded-none transition-all shadow-lg flex items-center justify-center gap-2 group ${isInCart
                 ? 'bg-[#00C402]/20 text-[#00C402] border border-[#00C402]/30 cursor-default'
                 : 'bg-white text-black hover:bg-[#00C402] hover:text-white'
                 }`}

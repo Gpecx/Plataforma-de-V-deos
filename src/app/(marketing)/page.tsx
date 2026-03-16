@@ -1,25 +1,36 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, TrendingUp, Handshake, BarChart3, Volume2, VolumeX } from "lucide-react";
-import Navbar from "@/components/Navbar"
+import { ArrowRight, Clock, Infinity, Award, Headphones, TrendingUp, Handshake, BarChart3, Loader2 } from "lucide-react";
 import { db, auth } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { collection, query, where, limit, getDocs } from "firebase/firestore";
-import { Loader2 } from "lucide-react";
 import { getBanners, BannersData } from "@/app/admin/settings/actions";
 
 export default function WelcomePage() {
     const [courses, setCourses] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [isMuted, setIsMuted] = useState(true);
+    const [email, setEmail] = useState("");
     const [banners, setBanners] = useState<BannersData | null>(null);
-    const videoRef = useRef<HTMLVideoElement>(null);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, () => {
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // Ao detectar usuário logado, redireciona para o dashboard apropriado
+                try {
+                    const { getPublicProfile } = await import("@/app/actions/profile");
+                    const profile = await getPublicProfile(user.uid);
+                    if (profile?.role === 'teacher' || profile?.role === 'admin') {
+                        window.location.href = '/dashboard-teacher';
+                    } else {
+                        window.location.href = '/dashboard-student';
+                    }
+                } catch (error) {
+                    console.error("Erro ao redirecionar:", error);
+                }
+            }
+
             async function fetchTopCourses() {
                 setLoading(true);
                 try {
@@ -49,96 +60,268 @@ export default function WelcomePage() {
         return () => unsubscribe();
     }, []);
 
-    return (
-        <div className="min-h-screen bg-white text-slate-800 font-exo">
-            <Navbar />
+    const benefits = [
+        {
+            icon: Clock,
+            title: "Aproveite no seu ritmo",
+            description: "Assista quando e onde quiser. Sem horários fixos, sem pressão. Avance conforme sua agenda.",
+        },
+        {
+            icon: Infinity,
+            title: "Acesso ilimitado",
+            description: "Um único plano para todos os cursos da plataforma. Explore e reexplore o quanto quiser.",
+        },
+        {
+            icon: Award,
+            title: "Certificação profissional",
+            description: "Certificados reconhecidos pelo mercado ao concluir cada trilha. Comprove seu domínio técnico.",
+        },
+        {
+            icon: Headphones,
+            title: "Suporte de especialistas",
+            description: "Conte com mentores e uma comunidade ativa para tirar dúvidas e acelerar seu crescimento.",
+        },
+    ];
 
-            {/* HERO SECTION */}
-            <main className="relative z-10 max-w-7xl mx-auto px-6 pt-32 pb-20 grid lg:grid-cols-2 gap-12 items-center">
-                <div className="space-y-6 animate-in fade-in slide-in-from-left duration-700">
-                    <h1 className="text-5xl md:text-7xl font-black leading-[1.1] tracking-tighter text-slate-900">
-                        Domine novas habilidades com a <br />
-                        <span className="from-[#00C402] to-[#1D5F31] bg-gradient-to-r bg-clip-text text-transparent">SPCS Academy</span>.
+    return (
+        <div style={{ minHeight: "100vh", color: "#e2e8f0" }}>
+            {/* ───────────────── HERO SECTION ───────────────── */}
+            <section className="hero-section">
+
+                {/* Dark overlay */}
+                <div className="hero-overlay" />
+
+                {/* Conteúdo central */}
+                <div
+                    className="hero-content flex-1 flex flex-col items-center justify-center text-center px-4"
+                    style={{ paddingTop: "40px", paddingBottom: "60px" }}
+                >
+                    {/* Badge */}
+                    <span
+                        style={{
+                            background: "rgba(50,205,50,0.15)",
+                            border: "1px solid rgba(50,205,50,0.35)",
+                            color: "#32cd32",
+                            fontSize: "0.7rem",
+                            fontWeight: 900,
+                            letterSpacing: "0.2em",
+                            textTransform: "uppercase",
+                            padding: "0.3rem 1rem",
+                            borderRadius: "999px",
+                            marginBottom: "1.5rem",
+                            display: "inline-block",
+                        }}
+                    >
+                        PowerPlay — Plataforma de Ensino Profissional
+                    </span>
+
+                    {/* Título */}
+                    <h1
+                        style={{
+                            fontSize: "clamp(2.2rem, 6vw, 5rem)",
+                            fontWeight: 900,
+                            color: "#fff",
+                            lineHeight: 1.05,
+                            letterSpacing: "-0.02em",
+                            textTransform: "uppercase",
+                            marginBottom: "1rem",
+                            textShadow: "0 4px 30px rgba(0,0,0,0.7)",
+                        }}
+                    >
+                        DOMINE A TECNOLOGIA.<br />
+                        <span style={{ color: "#32cd32" }}>CRIE O FUTURO.</span>
                     </h1>
-                    <p className="text-slate-700 text-base md:text-lg max-w-lg font-bold">
-                        Conectamos tecnologia e crescimento profissional em uma experiência de aprendizado moderna e imediata.
+
+                    {/* Subtítulo */}
+                    <p
+                        style={{
+                            color: "rgba(255,255,255,0.8)",
+                            fontSize: "clamp(1rem, 2vw, 1.2rem)",
+                            fontWeight: 500,
+                            marginBottom: "2.5rem",
+                            maxWidth: "520px",
+                            lineHeight: 1.6,
+                        }}
+                    >
+                        Cursos ilimitados em Engenharia Elétrica &amp; Computação
                     </p>
 
-                    <div className="flex flex-col sm:flex-row gap-4 pt-2">
-                        <Link href="/login">
-                            <Button size="lg" className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-6 text-sm group font-bold uppercase tracking-widest rounded-lg transition-all shadow-md shadow-inner">
-                                Conecte-se
-                                <ArrowRight className="ml-2 group-hover:translate-x-1 transition-transform" />
-                            </Button>
-                        </Link>
-                        <Link href="/register">
-                            <Button size="lg" variant="outline" className="border-slate-200 hover:bg-slate-50 text-slate-700 px-8 py-6 text-sm font-bold uppercase tracking-widest rounded-lg transition-all shadow-sm">
-                                Inscrever-se
-                            </Button>
+                    {/* Email + CTA */}
+                    <div
+                        style={{
+                            display: "flex",
+                            flexDirection: "row",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: "0.5rem",
+                            width: "100%",
+                            maxWidth: "600px",
+                        }}
+                        className="hero-form-container"
+                    >
+                        <div style={{ flex: 1, position: "relative" }}>
+                            <input
+                                type="email"
+                                className="hero-email-input"
+                                placeholder="Seu melhor e-mail"
+                                value={email}
+                                onChange={e => setEmail(e.target.value)}
+                                style={{ width: "100%" }}
+                            />
+                        </div>
+                        <Link href={`/register${email ? `?email=${encodeURIComponent(email)}` : ""}`} style={{ width: "auto" }}>
+                            <button className="btn-cta" style={{ whiteSpace: "nowrap", padding: "0.9rem 2rem" }}>
+                                VAMOS LÁ
+                            </button>
                         </Link>
                     </div>
+                    <p style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.75rem", marginTop: "0.75rem" }}>
+                        Sem compromisso. Cancele quando quiser.
+                    </p>
                 </div>
 
-                <div className="relative group">
-                    <div className="relative aspect-video rounded-2xl overflow-hidden border border-slate-100 bg-slate-50 shadow-xl">
-                        <video
-                            ref={videoRef}
-                            src="/videos/videoplayback (2).mp4"
-                            autoPlay
-                            muted={isMuted}
-                            loop
-                            playsInline
-                            preload="auto"
-                            className="object-cover w-full h-full opacity-90 transition duration-700"
-                        />
-                        <button
-                            onClick={() => setIsMuted(!isMuted)}
-                            className="absolute bottom-4 right-4 p-2.5 bg-white/80 backdrop-blur-md rounded-full text-slate-900 border border-slate-100 hover:bg-white transition-all z-20"
-                        >
-                            {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-                        </button>
-                    </div>
-                </div>
-                {/* HERO SECTION */}
-            </main>
+                {/* Gradient fade into next section */}
+                <div
+                    style={{
+                        position: "absolute",
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        height: "120px",
+                        background: "linear-gradient(to bottom, transparent, #000)",
+                        zIndex: 2,
+                    }}
+                />
+            </section>
 
-            {/* CURSOS */}
-            <section className="py-20 max-w-7xl mx-auto px-6 space-y-12 border-t border-slate-100 bg-white">
-                <div className="space-y-3">
-                    <h2 className="text-2xl md:text-3xl font-black tracking-tighter text-slate-800">
-                        TREINAMENTOS EM <span className="text-[#00C402]">DESTAQUE</span>
+            {/* ───────────────── DIVISÓRIA COM FRASE ───────────────── */}
+            <div
+                style={{
+                    textAlign: "center",
+                    padding: "1.5rem 1rem 1rem",
+                    borderBottom: "1px solid rgba(255,255,255,0.05)",
+                }}
+            >
+                <p
+                    style={{
+                        fontSize: "clamp(1rem, 2.5vw, 1.4rem)",
+                        color: "rgba(255,255,255,0.75)",
+                        fontWeight: 600,
+                        letterSpacing: "0.02em",
+                    }}
+                >
+                    Junte-se a <span style={{ color: "#32cd32", fontWeight: 900 }}>milhares de profissionais</span> que já transformaram suas carreiras.
+                </p>
+            </div>
+
+            {/* ───────────────── TREINAMENTOS EM DESTAQUE ───────────────── */}
+            <section
+                style={{
+                    padding: "2rem 1rem",
+                    maxWidth: "1280px",
+                    margin: "0 auto",
+                    borderTop: "1px solid rgba(255,255,255,0.05)",
+                }}
+            >
+                <div style={{ marginBottom: "2.5rem", textAlign: "center" }}>
+                    <h2
+                        style={{
+                            fontSize: "clamp(1.3rem, 2.5vw, 2rem)",
+                            fontWeight: 900,
+                            color: "#fff",
+                            textTransform: "uppercase",
+                            letterSpacing: "-0.02em",
+                        }}
+                    >
+                        TREINAMENTOS EM <span style={{ color: "#32cd32" }}>DESTAQUE</span>
                     </h2>
-                    <p className="text-slate-700 text-sm md:text-base max-w-2xl font-bold">
+                    <p style={{ color: "#94a3b8", fontSize: "0.9rem", marginTop: "0.5rem" }}>
                         Explore nossos melhores conteúdos pensados para sua evolução.
                     </p>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div
+                    style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        justifyContent: "center",
+                        gap: "1.5rem",
+                    }}
+                >
                     {loading ? (
-                        <div className="col-span-full flex justify-center py-20">
-                            <Loader2 className="animate-spin text-slate-300" size={32} />
+                        <div style={{ gridColumn: "1/-1", display: "flex", justifyContent: "center", padding: "5rem 0" }}>
+                            <Loader2 className="animate-spin" size={36} style={{ color: "#32cd32" }} />
                         </div>
                     ) : courses.map((course: any, i: number) => (
                         <Link
                             key={i}
                             href={`/course/${course.id}`}
-                            className="group bg-white border border-slate-100 rounded-xl overflow-hidden hover:border-[#00C402]/30 transition-all duration-300 flex flex-col hover:shadow-lg cursor-pointer"
+                            style={{ textDecoration: "none", width: "280px", maxWidth: "100%" }}
                         >
-                            <div className="aspect-video relative overflow-hidden">
-                                <img src={course.image_url || "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=2070"} alt={course.title} className="object-cover w-full h-full group-hover:scale-105 transition duration-500" />
-                                <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm border border-slate-100 text-[#00C402] px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest">
-                                    {course.tag || "PREMIUM"}
+                            <div className="course-card-dark group" style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+                                {/* Thumbnail */}
+                                <div style={{ aspectRatio: "16/9", overflow: "hidden", borderRadius: "10px 10px 0 0" }}>
+                                    <img
+                                        src={course.image_url || "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=2070"}
+                                        alt={course.title}
+                                        style={{
+                                            width: "100%",
+                                            height: "100%",
+                                            objectFit: "cover",
+                                            transition: "transform 0.5s ease",
+                                        }}
+                                        onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.07)")}
+                                        onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
+                                    />
                                 </div>
-                            </div>
-                            <div className="p-4 flex-grow flex flex-col space-y-3">
-                                <h3 className="text-sm font-bold text-slate-700 leading-tight group-hover:text-[#00C402] transition-colors line-clamp-2">{course.title}</h3>
-                                <div className="mt-auto pt-3 border-t border-slate-50 flex items-center justify-between">
-                                    <div className="flex flex-col">
-                                        <span className="text-[8px] text-slate-700 uppercase font-black tracking-widest leading-none mb-0.5">Investimento</span>
-                                        <span className="text-sm font-black text-slate-700 leading-none">R$ {course.price},00</span>
-                                    </div>
-                                    <div className="text-[#00C402] opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <ArrowRight size={14} />
+                                {/* Info */}
+                                <div style={{ padding: "1rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                                    <span
+                                        style={{
+                                            fontSize: "0.65rem",
+                                            fontWeight: 900,
+                                            textTransform: "uppercase",
+                                            letterSpacing: "0.12em",
+                                            color: "#32cd32",
+                                        }}
+                                    >
+                                        {course.tag || "PREMIUM"}
+                                    </span>
+                                    <h3
+                                        style={{
+                                            color: "#e2e8f0",
+                                            fontWeight: 700,
+                                            fontSize: "0.9rem",
+                                            lineHeight: 1.4,
+                                            display: "-webkit-box",
+                                            WebkitLineClamp: 2,
+                                            WebkitBoxOrient: "vertical",
+                                            overflow: "hidden",
+                                        }}
+                                    >
+                                        {course.title}
+                                    </h3>
+                                    <div
+                                        style={{
+                                            marginTop: "auto",
+                                            paddingTop: "0.75rem",
+                                            borderTop: "1px solid rgba(255,255,255,0.05)",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "space-between",
+                                        }}
+                                    >
+                                        <div>
+                                            <div style={{ fontSize: "0.65rem", color: "#94a3b8", textTransform: "uppercase", fontWeight: 800, letterSpacing: "0.1em" }}>
+                                                Investimento
+                                            </div>
+                                            <div style={{ color: "#f1f5f9", fontWeight: 900, fontSize: "0.95rem" }}>
+                                                R$ {course.price},00
+                                            </div>
+                                        </div>
+                                        <div style={{ color: "#32cd32" }}>
+                                            <ArrowRight size={16} />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -146,63 +329,184 @@ export default function WelcomePage() {
                     ))}
                 </div>
 
-                <div className="text-center pt-6">
+                <div style={{ textAlign: "center", marginTop: "2.5rem" }}>
                     <Link href="/course">
-                        <Button variant="link" className="text-slate-500 hover:text-slate-800 font-bold uppercase tracking-widest text-[10px] border-b border-transparent hover:border-slate-200 pb-1 transition-all">
-                            Ver catálogo completo
-                        </Button>
+                        <button
+                            style={{
+                                background: "transparent",
+                                border: "1px solid rgba(50,205,50,0.4)",
+                                color: "#32cd32",
+                                fontWeight: 800,
+                                fontSize: "0.8rem",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.15em",
+                                padding: "0.6rem 2rem",
+                                borderRadius: "6px",
+                                cursor: "pointer",
+                                transition: "all 0.2s",
+                            }}
+                            onMouseEnter={e => {
+                                const t = e.currentTarget;
+                                t.style.background = "rgba(50,205,50,0.1)";
+                            }}
+                            onMouseLeave={e => {
+                                const t = e.currentTarget;
+                                t.style.background = "transparent";
+                            }}
+                        >
+                            Ver catálogo completo →
+                        </button>
                     </Link>
                 </div>
             </section>
 
-            {/* SEÇÃO DE BANNERS DINÂMICOS */}
-            <section className="relative">
+            {/* ───────────────── BENEFITS SECTION ───────────────── */}
+            <section style={{ padding: "2.5rem 1rem", maxWidth: "1280px", margin: "0 auto" }}>
+                <div style={{ textAlign: "center", marginBottom: "3rem" }}>
+                    <h2
+                        style={{
+                            fontSize: "clamp(1.5rem, 3vw, 2.5rem)",
+                            fontWeight: 900,
+                            color: "#fff",
+                            textTransform: "uppercase",
+                            letterSpacing: "-0.02em",
+                        }}
+                    >
+                        POR QUE ESCOLHER A <span style={{ color: "#32cd32" }}>POWERPLAY?</span>
+                    </h2>
+                    <p style={{ color: "#94a3b8", marginTop: "0.75rem", fontSize: "1rem" }}>
+                        Uma plataforma pensada para quem leva o conhecimento a sério.
+                    </p>
+                </div>
+
+                <div
+                    style={{
+                        display: "grid",
+                        gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+                        gap: "1.5rem",
+                    }}
+                >
+                    {benefits.map((b, i) => {
+                        const Icon = b.icon;
+                        return (
+                            <div key={i} className="benefit-card">
+                                <div
+                                    style={{
+                                        width: "56px",
+                                        height: "56px",
+                                        borderRadius: "14px",
+                                        background: "rgba(50,205,50,0.12)",
+                                        border: "1px solid rgba(50,205,50,0.25)",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        marginBottom: "1.25rem",
+                                        color: "#32cd32",
+                                    }}
+                                >
+                                    <Icon size={26} />
+                                </div>
+                                <h3
+                                    style={{
+                                        color: "#f1f5f9",
+                                        fontWeight: 800,
+                                        fontSize: "1.05rem",
+                                        marginBottom: "0.6rem",
+                                        textTransform: "uppercase",
+                                        letterSpacing: "0.03em",
+                                    }}
+                                >
+                                    {b.title}
+                                </h3>
+                                <p style={{ color: "#94a3b8", fontSize: "0.9rem", lineHeight: 1.65 }}>
+                                    {b.description}
+                                </p>
+                            </div>
+                        );
+                    })}
+                </div>
+            </section>
+
+            {/* ───────────────── SEÇÃO DE BANNERS DINÂMICOS ───────────────── */}
+            <section style={{ position: "relative" }}>
                 {banners?.hero_home && banners.hero_home.length > 0 ? (
                     banners.hero_home
                         .sort((a, b) => a.order - b.order)
                         .map((banner, idx) => {
-                            const isOdd = idx % 2 !== 0; // Layout Direita
-                            const isCenter = idx >= 2;   // Layout Centralizado para extras
+                            const isOdd = idx % 2 !== 0;
+                            const isCenter = idx >= 2;
 
                             return (
-                                <div key={idx} className="relative h-[600px] w-full overflow-hidden group border-b border-slate-100 last:border-0">
+                                <div
+                                    key={idx}
+                                    style={{
+                                        position: "relative",
+                                        height: "600px",
+                                        width: "100%",
+                                        overflow: "hidden",
+                                        borderBottom: "1px solid rgba(255,255,255,0.05)",
+                                    }}
+                                >
                                     <img
                                         src={banner.url}
                                         alt={`Banner ${idx + 1}`}
-                                        className="object-cover w-full h-full group-hover:scale-105 transition duration-[2s] brightness-50"
+                                        style={{
+                                            objectFit: "cover",
+                                            width: "100%",
+                                            height: "100%",
+                                            filter: "brightness(0.4)",
+                                        }}
                                     />
-
-                                    <div className={`absolute inset-0 flex items-center ${isCenter ? 'justify-center text-center' :
-                                        isOdd ? 'justify-end text-right' : 'justify-start text-left'
-                                        }`}>
-                                        <div className="max-w-7xl mx-auto px-6 w-full flex flex-col items-center sm:block">
-                                            <div className={`max-w-2xl space-y-6 animate-in fade-in duration-1000 ${isCenter ? 'mx-auto' :
-                                                isOdd ? 'ml-auto slide-in-from-right' : 'mr-auto slide-in-from-left'
-                                                }`}>
-                                                <span className="text-[10px] font-black uppercase tracking-[4px] !text-white bg-white/10 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 inline-block">
+                                    <div
+                                        style={{
+                                            position: "absolute",
+                                            inset: 0,
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: isCenter ? "center" : isOdd ? "flex-end" : "flex-start",
+                                        }}
+                                    >
+                                        <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem", width: "100%", display: "flex", flexDirection: "column", alignItems: isCenter ? "center" : isOdd ? "flex-end" : "flex-start" }}>
+                                            <div style={{ maxWidth: "560px", display: "flex", flexDirection: "column", gap: "1.25rem", textAlign: isCenter || isOdd ? "right" : "left", alignItems: isCenter ? "center" : isOdd ? "flex-end" : "flex-start" }}>
+                                                <span
+                                                    style={{
+                                                        fontSize: "0.7rem",
+                                                        fontWeight: 900,
+                                                        textTransform: "uppercase",
+                                                        letterSpacing: "0.2em",
+                                                        color: "#fff",
+                                                        background: "rgba(255,255,255,0.1)",
+                                                        border: "1px solid rgba(255,255,255,0.15)",
+                                                        padding: "0.3rem 1rem",
+                                                        borderRadius: "999px",
+                                                        backdropFilter: "blur(8px)",
+                                                    }}
+                                                >
                                                     {idx === 0 ? 'Experiência' : idx === 1 ? 'Metodologia' : 'Inovação'}
                                                 </span>
-                                                <h2 className="text-4xl md:text-6xl font-black !text-white tracking-tighter leading-tight uppercase">
-                                                    {idx === 0 ? (
-                                                        <>APRENDA COM <br /> <span className="!text-white">ESPECIALISTAS</span></>
-                                                    ) : idx === 1 ? (
-                                                        <>LABORATÓRIOS DA <br /> <span className="!text-white">VIDA REAL</span></>
-                                                    ) : (
-                                                        <>TRANSFORME SUA <br /> <span className="!text-white">CARREIRA</span> AGORA</>
-                                                    )}
+                                                <h2
+                                                    style={{
+                                                        fontSize: "clamp(2rem, 4vw, 3.5rem)",
+                                                        fontWeight: 900,
+                                                        color: "#fff",
+                                                        lineHeight: 1.1,
+                                                        textTransform: "uppercase",
+                                                        letterSpacing: "-0.02em",
+                                                    }}
+                                                >
+                                                    {idx === 0 ? (<>APRENDA COM <br /><span style={{ color: "#32cd32" }}>ESPECIALISTAS</span></>) : idx === 1 ? (<>LABORATÓRIOS DA <br /><span style={{ color: "#32cd32" }}>VIDA REAL</span></>) : (<>TRANSFORME SUA <br /><span style={{ color: "#32cd32" }}>CARREIRA</span> AGORA</>)}
                                                 </h2>
-                                                <p className={`!text-white text-lg font-bold leading-relaxed max-w-lg ${isCenter || isOdd ? 'mx-auto' : ''}`}>
+                                                <p style={{ color: "rgba(255,255,255,0.8)", fontSize: "1.05rem", fontWeight: 500, lineHeight: 1.6 }}>
                                                     {idx === 0
                                                         ? 'Trilhas de conhecimento desenhadas por profissionais que lideram grandes projetos.'
                                                         : idx === 1
                                                             ? 'Nossa metodologia foca na resolução de desafios reais com ferramentas de ponta.'
-                                                            : 'Junte-se a milhares de alunos que já alcançaram cargos de destaque.'
-                                                    }
+                                                            : 'Junte-se a milhares de alunos que já alcançaram cargos de destaque.'}
                                                 </p>
                                                 <Link href={idx >= 2 ? "/course" : "/register"}>
-                                                    <Button size="lg" className="bg-[#00C402] hover:bg-[#00b302] text-white px-8 py-6 text-sm font-black uppercase tracking-widest rounded-xl transition-all shadow-lg mt-4">
+                                                    <button className="btn-cta">
                                                         {idx >= 2 ? 'Explorar Cursos' : 'Começar agora'}
-                                                    </Button>
+                                                    </button>
                                                 </Link>
                                             </div>
                                         </div>
@@ -211,20 +515,23 @@ export default function WelcomePage() {
                             );
                         })
                 ) : (
-                    /* Fallback Fallback elegant */
-                    <div className="relative h-[600px] w-full overflow-hidden group">
+                    <div style={{ position: "relative", height: "600px", width: "100%", overflow: "hidden" }}>
                         <img
                             src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2671&auto=format&fit=crop"
                             alt="Standard Banner"
-                            className="object-cover w-full h-full brightness-50"
+                            style={{ objectFit: "cover", width: "100%", height: "100%", filter: "brightness(0.35)" }}
                         />
-                        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 flex items-center">
-                            <div className="max-w-7xl mx-auto px-6 w-full">
-                                <div className="max-w-xl space-y-6">
-                                    <h2 className="text-5xl font-black text-white tracking-tighter uppercase">Potencialize seu Futuro</h2>
-                                    <p className="text-white/80 text-lg font-bold">Inicie sua jornada na SPCS Academy e domine o mercado.</p>
+                        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(0,0,0,0.9), transparent)", display: "flex", alignItems: "center" }}>
+                            <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem" }}>
+                                <div style={{ maxWidth: "520px", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+                                    <h2 style={{ fontSize: "clamp(2rem, 4vw, 3.2rem)", fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+                                        Potencialize <br />seu Futuro
+                                    </h2>
+                                    <p style={{ color: "rgba(255,255,255,0.75)", fontSize: "1.05rem", fontWeight: 500 }}>
+                                        Inicie sua jornada na PowerPlay e domine o mercado.
+                                    </p>
                                     <Link href="/register">
-                                        <Button className="bg-[#00C402] text-white px-8 py-6 uppercase font-black">Registrar Conta</Button>
+                                        <button className="btn-cta">Registrar Conta</button>
                                     </Link>
                                 </div>
                             </div>
@@ -233,35 +540,70 @@ export default function WelcomePage() {
                 )}
             </section>
 
-            {/* GRID DE BENEFÍCIOS (Final Clean Section) */}
-            <section className="bg-white py-24 border-t border-slate-100">
-                <div className="max-w-7xl mx-auto px-6">
-                    <div className="grid md:grid-cols-3 gap-16">
-                        <div className="space-y-4 text-center group">
-                            <div className="w-20 h-20 rounded-[32px] bg-slate-50 flex items-center justify-center text-[#00C402] mx-auto shadow-sm border border-slate-100 group-hover:scale-110 transition-transform">
-                                <TrendingUp size={36} />
+
+            {/* ───────────────── GRID DE DIFERENCIAIS ───────────────── */}
+            <section
+                style={{
+                    padding: "2.5rem 1rem",
+                    borderTop: "1px solid rgba(255,255,255,0.05)",
+                }}
+            >
+                <div style={{ maxWidth: "1280px", margin: "0 auto" }}>
+                    <h2
+                        style={{
+                            textAlign: "center",
+                            fontSize: "clamp(1.3rem, 2.5vw, 2rem)",
+                            fontWeight: 900,
+                            color: "#fff",
+                            textTransform: "uppercase",
+                            letterSpacing: "-0.02em",
+                            marginBottom: "3rem",
+                        }}
+                    >
+                        NOSSOS <span style={{ color: "#32cd32" }}>DIFERENCIAIS</span>
+                    </h2>
+                    <div
+                        style={{
+                            display: "grid",
+                            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                            gap: "2.5rem",
+                        }}
+                    >
+                        {[
+                            { Icon: TrendingUp, title: "Crescimento", text: "Acelere sua evolução técnica com trilhas pensadas para o mercado real." },
+                            { Icon: Handshake, title: "Soluções", text: "Metodologias exclusivas que transformam desafios em oportunidades." },
+                            { Icon: BarChart3, title: "Resultados", text: "Métricas claras e acompanhamento em tempo real do seu progresso." },
+                        ].map(({ Icon, title, text }, i) => (
+                            <div
+                                key={i}
+                                style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}
+                            >
+                                <div
+                                    style={{
+                                        width: "72px",
+                                        height: "72px",
+                                        borderRadius: "20px",
+                                        background: "rgba(50,205,50,0.1)",
+                                        border: "1px solid rgba(50,205,50,0.25)",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        color: "#32cd32",
+                                    }}
+                                >
+                                    <Icon size={32} />
+                                </div>
+                                <h3 style={{ color: "#f1f5f9", fontWeight: 900, fontSize: "1.1rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                                    {title}
+                                </h3>
+                                <p style={{ color: "#94a3b8", fontSize: "0.9rem", lineHeight: 1.7, maxWidth: "260px" }}>
+                                    {text}
+                                </p>
                             </div>
-                            <h3 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Crescimento</h3>
-                            <p className="text-slate-500 text-sm leading-relaxed font-bold">Acelere sua evolução técnica com trilhas pensadas para o mercado real.</p>
-                        </div>
-                        <div className="space-y-4 text-center group">
-                            <div className="w-20 h-20 rounded-[32px] bg-slate-50 flex items-center justify-center text-[#00C402] mx-auto shadow-sm border border-slate-100 group-hover:scale-110 transition-transform">
-                                <Handshake size={36} />
-                            </div>
-                            <h3 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Soluções</h3>
-                            <p className="text-slate-500 text-sm leading-relaxed font-bold">Metodologias exclusivas que transformam desafios em oportunidades.</p>
-                        </div>
-                        <div className="space-y-4 text-center group">
-                            <div className="w-20 h-20 rounded-[32px] bg-slate-50 flex items-center justify-center text-[#00C402] mx-auto shadow-sm border border-slate-100 group-hover:scale-110 transition-transform">
-                                <BarChart3 size={36} />
-                            </div>
-                            <h3 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Resultados</h3>
-                            <p className="text-slate-500 text-sm leading-relaxed font-bold">Métricas claras e acompanhamento em tempo real do seu progresso.</p>
-                        </div>
+                        ))}
                     </div>
                 </div>
             </section>
-
 
         </div>
     );

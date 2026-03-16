@@ -13,7 +13,7 @@ import { uploadCourseImage } from '@/lib/storage-helpers'
 export default function AdminSettingsPage() {
     const [settings, setSettings] = useState<GlobalSettings>({
         banners: { hero_home: [], hero_dashboard: [], hero_course: [] },
-        branding: { logoUrl: '', siteName: 'SPCS Academy', primaryColor: '#00C402' }
+        branding: { logoUrl: '', siteName: 'PowerPlay', primaryColor: '#00C402' }
     })
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
@@ -198,7 +198,7 @@ export default function AdminSettingsPage() {
                             <Input
                                 value={settings.branding.siteName}
                                 onChange={(e) => setBranding('siteName', e.target.value)}
-                                placeholder="Ex: SPCS Academy"
+                                placeholder="Ex: PowerPlay"
                                 className="rounded-xl h-11 font-semibold text-slate-800"
                             />
                         </div>

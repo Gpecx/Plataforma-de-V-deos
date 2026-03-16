@@ -1,37 +1,44 @@
 @import "tailwindcss";
 
-
 :root {
-  --background: #F4F7F9;
-  /* Soft Matte Ice Gray */
-  --foreground: #334155;
-  /* Slate-700 for better balance */
-  --border: #E2E8F0;
-  /* Standard Soft Matte Border */
-  --input: #E2E8F0;
-  --ring: #334155;
+  /* === IDENTIDADE: Deep Black === */
+  --background-color: #000000;
+  --accent-green: #32cd32;
+
+  /* === NAVBAR GLASSMORPHISM === */
+  --navbar-bg: rgba(0, 0, 0, 0.75);
+  --navbar-blur: blur(12px);
+  --navbar-border: rgba(255, 255, 255, 0.05);
+
+  /* === SISTEMA === */
+  --background: var(--background-color);
+  --foreground: #e2e8f0;
+  --border: #1e4d2b;
+  --input: #1e4d2b;
+  --ring: var(--accent-green);
   --radius: 0.5rem;
 
-  --primary: #334155;
+  --primary: var(--accent-green);
   --primary-foreground: #ffffff;
 
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
+  --muted: #0a1f10;
+  --muted-foreground: #94a3b8;
 }
 
+html,
 body {
-  background-color: var(--background) !important;
-  color: #475569;
-  /* Slate-600 */
+  background-color: var(--background-color) !important;
+  color: var(--foreground);
   font-family: var(--font-exo);
   font-size: 0.875rem;
   -webkit-font-smoothing: antialiased;
+  min-height: 100%;
 }
 
 /* Soft Matte Filter aplicado no wrapper interno para não quebrar position:fixed dos portals/modais.
    NUNCA aplique filter, transform ou will-change no body/html pois cria stacking context e quebra fixed. */
 .page-filter {
-  filter: saturate(0.9) brightness(0.97);
+  filter: saturate(0.95) brightness(0.98);
 }
 
 h1,
@@ -40,32 +47,23 @@ h3,
 h4,
 h5,
 h6 {
-  color: #334155;
-  /* Slate-700 */
+  color: #f1f5f9;
   font-weight: 700;
   letter-spacing: -0.025em;
 }
 
 p {
-  color: #64748b;
-  /* Slate-500 */
+  color: #94a3b8;
 }
 
-/* Forçar bordas suaves e sombras em cards brancos */
-.bg-white,
-.bg-card {
-  border: 1px solid #E2E8F0 !important;
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
-  /* shadow-sm */
+/* Dark card style */
+.dark-card {
+  background: #0f1f14;
+  border: 1px solid #1e4d2b;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
-/* Overwrite default borders for clarity */
-.border,
-[class*="border-"] {
-  border-color: #E2E8F0;
-}
-
-/* Custom Scrollbar for Modal */
+/* Custom Scrollbar */
 .custom-scrollbar {
   scrollbar-gutter: stable;
 }
@@ -76,11 +74,115 @@ p {
 
 .custom-scrollbar {
   -ms-overflow-style: none;
-  /* IE and Edge */
   scrollbar-width: none;
-  /* Firefox */
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 196, 2, 0.7);
+  background: rgba(50, 205, 50, 0.7);
+}
+
+/* Hero Section */
+.hero-section {
+  position: relative;
+  min-height: 100vh;
+  background-image: url('/images/hero-bg.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  flex-direction: column;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.8) 0%,
+    rgba(0, 0, 0, 0) 40%,
+    rgba(0, 0, 0, 0) 60%,
+    rgba(0, 0, 0, 1) 100%
+  );
+  z-index: 1;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+}
+
+/* Benefits cards */
+.benefit-card {
+  background: rgba(15, 31, 20, 0.9);
+  border: 1px solid rgba(50, 205, 50, 0.15);
+  border-radius: 12px;
+  padding: 2rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  cursor: default;
+}
+
+.benefit-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 40px rgba(50, 205, 50, 0.15);
+  border-color: rgba(50, 205, 50, 0.4);
+}
+
+/* Course cards dark */
+.course-card-dark {
+  background: #0f1f14;
+  border: 1px solid #1e4d2b;
+  border-radius: 10px;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.course-card-dark:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  border-color: rgba(50, 205, 50, 0.4);
+}
+
+/* Green CTA Button */
+.btn-cta {
+  background: #32cd32;
+  color: #fff;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.9rem 2.5rem;
+  border-radius: 6px;
+  border: 2px solid #32cd32;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+  font-size: 1rem;
+}
+
+.btn-cta:hover {
+  background: #28b828;
+  transform: scale(1.03);
+  box-shadow: 0 0 20px rgba(50, 205, 50, 0.5);
+}
+
+/* Email input hero */
+.hero-email-input {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.25);
+  color: #fff;
+  border-radius: 6px;
+  padding: 0.9rem 1.5rem;
+  font-size: 1rem;
+  width: 100%;
+  max-width: 420px;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+  backdrop-filter: blur(6px);
+}
+
+.hero-email-input::placeholder {
+  color: rgba(255,255,255,0.55);
+}
+
+.hero-email-input:focus {
+  border-color: #32cd32;
+  background: rgba(255,255,255,0.12);
 }

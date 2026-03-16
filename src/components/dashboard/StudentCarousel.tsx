@@ -9,7 +9,7 @@ const CAROUSEL_ITEMS = [
         id: 1,
         image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=1200&q=80",
         title: "TRANSFORME SUA CARREIRA",
-        text: "Domine a engenharia de precisão com os maiores especialistas do mercado SPCS Academy.",
+        text: "Domine a engenharia de precisão com os maiores especialistas do mercado PowerPlay.",
         accent: "ALTA PERFORMANCE"
     },
     {
@@ -58,7 +58,7 @@ export function StudentCarousel({ heroBanners }: { heroBanners?: BannerItem[] })
     }, [next, displayItems.length])
 
     return (
-        <section className="mb-12 relative overflow-hidden rounded-2xl bg-slate-100 aspect-[21/9] md:aspect-[32/10] group shadow-xl">
+        <section className="mb-12 relative overflow-hidden rounded-none bg-slate-900 aspect-[21/9] md:aspect-[32/10] group">
             {/* Imagens */}
             <div
                 className="flex w-full h-full transition-transform duration-700 ease-in-out"
@@ -75,18 +75,20 @@ export function StudentCarousel({ heroBanners }: { heroBanners?: BannerItem[] })
                 ))}
             </div>
 
-            {/* Overlay: Card Branco Estilo Udemy */}
-            <div className="absolute inset-0 flex items-center px-8 md:px-20 pointer-events-none">
-                <div className="bg-white/95 backdrop-blur-sm p-6 md:p-10 rounded-2xl shadow-2xl max-w-lg animate-in fade-in slide-in-from-left-4 duration-700 pointer-events-auto border border-slate-100">
-                    <div className="flex items-center gap-2 mb-3">
-                        <Sparkles size={14} className="text-[#00C402]" />
-                        <span className="text-[9px] font-black uppercase tracking-[3px] text-[#00C402]">{displayItems[currentIndex].accent}</span>
+            {/* Overlay: Dark Industrial Style */}
+            <div className="absolute inset-0 bg-black/60 flex items-center px-8 md:px-20">
+                <div className="max-w-2xl animate-in fade-in slide-in-from-left-4 duration-700">
+                    <div className="flex items-center gap-2 mb-4">
+                        <div className="w-8 h-px bg-[#00C402]" />
+                        <span className="text-[10px] font-black uppercase tracking-[5px] text-[#00C402]">
+                            {displayItems[currentIndex].accent}
+                        </span>
                     </div>
-                    <h2 className="text-2xl md:text-3xl font-black text-slate-800 tracking-tighter leading-none mb-4">
+                    <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-[0.8] mb-6 uppercase">
                         {displayItems[currentIndex].title.split(' ')[0]} <br />
                         <span className="text-[#00C402]">{displayItems[currentIndex].title.split(' ').slice(1).join(' ')}</span>
                     </h2>
-                    <p className="text-slate-500 text-xs md:text-sm font-medium leading-relaxed">
+                    <p className="text-white/60 text-sm md:text-base font-bold uppercase tracking-widest leading-relaxed max-w-xl">
                         {displayItems[currentIndex].text}
                     </p>
                 </div>

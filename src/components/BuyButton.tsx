@@ -62,14 +62,14 @@ export function BuyButton({ course, size = "default", label = "Comprar Agora", c
     }
 
     const baseClass =
-        "flex items-center justify-center gap-3 font-black uppercase italic tracking-widest rounded-2xl transition-all shadow-[0_0_30px_rgba(0,196,2,0.3)] bg-[#00C402] text-black hover:bg-white hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed group"
+        "flex items-center justify-center gap-3 font-black uppercase italic tracking-widest rounded-none transition-all shadow-[0_0_30px_rgba(0,196,2,0.3)] bg-[#00C402] text-black hover:bg-white hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed group"
 
     const basePurchasedClass =
-        "flex items-center justify-center gap-3 font-black uppercase italic tracking-widest rounded-2xl transition-all bg-slate-900 text-white hover:bg-slate-800 hover:scale-105 group"
+        "flex items-center justify-center gap-3 font-black uppercase italic tracking-widest rounded-none transition-all bg-slate-900 text-white hover:bg-slate-800 hover:scale-105 group"
 
     const sizeClass =
         size === "large"
-            ? "px-14 py-6 text-2xl rounded-full"
+            ? "px-14 py-6 text-2xl rounded-none"
             : "px-10 py-5 text-lg"
 
     if (isPurchased) {

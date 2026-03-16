@@ -29,7 +29,7 @@ const MOCK_COMMENTS: Comment[] = [
     {
         id: '1',
         user: 'Gabriel Mendes',
-        course: 'Engenharia de Software SPCS Academy',
+        course: 'Engenharia de Software PowerPlay',
         lesson: '03. Arquitetura do Projeto Principal',
         content: 'Professor, não entendi muito bem a parte de injeção de dependência no Node. Pode dar mais um exemplo prático?',
         date: 'há 10 minutos',
@@ -47,7 +47,7 @@ const MOCK_COMMENTS: Comment[] = [
     {
         id: '3',
         user: 'Rafael Souza',
-        course: 'Engenharia de Software SPCS Academy',
+        course: 'Engenharia de Software PowerPlay',
         lesson: '01. Mentalidade de Excelência',
         content: 'Excelente aula! Já estou aplicando esses conceitos no meu trabalho atual.',
         date: 'há 5 horas',
@@ -82,7 +82,7 @@ export default function CommentInbox() {
                     <span className="text-[10px] font-black uppercase tracking-[5px] text-[#00C402] italic">Suporte ao Aluno</span>
                 </div>
                 <h1 className="text-4xl font-black italic tracking-tighter uppercase">Inbox de <span className="text-[#00C402]">Dúvidas</span></h1>
-                <p className="text-gray-400 mt-2 font-medium uppercase text-xs tracking-widest">Responda seus alunos com agilidade e mantenha a qualidade SPCS Academy.</p>
+                <p className="text-gray-400 mt-2 font-medium uppercase text-xs tracking-widest">Responda seus alunos com agilidade e mantenha a qualidade PowerPlay.</p>
             </header>
 
             {/* Filtros e Busca */}

@@ -13,14 +13,14 @@ export function CourseIntroPlayer({ videoUrl, thumbnail }: CourseIntroPlayerProp
 
     if (!videoUrl) {
         return (
-            <div className="relative aspect-video w-full bg-black rounded-[40px] overflow-hidden shadow-2xl group border-[12px] border-white ring-1 ring-slate-100">
+            <div className="relative aspect-video w-full bg-black overflow-hidden shadow-2xl group border-b border-white/10">
                 <img
                     src={thumbnail || "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=2070"}
                     className="w-full h-full object-cover opacity-60 brightness-50"
                     alt="Course Preview"
                 />
                 <div className="absolute bottom-8 left-8 flex items-center gap-3">
-                    <div className="p-2 bg-white/10 backdrop-blur-md rounded-lg text-white">
+                    <div className="p-2 bg-black/50 border border-[#00FF00] text-white rounded-full">
                         <PlayCircle size={20} />
                     </div>
                     <span className="text-white text-xs font-black uppercase tracking-widest">Aprenda com quem faz na prática</span>
@@ -54,7 +54,7 @@ export function CourseIntroPlayer({ videoUrl, thumbnail }: CourseIntroPlayerProp
         return (
             <div
                 onClick={() => setIsPlaying(true)}
-                className="relative aspect-video w-full bg-black rounded-[40px] overflow-hidden shadow-2xl group border-[12px] border-white ring-1 ring-slate-100 cursor-pointer"
+                className="relative aspect-video w-full bg-black overflow-hidden shadow-2xl group border-b border-white/10 cursor-pointer"
             >
                 <img
                     src={thumbnail || "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=2070"}
@@ -62,23 +62,22 @@ export function CourseIntroPlayer({ videoUrl, thumbnail }: CourseIntroPlayerProp
                     alt="Course Preview"
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-24 h-24 bg-white text-[#00C402] rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(255,255,255,0.3)] group-hover:scale-110 transition-transform">
-                        <PlayCircle size={48} fill="currentColor" className="text-[#00C402] opacity-20" />
-                        <PlayCircle size={48} className="absolute" />
+                    <div className="w-24 h-24 bg-black/50 border border-[#00FF00] text-[#00FF00] flex items-center justify-center shadow-[0_0_30px_rgba(0,255,0,0.2)] group-hover:scale-110 transition-transform rounded-full">
+                        <PlayCircle size={48} />
                     </div>
                 </div>
                 <div className="absolute bottom-8 left-8 flex items-center gap-3">
-                    <div className="p-2 bg-white/10 backdrop-blur-md rounded-lg text-white">
+                    <div className="p-2 bg-black/50 border border-[#00FF00] text-white rounded-full">
                         <PlayCircle size={20} />
                     </div>
-                    <span className="text-white text-xs font-black uppercase tracking-widest">Assistir Apresentação</span>
+                    <span className="text-white text-xs font-black uppercase tracking-widest text-[#00FF00]">Assistir Apresentação</span>
                 </div>
             </div>
         )
     }
 
     return (
-        <div className="relative aspect-video w-full bg-black rounded-[40px] overflow-hidden shadow-2xl border-[12px] border-white ring-1 ring-slate-100">
+        <div className="relative aspect-video w-full bg-black overflow-hidden shadow-2xl border-b border-white/10">
             {isExternal ? (
                 <iframe
                     src={getEmbedUrl(videoUrl)}
@@ -97,7 +96,7 @@ export function CourseIntroPlayer({ videoUrl, thumbnail }: CourseIntroPlayerProp
             )}
             <button
                 onClick={() => setIsPlaying(false)}
-                className="absolute top-4 right-4 bg-black/50 hover:bg-black p-2 rounded-full text-white transition-colors"
+                className="absolute top-4 right-4 bg-black/50 hover:bg-black p-2 text-white transition-colors border border-white/10"
                 title="Fechar Vídeo"
             >
                 <PlayCircle size={16} className="rotate-180" />

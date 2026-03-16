@@ -48,19 +48,19 @@ export default async function StudentDashboard() {
     const cursosDisponiveis = allCourses.filter(c => !purchasedCourseIds.includes(c.id))
 
     return (
-        <div className="max-w-[1600px] mx-auto pb-16 min-h-screen bg-[#F3F4F6] text-slate-800 font-exo relative">
+        <div className="min-h-screen bg-[#0d2b17] text-[#e2e8f0] font-exo relative pb-16">
             {/* Lógica para sincronizar cursos comprados com o Zustand no Client Side se necessário */}
             <StoreInitializer purchasedCourseIds={purchasedCourseIds} />
 
-            {/* Main Content (Full Width) */}
-            <div className="space-y-8">
+            {/* Main Content (Constrained Width) */}
+            <div className="max-w-none space-y-8">
                 {/* Header de Boas-vindas - Compacto no Topo */}
-                <header className="pt-0 px-4 md:px-8">
+                <header className="pt-0 px-6 md:px-12 lg:px-16">
                     <div className="flex items-center gap-2 mb-0.5">
                         <span className="text-[8px] font-bold uppercase tracking-[4px] text-[#00C402]">WORKSPACE STUDENT</span>
                     </div>
                     <div className="flex flex-col md:flex-row md:items-baseline gap-2 md:gap-4">
-                        <h1 className="text-2xl md:text-3xl font-black tracking-tighter text-slate-800">
+                        <h1 className="text-2xl md:text-3xl font-black tracking-tighter text-white">
                             BEM-VINDO, <span className="text-[#00C402] uppercase">{profile?.full_name?.split(' ')[0] || 'ALUNO'}!</span>
                         </h1>
                         <p className="text-slate-400 font-bold text-[9px] tracking-widest uppercase">Eleve sua carreira hoje.</p>
@@ -68,16 +68,16 @@ export default async function StudentDashboard() {
                 </header>
 
                 {/* Banner de Inspiração (Carrossel Dinâmico) - 100% da Largura Total */}
-                <div className="w-full">
+                <div className="w-full overflow-hidden">
                     <StudentCarousel heroBanners={banners.hero_dashboard} />
                 </div>
 
                 {/* Seções com Padding Lateral */}
-                <div className="px-4 md:px-8 space-y-12">
+                <div className="px-6 md:px-12 lg:px-16 space-y-12">
                     {/* Seção: Meus Cursos */}
                     <section>
-                        <div className="flex items-center justify-between mb-6 pb-3 border-b border-slate-200/60">
-                            <h2 className="text-lg font-black uppercase tracking-tighter flex items-center gap-3 text-slate-700">
+                        <div className="flex items-center justify-between mb-6 pb-3 border-b border-[#1e4d2b]">
+                            <h2 className="text-lg font-black uppercase tracking-tighter flex items-center gap-3 text-white/50">
                                 <BookOpen size={18} className="text-[#00C402]" />
                                 Seu Aprendizado
                             </h2>
@@ -87,7 +87,7 @@ export default async function StudentDashboard() {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             {meusCursos.length > 0 ? (
                                 meusCursos.map((curso) => (
-                                    <div key={curso.id} className="bg-white rounded-2xl overflow-hidden border border-slate-100 hover:border-[#00C402]/30 transition-all group shadow-sm hover:shadow-lg">
+                                    <div key={curso.id} className="bg-[#0f1f14] rounded-none overflow-hidden border border-[#1e4d2b] hover:border-[#00C402] transition-all group">
                                         <div className="relative h-40 bg-slate-100">
                                             <img
                                                 src={curso.image_url || "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400"}
@@ -99,7 +99,7 @@ export default async function StudentDashboard() {
                                             </div>
                                         </div>
                                         <div className="p-6">
-                                            <h3 className="font-bold text-base mb-3 tracking-tight text-slate-900 line-clamp-1 group-hover:text-[#00C402] transition">{curso.title}</h3>
+                                            <h3 className="font-bold text-base mb-3 tracking-tight text-white line-clamp-1 group-hover:text-[#00C402] transition">{curso.title}</h3>
 
                                             <div className="relative group/progress mb-2">
                                                 <div className="w-full bg-slate-100 h-1 rounded-full overflow-hidden">
@@ -111,7 +111,7 @@ export default async function StudentDashboard() {
                                                 <span>45% COMPLETADO</span>
                                             </div>
                                             <Link href={`/classroom/${curso.id}`}>
-                                                <button className="w-full mt-6 bg-slate-900 text-white font-bold uppercase text-[10px] tracking-widest py-3 rounded-xl hover:bg-slate-800 transition shadow-sm">
+                                                <button className="w-full mt-6 bg-slate-900 text-white font-bold uppercase text-[10px] tracking-widest py-3 rounded-none hover:bg-slate-800 transition shadow-sm">
                                                     Continuar
                                                 </button>
                                             </Link>
@@ -119,7 +119,7 @@ export default async function StudentDashboard() {
                                     </div>
                                 ))
                             ) : (
-                                <div className="col-span-full py-16 border border-dashed border-slate-200 rounded-[24px] text-center bg-white/50">
+                                <div className="col-span-full py-16 border border-dashed border-[#1e4d2b] rounded-none text-center bg-[#0f1f14]/50">
                                     <p className="text-slate-400 text-[10px] font-semibold uppercase tracking-widest">Sua estante está vazia.</p>
                                 </div>
                             )}
@@ -127,13 +127,13 @@ export default async function StudentDashboard() {
                     </section>
 
                     {/* Seção Founders */}
-                    <section className="bg-white rounded-[32px] border border-slate-100 p-8 overflow-hidden relative shadow-sm">
+                    <section className="bg-[#0f1f14] rounded-none border border-[#1e4d2b] p-8 overflow-hidden relative shadow-sm">
                         <div className="absolute top-0 right-0 w-1/4 h-full opacity-5 pointer-events-none">
                             <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=600" alt="Tech" className="w-full h-full object-cover grayscale" />
                         </div>
                         <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center">
                             <div className="flex-1 text-center md:text-left">
-                                <h2 className="text-lg font-black uppercase tracking-tighter text-slate-800 mb-2 flex items-center justify-center md:justify-start gap-3">
+                                <h2 className="text-lg font-black uppercase tracking-tighter text-white mb-2 flex items-center justify-center md:justify-start gap-3">
                                     <Trophy size={18} className="text-[#00C402]" />
                                     Conteúdo Inovador
                                 </h2>
@@ -146,17 +146,17 @@ export default async function StudentDashboard() {
 
                     {/* Seção: Vitrine de Cursos */}
                     <section className="pb-16">
-                        <div className="flex items-center justify-between mb-6 pb-3 border-b border-slate-200/60">
-                            <h2 className="text-lg font-black uppercase tracking-tighter flex items-center gap-3 text-slate-700">
+                        <div className="flex items-center justify-between mb-6 pb-3 border-b border-[#1e4d2b]">
+                            <h2 className="text-lg font-black uppercase tracking-tighter flex items-center gap-3 text-white">
                                 <CreditCard size={18} className="text-[#00C402]" />
                                 Recomendados
                             </h2>
-                            <span className="text-[8px] font-black uppercase tracking-[2px] text-slate-400">VITRINE SPCS</span>
+                            <span className="text-[8px] font-black uppercase tracking-[2px] text-slate-400">VITRINE POWERPLAY</span>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             {cursosDisponiveis.map((curso) => (
-                                <div key={curso.id} className="bg-white rounded-2xl overflow-hidden border border-slate-100 hover:border-[#00C402]/30 transition-all flex flex-col group shadow-sm hover:shadow-lg">
+                                <div key={curso.id} className="bg-[#0f1f14] rounded-none overflow-hidden border border-[#1e4d2b] hover:border-[#00C402] transition-all flex flex-col group">
                                     <div className="relative h-40 overflow-hidden">
                                         <img
                                             src={curso.image_url || "https://images.unsplash.com/photo-1558655146-d09347e92766?w=400"}
@@ -166,12 +166,12 @@ export default async function StudentDashboard() {
                                     </div>
                                     <div className="p-5 flex-grow flex flex-col justify-between">
                                         <div className="mb-4">
-                                            <h3 className="font-bold text-sm mb-1.5 tracking-tight text-slate-900 line-clamp-1 group-hover:text-[#00C402] transition">{curso.title}</h3>
-                                            <p className="text-slate-500 text-[9px] font-medium leading-relaxed line-clamp-2">{curso.description || 'Domine esta habilidade com o método SPCS.'}</p>
+                                            <h3 className="font-bold text-sm mb-1.5 tracking-tight text-white line-clamp-1 group-hover:text-[#00C402] transition">{curso.title}</h3>
+                                            <p className="text-slate-500 text-[9px] font-medium leading-relaxed line-clamp-2">{curso.description || 'Domine esta habilidade com o método PowerPlay.'}</p>
                                         </div>
                                         <div>
                                             <div className="flex items-center justify-between mb-4">
-                                                <span className="text-slate-900 font-black text-lg tracking-tighter">
+                                                <span className="text-white font-black text-lg tracking-tighter">
                                                     R$ {Number(curso.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                                 </span>
                                                 <Link href={`/course/${curso.id}`} className="text-[7px] font-bold uppercase tracking-widest text-slate-400 hover:text-slate-900 transition underline underline-offset-4">

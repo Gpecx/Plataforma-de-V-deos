@@ -17,7 +17,7 @@ export default async function RootLayout({
 }) {
   let branding: BrandingData = {
     logoUrl: '',
-    siteName: 'SPCS Academy',
+    siteName: 'PowerPlay',
     primaryColor: '#00C402',
   }
   try {
@@ -27,7 +27,7 @@ export default async function RootLayout({
 
   return (
     <html lang="pt-br" className={exo.variable}>
-      <body className="font-exo">
+      <body className="font-exo bg-[#0d2b17] text-white">
         <BrandingProvider value={branding}>
           <ToastNotification />
           {children}

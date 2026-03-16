@@ -84,7 +84,7 @@ export default function InstructorProfile({
                     {/* Identidade */}
                     <div className="space-y-4">
                         <span className="text-[#00C402] text-[10px] font-black uppercase tracking-[5px] block">
-                            INSTRUTOR ORIGINAL SPCS
+                            INSTRUTOR ORIGINAL POWERPLAY
                         </span>
                         <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-slate-900 leading-none uppercase">
                             {instructor.full_name}

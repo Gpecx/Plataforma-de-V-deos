@@ -33,7 +33,7 @@ const DEFAULT_SETTINGS: GlobalSettings = {
     },
     branding: {
         logoUrl: '',
-        siteName: 'SPCS Academy',
+        siteName: 'PowerPlay',
         primaryColor: '#00C402',
     }
 }

@@ -196,7 +196,7 @@ export default function ComprasPage() {
                             <div className="flex-1 flex flex-col items-center justify-center py-12 text-center text-slate-400">
                                 <Rocket size={48} className="mb-4 text-slate-200" />
                                 <h3 className="text-sm font-black uppercase tracking-widest mb-2 text-slate-500">Nenhuma compra encontrada</h3>
-                                <p className="text-xs font-medium max-w-xs mb-6">Você ainda não adquiriu nenhum treinamento SPCS Academy.</p>
+                                <p className="text-xs font-medium max-w-xs mb-6">Você ainda não adquiriu nenhum treinamento PowerPlay.</p>
                                 <Link href="/course">
                                     <button className="px-6 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-colors shadow-sm">
                                         Explorar Cursos

@@ -95,3 +95,110 @@ Inclua campos para URLs de redes sociais agrupados em uma seção dedicada. Use 
 
 **Passo 5: Feedback de Carregamento**
 Sempre utilize estados de `isSaving` ou `isUploading` com spinners (`Loader2`) nos botões de ação para evitar cliques duplos e informar o progresso ao usuário.
+
+## 3. Netflix-Style Landing Page Redesign (Visual Escuro e Foco em Conversão)
+
+**Objetivo:** Transformar landing pages tradicionais em experiências visuais imersivas inspiradas em plataformas de streaming (Netflix), utilizando temas escuros, overlays dramáticos, imagens de fundo em tela cheia e CTAs de alto contraste.
+
+**Tecnologias:** Next.js, Tailwind CSS (Customizado), Lucide Icons.
+
+**Variáveis Dinâmicas:**
+- `{{BACKGROUND_COLOR}}`: Cor de fundo principal (ex: `#0d2b17` ou `#0f0f0f`).
+- `{{ACCENT_COLOR}}`: Cor de destaque para CTAs e ícones (ex: `#32cd32` ou `#e50914`).
+- `{{HERO_IMAGE}}`: Caminho da imagem de fundo da Hero (ex: `/images/hero-bg.png`).
+
+### Procedimento Passo a Passo:
+
+**Passo 1: Variáveis Globais (CSS do Tailwind)**
+Defina o tema escuro no `globals.css`, incluindo background e cores de foreground claras (`#f1f5f9`). Remova quaisquer classes genéricas (como `.bg-white` com bordas fixas) que interfiram no design de componentes reutilizados na nova temática dark.
+
+**Passo 2: Hero Section Imersiva e Full-Viewport**
+Crie uma section com `min-height: 100vh`. Defina o fundo absoluto ou background image (`background-size: cover; background-position: center`) com a imagem `{{HERO_IMAGE}}`. **Crucial**: Aplique um *Overlay* através de um `div` absoluto sobre a imagem com um gradiente escuro (ex: `rgba(0,0,0,0.5)` no topo indo para a solidez da `{{BACKGROUND_COLOR}}` na base) para garantir legibilidade textual inabalável.
+
+**Passo 3: Tipografia e Call to Action (CTA)**
+Na Hero Section, exiba a proposta de valor principal. Utilize fontes em maiúsculas (`text-transform: uppercase`), font-weight alto (`900` ou `black`), e um leve tracking negativo (`letter-spacing: -0.02em`). O título deve ser massivo (`text-5xl` ou proporções `clamp()`). O CTA (botão principal) deve utilizar obrigatoriamente a `{{ACCENT_COLOR}}`, texto legível e espaçoso para facilitar conversão e captura de leads (ex: capturar o e-mail logo abaixo do título).
+
+**Passo 4: Organização de Grades e Cards Dark**
+Abaixo do Hero, adicione seções (Diferenciais, Cursos) mantendo a cor base do fundo. Crie cards flutuantes utilizando variações pouca coisa mais claras que o fundo principal (ex: `#0f1f14` ou `rgba(255,255,255,0.05)`), com bordas finas com a cor de destaque translúcida (`border-color: rgba(50,205,50,0.2)`) e introduza um drop-shadow expressivo acompanhado do leve ganho de escala no hover.
+
+**Passo 5: Polimento e Componentes Universais**
+Adapte Navbar e Footer ou seções de Banners isolados para atuarem em harmonia com partes sombreadas. Elementos de transição (`transition-all duration-300`) nos botões encerram o "feel" de app nativo. Evite backgrounds vibrantes no layout e foque o brilho somente nos botões e elementos táticos a serem clicados pelo usuário.
+
+## 4. Sealing Color Leaks & Global Dark Theme (Selação de Vazamentos e Tema Dark Global)
+
+**Objetivo:** Garantir que o site tenha uma aparência de "Dark Mode" premium e contínua, eliminando vazamentos de luz (branco/cinza) vindos de trás ou de baixo do Header e garantindo que todas as subpáginas adiram ao tema verde escuro profundo.
+
+**Tecnologias:** Next.js (App Router), Tailwind CSS, Vanilla CSS.
+
+**Variáveis Dinâmicas:**
+- `{{GLOBAL_BG_COLOR}}`: Cor de fundo global (ex: `#0d2b17`).
+- `{{SURFACE_COLOR}}`: Cor de superfícies e cards (ex: `#0f1f14`).
+- `{{BORDER_COLOR}}`: Cor de bordas sutis (ex: `#1e4d2b`).
+- `{{ACCENT_COLOR}}`: Cor de destaque verde (ex: `#32cd32`).
+
+### Procedimento Passo a Passo:
+
+**Passo 1: Reset de Fundo no Layout Global**
+No arquivo `src/app/layout.tsx`, force a cor de fundo diretamente na tag `<body>`. Isso cria uma "base" sólida que impede que qualquer conteúdo de carregamento ou lacunas entre seções revelem o fundo padrão do navegador.
+```tsx
+<body className="font-exo bg-[{{GLOBAL_BG_COLOR}}] text-white">
+```
+
+**Passo 2: Blindagem do Navbar (Header)**
+No componente `Navbar.tsx`, certifique-se de que o elemento `<header>` esteja fixado e com um z-index alto para sobrepor qualquer conteúdo. Remova sombras claras e use sombras pretas profundas e sutis.
+- Use `sticky top-0` e `z-[100]`.
+- Aplique `backdrop-filter: blur(12px)` para um efeito premium.
+- Use `box-shadow: 0 4px 20px rgba(0,0,0,0.5)`.
+- Remova bordas ou outlines brancas.
+
+**Passo 3: Auditoria de Subpáginas (Dashboards)**
+Inspecione diretórios como `(marketing)` ou `(dashboard-student)` em busca de classes utilitárias de cores claras:
+- Substitua `bg-white`, `bg-slate-50`, `bg-gray-50` por `bg-[{{GLOBAL_BG_COLOR}}]` ou `bg-[{{SURFACE_COLOR}}]`.
+- Atualize textos `text-slate-900` ou `text-slate-800` para `text-white` ou `text-[#e2e8f0]`.
+- Mantenha bordas consistentes com a `{{BORDER_COLOR}}`.
+
+**Passo 4: Sincronização de Bordas e Divisores**
+Troque divisores sutis de cores claras (`border-slate-200`) por divisores escuros (`border-[{{BORDER_COLOR}}]` ou `border-white/10`) para manter a profundidade visual sem quebras óbvias.
+
+**Passo 5: Polimento de Feedbacks de Carregamento**
+Garanta que esqueletos (skeletons) ou spinners de carregamento também usem a paleta escura para evitar "piscadas" brancas durante o carregamento de dados.
+
+## 5. Netflix-Style Grid Alignment (Alinhamento Rigoroso em 12 Colunas)
+
+**Objetivo:** Garantir que todos os componentes de uma página full-screen (estilo Netflix) estejam perfeitamente alinhados verticalmente, eliminando a sensação de texto "perdido" e unificando a estrutura de colunas e paddings.
+
+**Tecnologias:** Next.js, Tailwind CSS (Grid & Layout Utilities).
+
+**Variáveis Dinâmicas:**
+- `{{STANDARD_PADDING}}`: Padding horizontal unificado (ex: `px-6 md:px-12 lg:px-16`).
+- `{{MAIN_COL_SPAN}}`: Número de colunas para o conteúdo principal (ex: `lg:col-span-8`).
+- `{{SIDE_COL_SPAN}}`: Número de colunas para conteúdo lateral (ex: `lg:col-span-4`).
+
+### Procedimento Passo a Passo:
+
+**Passo 1: Unificação do Container Base**
+Certifique-se de que todas as seções da página utilizem `max-w-none`. O controle de largura deve ser feito via padding horizontal e definição de colunas, nunca limitando o container central de forma arbitrária (como `max-w-7xl`).
+
+**Passo 2: Aplicação do Padding Padronizado**
+Aplique a variável `{{STANDARD_PADDING}}` em todas as seções (`<section>`) ou containers imediatos. Isso cria a "linha de partida" vertical idêntica para o Logo, Títulos e Blocos de Conteúdo.
+
+**Passo 3: Estruturação do Grid de 12 Colunas**
+Para todas as seções que contenham conteúdo dividido (ex: Vídeo vs. Compra, Descrição vs. Ementa), utilize a mesma estrutura de grid:
+```tsx
+<div className="grid lg:grid-cols-12 gap-0 items-start {{STANDARD_PADDING}}">
+    {/* Conteúdo Principal (Alinhado com o elemento de cima) */}
+    <div className="{{MAIN_COL_SPAN}} space-y-6">
+        ...
+    </div>
+    {/* Conteúdo Lateral */}
+    <div className="{{SIDE_COL_SPAN}} hidden lg:block">
+        ...
+    </div>
+</div>
+```
+
+**Passo 4: Sincronização de Recuos e Bordas**
+Se utilizar bordas decorativas (ex: `border-l-4`), certifique-se de que o padding interno (`pl-6`) seja compensado ou mantido idêntico em todas as seções para que o texto comece sempre na mesma coordenada X.
+
+**Passo 5: Verificação de Grid Overlay**
+Verifique visualmente se a borda esquerda do player de vídeo e a borda esquerda do primeiro parágrafo de texto estão perfeitamente alinhadas. Remova `max-w-3xl` ou similares de dentro das colunas para permitir que o grid controle a fluidez.

@@ -95,7 +95,7 @@ export const allCourses: Course[] = [
         title: "Fullstack React & Next.js",
         shortTitle: "Fullstack Next.js",
         category: "Programação",
-        tag: "ORIGINAL SPCS",
+        tag: "ORIGINAL POWERPLAY",
         price: 197,
         hours: 56,
         rating: 4.8,

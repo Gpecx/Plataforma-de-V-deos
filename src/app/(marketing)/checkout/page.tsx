@@ -138,7 +138,7 @@ export default function CheckoutPage() {
                                         <div className="p-6 bg-[#00C402]/5 border border-[#00C402]/10 rounded-2xl flex items-center gap-4">
                                             <ShieldCheck size={28} className="text-[#00C402]" />
                                             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider leading-relaxed">
-                                                Seus dados estão protegidos por criptografia de ponta a ponta SPCS Shield. Nunca armazenamos seu CVV.
+                                                Seus dados estão protegidos por criptografia de ponta a ponta PowerPlay Shield. Nunca armazenamos seu CVV.
                                             </p>
                                         </div>
                                     </div>
@@ -167,7 +167,7 @@ export default function CheckoutPage() {
                                                 <div className="h-20 w-full bg-slate-900/5 rounded flex justify-between px-4 items-center">
                                                     {[...Array(30)].map((_, i) => <div key={i} className={`w-0.5 bg-slate-900 h-full ${i % 3 === 0 ? 'opacity-20' : 'opacity-100'}`}></div>)}
                                                 </div>
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-900">Boleto Bancário SPCS Academy</p>
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-900">Boleto Bancário PowerPlay</p>
                                             </div>
                                         </div>
                                         <div>
@@ -208,7 +208,7 @@ export default function CheckoutPage() {
                                     <span>R$ {total.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between font-bold uppercase text-[10px] tracking-widest text-[#00C402]">
-                                    <span>Desconto SPCS Academy</span>
+                                    <span>Desconto PowerPlay</span>
                                     <span>- R$ 0,00</span>
                                 </div>
                                 <div className="h-px bg-slate-100 my-6"></div>

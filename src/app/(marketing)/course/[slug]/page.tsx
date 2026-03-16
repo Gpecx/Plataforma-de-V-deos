@@ -7,10 +7,7 @@ import {
     CheckCircle2,
     PlayCircle,
     Clock,
-    Star,
-    Users,
     ShieldCheck,
-    ChevronDown,
     ArrowLeft,
 } from "lucide-react"
 import { db } from "@/lib/firebase"
@@ -18,7 +15,6 @@ import { doc, getDoc, collection, query, where, getDocs } from "firebase/firesto
 import { cookies } from "next/headers"
 import { parseFirebaseDate } from '@/lib/date-utils'
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
-
 import { CourseIntroPlayer } from "@/components/CourseIntroPlayer"
 
 export default async function CourseDetailPage({ params }: { params: { slug: string } }) {
@@ -41,36 +37,33 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                 purchasedCourseIds = [slug]
             }
         } catch (error) {
-            console.error("Erro ao verificar matrícula no marketing:", error)
+            console.error("Erro ao verificar matrícula:", error)
         }
     }
 
-    // 1. Busca o curso por ID no Firestore
+    // 1. Busca o curso por ID
     let course: any = null
     try {
         const courseRef = doc(db, 'courses', slug)
         const courseSnap = await getDoc(courseRef)
-
 
         if (courseSnap.exists()) {
             const data = courseSnap.data()
             course = {
                 id: courseSnap.id,
                 ...data,
-                teacher_id: data.teacher_id || null,
-                teacher_name: data.teacher_name || 'Equipe SPCS',
-                // Garantir que datas sejam serializáveis se existirem
+                teacher_name: data.teacher_name || 'Equipe PowerPlay',
                 created_at: parseFirebaseDate(data.created_at)?.toISOString() || data.created_at,
                 updated_at: parseFirebaseDate(data.updated_at)?.toISOString() || data.updated_at
             }
         }
     } catch (error) {
-        console.error("Erro ao buscar curso (Client SDK):", error)
+        console.error("Erro ao buscar curso:", error)
     }
 
     if (!course) return notFound()
 
-    // 2. Busca as lições do curso
+    // 2. Busca as lições
     let lessons: any[] = []
     try {
         const lessonsRef = collection(db, 'lessons')
@@ -83,208 +76,130 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                 id: d.id,
                 ...lData,
                 created_at: parseFirebaseDate(lData.created_at)?.toISOString() || lData.created_at
-            } as any
+            }
         }).sort((a: any, b: any) => (a.position || 0) - (b.position || 0))
     } catch (error) {
-        console.error("Erro ao buscar lições (Client SDK):", error)
+        console.error("Erro ao buscar lições:", error)
     }
 
-    const curriculum = [
-        {
-            title: "Grade Curricular Completa",
-            lessons: lessons || []
-        }
-    ]
-
+    const curriculum = [{ title: "Grade Curricular Completa", lessons: lessons || [] }]
     const totalLessons = lessons?.length || 0
-    // Adicionando fallback para evitar erro de toFixed se o curso/preço não existir corretamente
     const rawPrice = course?.price ?? 157
     const coursePrice = typeof rawPrice === 'number' ? rawPrice : parseFloat(rawPrice)
 
+    // O RETURN QUE ESTAVA FALTANDO COMEÇA AQUI:
     return (
-        <div className="min-h-screen bg-[#F4F7F9] text-slate-800 font-exo">
+        <div className="min-h-screen bg-[#0d2b17] text-white/90 font-exo">
             <Navbar />
 
-            {/* HERO & VIDEO SECTION */}
-            <section className="relative pt-32 pb-20 overflow-hidden">
-                <div className="max-w-7xl mx-auto px-6 md:px-12 w-full grid lg:grid-cols-5 gap-16 items-start">
+            {/* HERO & VIDEO SECTION - BORDAS QUADRADAS E ALINHAMENTO RIGOROSO */}
+            <section className="relative pt-16 pb-0 overflow-hidden">
+                <div className="max-w-none mx-auto w-full">
+                    {/* INFO E TÍTULO - ALINHADO COM O PADDING PADRÃO */}
+                    <div className="px-6 md:px-12 lg:px-16 pb-10 space-y-3 border-b border-white/10">
+                        <Link
+                            href="/course"
+                            className="inline-flex items-center gap-2 text-white/40 hover:text-[#00C402] transition text-[10px] font-black uppercase tracking-[3px]"
+                        >
+                            <ArrowLeft size={14} />
+                            Voltar ao Catálogo
+                        </Link>
 
-                    {/* Left: Video & Info */}
-                    <div className="lg:col-span-3 space-y-12">
-                        <div className="space-y-6">
-                            <Link
-                                href="/course"
-                                className="inline-flex items-center gap-2 text-slate-400 hover:text-slate-900 transition text-[10px] font-black uppercase tracking-[3px]"
-                            >
-                                <ArrowLeft size={14} />
-                                Voltar ao Catálogo
-                            </Link>
-
-                            <div className="flex items-center gap-3">
-                                <span className="inline-block bg-[#00C402] text-white text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-lg shadow-[#00C402]/20">
-                                    {course.tag || "PREMIUM"}
-                                </span>
-                                <div className="h-[1px] w-12 bg-slate-200"></div>
-                            </div>
-
-                            <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-slate-900 leading-[0.9] uppercase">
-                                {course.title}
-                            </h1>
-                            {course.teacher_id && (
-                                <div className="flex items-center gap-2 pt-2">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Instrutor:</span>
-                                    <Link 
-                                        href={`/professor/${course.teacher_id}`}
-                                        className="text-[10px] font-black text-[#00C402] uppercase tracking-[2px] hover:underline"
-                                    >
-                                        {course.teacher_name}
-                                    </Link>
-                                </div>
-                            )}
+                        <div className="flex items-center gap-3">
+                            <span className="inline-block bg-[#00C402] text-white text-[9px] font-black px-3 py-1 uppercase tracking-widest rounded-none">
+                                {course.tag || "PREMIUM"}
+                            </span>
                         </div>
 
-                        {/* Video Player - High Quality Impression */}
-                        <CourseIntroPlayer
-                            videoUrl={course.intro_video_url}
-                            thumbnail={course.image_url}
-                        />
-
-                        <div className="space-y-4">
-                            <h3 className="text-xl font-black text-slate-800 uppercase tracking-tighter">Sobre este treinamento</h3>
-                            <p className="text-slate-500 text-lg leading-relaxed font-medium">
-                                {course.description}
-                            </p>
-                        </div>
+                        <h1 className="text-3xl md:text-5xl font-black tracking-tighter text-white leading-[0.9] uppercase max-w-4xl">
+                            {course.title}
+                        </h1>
                     </div>
 
-                    {/* Right: Pricing & Benefits */}
-                    <div className="lg:col-span-2 space-y-6 sticky top-32">
-                        <div className="bg-white border border-slate-100 rounded-[32px] p-8 space-y-6 shadow-xl shadow-slate-200/30">
-                            <div className="space-y-1 text-center pb-4 border-b border-slate-50">
-                                <p className="text-[9px] text-slate-400 uppercase tracking-[4px] font-black">Investimento único</p>
-                                <div className="flex items-baseline justify-center gap-1">
-                                    <span className="text-xl font-bold text-slate-900 tracking-tighter">R$</span>
-                                    <span className="text-5xl font-black text-slate-900 tracking-tighter leading-none">
-                                        {coursePrice.toFixed(0)}
-                                    </span>
-                                    <span className="text-xl font-bold text-slate-400">,00</span>
-                                </div>
-                                <p className="text-[#00C402] text-[8px] font-black uppercase tracking-widest mt-1">Acesso vitalício imediato</p>
-                            </div>
-
-                            <div className="space-y-3">
-                                <BuyButton
-                                    course={course}
-                                    label="Matricular-se Agora"
-                                    className="w-full py-5 text-[11px] tracking-[3px] uppercase font-black rounded-xl bg-[#00C402] hover:bg-[#00C402]/90 shadow-lg shadow-[#00C402]/10"
-                                    purchasedCourseIds={purchasedCourseIds}
+                    <div className="grid lg:grid-cols-12 gap-0 items-stretch border-b border-white/10 px-6 md:px-12 lg:px-16">
+                        {/* LADO ESQUERDO: VÍDEO */}
+                        <div className="lg:col-span-8 flex flex-col border-r border-white/10">
+                            {/* Player de Vídeo sem arredondamento */}
+                            <div className="w-full bg-black/20 aspect-video">
+                                <CourseIntroPlayer
+                                    videoUrl={course.intro_video_url}
+                                    thumbnail={course.image_url}
                                 />
-
-                                <div className="flex items-center justify-center gap-2 text-slate-400 text-[8px] font-bold uppercase tracking-widest">
-                                    <ShieldCheck size={14} className="text-[#00C402]" />
-                                    <span>Garantia de 7 Dias</span>
-                                </div>
-                            </div>
-
-                            <div className="space-y-3 border-t border-slate-50 pt-6">
-                                {[
-                                    { icon: <Clock size={16} />, text: `${course.duration || 24} Horas de Conteúdo` },
-                                    { icon: <PlayCircle size={16} />, text: `${totalLessons} Aulas Práticas` },
-                                    { icon: <CheckCircle2 size={16} />, text: "Material Complementar" },
-                                ].map((item, i) => (
-                                    <div key={i} className="flex items-center gap-3 text-slate-500 font-bold text-[10px] uppercase tracking-wider">
-                                        <div className="text-[#00C402]">{item.icon}</div>
-                                        {item.text}
-                                    </div>
-                                ))}
                             </div>
                         </div>
-                    </div>
-                </div>
-            </section>
 
-            {/* CURRÍCULO SECTION */}
-            <section className="py-24 bg-white border-t border-slate-100">
-                <div className="max-w-4xl mx-auto px-6">
-                    <div className="flex flex-col items-center text-center space-y-4 mb-16">
-                        <div className="w-16 h-1 bg-[#00C402] rounded-full"></div>
-                        <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter uppercase leading-none">
-                            O que você vai <span className="text-[#00C402]">DOMINAR</span>
-                        </h2>
-                        <p className="text-slate-400 font-bold uppercase tracking-[2px] text-[10px]">Ementa completa do treinamento</p>
-                    </div>
-
-                    <div className="space-y-4">
-                        {curriculum.map((mod, i) => (
-                            <div
-                                key={i}
-                                className="bg-slate-50 border border-slate-100 rounded-[32px] overflow-hidden"
-                            >
-                                <div className="p-10 flex items-center justify-between gap-6">
-                                    <div className="flex items-center gap-6">
-                                        <div className="w-14 h-14 rounded-2xl bg-white border border-slate-100 flex items-center justify-center text-slate-900 font-black text-xl shadow-sm">
-                                            01
-                                        </div>
-                                        <div>
-                                            <h3 className="font-black text-xl text-slate-900 uppercase tracking-tighter">{mod.title}</h3>
-                                            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1">{mod.lessons.length} aulas de conteúdo prático</p>
-                                        </div>
+                        {/* LADO DIREITO: COMPRA E BENEFÍCIOS (ALINHADO AO TOPO DO VÍDEO) */}
+                        <div className="lg:col-span-4 bg-white/5 backdrop-blur-sm flex flex-col">
+                            <div className="p-10 md:p-12 space-y-10 flex-grow">
+                                <div className="space-y-2 pb-8 border-b border-white/10">
+                                    <p className="text-[10px] text-white/40 uppercase tracking-[5px] font-black">Investimento único</p>
+                                    <div className="flex items-baseline gap-1">
+                                        <span className="text-2xl font-bold text-white">R$</span>
+                                        <span className="text-7xl font-black text-white tracking-tighter">
+                                            {coursePrice.toFixed(0)}
+                                        </span>
+                                        <span className="text-2xl font-bold text-white/40">,00</span>
                                     </div>
                                 </div>
-                                <div className="px-10 pb-10 grid gap-3">
-                                    {mod.lessons.map((lesson: any, li: number) => (
-                                        <div
-                                            key={li}
-                                            className="flex items-center justify-between bg-white border border-slate-100/50 p-5 rounded-2xl hover:border-[#00C402]/30 transition-all group"
-                                        >
-                                            <div className="flex items-center gap-4">
-                                                <div className="p-2 bg-slate-50 rounded-lg text-slate-300 group-hover:text-[#00C402] transition-colors">
-                                                    <PlayCircle size={16} />
-                                                </div>
-                                                <span className="text-sm font-bold text-slate-600 group-hover:text-slate-900 transition-colors">{lesson.title}</span>
-                                            </div>
-                                            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Vídeo Aula</span>
+
+                                <div className="space-y-4">
+                                    <BuyButton
+                                        course={course}
+                                        label="Matricular-se Agora"
+                                        className="w-full py-8 text-sm tracking-[4px] font-black bg-[#00C402] hover:bg-white hover:text-black transition-all uppercase rounded-none"
+                                        purchasedCourseIds={purchasedCourseIds}
+                                    />
+                                    <div className="flex items-center gap-2 text-white/40 text-[9px] font-bold uppercase tracking-widest pt-2">
+                                        <ShieldCheck size={16} className="text-[#00C402]" />
+                                        <span>Garantia de 7 Dias Incondicional</span>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-6 pt-4">
+                                    {[
+                                        { icon: <Clock size={18} />, text: `${course.duration || 24}H de Conteúdo` },
+                                        { icon: <PlayCircle size={18} />, text: `${totalLessons} Aulas Práticas` },
+                                        { icon: <CheckCircle2 size={18} />, text: "Material Complementar" },
+                                    ].map((item, i) => (
+                                        <div key={i} className="flex items-center gap-4 text-white/60 font-bold text-[11px] uppercase tracking-widest">
+                                            <div className="text-[#00C402]">{item.icon}</div>
+                                            {item.text}
                                         </div>
                                     ))}
                                 </div>
                             </div>
-                        ))}
+                        </div>
                     </div>
                 </div>
             </section>
 
-            {/* WHAT YOU WILL LEARN GRID */}
-            <section className="py-24 px-6 md:px-12 max-w-7xl mx-auto space-y-16">
-                <div className="flex flex-col items-center text-center space-y-4">
-                    <h2 className="text-3xl md:text-5xl font-black text-slate-900 tracking-tighter uppercase leading-none">
-                        Tópicos <span className="text-[#00C402]">Abordados</span>
-                    </h2>
-                    <p className="text-slate-400 font-bold uppercase tracking-[2px] text-[10px]">Conhecimentos estratégicos para sua carreira</p>
-                </div>
+            {/* DESCRIÇÃO E EMENTA */}
+            <section className="py-24 px-6 md:px-12 lg:px-16 bg-[#0d2b17]">
+                <div className="max-w-none mx-auto grid lg:grid-cols-12 gap-0">
+                    <div className="lg:col-span-8 space-y-8">
+                        <h3 className="text-3xl font-black text-white uppercase tracking-tighter border-l-4 border-[#00C402] pl-6">Sobre o treinamento</h3>
+                        <p className="text-white/60 text-lg leading-relaxed font-medium pl-6 max-w-none">
+                            {course.description}
+                        </p>
 
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {(Array.isArray(course?.highlights) ? course.highlights : [
-                        "Fundamentos e conceitos essenciais",
-                        "Práticas e exercícios reais",
-                        "Domínio completo da ferramenta",
-                        "Fluxo de trabalho otimizado",
-                        "Projetos práticos para portfólio",
-                        "Estratégias avançadas de mercado"
-                    ]).map((item: string, i: number) => (
-                        <div
-                            key={i}
-                            className="flex items-start gap-5 bg-white border border-slate-100 p-8 rounded-[32px] hover:border-[#00C402]/30 transition-all group shadow-sm"
-                        >
-                            <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-[#00C402] shrink-0 group-hover:bg-[#00C402] group-hover:text-white transition-all">
-                                <CheckCircle2 size={20} />
-                            </div>
-                            <p className="text-slate-600 font-bold leading-tight text-sm uppercase tracking-wider">{item}</p>
+                        {/* Ementa Estilo Industrial */}
+                        <div className="mt-16 space-y-1">
+                            {curriculum[0].lessons.map((lesson: any, index: number) => (
+                                <div key={index} className="flex items-center justify-between bg-white/5 p-6 border border-white/5 hover:bg-[#00C402]/10 transition-colors">
+                                    <div className="flex items-center gap-4">
+                                        <span className="text-[#00C402] font-black text-xs">{(index + 1).toString().padStart(2, '0')}</span>
+                                        <span className="font-bold uppercase tracking-tight text-white/80">{lesson.title}</span>
+                                    </div>
+                                    <PlayCircle size={16} className="text-white/20" />
+                                </div>
+                            ))}
                         </div>
-                    ))}
+                    </div>
+                    {/* Placeholder para a coluna 4 da ementa (opcional) */}
+                    <div className="lg:col-span-4 hidden lg:block"></div>
                 </div>
             </section>
 
-            {/* MOTIVATIONAL BANNER */}
             <MotivationalBanner />
         </div>
     )

@@ -1,51 +1,94 @@
-import Link from "next/link";
+"use client"
+
+import { useState } from "react";
+import { sendPasswordResetEmail } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, KeyRound } from "lucide-react";
+import { ArrowLeft, KeyRound, Loader2, CheckCircle2 } from "lucide-react";
+import Link from "next/link";
 
 export default function ForgotPasswordPage() {
+    const [email, setEmail] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [isSubmitted, setIsSubmitted] = useState(false);
+    const [error, setError] = useState("");
+
+    const handleReset = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError("");
+
+        try {
+            // Chamada direta do SDK do Firebase Cliente
+            await sendPasswordResetEmail(auth, email);
+            setIsSubmitted(true);
+        } catch (err: any) {
+            console.error(err);
+            // Mensagem genérica para segurança, mas informativa para o usuário
+            setError("Não foi possível enviar o e-mail. Verifique se o endereço está correto.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
-        <div className="min-h-screen bg-[#F4F7F9] flex items-center justify-center px-6 font-exo border-t border-slate-100">
-            <div className="w-full max-w-md space-y-10 bg-white p-10 rounded-[40px] border border-slate-100 shadow-2xl shadow-slate-200/50 animate-in fade-in zoom-in-95 duration-700">
+        <div className="min-h-screen bg-[#0d2b17] flex items-center justify-center px-6 font-exo">
+            <div className="w-full max-w-xl bg-[#0f1f14] p-12 md:p-16 border-2 border-[#1e4d2b] relative overflow-hidden">
 
-                {/* Cabeçalho */}
-                <div className="text-center space-y-4">
-                    <div className="inline-flex p-4 rounded-3xl bg-slate-50 text-[#00C402] border border-slate-100 shadow-sm mb-2">
-                        <KeyRound size={32} strokeWidth={2.5} />
+                {!isSubmitted ? (
+                    <>
+                        <div className="text-center space-y-6 relative z-10">
+                            <div className="inline-flex p-5 bg-[#0d2b17] text-[#00C402] border-2 border-[#1e4d2b] mb-4">
+                                <KeyRound size={40} strokeWidth={2.5} />
+                            </div>
+                            <h2 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">
+                                RECUPERAR <span className="text-[#00C402]">ACESSO</span>
+                            </h2>
+                            <p className="text-slate-400 text-xs font-bold uppercase tracking-[2px] max-w-sm mx-auto">
+                                Insira seu e-mail para restaurarmos suas credenciais PowerPlay.
+                            </p>
+                        </div>
+
+                        <form onSubmit={handleReset} className="space-y-10 mt-12 relative z-10">
+                            <div className="space-y-4">
+                                <label className="text-[10px] font-black uppercase tracking-[4px] text-[#00C402]">
+                                    E-mail Corporativo/Pessoal
+                                </label>
+                                <Input
+                                    required
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="EXEMPLO@POWERPLAY.COM"
+                                    className="bg-[#0d2b17] border-2 border-[#1e4d2b] text-white rounded-none h-16 font-black text-xs uppercase tracking-widest px-8 focus:border-[#00C402] focus:ring-0"
+                                />
+                                {error && <p className="text-red-500 text-[10px] font-black uppercase tracking-widest">{error}</p>}
+                            </div>
+
+                            <Button
+                                disabled={loading}
+                                className="w-full bg-[#00C402] hover:bg-[#00e602] text-white font-black uppercase italic tracking-[4px] h-16 rounded-none transition-all"
+                            >
+                                {loading ? <Loader2 className="animate-spin" /> : "ENVIAR LINK DE RECUPERAÇÃO"}
+                            </Button>
+                        </form>
+                    </>
+                ) : (
+                    <div className="py-10 flex flex-col items-center text-center animate-in fade-in zoom-in duration-500">
+                        <div className="w-24 h-24 bg-[#0d2b17] border-2 border-[#00C402] flex items-center justify-center text-[#00C402] mb-8">
+                            <CheckCircle2 size={48} />
+                        </div>
+                        <h2 className="text-2xl font-black uppercase text-white mb-4">E-MAIL ENVIADO!</h2>
+                        <p className="text-xs font-bold uppercase tracking-widest text-slate-400 max-w-md">
+                            Verifique sua caixa de entrada para redefinir sua senha com segurança.
+                        </p>
                     </div>
-                    <h2 className="text-3xl font-black text-slate-800 tracking-tighter uppercase leading-none">Esqueceu a senha?</h2>
-                    <p className="text-slate-500 text-xs font-semibold leading-relaxed px-4">
-                        Não se preocupe! Insira seu e-mail abaixo e enviaremos instruções estrategicamente para criar uma nova credencial.
-                    </p>
-                </div>
+                )}
 
-                {/* Formulário */}
-                <form className="space-y-8">
-                    <div className="space-y-3">
-                        <label htmlFor="email" className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 px-1">
-                            E-mail Corporativo/Pessoal
-                        </label>
-                        <Input
-                            id="email"
-                            type="email"
-                            placeholder="exemplo@spcs.com"
-                            className="bg-slate-50 border-slate-100 text-slate-900 placeholder:text-slate-400 focus:border-[#00C402] focus:ring-4 focus:ring-[#00C402]/5 h-14 rounded-2xl font-bold text-sm px-6 transition-all"
-                        />
-                    </div>
-
-                    <Button className="w-full bg-slate-900 hover:bg-slate-800 text-white font-black uppercase tracking-[3px] h-14 rounded-2xl shadow-xl shadow-slate-200 transition-all text-[11px]">
-                        Enviar link de recuperação
-                    </Button>
-                </form>
-
-                {/* Voltar para Login */}
-                <div className="text-center pt-4 border-t border-slate-50">
-                    <Link
-                        href="/login"
-                        className="inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors group"
-                    >
-                        <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-                        Voltar para o login
+                <div className="text-center mt-12 pt-8 border-t border-[#1e4d2b]">
+                    <Link href="/login" className="inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[4px] text-slate-500 hover:text-white transition-colors">
+                        <ArrowLeft size={16} /> VOLTAR PARA O LOGIN
                     </Link>
                 </div>
             </div>

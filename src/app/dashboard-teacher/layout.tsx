@@ -21,12 +21,13 @@ export default async function TeacherLayout({
     }
 
     return (
-        <div className="min-h-screen bg-[#F4F7F9] text-slate-800 flex flex-col">
+        <div className="min-h-screen bg-[var(--background-color)] text-[var(--foreground)] flex flex-col">
             <ScrollToTop />
             <Navbar />
 
-            {/* Main Content Area */}
-            <main className="flex-1">
+            {/* A classe 'pt-24' garante que o conteúdo não fique escondido 
+                atrás do Navbar que está com posição 'fixed' */}
+            <main className="flex-1 pt-24">
                 {children}
             </main>
 

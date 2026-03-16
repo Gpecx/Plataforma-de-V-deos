@@ -13,7 +13,7 @@ const heroSlides = [
         title: "FULLSTACK NEXUS",
         subtitle: "A jornada definitiva Next.js e Firebase.",
         image: "https://images.unsplash.com/photo-1627398242454-45a1465c2479?auto=format&fit=crop&q=80&w=1600",
-        tag: "ORIGINAL SPCS"
+        tag: "ORIGINAL POWERPLAY"
     },
     {
         title: "DESIGN SYSTEM PRO",
@@ -83,7 +83,7 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
     const dynamicCategories = Array.from(new Set(filteredCourses.map(c => c.category || "Lançamentos"))).sort();
 
     return (
-        <div className="min-h-screen bg-[#F4F7F9] text-slate-800 font-exo">
+        <div className="min-h-screen bg-[#0d2b17] text-white font-exo">
             <Navbar />
 
             {/* Carrossel Hero */}
@@ -95,7 +95,7 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
 
                         <div className="relative z-20 h-full flex flex-col justify-center px-8 md:px-20 space-y-6 max-w-4xl pt-24">
                             <div className="flex items-center gap-3">
-                                <span className="bg-[#00C402] text-white text-[9px] font-black px-3 py-1 rounded-full w-fit uppercase tracking-[2px] shadow-lg shadow-[#00C402]/20">
+                                <span className="bg-[#00C402] text-white text-[9px] font-black px-3 py-1 w-fit uppercase tracking-[2px] shadow-lg shadow-[#00C402]/20">
                                     {slide.tag}
                                 </span>
                                 <div className="h-[1px] w-12 bg-white/20"></div>
@@ -128,7 +128,7 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
                             <button
                                 key={i}
                                 onClick={() => setCurrentSlide(i)}
-                                className={`w-2 h-2 rounded-full transition-all ${i === currentSlide ? 'bg-[#00C402] w-6' : 'bg-white/40'}`}
+                                className={`w-2 h-2 transition-all ${i === currentSlide ? 'bg-[#00C402] w-6' : 'bg-white/40'}`}
                             />
                         ))}
                     </div>
@@ -141,7 +141,7 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
                     <div className="w-12 h-[2px] bg-[#00C402]"></div>
                     <span className="text-[10px] font-black uppercase tracking-[4px] text-[#00C402]">Explorar</span>
                 </div>
-                <h2 className="text-3xl md:text-4xl font-black tracking-tighter text-slate-900">
+                <h2 className="text-3xl md:text-4xl font-black tracking-tighter text-white">
                     {searchQuery ? `RESULTADOS PARA: ${searchQuery.toUpperCase()}` : "CATÁLOGO DE FORMAÇÃO"}
                 </h2>
             </div>
@@ -149,13 +149,13 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
             {/* Lista de Cursos */}
             <div className="px-8 md:px-12 relative z-30 space-y-16 pb-32">
                 {filteredCourses.length === 0 ? (
-                    <div className="text-center py-20 bg-white rounded-[40px] border border-slate-100 shadow-sm space-y-6">
-                        <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto">
-                            <Info size={32} className="text-slate-200" />
+                    <div className="text-center py-20 bg-[#0f1f14] border border-[#1e4d2b] shadow-sm space-y-6">
+                        <div className="w-20 h-20 bg-[#1e4d2b]/20 flex items-center justify-center mx-auto">
+                            <Info size={32} className="text-slate-700" />
                         </div>
-                        <p className="text-lg font-bold text-slate-400 uppercase tracking-[3px]">Nenhum treinamento encontrado.</p>
+                        <p className="text-lg font-bold text-slate-500 uppercase tracking-[3px]">Nenhum treinamento encontrado.</p>
                         <Link href="/course">
-                            <Button variant="outline" className="border-slate-200 text-slate-600 font-black uppercase tracking-widest text-xs h-12 rounded-xl">
+                            <Button variant="outline" className="border-[#1e4d2b] text-slate-400 font-black uppercase tracking-widest text-xs h-12 hover:bg-[#1e4d2b]/20">
                                 Ver todos os cursos
                             </Button>
                         </Link>
@@ -167,12 +167,12 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
 
                         return (
                             <div key={category} className="space-y-10">
-                                <div className="flex items-end justify-between border-b border-slate-100 pb-6">
-                                    <h2 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-3 group cursor-pointer text-slate-800">
+                                <div className="flex items-end justify-between border-b border-[#1e4d2b] pb-6">
+                                    <h2 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-3 group cursor-pointer text-white">
                                         {category}
                                         <ChevronRight className="text-[#00C402] w-6 h-6 opacity-40 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
                                     </h2>
-                                    <span className="text-slate-400 text-[11px] font-black uppercase tracking-[2px] mb-1">
+                                    <span className="text-slate-500 text-[11px] font-black uppercase tracking-[2px] mb-1">
                                         {coursesInCategory.length} Módulos Disponíveis
                                     </span>
                                 </div>
@@ -182,7 +182,7 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
                                         <div
                                             key={course.id}
                                             onClick={() => handleCourseClick(course)}
-                                            className="group bg-white border border-slate-100 rounded-xl overflow-hidden hover:border-[#00C402]/30 transition-all duration-300 flex flex-col hover:shadow-lg cursor-pointer"
+                                            className="group bg-[#0f1f14] border border-[#1e4d2b] overflow-hidden hover:border-[#00C402]/30 transition-all duration-300 flex flex-col hover:shadow-lg cursor-pointer"
                                         >
                                             <div className="aspect-video relative overflow-hidden">
                                                 <img
@@ -190,18 +190,18 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
                                                     alt={course.title}
                                                     className="object-cover w-full h-full group-hover:scale-105 transition duration-500"
                                                 />
-                                                <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm border border-slate-100 text-[#00C402] px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest">
+                                                <div className="absolute top-2 right-2 bg-[#0d2b17]/90 backdrop-blur-sm border border-[#1e4d2b] text-[#00C402] px-2 py-0.5 text-[8px] font-black uppercase tracking-widest">
                                                     {course.tag || "TREINAMENTO"}
                                                 </div>
                                             </div>
-                                            <div className="p-4 flex-grow flex flex-col space-y-3">
-                                                <h3 className="text-xs font-bold text-slate-700 leading-tight group-hover:text-[#00C402] transition-colors line-clamp-2">
+                                            <div className="p-6 flex-grow flex flex-col space-y-4">
+                                                <h3 className="text-xs font-bold text-white leading-tight group-hover:text-[#00C402] transition-colors line-clamp-2">
                                                     {course.title}
                                                 </h3>
-                                                <div className="mt-auto pt-3 border-t border-slate-50 flex items-center justify-between">
+                                                <div className="mt-auto pt-3 border-t border-[#1e4d2b]/30 flex items-center justify-between">
                                                     <div className="flex flex-col">
                                                         <span className="text-[8px] text-slate-500 uppercase font-bold tracking-widest leading-none mb-0.5">Investimento</span>
-                                                        <span className="text-sm font-black text-slate-700 leading-none">
+                                                        <span className="text-sm font-black text-white leading-none">
                                                             R$ {Number(course.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                                         </span>
                                                     </div>
@@ -229,10 +229,10 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
 export default function CoursesClient({ initialCourses, heroBanners }: CoursesClientProps) {
     return (
         <Suspense fallback={
-            <div className="min-h-screen bg-[#F4F7F9] flex items-center justify-center">
+            <div className="min-h-screen bg-[#0d2b17] flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
                     <Loader2 className="animate-spin text-[#00C402]" size={40} />
-                    <p className="text-sm font-black uppercase tracking-[3px] text-slate-400">Preparando Cursos...</p>
+                    <p className="text-sm font-black uppercase tracking-[3px] text-slate-500">Preparando Cursos...</p>
                 </div>
             </div>
         }>

@@ -19,8 +19,8 @@ export function MotivationalBanner() {
     }, [])
 
     return (
-        <section className="pb-32 px-6">
-            <div className="max-w-7xl mx-auto h-[400px] rounded-[48px] overflow-hidden relative group shadow-2xl bg-slate-900 border-[1px] border-white/10">
+        <section className="pb-32">
+            <div className="max-w-none mx-auto h-[400px] overflow-hidden relative group shadow-2xl bg-slate-900 border-y border-white/10">
                 {/* Background Image Carousel */}
                 <div className="absolute inset-0 w-full h-full">
                     {IMAGES.map((img, idx) => (
@@ -45,7 +45,7 @@ export function MotivationalBanner() {
                     </h3>
                     <div className="flex items-center gap-4 mt-4">
                         <div className="h-[2px] w-8 bg-[#00C402]"></div>
-                        <p className="text-white/40 text-[9px] font-black uppercase tracking-[5px]">SPCS ACADEMY · MENTALIDADE DE VALOR</p>
+                        <p className="text-white/40 text-[9px] font-black uppercase tracking-[5px]">POWERPLAY · MENTALIDADE DE VALOR</p>
                         <div className="h-[2px] w-8 bg-[#00C402]"></div>
                     </div>
                 </div>

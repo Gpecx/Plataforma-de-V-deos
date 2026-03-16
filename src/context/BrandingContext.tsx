@@ -6,7 +6,7 @@ import { BrandingData } from '@/app/admin/settings/actions'
 // Default branding values (used before data loads)
 export const DEFAULT_BRANDING: BrandingData = {
     logoUrl: '',
-    siteName: 'SPCS Academy',
+    siteName: 'PowerPlay',
     primaryColor: '#00C402',
 }
 

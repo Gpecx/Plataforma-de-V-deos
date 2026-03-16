@@ -123,7 +123,7 @@ export default function BannersAdminPage() {
                     Gestão de Banners
                 </h1>
                 <p className="text-slate-500 uppercase tracking-widest text-[10px] font-bold mt-1">
-                    Crie carrosséis de imagens para as páginas principais da SPCS
+                    Crie carrosséis de imagens para as páginas principais da PowerPlay
                 </p>
             </div>
 

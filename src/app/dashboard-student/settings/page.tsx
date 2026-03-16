@@ -18,7 +18,6 @@ export default function SettingsPage() {
     const [pixKey, setPixKey] = useState('')
     const [bank, setBank] = useState('')
 
-    // States para troca de senha
     const [newPassword, setNewPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
     const [currentPassword, setCurrentPassword] = useState('')
@@ -41,44 +40,32 @@ export default function SettingsPage() {
 
     const handleUpdatePassword = async (e: React.FormEvent) => {
         e.preventDefault()
-
         if (newPassword !== confirmPassword) {
             showNotification('As senhas não coincidem', 'error')
             return
         }
-
         if (newPassword.length < 6) {
             showNotification('A senha deve ter pelo menos 6 caracteres', 'error')
             return
         }
-
         setIsUpdatingPassword(true)
-
         try {
             if (user) {
-                // Se o usuário precisa se reautenticar (currentPassword preenchida)
                 if (currentPassword) {
                     const credential = EmailAuthProvider.credential(user.email!, currentPassword)
                     await reauthenticateWithCredential(user, credential)
                     setNeedsReauth(false)
                 }
-
                 await updatePassword(user, newPassword)
                 showNotification('Senha atualizada com sucesso!', 'success')
-                setNewPassword('')
-                setConfirmPassword('')
-                setCurrentPassword('')
+                setNewPassword(''); setConfirmPassword(''); setCurrentPassword('')
             }
         } catch (error: any) {
-            console.error("Erro ao atualizar senha:", error)
-
             if (error.code === 'auth/requires-recent-login') {
                 setNeedsReauth(true)
-                showNotification('Para sua segurança, confirme sua senha atual antes de prosseguir.', 'info')
-            } else if (error.code === 'auth/wrong-password') {
-                showNotification('Senha atual incorreta.', 'error')
+                showNotification('Confirme sua senha atual.', 'info')
             } else {
-                showNotification('Erro ao atualizar senha: ' + (error.message || 'Erro desconhecido'), 'error')
+                showNotification('Erro ao atualizar.', 'error')
             }
         } finally {
             setIsUpdatingPassword(false)
@@ -87,161 +74,72 @@ export default function SettingsPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-[#F5F7FA]">
+            <div className="min-h-screen flex items-center justify-center bg-[#0d2b17]">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00C402]"></div>
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen bg-[#F5F7FA] font-exo p-8 md:p-12 border-t border-slate-100">
-            <div className="max-w-4xl mx-auto space-y-12">
-                <div className="flex items-center justify-between">
+        // Alterado para pt-32 para dar mais espaço abaixo do header fixo
+        <div className="min-h-screen bg-[#0d2b17] font-exo p-8 md:p-12 pt-32">
+            <div className="max-w-4xl mx-auto space-y-8">
+
+                {/* Header da Página */}
+                <div className="flex items-center justify-between pb-8 border-b border-[#1e4d2b]">
                     <div>
-                        <h1 className="text-3xl font-black tracking-tighter uppercase mb-1 text-slate-900 leading-none">
-                            Configurações <span className="text-[#00C402]">Gerais</span>
-                        </h1>
-                        <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[3px]">Gerencie sua segurança e dados de pagamento.</p>
+                        <h1 className="text-3xl font-black uppercase text-white">Configurações</h1>
+                        <p className="text-slate-400 text-xs uppercase tracking-[2px]">Gerencie sua conta e pagamentos</p>
                     </div>
-                    <Link
-                        href="/dashboard-student"
-                        className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition group bg-white px-5 py-3 rounded-xl border border-slate-100 shadow-sm"
-                    >
-                        <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
-                        Voltar
+                    <Link href="/dashboard-student" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white bg-[#1e4d2b]/20 px-5 py-3 rounded-none border border-[#1e4d2b] transition-all">
+                        <ArrowLeft size={14} /> Voltar
                     </Link>
                 </div>
 
-                <div className="grid grid-cols-1 gap-12">
-                    {/* Segurança / Senha */}
-                    <section className="bg-white border border-slate-100 rounded-[32px] p-8 md:p-10 shadow-sm space-y-8">
-                        <div className="flex items-center gap-5">
-                            <div className="w-14 h-14 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-slate-900 shadow-sm">
-                                <Lock size={20} />
-                            </div>
+                <div className="space-y-8">
+                    {/* Segurança - rounded-none aplicado */}
+                    <section className="bg-[#0f1f14] border border-[#1e4d2b] p-8 rounded-none">
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="w-12 h-12 bg-[#1e4d2b]/20 border border-[#1e4d2b] rounded-none flex items-center justify-center text-white"><Lock size={20} /></div>
                             <div>
-                                <h2 className="text-lg font-black tracking-tighter uppercase text-slate-900">Segurança da Conta</h2>
-                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[2px]">Atualize sua senha de acesso.</p>
+                                <h2 className="font-black uppercase text-white">Segurança</h2>
+                                <p className="text-[10px] text-slate-400 uppercase tracking-[2px]">Atualize sua senha</p>
                             </div>
                         </div>
-
-                        <form onSubmit={handleUpdatePassword} className="space-y-6">
+                        <form onSubmit={handleUpdatePassword} className="space-y-4">
                             {needsReauth && (
-                                <div className="max-w-md space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-[#00C402] px-1 flex items-center gap-2">
-                                        <Key size={12} />
-                                        Senha Atual Necessária
-                                    </label>
-                                    <Input
-                                        type="password"
-                                        value={currentPassword}
-                                        onChange={(e) => setCurrentPassword(e.target.value)}
-                                        className="bg-[#00C402]/5 border-[#00C402]/20 focus:border-[#00C402] focus:ring-[#00C402] rounded-xl h-14 text-sm font-medium transition-all"
-                                        placeholder="Confirme sua senha atual"
-                                        required
-                                    />
-                                </div>
+                                <Input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="bg-[#1e4d2b]/20 border-[#1e4d2b] rounded-none h-12 text-white" placeholder="Confirme sua senha atual" />
                             )}
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Nova Senha</label>
-                                    <Input
-                                        type="password"
-                                        value={newPassword}
-                                        onChange={(e) => setNewPassword(e.target.value)}
-                                        className="bg-slate-50 border-slate-100 focus:border-[#00C402] focus:ring-[#00C402] rounded-xl h-14 text-sm font-medium transition-all"
-                                        placeholder="Mínimo 6 caracteres"
-                                        required
-                                        minLength={6}
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Confirmar Senha</label>
-                                    <Input
-                                        type="password"
-                                        value={confirmPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)}
-                                        className="bg-slate-50 border-slate-100 focus:border-[#00C402] focus:ring-[#00C402] rounded-xl h-14 text-sm font-medium transition-all"
-                                        placeholder="Repita a nova senha"
-                                        required
-                                        minLength={6}
-                                    />
-                                </div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <Input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="bg-[#1e4d2b]/20 border-[#1e4d2b] rounded-none h-12 text-white" placeholder="Nova senha" />
+                                <Input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="bg-[#1e4d2b]/20 border-[#1e4d2b] rounded-none h-12 text-white" placeholder="Confirmar nova senha" />
                             </div>
-
-                            <Button
-                                type="submit"
-                                disabled={isUpdatingPassword}
-                                className="bg-slate-900 hover:bg-slate-800 text-white font-black uppercase tracking-[2px] rounded-xl px-10 h-14 shadow-lg shadow-slate-100 transition-all flex items-center justify-center gap-2"
-                            >
-                                {isUpdatingPassword ? (
-                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                ) : (
-                                    <Save size={18} />
-                                )}
-                                {needsReauth ? 'Confirmar e Atualizar' : 'Atualizar Senha'}
-                            </Button>
+                            <Button type="submit" className="bg-[#00C402] hover:bg-[#28b828] text-white font-black uppercase rounded-none h-12 px-8">Atualizar Senha</Button>
                         </form>
                     </section>
 
-                    {/* Dados Bancários */}
-                    <section className="bg-white border border-slate-100 rounded-[32px] p-8 md:p-10 shadow-sm space-y-8">
-                        <div className="flex items-center gap-5">
-                            <div className="w-14 h-14 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-slate-900 shadow-sm">
-                                <CreditCard size={20} />
-                            </div>
+                    {/* Dados Bancários - rounded-none aplicado */}
+                    <section className="bg-[#0f1f14] border border-[#1e4d2b] p-8 rounded-none">
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="w-12 h-12 bg-[#1e4d2b]/20 border border-[#1e4d2b] rounded-none flex items-center justify-center text-white"><CreditCard size={20} /></div>
                             <div>
-                                <h2 className="text-lg font-black tracking-tighter uppercase text-slate-900">Dados Bancários</h2>
-                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[2px]">Para recebimento de reembolsos ou parcerias.</p>
+                                <h2 className="font-black uppercase text-white">Dados Bancários</h2>
+                                <p className="text-[10px] text-slate-400 uppercase tracking-[2px]">Informações de pagamento</p>
                             </div>
                         </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Chave PIX</label>
-                                <Input
-                                    type="text"
-                                    value={pixKey}
-                                    onChange={(e) => setPixKey(e.target.value)}
-                                    className="bg-slate-50 border-slate-100 focus:border-[#00C402] focus:ring-[#00C402] rounded-xl h-14 text-sm font-medium transition-all"
-                                    placeholder="CPF, Email ou Aleatória"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Banco</label>
-                                <Input
-                                    type="text"
-                                    value={bank}
-                                    onChange={(e) => setBank(e.target.value)}
-                                    className="bg-slate-50 border-slate-100 focus:border-[#00C402] focus:ring-[#00C402] rounded-xl h-14 text-sm font-medium transition-all"
-                                    placeholder="Ex: Nubank, Itaú..."
-                                />
-                            </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <Input value={pixKey} onChange={(e) => setPixKey(e.target.value)} className="bg-[#1e4d2b]/20 border-[#1e4d2b] rounded-none h-12 text-white" placeholder="Chave PIX" />
+                            <Input value={bank} onChange={(e) => setBank(e.target.value)} className="bg-[#1e4d2b]/20 border-[#1e4d2b] rounded-none h-12 text-white" placeholder="Banco" />
                         </div>
-                        <Button
-                            className="bg-white hover:bg-slate-50 border border-slate-100 text-slate-900 font-black uppercase tracking-[2px] rounded-xl px-10 h-14 shadow-sm transition-all"
-                        >
-                            Salvar Dados
-                        </Button>
+                        <Button className="bg-[#1e4d2b]/40 border border-[#1e4d2b] text-white font-black uppercase rounded-none h-12 px-8">Salvar Dados</Button>
                     </section>
 
-                    {/* Zona de Perigo */}
-                    <section className="bg-red-50 border border-red-100 rounded-[32px] p-8 md:p-10 shadow-sm space-y-8">
-                        <div className="flex items-center gap-5">
-                            <div className="w-14 h-14 bg-white border border-red-100 rounded-2xl flex items-center justify-center text-red-500 shadow-sm">
-                                <Trash2 size={20} />
-                            </div>
-                            <div>
-                                <h2 className="text-lg font-black tracking-tighter uppercase text-red-500">Zona de Perigo</h2>
-                                <p className="text-[10px] text-red-400/80 font-bold uppercase tracking-[2px]">Ações irreversíveis sobre sua conta.</p>
-                            </div>
+                    {/* Zona de Perigo - rounded-none aplicado */}
+                    <section className="bg-red-950/10 border border-red-900/30 p-8 rounded-none">
+                        <div className="flex items-center gap-4 mb-4">
+                            <div className="w-12 h-12 bg-red-950/40 border border-red-900/40 rounded-none flex items-center justify-center text-red-500"><Trash2 size={20} /></div>
+                            <h2 className="font-black uppercase text-red-500">Zona de Perigo</h2>
                         </div>
-
-                        <p className="text-[11px] text-red-600/70 max-w-lg font-bold uppercase tracking-wider leading-relaxed bg-white/50 p-4 rounded-xl border border-red-100/50">
-                            Ao excluir sua conta, você perderá acesso a todos os seus cursos adquiridos, certificados e progresso de forma definitiva.
-                        </p>
-
                         <DeleteAccountButton />
                     </section>
                 </div>
@@ -249,4 +147,3 @@ export default function SettingsPage() {
         </div>
     )
 }
-

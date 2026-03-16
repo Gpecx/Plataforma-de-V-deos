@@ -103,7 +103,7 @@ export default function NavbarTeacher() {
                     <Link href="/dashboard-teacher" className="flex items-center outline-none hover:opacity-80 transition-opacity">
                         <img
                             src="/images/SPCS academy 2.png"
-                            alt="SPCS Academy"
+                            alt="PowerPlay"
                             className="h-10 sm:h-12 md:h-14 w-auto"
                         />
                     </Link>
@@ -169,10 +169,10 @@ export default function NavbarTeacher() {
                             >
                                 <div className="px-5 py-6 bg-slate-50/50 mb-2 rounded-[18px]">
                                     <p className="font-black uppercase tracking-tighter text-sm text-slate-800 line-clamp-1">
-                                        PROFESSOR SPCS
+                                        PROFESSOR POWERPLAY
                                     </p>
                                     <p className="text-[10px] font-bold uppercase tracking-widest text-slate-700 mt-1 line-clamp-1">
-                                        {userProfile?.full_name || 'Membro SPCS Academy'}
+                                        {userProfile?.full_name || 'Membro PowerPlay'}
                                     </p>
                                     <p className="text-[9px] font-black uppercase tracking-[2px] text-slate-400 mt-2">
                                         Registrado em {formatDate(userProfile?.created_at || null)}

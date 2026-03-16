@@ -120,7 +120,7 @@ export default function CourseModal({ course, isOpen, onClose }: CourseModalProp
                                 </span>
                             </div>
                             <p className="text-[10px] text-slate-500 mt-4 leading-relaxed font-medium">
-                                Aproveite acesso imediato a todas as aulas, materiais complementares e suporte técnico SPCS Academy.
+                                Aproveite acesso imediato a todas as aulas, materiais complementares e suporte técnico PowerPlay.
                             </p>
                         </div>
 

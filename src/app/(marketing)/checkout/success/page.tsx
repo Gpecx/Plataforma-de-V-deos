@@ -69,7 +69,7 @@ export default function CheckoutSuccessPage() {
                         </div>
 
                         <p className="text-[12px] font-bold uppercase tracking-[5px] !text-white/80 pt-8 italic drop-shadow-sm">
-                            Plataforma de Elite SPCS Academy
+                            Plataforma de Elite PowerPlay
                         </p>
                     </div>
                 </div>

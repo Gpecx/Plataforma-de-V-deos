@@ -23,7 +23,7 @@ export async function getInstructorProfile(instructorId: string) {
             role: data?.role,
             avatar_url: data?.avatar_url || null,
             bio: data?.bio || 'Este instrutor ainda não adicionou uma biografia.',
-            specialty: data?.specialty || 'Especialista SPCS',
+            specialty: data?.specialty || 'Especialista PowerPlay',
             social: {
                 linkedin: data?.linkedin || null,
                 twitter: data?.twitter || null,
@@ -73,7 +73,7 @@ export async function getInstructorStats(instructorId: string) {
 
         // 3. Avaliações (Mock/Future-proofing)
         // Como o sistema ainda não tem coleção de reviews robusta, retornamos valores base
-        const averageRating = 4.8 // Base SPCS
+        const averageRating = 4.8 // Base PowerPlay
 
         return {
             totalStudents,
