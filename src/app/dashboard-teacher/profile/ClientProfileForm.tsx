@@ -66,14 +66,14 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
     }
 
     return (
-        <div className="max-w-4xl mx-auto bg-white border border-slate-100 rounded-[48px] p-10 md:p-16 shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-slate-50 rounded-full blur-3xl -mr-32 -mt-32 -z-10"></div>
+        <div className="max-w-4xl mx-auto bg-[#0f1f14] border border-[#1e4d2b] rounded-none p-10 md:p-16 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[#0d2b17] rounded-none blur-3xl -mr-32 -mt-32 -z-10 opacity-20"></div>
 
             <div className="flex flex-col md:flex-row gap-16 relative z-10">
                 {/* Foto de Perfil */}
                 <div className="flex flex-col items-center space-y-6 shrink-0">
                     <div className="relative group">
-                        <div className="w-40 h-40 rounded-[40px] bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-300 overflow-hidden transition-all group-hover:border-[#00C402]/30 group-hover:bg-[#00C402]/5">
+                        <div className="w-40 h-40 rounded-none bg-[#0d2b17] border-2 border-dashed border-[#1e4d2b] flex items-center justify-center text-slate-500 overflow-hidden transition-all group-hover:border-[#00C402]/30 group-hover:bg-[#00C402]/5">
                             {avatarUrl ? (
                                 <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                             ) : (
@@ -81,14 +81,14 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                             )}
                         </div>
                         
-                        <label className="absolute -bottom-4 -right-4 w-14 h-14 bg-slate-900 text-white rounded-[20px] flex items-center justify-center shadow-2xl hover:bg-slate-800 transition-all hover:scale-110 border-4 border-white cursor-pointer group-hover:bg-[#00C402]">
+                        <label className="absolute -bottom-4 -right-4 w-14 h-14 bg-black text-white rounded-none flex items-center justify-center shadow-2xl hover:bg-slate-900 transition-all hover:scale-110 border-4 border-[#0f1f14] cursor-pointer group-hover:bg-[#00C402]">
                             {isUploading ? <Loader2 className="animate-spin" size={24} /> : <Camera size={24} />}
                             <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={isUploading} />
                         </label>
                     </div>
                     <div className="text-center">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Foto Quadrada</p>
-                        <p className="text-[9px] font-bold text-slate-300 mt-1 uppercase">JPG/PNG Ideal 500x500px</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-[#00C402]">Foto Quadrada</p>
+                        <p className="text-[9px] font-bold text-slate-500 mt-1 uppercase">JPG/PNG Ideal 500x500px</p>
                     </div>
                 </div>
 
@@ -96,100 +96,100 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                 <div className="flex-grow space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="space-y-3">
-                            <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 px-1">Nome de Exibição</label>
+                            <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-500 px-1">Nome de Exibição</label>
                             <div className="relative group">
-                                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-[#00C402] transition-colors" size={18} />
+                                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#00C402] transition-colors" size={18} />
                                 <Input
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    className="bg-slate-50 border-slate-100 rounded-2xl pl-12 h-14 focus:border-[#00C402] focus:ring-4 focus:ring-[#00C402]/5 font-bold text-slate-900"
+                                    className="bg-[#0d2b17] border-[#1e4d2b] rounded-none pl-12 h-14 focus:border-[#00C402] focus:ring-1 focus:ring-[#00C402]/20 font-bold text-white placeholder:text-slate-600"
                                 />
                             </div>
                         </div>
                         <div className="space-y-3">
-                            <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 px-1">E-mail Administrativo</label>
+                            <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-500 px-1">E-mail Administrativo</label>
                             <div className="relative">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-200" size={18} />
+                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-700" size={18} />
                                 <Input
                                     value={email}
                                     readOnly
-                                    className="bg-slate-50/50 border-slate-50 pl-12 h-14 text-slate-400 cursor-not-allowed rounded-2xl font-medium"
+                                    className="bg-black/20 border-[#1e4d2b]/50 pl-12 h-14 text-slate-500 cursor-not-allowed rounded-none font-medium"
                                 />
                             </div>
                         </div>
                     </div>
 
                     <div className="space-y-3">
-                        <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 px-1">Expertise / Especialização</label>
+                        <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-500 px-1">Expertise / Especialização</label>
                         <div className="relative group">
-                            <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-[#00C402] transition-colors" size={18} />
+                            <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#00C402] transition-colors" size={18} />
                             <Input
                                 value={specialization}
                                 onChange={(e) => setSpecialization(e.target.value)}
-                                className="bg-slate-50 border-slate-100 rounded-2xl pl-12 h-14 focus:border-[#00C402] focus:ring-4 focus:ring-[#00C402]/5 font-bold text-slate-900"
+                                className="bg-[#0d2b17] border-[#1e4d2b] rounded-none pl-12 h-14 focus:border-[#00C402] focus:ring-1 focus:ring-[#00C402]/20 font-bold text-white placeholder:text-slate-600"
                                 placeholder="Ex: Estrategista Digital, Especialista em Performance..."
                             />
                         </div>
                     </div>
 
                     <div className="space-y-3">
-                        <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 px-1">Biografia Profissional</label>
+                        <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-500 px-1">Biografia Profissional</label>
                         <textarea
                             value={bio}
                             onChange={(e) => setBio(e.target.value)}
-                            className="w-full min-h-[160px] bg-slate-50 border border-slate-100 rounded-[32px] p-6 text-sm font-medium focus:outline-none focus:border-[#00C402] focus:ring-4 focus:ring-[#00C402]/5 transition-all resize-none text-slate-700 leading-relaxed"
+                            className="w-full min-h-[160px] bg-[#0d2b17] border border-[#1e4d2b] rounded-none p-6 text-sm font-medium focus:outline-none focus:border-[#00C402] focus:ring-1 focus:ring-[#00C402]/20 transition-all resize-none text-slate-300 leading-relaxed placeholder:text-slate-600"
                             placeholder="Descreva sua jornada e o valor que você entrega aos seus alunos..."
                         />
                     </div>
 
                     {/* Redes Sociais */}
-                    <div className="space-y-6 pt-4 border-t border-slate-100">
-                        <h3 className="text-sm font-black text-slate-800 uppercase tracking-tighter">Links Sociais e Contato</h3>
+                    <div className="space-y-6 pt-4 border-t border-white/5">
+                        <h3 className="text-sm font-black text-white uppercase tracking-tighter">Links Sociais e Contato</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 px-1">Website</label>
+                                <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-500 px-1">Website</label>
                                 <div className="relative group">
-                                    <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-[#00C402] transition-colors" size={18} />
+                                    <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#00C402] transition-colors" size={18} />
                                     <Input
                                         value={website}
                                         onChange={(e) => setWebsite(e.target.value)}
-                                        className="bg-slate-50 border-slate-100 rounded-2xl pl-12 h-14 focus:border-[#00C402] focus:ring-4 focus:ring-[#00C402]/5 font-bold text-slate-900 text-sm"
+                                        className="bg-[#0d2b17] border-[#1e4d2b] rounded-none pl-12 h-14 focus:border-[#00C402] focus:ring-1 focus:ring-[#00C402]/20 font-bold text-white text-sm placeholder:text-slate-600"
                                         placeholder="https://seu-site.com"
                                     />
                                 </div>
                             </div>
                             <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 px-1">LinkedIn</label>
+                                <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-500 px-1">LinkedIn</label>
                                 <div className="relative group">
-                                    <Linkedin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-blue-500 transition-colors" size={18} />
+                                    <Linkedin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors" size={18} />
                                     <Input
                                         value={linkedin}
                                         onChange={(e) => setLinkedin(e.target.value)}
-                                        className="bg-slate-50 border-slate-100 rounded-2xl pl-12 h-14 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/5 font-bold text-slate-900 text-sm"
+                                        className="bg-[#0d2b17] border-[#1e4d2b] rounded-none pl-12 h-14 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 font-bold text-white text-sm placeholder:text-slate-600"
                                         placeholder="URL do Perfil"
                                     />
                                 </div>
                             </div>
                             <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 px-1">Twitter / X</label>
+                                <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-500 px-1">Twitter / X</label>
                                 <div className="relative group">
-                                    <Twitter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-sky-500 transition-colors" size={18} />
+                                    <Twitter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-sky-500 transition-colors" size={18} />
                                     <Input
                                         value={twitter}
                                         onChange={(e) => setTwitter(e.target.value)}
-                                        className="bg-slate-50 border-slate-100 rounded-2xl pl-12 h-14 focus:border-sky-500 focus:ring-4 focus:ring-sky-500/5 font-bold text-slate-900 text-sm"
+                                        className="bg-[#0d2b17] border-[#1e4d2b] rounded-none pl-12 h-14 focus:border-sky-500 focus:ring-1 focus:ring-sky-500/20 font-bold text-white text-sm placeholder:text-slate-600"
                                         placeholder="URL do Perfil"
                                     />
                                 </div>
                             </div>
                             <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 px-1">Youtube</label>
+                                <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-500 px-1">Youtube</label>
                                 <div className="relative group">
-                                    <Youtube className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-red-500 transition-colors" size={18} />
+                                    <Youtube className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-red-500 transition-colors" size={18} />
                                     <Input
                                         value={youtube}
                                         onChange={(e) => setYoutube(e.target.value)}
-                                        className="bg-slate-50 border-slate-100 rounded-2xl pl-12 h-14 focus:border-red-500 focus:ring-4 focus:ring-red-500/5 font-bold text-slate-900 text-sm"
+                                        className="bg-[#0d2b17] border-[#1e4d2b] rounded-none pl-12 h-14 focus:border-red-500 focus:ring-1 focus:ring-red-500/20 font-bold text-white text-sm placeholder:text-slate-600"
                                         placeholder="URL do Canal"
                                     />
                                 </div>
@@ -201,7 +201,7 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                         <Button 
                             onClick={handleSave}
                             disabled={isSaving || isUploading}
-                            className="bg-slate-900 text-white font-black uppercase tracking-[4px] py-8 px-12 rounded-[24px] hover:bg-slate-800 shadow-2xl shadow-slate-200 transition-all gap-4 w-full md:w-auto h-auto"
+                            className="bg-[#00C402] text-white font-black uppercase tracking-[4px] py-8 px-12 rounded-none hover:bg-[#00A802] shadow-2xl transition-all gap-4 w-full md:w-auto h-auto"
                         >
                             {isSaving ? <Loader2 className="animate-spin" size={24} strokeWidth={3} /> : <Save size={24} strokeWidth={3} />}
                             {isSaving ? 'Sincronizando...' : 'Sincronizar Perfil'}

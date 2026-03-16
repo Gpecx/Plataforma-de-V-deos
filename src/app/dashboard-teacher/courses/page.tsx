@@ -86,7 +86,7 @@ export default function TeacherCoursesPage() {
                     <p className="text-slate-400 mt-2 text-[10px] font-bold uppercase tracking-[3px]">Gerencie e acompanhe o desempenho de suas aulas.</p>
                 </div>
                 <Link href="/dashboard-teacher/courses/new">
-                    <Button className="bg-[#00C402] text-white font-black uppercase text-[10px] tracking-widest px-8 h-14 rounded-2xl hover:bg-[#28b828] shadow-lg shadow-[#00C402]/20">
+                    <Button className="bg-[#00C402] text-white font-black uppercase text-[10px] tracking-widest px-8 h-14 rounded-none hover:bg-[#28b828] shadow-none border border-[#1e4d2b]/20">
                         <Plus size={18} className="mr-2" />
                         Lançar Novo Curso
                     </Button>
@@ -101,10 +101,10 @@ export default function TeacherCoursesPage() {
                             placeholder="Buscar por nome do curso..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="bg-[#0f1f14] border-[#1e4d2b] pl-12 h-14 rounded-2xl focus:border-[#00C402] focus:ring-[#00C402] text-sm font-medium text-white"
+                            className="bg-[#0f1f14] border-[#1e4d2b] pl-12 h-14 rounded-none focus:border-[#00C402] focus:ring-[#00C402] text-sm font-medium text-white"
                         />
                     </div>
-                    <div className="bg-[#0f1f14] border border-[#1e4d2b] text-slate-400 h-14 px-8 rounded-2xl flex items-center gap-3 shadow-sm">
+                    <div className="bg-[#0f1f14] border border-[#1e4d2b] text-slate-400 h-14 px-8 rounded-none flex items-center gap-3 shadow-none">
                         <Filter size={16} className="text-[#00C402]" />
                         <span className="text-[10px] font-black uppercase tracking-widest">{filteredCourses.length} Encontrados</span>
                     </div>

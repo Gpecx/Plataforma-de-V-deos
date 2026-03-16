@@ -2,7 +2,7 @@ import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Plus, Users, Star, DollarSign, TrendingUp, Edit, MoreVertical, MessageSquare } from 'lucide-react'
+import { Plus, Users, Star, DollarSign, TrendingUp, Edit, MessageSquare } from 'lucide-react'
 import { SalesChart } from './components/SalesChart'
 import { parseFirebaseDate } from '@/lib/date-utils'
 
@@ -22,7 +22,6 @@ export default async function TeacherDashboard() {
         redirect('/login')
     }
 
-    // 2. Busca perfil e métricas reais no Firestore
     const [profileDoc, coursesSnapshot] = await Promise.all([
         adminDb.collection('profiles').doc(user.uid).get(),
         adminDb.collection('courses').where('teacher_id', '==', user.uid).get()
@@ -37,12 +36,10 @@ export default async function TeacherDashboard() {
     const courseIds = courses.map(c => c.id)
     const coursesPriceMap = new Map(courses.map(c => [c.id, Number(c.price) || 0]))
 
-    // Queries paralelas para performance
     const now = new Date()
     const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000))
     const todayStart = new Date(now.setHours(0, 0, 0, 0))
 
-    // Busca matrículas de todos os cursos deste professor
     let enrollments: any[] = []
     if (courseIds.length > 0) {
         const enrollmentsSnapshot = await adminDb.collection('enrollments')
@@ -56,25 +53,15 @@ export default async function TeacherDashboard() {
     }
 
     const weeklySales = enrollments.filter(e => e.created_at >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
-
-    // Map real student counts per course
     const courseStudentCountMap = enrollments.reduce((acc, e) => {
         acc[e.course_id] = (acc[e.course_id] || 0) + 1
         return acc
     }, {} as Record<string, number>)
 
-    // Cálculos de Métricas
     const totalStudents = new Set(enrollments.map(e => e.user_id)).size
+    const monthlyRevenue = enrollments.filter(e => e.created_at >= thirtyDaysAgo).reduce((acc, e) => acc + (coursesPriceMap.get(e.course_id) || 0), 0)
+    const todaySales = enrollments.filter(e => e.created_at >= todayStart).reduce((acc, e) => acc + (coursesPriceMap.get(e.course_id) || 0), 0)
 
-    const monthlyRevenue = enrollments
-        .filter(e => e.created_at >= thirtyDaysAgo)
-        .reduce((acc, e) => acc + (coursesPriceMap.get(e.course_id) || 0), 0)
-
-    const todaySales = enrollments
-        .filter(e => e.created_at >= todayStart)
-        .reduce((acc, e) => acc + (coursesPriceMap.get(e.course_id) || 0), 0)
-
-    // Formatação para o gráfico (Últimos 7 dias)
     const last7Days = Array.from({ length: 7 }, (_, i) => {
         const d = new Date()
         d.setDate(d.getDate() - i)
@@ -82,12 +69,8 @@ export default async function TeacherDashboard() {
     }).reverse()
 
     const chartData = last7Days.map(day => {
-        const salesForDay = weeklySales.filter(s => {
-            const saleDay = new Date(s.created_at).toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')
-            return saleDay === day
-        })
-        const totalValue = salesForDay.reduce((acc, s) => acc + (coursesPriceMap.get(s.course_id) || 0), 0)
-        return { name: day.charAt(0).toUpperCase() + day.slice(1), vendas: totalValue }
+        const salesForDay = weeklySales.filter(s => new Date(s.created_at).toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '') === day)
+        return { name: day.charAt(0).toUpperCase() + day.slice(1), vendas: salesForDay.reduce((acc, s) => acc + (coursesPriceMap.get(s.course_id) || 0), 0) }
     })
 
     const metrics = [
@@ -104,126 +87,78 @@ export default async function TeacherDashboard() {
     ]
 
     return (
-        <div className="min-h-screen bg-[#0d2b17] text-white font-exo pb-16 md:pb-24 pt-8 md:pt-12">
-            {/* Header com Boas-vindas e Botão Criar */}
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center px-4 md:px-8 mb-12 gap-8">
+        <div className="min-h-screen bg-[#0d2b17] text-white font-exo pb-24 pt-12">
+            <header className="flex justify-between items-center px-8 mb-12">
                 <div>
-                    <h1 className="text-4xl font-black tracking-tighter uppercase leading-none text-white">
+                    <h1 className="text-4xl font-black tracking-tighter uppercase leading-none">
                         Bem-vindo, <span className="text-[#00C402]">{profile?.full_name || 'Professor'}!</span>
                     </h1>
-                    <p className="text-slate-400 mt-2 font-bold uppercase text-[10px] tracking-[3px]">Gerencie seus cursos e acompanhe seus resultados com o Creator Studio.</p>
+                    <p className="text-slate-400 mt-2 font-bold uppercase text-[10px] tracking-[3px]">Gerencie seus cursos no Creator Studio.</p>
                 </div>
                 <Link href="/dashboard-teacher/courses/new">
-                    <button className="flex items-center gap-3 bg-[#00C402] text-white font-black uppercase tracking-widest px-10 py-5 rounded-2xl hover:bg-[#28b828] transition shadow-lg shadow-[#00C402]/20 shrink-0 group">
-                        <Plus size={20} strokeWidth={3} className="group-hover:rotate-90 transition-transform" />
-                        Criar Novo Curso
+                    <button className="flex items-center gap-3 bg-[#00C402] text-white font-black uppercase tracking-widest px-10 py-5 rounded-none hover:bg-[#28b828] transition shadow-lg shadow-[#00C402]/20 shrink-0">
+                        <Plus size={20} strokeWidth={3} /> Criar Novo Curso
                     </button>
                 </Link>
             </header>
 
-            <div className="px-4 md:px-8 space-y-16">
-                {/* Grid de Métricas */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="px-8 space-y-16">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     {metrics.map((metric, idx) => (
-                        <div key={idx} className="bg-[#0f1f14] p-8 rounded-[32px] border border-[#1e4d2b] shadow-sm group">
-                            <div className="flex justify-between items-start mb-6">
-                                <div className={`p-4 rounded-2xl bg-[#0d2b17] border border-[#1e4d2b] ${metric.color}`}>
-                                    <metric.icon size={22} />
-                                </div>
+                        <div key={idx} className="bg-[#0f1f14] p-8 border-2 border-[#1e4d2b]">
+                            <div className={`p-4 w-fit bg-[#0d2b17] border-2 border-[#1e4d2b] mb-6 ${metric.color}`}>
+                                <metric.icon size={22} />
                             </div>
                             <p className="text-slate-500 text-[10px] font-black uppercase tracking-[2px]">{metric.label}</p>
-                            <h3 className="text-3xl font-black mt-1 tracking-tighter text-white">{metric.value}</h3>
+                            <h3 className="text-3xl font-black mt-1 tracking-tighter">{metric.value}</h3>
                         </div>
                     ))}
                 </div>
 
-                {/* Gráfico de Desempenho */}
-                <section className="bg-[#0f1f14] p-10 rounded-[48px] border border-[#1e4d2b] shadow-sm relative overflow-hidden group">
-                    <div className="relative z-10">
-                        <div className="flex items-center justify-between mb-12">
-                            <h2 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-4 text-white">
-                                <TrendingUp size={24} className="text-[#00C402]" />
-                                Desempenho de Vendas <span className="text-slate-500 font-bold text-sm tracking-widest ml-4">(ÚLTIMOS 7 DIAS)</span>
-                            </h2>
-                        </div>
-                        <SalesChart data={chartData} />
+                <section className="bg-[#0f1f14] p-10 border-2 border-[#1e4d2b]">
+                    <div className="flex items-center gap-4 mb-12">
+                        <TrendingUp size={24} className="text-[#00C402]" />
+                        <h2 className="text-2xl font-black uppercase tracking-tighter">Desempenho de Vendas <span className="text-slate-500 font-bold text-sm tracking-widest ml-4">(7 DIAS)</span></h2>
                     </div>
+                    <SalesChart data={chartData} />
                 </section>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
-                    {/* Seção: Meus Cursos (2 colunas) */}
+                <div className="grid lg:grid-cols-3 gap-16">
                     <section className="lg:col-span-2 space-y-10">
-                        <div className="flex items-center justify-between border-b border-[#1e4d2b] pb-6">
-                            <h2 className="text-2xl font-black uppercase tracking-tighter text-white">Meus Cursos</h2>
-                            <Link href="/dashboard-teacher/courses" className="text-[10px] text-slate-500 hover:text-white font-black uppercase tracking-[3px] transition-colors">Ver todos os cursos</Link>
+                        <div className="border-b-2 border-[#1e4d2b] pb-6 flex justify-between items-center">
+                            <h2 className="text-2xl font-black uppercase tracking-tighter">Meus Cursos</h2>
+                            <Link href="/dashboard-teacher/courses" className="text-[10px] text-slate-500 hover:text-white font-black uppercase tracking-[3px]">Ver todos</Link>
                         </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                            {courses.length > 0 ? (
-                                courses.map((curso) => (
-                                    <div key={curso.id} className="bg-[#0f1f14] rounded-none overflow-hidden border border-[#1e4d2b] hover:border-[#00C402]/40 transition-all group shadow-sm flex flex-col">
-                                        <div className="relative h-48 bg-[#0d2b17] overflow-hidden">
-                                            <img
-                                                src={curso.image_url || "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400"}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                                                alt={curso.title}
-                                            />
-                                            <div className="absolute top-4 left-4">
-                                                <span className={`px-3 py-1.5 rounded-none text-[9px] font-black uppercase tracking-[2px] shadow-sm backdrop-blur-md ${curso.status === 'published' ? 'bg-[#00C402] text-white' : 'bg-yellow-500 text-white'}`}>
-                                                    {curso.status === 'published' ? 'Publicado' : 'Rascunho'}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div className="p-6 flex-grow flex flex-col">
-                                            <h3 className="font-black text-xl mb-3 tracking-tighter text-white line-clamp-1">{curso.title}</h3>
-                                            <div className="flex items-center gap-6 text-[10px] text-slate-500 mb-6 font-black uppercase tracking-widest">
-                                                <div className="flex items-center gap-2">
-                                                    <Users size={16} className="text-[#00C402]" />
-                                                    <span>{courseStudentCountMap[curso.id] || 0} {courseStudentCountMap[curso.id] === 1 ? 'Aluno' : 'Alunos'}</span>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Star size={16} className="text-yellow-500 fill-yellow-500" />
-                                                    <span>4.8 Rating</span>
-                                                </div>
-                                            </div>
-                                            <Link href={`/dashboard-teacher/courses/${curso.id}/edit`} className="mt-auto">
-                                                <button className="w-full flex items-center justify-center gap-3 bg-[#0d2b17] hover:bg-[#1e4d2b] hover:text-white border border-[#1e4d2b] text-white font-black uppercase tracking-widest py-3 rounded-none transition-all duration-300">
-                                                    <Edit size={16} />
-                                                    Editar no Studio
-                                                </button>
-                                            </Link>
-                                        </div>
+                        <div className="grid md:grid-cols-2 gap-10">
+                            {courses.length > 0 ? courses.map((curso) => (
+                                <div key={curso.id} className="bg-[#0f1f14] border-2 border-[#1e4d2b] flex flex-col">
+                                    <div className="h-48 bg-[#0d2b17] border-b-2 border-[#1e4d2b]">
+                                        <img src={curso.image_url} className="w-full h-full object-cover" alt={curso.title} />
                                     </div>
-                                ))
-                            ) : (
-                                <div className="col-span-full py-24 border-2 border-dashed border-[#1e4d2b] rounded-[48px] text-center bg-[#0f1f14]">
-                                    <p className="text-slate-500 font-bold uppercase text-xs tracking-[4px]">O Studio está pronto. Comece criando seu primeiro treinamento!</p>
+                                    <div className="p-6 flex-grow">
+                                        <h3 className="font-black text-xl mb-6 tracking-tighter line-clamp-1">{curso.title}</h3>
+                                        <Link href={`/dashboard-teacher/courses/${curso.id}/edit`}>
+                                            <button className="w-full bg-[#0d2b17] border-2 border-[#1e4d2b] text-white font-black uppercase tracking-widest py-4 hover:border-[#00C402] transition-all">Editar no Studio</button>
+                                        </Link>
+                                    </div>
                                 </div>
-                            )}
+                            )) : <div className="col-span-full py-24 border-2 border-dashed border-[#1e4d2b] text-center bg-[#0f1f14] font-black uppercase tracking-[4px]">Crie seu primeiro curso!</div>}
                         </div>
                     </section>
 
-                    {/* Seção: Dúvidas Recentes (1 coluna) */}
                     <section className="space-y-10">
-                        <div className="flex items-center justify-between border-b border-[#1e4d2b] pb-6">
-                            <h2 className="text-2xl font-black uppercase tracking-tighter text-white">Dúvidas Inbox</h2>
-                            <Link href="/dashboard-teacher/comments" className="text-[10px] text-slate-500 hover:text-white font-black uppercase tracking-[2px] transition-colors">Acessar Inbox</Link>
+                        <div className="border-b-2 border-[#1e4d2b] pb-6">
+                            <h2 className="text-2xl font-black uppercase tracking-tighter">Dúvidas Inbox</h2>
                         </div>
-
                         <div className="space-y-6">
                             {recentActivities.map((activity) => (
-                                <div key={activity.id} className="bg-[#0f1f14] p-7 rounded-[32px] border border-[#1e4d2b] hover:border-[#00C402]/30 transition-all flex gap-5 shadow-sm group">
-                                    <div className="h-14 w-14 rounded-2xl bg-[#0d2b17] flex items-center justify-center shrink-0 border border-[#1e4d2b] group-hover:border-[#00C402]/30 transition-colors">
-                                        <MessageSquare size={20} className="text-slate-400 group-hover:text-[#00C402] transition-colors" />
+                                <div key={activity.id} className="bg-[#0f1f14] p-7 border-2 border-[#1e4d2b] flex gap-5">
+                                    <div className="h-14 w-14 bg-[#0d2b17] flex items-center justify-center border-2 border-[#1e4d2b]">
+                                        <MessageSquare size={20} className="text-slate-400" />
                                     </div>
-                                    <div className="flex-grow min-w-0">
-                                        <div className="flex justify-between items-start mb-2">
-                                            <h4 className="font-black text-[11px] uppercase tracking-widest text-white truncate mr-2">{activity.user}</h4>
-                                            <span className="text-[9px] font-bold text-slate-500 uppercase shrink-0">{activity.date}</span>
-                                        </div>
-                                        <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed font-medium italic">
-                                            "{activity.comment}"
-                                        </p>
+                                    <div className="min-w-0">
+                                        <h4 className="font-black text-[11px] uppercase tracking-widest">{activity.user}</h4>
+                                        <p className="text-[11px] text-slate-500 italic">"{activity.comment}"</p>
                                     </div>
                                 </div>
                             ))}

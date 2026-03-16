@@ -118,7 +118,7 @@ export default async function FinancialDashboardPage() {
         .reduce((acc: number, s: any) => acc + parseFloat(s.commission.replace('R$ ', '').replace('.', '').replace(',', '.')), 0)
 
     return (
-        <div className="pb-16 md:pb-24 bg-[var(--background-color)] min-h-screen text-slate-200 font-exo">
+        <div className="pb-16 md:pb-24 bg-[#0d2b17] min-h-screen text-slate-200 font-exo">
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center pt-0 px-4 md:px-8 mb-12 gap-6">
                 <div>
                     <h1 className="text-2xl font-black tracking-tighter text-white">
@@ -128,10 +128,10 @@ export default async function FinancialDashboardPage() {
                 </div>
 
                 <div className="flex gap-4">
-                    <Button variant="outline" className="border-[#1e4d2b] text-slate-400 font-bold uppercase text-[10px] tracking-widest px-6 hover:bg-[#1e4d2b]/20 transition-colors bg-[#0f1f14]">
+                    <Button variant="outline" className="border-[#1e4d2b] text-slate-400 font-bold uppercase text-[10px] tracking-widest px-6 hover:bg-[#1e4d2b]/20 transition-colors bg-[#0f1f14] rounded-none">
                         <Download size={14} className="mr-2" /> Relatório CSV
                     </Button>
-                    <Button className="bg-[#00C402] text-white font-black uppercase text-xs tracking-widest px-8 shadow-sm hover:brightness-105 transition-all">
+                    <Button className="bg-[#00C402] text-white font-black uppercase text-xs tracking-widest px-8 shadow-sm hover:brightness-105 transition-all rounded-none">
                         Solicitar Saque
                     </Button>
                 </div>
@@ -140,7 +140,7 @@ export default async function FinancialDashboardPage() {
             {/* Cards de Saldo */}
             <div className="px-4 md:px-8 mb-16">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
-                    <div className="bg-[#0f1f14]/80 backdrop-blur-md border border-[#1e4d2b] p-8 rounded-3xl relative overflow-hidden group transition-all hover:border-[#00C402]/20 shadow-sm">
+                    <div className="bg-[#0f1f14]/80 backdrop-blur-md border border-[#1e4d2b] p-8 rounded-none relative overflow-hidden group transition-all hover:border-[#00C402]/20 shadow-sm">
                         <div className="absolute top-0 right-0 p-6 opacity-5 text-[#00C402] group-hover:scale-110 transition-transform">
                             <Wallet size={80} />
                         </div>
@@ -156,7 +156,7 @@ export default async function FinancialDashboardPage() {
                         </div>
                     </div>
 
-                    <div className="bg-[#0f1f14]/80 backdrop-blur-md border border-[#1e4d2b] p-8 rounded-3xl relative overflow-hidden group shadow-sm transition-all hover:border-slate-200">
+                    <div className="bg-[#0f1f14]/80 backdrop-blur-md border border-[#1e4d2b] p-8 rounded-none relative overflow-hidden group shadow-sm transition-all hover:border-slate-200">
                         <div className="relative z-10">
                             <div className="flex items-center gap-2 text-slate-500 mb-4">
                                 <Calendar size={14} />
@@ -167,7 +167,7 @@ export default async function FinancialDashboardPage() {
                         </div>
                     </div>
 
-                    <div className="bg-[#0f1f14]/80 backdrop-blur-md border border-[#1e4d2b] p-8 rounded-3xl flex flex-col justify-between group shadow-sm">
+                    <div className="bg-[#0f1f14]/80 backdrop-blur-md border border-[#1e4d2b] p-8 rounded-none flex flex-col justify-between group shadow-sm">
                         <div className="space-y-4">
                             <div className="flex items-center gap-2 text-slate-500">
                                 <Info size={14} />
@@ -187,14 +187,14 @@ export default async function FinancialDashboardPage() {
 
             {/* Tabela de Vendas Recentes */}
             <div className="px-4 md:px-8">
-                <div className="bg-[#0f1f14] border border-[#1e4d2b] rounded-3xl p-8 space-y-8 shadow-sm overflow-hidden">
+                <div className="bg-[#0f1f14] border border-[#1e4d2b] rounded-none p-8 space-y-8 shadow-sm overflow-hidden">
                     <div className="flex flex-col md:flex-row justify-between items-center gap-6">
                         <h2 className="text-lg font-black uppercase tracking-tighter text-white">Histórico de <span className="text-[#00C402]">Vendas</span></h2>
                         <div className="relative w-full md:w-64">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
                             <input
                                 placeholder="Pesquisar venda..."
-                                className="w-full bg-[#0d2b17] border border-[#1e4d2b] rounded-xl px-10 py-2.5 text-xs text-white focus:border-[#00C402] outline-none transition-all font-bold uppercase tracking-widest placeholder:text-slate-600"
+                                className="w-full bg-[#0d2b17] border border-[#1e4d2b] rounded-none px-10 py-2.5 text-xs text-white focus:border-[#00C402] outline-none transition-all font-bold uppercase tracking-widest placeholder:text-slate-600"
                             />
                         </div>
                     </div>
@@ -226,7 +226,7 @@ export default async function FinancialDashboardPage() {
                                             <td className="py-6 px-4 font-black text-[#00C402]">{sale.commission}</td>
                                             <td className="py-6 px-4 text-xs text-slate-400 uppercase font-bold">{sale.date}</td>
                                             <td className="py-6 px-4 text-right">
-                                                <span className="px-3 py-1 rounded-lg bg-[#00C402]/10 text-[#00C402] text-[9px] font-black uppercase tracking-widest">
+                                                <span className="px-3 py-1 rounded-none bg-[#00C402]/10 text-[#00C402] text-[9px] font-black uppercase tracking-widest border border-[#00C402]/20">
                                                     {sale.status}
                                                 </span>
                                             </td>
@@ -257,7 +257,7 @@ function NoSales() {
                 </h1>
             </header>
             <div className="px-4 md:px-8">
-                <div className="bg-[#0f1f14] border border-[#1e4d2b] rounded-3xl p-20 text-center shadow-sm">
+                <div className="bg-[#0f1f14] border border-[#1e4d2b] rounded-none p-20 text-center shadow-sm">
                     <p className="text-slate-500 italic font-medium uppercase tracking-widest text-[10px]">
                         Você ainda não possui vendas registradas.
                     </p>

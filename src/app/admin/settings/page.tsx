@@ -102,24 +102,24 @@ export default function AdminSettingsPage() {
     )
 
     const BannerField = ({ id, label, description, items }: { id: keyof BannersData; label: string; description: string; items: BannerItem[] }) => (
-        <Card className="mb-6 rounded-2xl border border-slate-100 shadow-sm bg-white">
-            <CardHeader className="bg-slate-50 border-b border-slate-100 flex flex-row items-center justify-between py-4 rounded-t-2xl">
+        <Card className="mb-6 rounded-none border border-[#1e4d2b] shadow-sm bg-[#0f1f14]">
+            <CardHeader className="bg-[#0d2b17] border-b border-[#1e4d2b] flex flex-row items-center justify-between py-4 rounded-t-none">
                 <div>
-                    <CardTitle className="text-base uppercase tracking-tighter text-slate-800 font-black">{label}</CardTitle>
-                    <CardDescription className="uppercase tracking-[2px] text-[9px] font-bold text-slate-500">{description}</CardDescription>
+                    <CardTitle className="text-base uppercase tracking-tighter text-white font-black">{label}</CardTitle>
+                    <CardDescription className="uppercase tracking-[2px] text-[9px] font-bold text-slate-400">{description}</CardDescription>
                 </div>
-                <Button onClick={() => addBanner(id)} className="bg-[#00C402] hover:bg-[#00A802] text-white text-[9px] font-black uppercase tracking-widest h-8 px-4 rounded-lg">
+                <Button onClick={() => addBanner(id)} className="bg-[#00C402] hover:bg-[#00A802] text-white text-[9px] font-black uppercase tracking-widest h-8 px-4 rounded-none">
                     + Adicionar
                 </Button>
             </CardHeader>
             <CardContent className="space-y-4 pt-5">
                 {items.length === 0 && (
-                    <div className="text-center py-6 border-2 border-dashed border-slate-100 rounded-xl">
-                        <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest">Nenhum banner adicionado</p>
+                    <div className="text-center py-6 border-2 border-dashed border-[#1e4d2b] rounded-none">
+                        <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Nenhum banner adicionado</p>
                     </div>
                 )}
                 {items.sort((a, b) => a.order - b.order).map((item, index) => (
-                    <div key={index} className="space-y-3 p-4 border border-slate-100 rounded-xl bg-slate-50/50">
+                    <div key={index} className="space-y-3 p-4 border border-[#1e4d2b] rounded-none bg-[#0d2b17]/50">
                         <div className="flex gap-3 items-start">
                             <div className="flex flex-col gap-1">
                                 <Label className="text-[9px] font-black uppercase tracking-widest text-slate-500">Ordem</Label>
@@ -127,7 +127,7 @@ export default function AdminSettingsPage() {
                                     type="number"
                                     value={item.order}
                                     onChange={(e) => updateBanner(id, index, 'order', e.target.value)}
-                                    className="w-16 bg-white border-slate-200 rounded-xl h-9 text-xs font-bold text-center"
+                                    className="w-16 bg-[#0d2b17] border-[#1e4d2b] rounded-none h-9 text-xs font-bold text-center text-white"
                                 />
                                 <div className="flex gap-1 mt-1">
                                     <Button
@@ -135,7 +135,7 @@ export default function AdminSettingsPage() {
                                         size="icon"
                                         onClick={() => moveBanner(id, index, 'up')}
                                         disabled={index === 0}
-                                        className="h-7 w-7 rounded-lg border-slate-100 text-slate-400"
+                                        className="h-7 w-7 rounded-none border-[#1e4d2b] text-slate-400 bg-[#0f1f14] hover:bg-[#1e4d2b]"
                                     >
                                         <ArrowUp size={12} />
                                     </Button>
@@ -144,7 +144,7 @@ export default function AdminSettingsPage() {
                                         size="icon"
                                         onClick={() => moveBanner(id, index, 'down')}
                                         disabled={index === items.length - 1}
-                                        className="h-7 w-7 rounded-lg border-slate-100 text-slate-400"
+                                        className="h-7 w-7 rounded-none border-[#1e4d2b] text-slate-400 bg-[#0f1f14] hover:bg-[#1e4d2b]"
                                     >
                                         <ArrowDown size={12} />
                                     </Button>
@@ -152,12 +152,12 @@ export default function AdminSettingsPage() {
                             </div>
                             <div className="flex-1 space-y-1">
                                 <Label className="text-[9px] font-black uppercase tracking-widest text-slate-500">URL da Imagem</Label>
-                                <Input value={item.url} onChange={(e) => updateBanner(id, index, 'url', e.target.value)} placeholder="https://..." className="bg-white border-slate-200 rounded-xl h-9 text-xs" />
+                                <Input value={item.url} onChange={(e) => updateBanner(id, index, 'url', e.target.value)} placeholder="https://..." className="bg-[#0d2b17] border-[#1e4d2b] rounded-none h-9 text-xs text-white" />
                             </div>
-                            <Button variant="outline" onClick={() => removeBanner(id, index)} className="mt-5 border-red-100 text-red-400 hover:bg-red-50 h-9 px-3 rounded-xl text-xs">✕</Button>
+                            <Button variant="outline" onClick={() => removeBanner(id, index)} className="mt-5 border-red-900/50 text-red-400 hover:bg-red-950/30 h-9 px-3 rounded-none text-xs">✕</Button>
                         </div>
                         {item.url && (
-                            <div className="rounded-xl overflow-hidden bg-slate-100 aspect-video max-w-xs transition-all hover:shadow-md">
+                            <div className="rounded-none overflow-hidden bg-black aspect-video max-w-xs transition-all hover:shadow-md border border-[#1e4d2b]">
                                 <img src={item.url} alt={label} className="object-cover w-full h-full" />
                             </div>
                         )}
@@ -168,128 +168,130 @@ export default function AdminSettingsPage() {
     )
 
     return (
-        <div className="max-w-4xl mx-auto p-4 md:p-8 font-exo pb-24">
-            {/* Header */}
-            <div className="mb-10">
-                <h1 className="text-3xl font-black uppercase tracking-tighter text-slate-900 flex items-center gap-3">
-                    <Settings className="text-[#00C402]" size={30} />
-                    Configurações Globais
-                </h1>
-                <p className="text-slate-500 uppercase tracking-widest text-[10px] font-bold mt-1">
-                    Gerencie o branding e os banners de toda a plataforma
-                </p>
-            </div>
-
-            {/* ─── BRANDING ─────────────────────────────── */}
-            <div className="mb-12">
-                <div className="flex items-center gap-3 mb-5">
-                    <Palette size={20} className="text-[#00C402]" />
-                    <h2 className="text-lg font-black uppercase tracking-tighter text-slate-800">Branding</h2>
-                    <div className="flex-1 h-px bg-slate-100" />
+        <div className="min-h-screen bg-[#0d2b17] text-white">
+            <div className="max-w-4xl mx-auto p-4 md:p-8 font-exo pb-24">
+                {/* Header */}
+                <div className="mb-10">
+                    <h1 className="text-3xl font-black uppercase tracking-tighter text-white flex items-center gap-3">
+                        <Settings className="text-[#00C402]" size={30} />
+                        Configurações Globais
+                    </h1>
+                    <p className="text-slate-400 uppercase tracking-widest text-[10px] font-bold mt-1">
+                        Gerencie o branding e os banners de toda a plataforma
+                    </p>
                 </div>
 
-                <Card className="rounded-2xl border border-slate-100 shadow-sm bg-white mb-6">
-                    <CardContent className="pt-6 space-y-8">
-                        {/* Site Name */}
-                        <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
-                                <Globe size={12} /> Nome do Site
-                            </Label>
-                            <Input
-                                value={settings.branding.siteName}
-                                onChange={(e) => setBranding('siteName', e.target.value)}
-                                placeholder="Ex: PowerPlay"
-                                className="rounded-xl h-11 font-semibold text-slate-800"
-                            />
-                        </div>
+                {/* ─── BRANDING ─────────────────────────────── */}
+                <div className="mb-12">
+                    <div className="flex items-center gap-3 mb-5">
+                        <Palette size={20} className="text-[#00C402]" />
+                        <h2 className="text-lg font-black uppercase tracking-tighter text-white">Branding</h2>
+                        <div className="flex-1 h-px bg-white/5" />
+                    </div>
 
-                        {/* Logo Upload */}
-                        <div className="space-y-4">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-700 flex items-center gap-2">
-                                <ImageIcon size={12} /> Logotipo da Plataforma
-                            </Label>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
-                                <div
-                                    {...getRootProps()}
-                                    className={`
-                                        border-2 border-dashed rounded-2xl p-8 transition-all cursor-pointer flex flex-col items-center justify-center gap-3 text-center
-                                        ${isDragActive ? 'border-[#00C402] bg-[#00C402]/5' : 'border-slate-100 hover:border-slate-200 bg-slate-50/50'}
-                                    `}
-                                >
-                                    <input {...getInputProps()} />
-                                    {uploadingLogo ? (
-                                        <Loader2 className="animate-spin text-[#00C402]" size={24} />
-                                    ) : (
-                                        <UploadCloud size={24} className="text-slate-400" />
-                                    )}
-                                    <div>
-                                        <p className="text-[10px] font-black uppercase tracking-tight text-slate-700">Carregar nova Logo</p>
-                                        <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest">Arraste ou clique para selecionar</p>
-                                    </div>
-                                </div>
-
-                                <div className="bg-slate-50 border border-slate-100 rounded-2xl p-6 flex flex-col items-center justify-center min-h-[140px]">
-                                    <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mb-4">Logo Atual</p>
-                                    <div className="h-16 w-full flex items-center justify-center">
-                                        <img
-                                            src={settings.branding.logoUrl || '/images/SPCSacademy2.png'}
-                                            alt="Logo Preview"
-                                            className="h-full w-auto object-contain"
-                                        />
-                                    </div>
-                                    {!settings.branding.logoUrl && (
-                                        <p className="text-[8px] text-slate-400 font-medium mt-2 italic">(Usando padrão do sistema)</p>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Primary Color */}
-                        <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-700">Cor Primária</Label>
-                            <div className="flex items-center gap-3">
-                                <input
-                                    type="color"
-                                    value={settings.branding.primaryColor}
-                                    onChange={(e) => setBranding('primaryColor', e.target.value)}
-                                    className="w-11 h-11 rounded-xl cursor-pointer border border-slate-200 p-1 bg-white"
-                                />
+                    <Card className="rounded-none border border-[#1e4d2b] shadow-sm bg-[#0f1f14] mb-6">
+                        <CardContent className="pt-6 space-y-8">
+                            {/* Site Name */}
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                                    <Globe size={12} /> Nome do Site
+                                </Label>
                                 <Input
-                                    value={settings.branding.primaryColor}
-                                    onChange={(e) => setBranding('primaryColor', e.target.value)}
-                                    placeholder="#00C402"
-                                    className="rounded-xl h-11 font-mono text-sm max-w-[150px]"
+                                    value={settings.branding.siteName}
+                                    onChange={(e) => setBranding('siteName', e.target.value)}
+                                    placeholder="Ex: PowerPlay"
+                                    className="rounded-none h-11 font-semibold text-white bg-[#0d2b17] border-[#1e4d2b]"
                                 />
-                                <div className="h-11 px-4 flex items-center rounded-xl text-white text-xs font-black uppercase tracking-widest" style={{ backgroundColor: settings.branding.primaryColor }}>
-                                    Preview
+                            </div>
+
+                            {/* Logo Upload */}
+                            <div className="space-y-4">
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
+                                    <ImageIcon size={12} /> Logotipo da Plataforma
+                                </Label>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                                    <div
+                                        {...getRootProps()}
+                                        className={`
+                                            border-2 border-dashed rounded-none p-8 transition-all cursor-pointer flex flex-col items-center justify-center gap-3 text-center
+                                            ${isDragActive ? 'border-[#00C402] bg-[#00C402]/5' : 'border-[#1e4d2b] hover:border-[#00C402]/30 bg-[#0d2b17]/50'}
+                                        `}
+                                    >
+                                        <input {...getInputProps()} />
+                                        {uploadingLogo ? (
+                                            <Loader2 className="animate-spin text-[#00C402]" size={24} />
+                                        ) : (
+                                            <UploadCloud size={24} className="text-slate-500" />
+                                        )}
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase tracking-tight text-white">Carregar nova Logo</p>
+                                            <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest">Arraste ou clique para selecionar</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-[#0d2b17] border border-[#1e4d2b] rounded-none p-6 flex flex-col items-center justify-center min-h-[140px]">
+                                        <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-4">Logo Atual</p>
+                                        <div className="h-16 w-full flex items-center justify-center">
+                                            <img
+                                                src={settings.branding.logoUrl || '/images/SPCSacademy2.png'}
+                                                alt="Logo Preview"
+                                                className="h-full w-auto object-contain"
+                                            />
+                                        </div>
+                                        {!settings.branding.logoUrl && (
+                                            <p className="text-[8px] text-slate-500 font-medium mt-2 italic">(Usando padrão do sistema)</p>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
 
-            {/* ─── BANNERS ─────────────────────────────── */}
-            <div className="mb-8">
-                <div className="flex items-center gap-3 mb-5">
-                    <ImageIcon size={20} className="text-[#00C402]" />
-                    <h2 className="text-lg font-black uppercase tracking-tighter text-slate-800">Banners & Carrosséis</h2>
-                    <div className="flex-1 h-px bg-slate-100" />
+                            {/* Primary Color */}
+                            <div className="space-y-2">
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Cor Primária</Label>
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="color"
+                                        value={settings.branding.primaryColor}
+                                        onChange={(e) => setBranding('primaryColor', e.target.value)}
+                                        className="w-11 h-11 rounded-none cursor-pointer border border-[#1e4d2b] p-1 bg-[#0d2b17]"
+                                    />
+                                    <Input
+                                        value={settings.branding.primaryColor}
+                                        onChange={(e) => setBranding('primaryColor', e.target.value)}
+                                        placeholder="#00C402"
+                                        className="rounded-none h-11 font-mono text-sm max-w-[150px] bg-[#0d2b17] border-[#1e4d2b] text-white"
+                                    />
+                                    <div className="h-11 px-4 flex items-center rounded-none text-white text-xs font-black uppercase tracking-widest" style={{ backgroundColor: settings.branding.primaryColor }}>
+                                        Preview
+                                    </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
 
-                <BannerField id="hero_home" label="Carrossel da Home" description="Seção imersiva da página inicial" items={settings.banners.hero_home} />
-                <BannerField id="hero_dashboard" label="Carrossel do Dashboard" description="Banner no painel do aluno" items={settings.banners.hero_dashboard} />
-                <BannerField id="hero_course" label="Carrossel de Cursos" description="Topo da página de catálogo" items={settings.banners.hero_course} />
+                {/* ─── BANNERS ─────────────────────────────── */}
+                <div className="mb-8">
+                    <div className="flex items-center gap-3 mb-5">
+                        <ImageIcon size={20} className="text-[#00C402]" />
+                        <h2 className="text-lg font-black uppercase tracking-tighter text-white">Banners & Carrosséis</h2>
+                        <div className="flex-1 h-px bg-white/5" />
+                    </div>
+
+                    <BannerField id="hero_home" label="Carrossel da Home" description="Seção imersiva da página inicial" items={settings.banners.hero_home} />
+                    <BannerField id="hero_dashboard" label="Carrossel do Dashboard" description="Banner no painel do aluno" items={settings.banners.hero_dashboard} />
+                    <BannerField id="hero_course" label="Carrossel de Cursos" description="Topo da página de catálogo" items={settings.banners.hero_course} />
+                </div>
             </div>
 
             {/* Sticky Save Bar */}
-            <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-md border-t border-slate-100 p-4 flex justify-end z-50">
+            <div className="fixed bottom-0 left-0 right-0 bg-[#0d2b17]/80 backdrop-blur-md border-t border-[#1e4d2b] p-4 flex justify-end z-50">
                 <Button
                     onClick={handleSave}
                     disabled={saving}
-                    className="font-black uppercase tracking-[2px] px-10 h-12 text-[11px] rounded-2xl transition-all shadow-xl text-white"
-                    style={{ backgroundColor: saving ? '#9ca3af' : saved ? '#22c55e' : '#00C402' }}
+                    className="font-black uppercase tracking-[2px] px-10 h-12 text-[11px] rounded-none transition-all shadow-xl text-white"
+                    style={{ backgroundColor: saving ? '#1e4d2b' : saved ? '#22c55e' : '#00C402' }}
                 >
                     {saving ? 'SALVANDO...' : saved ? '✓ SALVO!' : 'SALVAR ALTERAÇÕES'}
                 </Button>

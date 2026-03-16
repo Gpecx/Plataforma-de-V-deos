@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback } from 'react'
-import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { BannerItem } from '@/app/admin/settings/actions'
 
 const CAROUSEL_ITEMS = [
@@ -75,8 +75,8 @@ export function StudentCarousel({ heroBanners }: { heroBanners?: BannerItem[] })
                 ))}
             </div>
 
-            {/* Overlay: Dark Industrial Style */}
-            <div className="absolute inset-0 bg-black/60 flex items-center px-8 md:px-20">
+            {/* Overlay com Gradiente para alto contraste */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent flex items-center px-8 md:px-20">
                 <div className="max-w-2xl animate-in fade-in slide-in-from-left-4 duration-700">
                     <div className="flex items-center gap-2 mb-4">
                         <div className="w-8 h-px bg-[#00C402]" />
@@ -84,11 +84,10 @@ export function StudentCarousel({ heroBanners }: { heroBanners?: BannerItem[] })
                             {displayItems[currentIndex].accent}
                         </span>
                     </div>
-                    <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-[0.8] mb-6 uppercase">
-                        {displayItems[currentIndex].title.split(' ')[0]} <br />
-                        <span className="text-[#00C402]">{displayItems[currentIndex].title.split(' ').slice(1).join(' ')}</span>
+                    <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-[0.9] mb-6 uppercase drop-shadow-lg">
+                        {displayItems[currentIndex].title}
                     </h2>
-                    <p className="text-white/60 text-sm md:text-base font-bold uppercase tracking-widest leading-relaxed max-w-xl">
+                    <p className="text-white text-sm md:text-base font-bold uppercase tracking-widest leading-relaxed max-w-xl drop-shadow-md">
                         {displayItems[currentIndex].text}
                     </p>
                 </div>

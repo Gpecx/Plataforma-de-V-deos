@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bell, MessageSquare, PlayCircle, CheckCheck, X, TrendingUp, Users } from 'lucide-react'
 import { onAuthStateChanged } from 'firebase/auth'
@@ -30,8 +30,24 @@ export function NotificationBell({
     const [open, setOpen] = useState(false)
     const [notifications, setNotifications] = useState<Notification[]>([])
     const [loading, setLoading] = useState(true)
+    const menuRef = useRef<HTMLDivElement>(null)
 
-    // ... (Mantive a lógica de fetchNotifications igual, pois é funcional)
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setOpen(false)
+            }
+        }
+
+        if (open) {
+            document.addEventListener('mousedown', handleClickOutside)
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside)
+        }
+    }, [open])
+
     const fetchNotifications = async () => {
         const user = auth.currentUser
         if (!user) return
@@ -83,7 +99,7 @@ export function NotificationBell({
     const handleClick = (notif: Notification) => { setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, read: true } : n)); setOpen(false); router.push(notif.href) }
 
     return (
-        <div className="relative">
+        <div className="relative" ref={menuRef}>
             <button onClick={() => setOpen(prev => !prev)} className="text-white hover:text-[#00C402] transition cursor-pointer relative outline-none flex items-center justify-center">
                 <Bell size={20} />
                 {unread > 0 && (
@@ -94,69 +110,74 @@ export function NotificationBell({
             </button>
 
             {open && (
-                <>
-                    <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-                    <div className="absolute right-0 mt-3 w-80 md:w-96 z-50 bg-[#0f1f14] border-2 border-[#1e4d2b] shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
-                        {/* Header */}
+                <div className="absolute right-0 mt-3 w-80 md:w-96 z-[1000] !bg-[#0f1f14] border-2 border-[#1e4d2b] shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                        {/* Header com contraste corrigido */}
                         <div className="flex items-center justify-between px-6 py-5 border-b-2 border-[#1e4d2b]">
                             <div>
-                                <h3 className="font-black uppercase tracking-tighter text-base text-white">
+                                <h3 className="font-black uppercase tracking-tighter text-base !text-white">
                                     {isTeacher ? 'Painel de Alertas' : 'Notificações'}
                                 </h3>
                                 {unread > 0 && (
-                                    <p className="text-[9px] font-black uppercase tracking-[3px] mt-0.5" style={{ color: accent }}>
+                                    <p className="text-[9px] font-black uppercase tracking-[3px] mt-0.5 !text-slate-400">
                                         {unread} novas interações
                                     </p>
                                 )}
                             </div>
                             <div className="flex items-center gap-3">
                                 {unread > 0 && (
-                                    <button onClick={markAllRead} className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-[2px] text-slate-400 hover:text-white transition px-3 py-1.5 border border-[#1e4d2b] hover:border-[#00C402]">
+                                    <button onClick={markAllRead} className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-[2px] !text-slate-200 hover:!text-white transition px-3 py-1.5 border border-[#1e4d2b] hover:border-[#00C402]">
                                         <CheckCheck size={12} /> Limpar
                                     </button>
                                 )}
-                                <button onClick={() => setOpen(false)} className="text-slate-400 hover:text-white transition">
+                                <button onClick={() => setOpen(false)} className="!text-slate-400 hover:!text-white transition">
                                     <X size={16} />
                                 </button>
                             </div>
                         </div>
 
-                        {/* Lista */}
-                        <div className="max-h-[400px] overflow-y-auto">
+                        {/* Lista Forçada */}
+                        <div className="max-h-[400px] overflow-y-auto !bg-[#0f1f14]">
                             {loading ? (
-                                <div className="py-12 text-center text-slate-500 text-xs font-bold uppercase tracking-widest">Carregando...</div>
+                                <div className="py-12 text-center !text-slate-400 text-xs font-bold uppercase tracking-widest">Carregando...</div>
                             ) : notifications.length === 0 ? (
-                                <div className="py-12 text-center">
-                                    <Bell size={32} className="mx-auto text-slate-700 mb-3" />
-                                    <p className="text-xs font-bold uppercase text-slate-500 tracking-widest">Tudo em dia!</p>
+                                <div className="py-16 text-center">
+                                    <Bell size={40} className="mx-auto !text-[#1e4d2b] mb-4" />
+                                    <p className="text-[10px] font-black uppercase !text-slate-500 tracking-[4px]">Tudo em dia!</p>
                                 </div>
                             ) : (
                                 notifications.map((notif) => (
-                                    <button key={notif.id} onClick={() => handleClick(notif)} className={`w-full flex items-start gap-4 px-6 py-5 text-left transition-all border-b border-[#1e4d2b] last:border-0 group ${notif.read ? 'opacity-40' : 'hover:bg-[#1e4d2b]/20'}`}>
-                                        <div className={`w-10 h-10 flex items-center justify-center shrink-0 mt-0.5 ${notif.read ? 'bg-[#0d2b17]' : 'bg-[#1e4d2b]'}`}>
-                                            {notif.type === 'reply' && <MessageSquare size={18} style={{ color: notif.read ? '#64748B' : accent }} />}
-                                            {notif.type === 'new_lesson' && <PlayCircle size={18} style={{ color: notif.read ? '#64748B' : accent }} />}
-                                            {notif.type === 'sale' && <TrendingUp size={18} style={{ color: notif.read ? '#64748B' : accent }} />}
-                                            {notif.type === 'new_student' && <Users size={18} style={{ color: notif.read ? '#64748B' : accent }} />}
+                                    <button
+                                        key={notif.id}
+                                        onClick={() => handleClick(notif)}
+                                        className="w-full flex items-start gap-4 px-6 py-5 text-left transition-all border-b border-[#1e4d2b] last:border-0 group !bg-[#0f1f14] hover:!bg-[#152a1a]"
+                                    >
+                                        <div className={`w-10 h-10 flex items-center justify-center shrink-0 mt-0.5 border border-[#1e4d2b] ${notif.read ? '!bg-[#0d2b17]' : '!bg-[#0f1f14]'}`}>
+                                            {notif.type === 'reply' && <MessageSquare size={18} className={notif.read ? "!text-slate-600" : "!text-white"} />}
+                                            {notif.type === 'new_lesson' && <PlayCircle size={18} className={notif.read ? "!text-slate-600" : "!text-white"} />}
+                                            {notif.type === 'sale' && <TrendingUp size={18} className={notif.read ? "!text-slate-600" : "!text-white"} />}
+                                            {notif.type === 'new_student' && <Users size={18} className={notif.read ? "!text-slate-600" : "!text-white"} />}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className={`text-sm font-black uppercase tracking-tight leading-tight mb-1 ${notif.read ? 'text-slate-500' : 'text-white'}`}>{notif.title}</p>
-                                            <p className="text-[10px] text-slate-400 truncate italic">{notif.subtitle}</p>
+                                            <p className={`text-sm font-black uppercase tracking-tight leading-tight mb-1 ${notif.read ? '!text-slate-600' : '!text-white'}`}>
+                                                {notif.title}
+                                            </p>
+                                            <p className={`text-[11px] truncate italic ${notif.read ? '!text-slate-700' : '!text-slate-200'}`}>
+                                                {notif.subtitle}
+                                            </p>
                                         </div>
-                                        {!notif.read && <div className="w-2 h-2 mt-2 shrink-0" style={{ backgroundColor: accent }} />}
+                                        {!notif.read && <div className="w-2 h-2 mt-2 shrink-0 animate-pulse !bg-[#00C402]" />}
                                     </button>
                                 ))
                             )}
                         </div>
 
                         {/* Footer */}
-                        <div className="px-6 py-4 border-t-2 border-[#1e4d2b]">
-                            <button onClick={() => { setOpen(false); router.push(isTeacher ? '/dashboard-teacher/analytics' : '/dashboard-student/chat') }} className="w-full text-[9px] font-black uppercase tracking-[3px] py-3 border border-[#1e4d2b] hover:border-[#00C402] text-slate-400 hover:text-[#00C402] transition-all">
+                        <div className="px-6 py-4 border-t-2 border-[#1e4d2b] !bg-[#0f1f14]">
+                            <button onClick={() => { setOpen(false); router.push(isTeacher ? '/dashboard-teacher/analytics' : '/dashboard-student/chat') }} className="w-full text-[9px] font-black uppercase tracking-[3px] py-3 border border-[#1e4d2b] hover:border-[#00C402] !text-slate-300 hover:!text-[#00C402] transition-all">
                                 {isTeacher ? 'Ver relatório de vendas' : 'Ver todas as mensagens'}
                             </button>
                         </div>
                     </div>
-                </>
             )}
         </div>
     )
