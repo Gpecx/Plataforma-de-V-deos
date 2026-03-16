@@ -7,6 +7,7 @@ import { auth } from '@/lib/firebase'
 import { createUserWithEmailAndPassword, updateProfile as firebaseUpdateProfile } from 'firebase/auth'
 import { createProfile } from './actions'
 import Logo from '@/components/Logo'
+import { UserPlus, User, GraduationCap, ArrowRight } from 'lucide-react'
 
 // ─── Validação CPF ──────────────────────────────────────────────────────────
 function validateCpf(cpf: string): boolean {
@@ -183,170 +184,210 @@ export default function RegisterPage() {
     }
 
     const inputClass = (hasError: boolean = false) =>
-        `w-full p-4 rounded-xl bg-slate-50 text-black border transition-all outline-none text-sm font-medium placeholder:text-gray-700 ${hasError
+        `w-full p-4 bg-black/40 text-white border transition-all outline-none text-sm font-medium placeholder:text-gray-600 hover:bg-black/60 ${hasError
             ? 'border-red-500 focus:border-red-600'
-            : 'border-slate-300 focus:border-[#00C402] focus:ring-1 focus:ring-[#00C402]'
+            : 'border-[#1e4d2b] focus:border-[#00C402] focus:ring-1 focus:ring-[#00C402]'
         }`
 
-    const labelClass = 'text-[10px] font-black uppercase tracking-widest text-slate-900'
+    const labelClass = 'text-[10px] font-black uppercase tracking-widest text-[#00C402]/80'
 
     return (
-        <div className="w-full">
-            <div className="text-center space-y-4 pt-4 pb-10">
-                <div className="flex justify-center mb-2">
-                    <Logo variant="text-only" className="scale-110" />
+        <div className="min-h-screen w-full flex flex-row bg-[#08150c] overflow-hidden font-exo">
+            {/* Left Side - Visual (Full Column Image) */}
+            <div className="hidden md:flex md:w-1/2 bg-[#08150c] items-center justify-center p-0 overflow-hidden border-r border-[#1e4d2b]">
+                <div className="w-full h-full relative">
+                    <img
+                        src="/register-illustration.png"
+                        alt="PowerPlay"
+                        className="w-full h-full object-cover object-center brightness-90 saturate-[0.8]"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#08150c]/80" />
                 </div>
-                <h2 className="text-3xl font-black tracking-tighter uppercase text-slate-700">Criar Conta Grátis</h2>
-                <p className="text-slate-500 font-bold uppercase text-[10px] tracking-[3px]">Comece sua jornada de conhecimento</p>
             </div>
 
-            <form onSubmit={handleRegister} className="space-y-6">
-                <div className="space-y-4">
-
-                    {/* Tipo de Conta */}
-                    <div className="space-y-1.5 mb-4">
-                        <label className={labelClass}>Tipo de Conta</label>
-                        <div className="flex gap-4 p-1 bg-slate-100 rounded-xl border border-slate-200">
-                            <button
-                                type="button"
-                                onClick={() => setRole('student')}
-                                className={`flex-1 py-3 text-xs font-black uppercase rounded-lg transition-all ${role === 'student' ? 'bg-white text-[#00C402] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                            >
-                                Aluno
-                            </button>
-                            <button
-                                type="button"
-                                onClick={() => setRole('teacher')}
-                                className={`flex-1 py-3 text-xs font-black uppercase rounded-lg transition-all ${role === 'teacher' ? 'bg-white text-[#00C402] shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-                            >
-                                Professor
-                            </button>
+            {/* Right Side - Form Area */}
+            <div className="w-full md:w-1/2 flex flex-col items-center justify-start pt-8 md:pt-12 lg:pt-16 p-6 md:p-12 bg-[#08150c] relative overflow-y-auto custom-scrollbar">
+                <div className="w-full max-w-[450px]">
+                    {/* Header Section */}
+                    <div className="text-center space-y-4 mb-8">
+                        <div className="flex justify-center mb-4">
+                            <Logo variant="vertical" className="scale-110" />
+                        </div>
+                        <div className="flex flex-col items-center">
+                            <h2 className="text-2xl md:text-3xl font-black tracking-tight uppercase text-white">Criar Conta Grátis</h2>
+                            <p className="text-[#32cd32] font-bold uppercase text-[9px] tracking-[4px] mt-2 opacity-80">Evolução e Conquistas</p>
                         </div>
                     </div>
 
-                    {/* Nome Completo */}
-                    <div className="space-y-1.5">
-                        <label className={labelClass}>Nome Completo</label>
-                        <input
-                            type="text"
-                            placeholder="SEU NOME COMPLETO"
-                            required
-                            className={inputClass()}
-                            value={fullName}
-                            onChange={(e) => setFullName(e.target.value)}
-                        />
-                    </div>
+                    {/* Form Container (Square Card) */}
+                    <div className="bg-black/20 p-8 border border-[#1e4d2b] shadow-2xl">
+                        <form onSubmit={handleRegister} className="space-y-6">
+                            <div className="space-y-5">
 
-                    {/* E-mail e Senha */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                            <label className={labelClass}>E-mail</label>
-                            <input
-                                type="email"
-                                placeholder="seu@email.com"
-                                required
-                                className={inputClass()}
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                            />
-                        </div>
-                        <div className="space-y-1.5">
-                            <label className={labelClass}>Senha</label>
-                            <input
-                                type="password"
-                                placeholder="••••••••"
-                                required
-                                className={inputClass()}
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                            />
-                        </div>
-                    </div>
-
-                    {/* CPF/CNPJ e Data de Nascimento */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                            <div className="flex justify-between items-end mb-1">
-                                <label className={labelClass}>Documento</label>
-                                <div className="flex gap-2 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
-                                    <button
-                                        type="button"
-                                        onClick={() => handleTypeChange('CPF')}
-                                        className={`px-2 py-0.5 text-[9px] font-black uppercase rounded-md transition-all ${personType === 'CPF'
-                                            ? 'bg-white text-[#00C402] shadow-sm'
-                                            : 'text-slate-400 hover:text-slate-600'
-                                            }`}
-                                    >
-                                        CPF
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => handleTypeChange('CNPJ')}
-                                        className={`px-2 py-0.5 text-[9px] font-black uppercase rounded-md transition-all ${personType === 'CNPJ'
-                                            ? 'bg-white text-[#00C402] shadow-sm'
-                                            : 'text-slate-400 hover:text-slate-600'
-                                            }`}
-                                    >
-                                        CNPJ
-                                    </button>
+                                {/* Tipo de Conta */}
+                                <div className="space-y-2 mb-2">
+                                    <label className={labelClass}>Tipo de Perfil</label>
+                                    <div className="flex gap-2 p-1 bg-black/40 border border-[#1e4d2b]">
+                                        <button
+                                            type="button"
+                                            onClick={() => setRole('student')}
+                                            className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-black uppercase transition-all ${role === 'student' ? 'bg-[#00C402]/20 text-[#00C402] border border-[#00C402]/30' : 'text-gray-500 hover:text-gray-300'}`}
+                                        >
+                                            <User className="w-4 h-4" />
+                                            Aluno
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setRole('teacher')}
+                                            className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-black uppercase transition-all ${role === 'teacher' ? 'bg-[#00C402]/20 text-[#00C402] border border-[#00C402]/30' : 'text-gray-500 hover:text-gray-300'}`}
+                                        >
+                                            <GraduationCap className="w-4 h-4" />
+                                            Professor
+                                        </button>
+                                    </div>
                                 </div>
+
+                                {/* Nome Completo */}
+                                <div className="space-y-2">
+                                    <label className={labelClass}>Nome Completo</label>
+                                    <input
+                                        type="text"
+                                        placeholder="DIGITE SEU NOME PARA CERTIFICADOS"
+                                        required
+                                        className={`${inputClass()} rounded-none`}
+                                        value={fullName}
+                                        onChange={(e) => setFullName(e.target.value)}
+                                    />
+                                </div>
+
+                                {/* E-mail e Senha */}
+                                <div className="grid grid-cols-1 gap-4">
+                                    <div className="space-y-2">
+                                        <label className={labelClass}>E-mail de Acesso</label>
+                                        <input
+                                            type="email"
+                                            placeholder="seu@email.com"
+                                            required
+                                            className={`${inputClass()} rounded-none`}
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className={labelClass}>Defina sua Senha</label>
+                                        <input
+                                            type="password"
+                                            placeholder="••••••••"
+                                            required
+                                            className={`${inputClass()} rounded-none`}
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* CPF/CNPJ e Data de Nascimento */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between items-end mb-1">
+                                            <label className={labelClass}>Documento</label>
+                                            <div className="flex gap-1 bg-black/40 p-0.5 border border-[#1e4d2b]">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleTypeChange('CPF')}
+                                                    className={`px-2 py-0.5 text-[8px] font-black uppercase transition-all ${personType === 'CPF'
+                                                        ? 'bg-[#00C402] text-black'
+                                                        : 'text-gray-500 hover:text-gray-300'
+                                                        }`}
+                                                >
+                                                    CPF
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleTypeChange('CNPJ')}
+                                                    className={`px-2 py-0.5 text-[8px] font-black uppercase transition-all ${personType === 'CNPJ'
+                                                        ? 'bg-[#00C402] text-black'
+                                                        : 'text-gray-500 hover:text-gray-300'
+                                                        }`}
+                                                >
+                                                    CNPJ
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <input
+                                            type="text"
+                                            placeholder={personType === 'CPF' ? '000.000.000-00' : '00.000.000/0000-00'}
+                                            inputMode="numeric"
+                                            required
+                                            className={`${inputClass(cpfCnpjTouched && !isCpfCnpjValid)} rounded-none`}
+                                            value={cpfCnpj}
+                                            onChange={handleCpfCnpjChange}
+                                            onBlur={() => setCpfCnpjTouched(true)}
+                                        />
+                                        {cpfCnpjTouched && !isCpfCnpjValid && (
+                                            <p className="text-[8px] text-red-500 font-bold uppercase tracking-wider pt-1">
+                                                {personType} INVÁLIDO
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className={labelClass}>Nascimento</label>
+                                        <input
+                                            type="text"
+                                            placeholder="DD/MM/AAAA"
+                                            inputMode="numeric"
+                                            required
+                                            maxLength={10}
+                                            className={`${inputClass()} rounded-none`}
+                                            value={birthDate}
+                                            onChange={handleBirthDateChange}
+                                        />
+                                    </div>
+                                </div>
+
                             </div>
-                            <input
-                                type="text"
-                                placeholder={personType === 'CPF' ? '000.000.000-00' : '00.000.000/0000-00'}
-                                inputMode="numeric"
-                                required
-                                className={inputClass(cpfCnpjTouched && !isCpfCnpjValid)}
-                                value={cpfCnpj}
-                                onChange={handleCpfCnpjChange}
-                                onBlur={() => setCpfCnpjTouched(true)}
-                            />
-                            {cpfCnpjTouched && !isCpfCnpjValid && (
-                                <p className="text-[9px] text-red-500 font-bold uppercase tracking-wider">
-                                    Por favor, insira um {personType} válido
+
+                            <button
+                                type="submit"
+                                disabled={loading || !isFormValid}
+                                className="group relative w-full overflow-hidden bg-[#32cd32] hover:bg-[#28b828] text-white font-black uppercase tracking-[2px] py-4 transition-all disabled:opacity-30 disabled:cursor-not-allowed mt-4 active:scale-[0.99]"
+                            >
+                                <span className="relative z-10 flex items-center justify-center gap-2">
+                                    {loading ? (
+                                        <span className="flex items-center gap-2">
+                                            <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            PROCESSANDO...
+                                        </span>
+                                    ) : (
+                                        <>
+                                            CONCLUIR CADASTRO
+                                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                        </>
+                                    )}
+                                </span>
+                            </button>
+
+                            {!isFormValid && !loading && (
+                                <p className="text-[8px] text-gray-400 text-center font-bold uppercase tracking-[2px] mt-2 opacity-50">
+                                    Aguardando preenchimento correto...
                                 </p>
                             )}
-                        </div>
-                        <div className="space-y-1.5">
-                            <label className={labelClass}>Data de Nascimento</label>
-                            <input
-                                type="text"
-                                placeholder="DD/MM/AAAA"
-                                inputMode="numeric"
-                                required
-                                maxLength={10}
-                                className={inputClass()}
-                                value={birthDate}
-                                onChange={handleBirthDateChange}
-                            />
-                        </div>
+
+                            <div className="mt-10 pt-6 border-t border-white/10 text-center">
+                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
+                                    Já possui acesso?{' '}
+                                    <Link href="/login" className="text-[#32cd32] font-black hover:text-[#28b828] transition-colors underline underline-offset-4">
+                                        ENTRAR AGORA
+                                    </Link>
+                                </p>
+                            </div>
+                        </form>
                     </div>
-
                 </div>
-
-                <button
-                    type="submit"
-                    disabled={loading || !isFormValid}
-                    className="w-full bg-[#00C402] hover:bg-[#00A802] text-white font-black uppercase tracking-[2px] p-4 h-16 rounded-2xl transition-all shadow-sm disabled:opacity-50 mt-4 active:scale-95"
-                >
-                    {loading ? 'PROCESSANDO...' : 'CADASTRAR AGORA'}
-                </button>
-
-                {!isFormValid && !loading && (
-                    <p className="text-[9px] text-slate-400 text-center font-bold uppercase tracking-widest mt-2 animate-pulse">
-                        Preencha todos os campos corretamente para continuar
-                    </p>
-                )}
-
-                <div className="mt-10 pt-8 border-t border-slate-200 text-center">
-                    <p className="text-[10px] text-slate-600 font-bold uppercase tracking-widest">
-                        Já tem uma conta?{' '}
-                        <Link href="/login" className="text-[#00C402] font-black hover:underline underline-offset-4">
-                            Entrar na plataforma
-                        </Link>
-                    </p>
-                </div>
-            </form>
+            </div>
         </div>
     )
 }
