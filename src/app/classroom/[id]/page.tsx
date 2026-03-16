@@ -181,7 +181,7 @@ export default function ClassroomPage() {
 
                         <button
                             onClick={() => setSidebarOpen(!sidebarOpen)}
-                            className="p-2 bg-white/10 text-white border border-white/10 rounded-lg transition-colors hover:bg-white/20 flex items-center justify-center"
+                            className="p-2 bg-white/10 text-white border border-white/10 rounded-none transition-colors hover:bg-white/20 flex items-center justify-center"
                         >
                             {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
                         </button>
@@ -192,7 +192,7 @@ export default function ClassroomPage() {
             <main className="flex flex-1 overflow-hidden">
                 {/* Player Section */}
                 <div className={`flex-1 overflow-y-auto flex flex-col transition-colors duration-500 ${isDark ? 'bg-[#050505]' : 'bg-[#0d2b17]'}`}>
-                    <div className="flex-1 flex items-center justify-center p-0 md:p-12 lg:p-16">
+                    <div className="flex-1 flex items-center justify-center p-0 md:p-6 lg:p-8">
                         <div className="w-full max-w-6xl aspect-video relative group animate-in zoom-in-95 duration-700">
                             <div className={`relative w-full h-full rounded-none overflow-hidden border transition-all duration-500 bg-black ${isDark
                                 ? 'border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.8)] scale-[1.02]'
@@ -207,11 +207,11 @@ export default function ClassroomPage() {
                                 />
                             </div>
 
-                            <div className="flex items-center justify-between mt-8 px-4 md:px-0">
+                            <div className="flex items-center justify-between mt-2 px-4 md:px-0">
                                 <button
                                     onClick={goToPrevLesson}
                                     disabled={lessons.findIndex(l => l.id === currentLesson?.id) === 0}
-                                    className={`flex items-center gap-2 px-8 py-4 rounded-2xl font-black uppercase tracking-tighter transition-all shadow-sm border ${lessons.findIndex(l => l.id === currentLesson?.id) === 0
+                                    className={`flex items-center gap-2 px-8 py-4 rounded-none font-black uppercase tracking-tighter transition-all shadow-sm border ${lessons.findIndex(l => l.id === currentLesson?.id) === 0
                                         ? isDark ? 'bg-white/5 text-slate-700 border-white/5 cursor-not-allowed' : 'bg-white/5 text-white/20 border-white/5 cursor-not-allowed'
                                         : isDark ? 'bg-white/5 text-slate-400 hover:text-white border-white/10 hover:border-[#00C402]/40' : 'bg-white/10 text-white/70 hover:text-white border-white/10 hover:border-[#32cd32]/40'
                                         }`}
@@ -223,7 +223,7 @@ export default function ClassroomPage() {
                                 <button
                                     onClick={goToNextLesson}
                                     disabled={lessons.findIndex(l => l.id === currentLesson?.id) === lessons.length - 1}
-                                    className={`flex items-center gap-2 px-8 py-4 rounded-2xl font-black uppercase tracking-tighter transition-all shadow-md ${lessons.findIndex(l => l.id === currentLesson?.id) === lessons.length - 1
+                                    className={`flex items-center gap-2 px-8 py-4 rounded-none font-black uppercase tracking-tighter transition-all shadow-md ${lessons.findIndex(l => l.id === currentLesson?.id) === lessons.length - 1
                                         ? isDark ? 'bg-white/5 text-slate-700 border-white/5 cursor-not-allowed' : 'bg-white text-slate-200 border-slate-100 cursor-not-allowed'
                                         : 'bg-[#32cd32] text-white hover:bg-[#28b828] hover:scale-105 transition-all'
                                         }`}
