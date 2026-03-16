@@ -96,6 +96,8 @@ export default function NavbarTeacher() {
                                 <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/courses")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-slate-50 rounded-xl cursor-pointer hover:text-black">Meus Cursos</DropdownMenuItem>
                                 <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/analytics")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-slate-50 rounded-xl cursor-pointer hover:text-black">Vendas</DropdownMenuItem>
                                 <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/settings")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-slate-50 rounded-xl cursor-pointer hover:text-black">Configurações</DropdownMenuItem>
+                                <DropdownMenuSeparator className="my-1 bg-slate-100" />
+                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student")} className="px-3 py-3 text-sm font-bold text-[#00C402] focus:bg-slate-50 rounded-xl cursor-pointer hover:text-[#00a302] bg-green-50/50">Modo Aluno (Testes)</DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
@@ -113,6 +115,8 @@ export default function NavbarTeacher() {
                         <Link href="/dashboard-teacher/courses" className="text-sm font-medium text-[#374151] hover:text-black transition-colors py-3">Meus Cursos</Link>
                         <Link href="/dashboard-teacher/analytics" className="text-sm font-medium text-[#374151] hover:text-black transition-colors py-3">Vendas</Link>
                         <Link href="/dashboard-teacher/settings" className="text-sm font-medium text-[#374151] hover:text-black transition-colors py-3">Configurações</Link>
+                        <div className="h-4 w-px bg-slate-200 mx-1"></div>
+                        <Link href="/dashboard-student" className="text-sm font-bold text-[#00C402] hover:text-[#00a302] transition-colors py-3 px-3 bg-green-50 rounded-lg">Modo Aluno</Link>
                     </div>
                 </div>
 

@@ -7,6 +7,7 @@ import { db, auth } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { collection, query, where, limit, getDocs } from "firebase/firestore";
 import { getBanners, BannersData } from "@/app/admin/settings/actions";
+import { ExpandableCard } from "@/components/ui/ExpandableCard";
 
 export default function WelcomePage() {
     const [courses, setCourses] = useState<any[]>([]);
@@ -35,7 +36,7 @@ export default function WelcomePage() {
                 setLoading(true);
                 try {
                     const coursesRef = collection(db, 'courses');
-                    const q = query(coursesRef, where('status', '==', 'published'), limit(4));
+                    const q = query(coursesRef, where('status', '==', 'published'), limit(5));
                     const querySnapshot = await getDocs(q);
                     const coursesData = querySnapshot.docs.map(doc => {
                         const data = doc.data();
@@ -253,79 +254,15 @@ export default function WelcomePage() {
                             <Loader2 className="animate-spin" size={36} style={{ color: "#32cd32" }} />
                         </div>
                     ) : courses.map((course: any, i: number) => (
-                        <Link
-                            key={i}
-                            href={`/course/${course.id}`}
-                            style={{ textDecoration: "none", width: "280px", maxWidth: "100%" }}
-                        >
-                            <div className="course-card-dark group" style={{ height: "100%", display: "flex", flexDirection: "column" }}>
-                                {/* Thumbnail */}
-                                <div style={{ aspectRatio: "16/9", overflow: "hidden", borderRadius: "10px 10px 0 0" }}>
-                                    <img
-                                        src={course.image_url || "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=2070"}
-                                        alt={course.title}
-                                        style={{
-                                            width: "100%",
-                                            height: "100%",
-                                            objectFit: "cover",
-                                            transition: "transform 0.5s ease",
-                                        }}
-                                        onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.07)")}
-                                        onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
-                                    />
-                                </div>
-                                {/* Info */}
-                                <div style={{ padding: "1rem", flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                                    <span
-                                        style={{
-                                            fontSize: "0.65rem",
-                                            fontWeight: 900,
-                                            textTransform: "uppercase",
-                                            letterSpacing: "0.12em",
-                                            color: "#32cd32",
-                                        }}
-                                    >
-                                        {course.tag || "PREMIUM"}
-                                    </span>
-                                    <h3
-                                        style={{
-                                            color: "#e2e8f0",
-                                            fontWeight: 700,
-                                            fontSize: "0.9rem",
-                                            lineHeight: 1.4,
-                                            display: "-webkit-box",
-                                            WebkitLineClamp: 2,
-                                            WebkitBoxOrient: "vertical",
-                                            overflow: "hidden",
-                                        }}
-                                    >
-                                        {course.title}
-                                    </h3>
-                                    <div
-                                        style={{
-                                            marginTop: "auto",
-                                            paddingTop: "0.75rem",
-                                            borderTop: "1px solid rgba(255,255,255,0.05)",
-                                            display: "flex",
-                                            alignItems: "center",
-                                            justifyContent: "space-between",
-                                        }}
-                                    >
-                                        <div>
-                                            <div style={{ fontSize: "0.65rem", color: "#94a3b8", textTransform: "uppercase", fontWeight: 800, letterSpacing: "0.1em" }}>
-                                                Investimento
-                                            </div>
-                                            <div style={{ color: "#f1f5f9", fontWeight: 900, fontSize: "0.95rem" }}>
-                                                R$ {course.price},00
-                                            </div>
-                                        </div>
-                                        <div style={{ color: "#32cd32" }}>
-                                            <ArrowRight size={16} />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </Link>
+                        <ExpandableCard
+                            key={course.id}
+                            id={course.id}
+                            thumbnail={course.image_url}
+                            title={course.title}
+                            description={course.description}
+                            accent={course.tag}
+                            ranking={i + 1}
+                        />
                     ))}
                 </div>
 

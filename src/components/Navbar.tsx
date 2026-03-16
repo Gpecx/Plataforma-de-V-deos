@@ -152,7 +152,7 @@ export default function Navbar({ transparent }: NavbarProps) {
                         )}
 
                         {/* Desktop Nav Links */}
-                        <div className={`hidden md:flex gap-6 lg:gap-8 text-sm font-bold font-exo ${isHomePage && !isLoggedIn ? '!hidden' : ''}`}>
+                        <div className={`hidden md:flex gap-6 lg:gap-8 text-sm font-bold font-exo items-center ${isHomePage && !isLoggedIn ? '!hidden' : ''}`}>
                             {filteredNavLinks.map(link => (
                                 <Link
                                     key={link.href}
@@ -162,6 +162,11 @@ export default function Navbar({ transparent }: NavbarProps) {
                                     {link.label}
                                 </Link>
                             ))}
+                            {userProfile?.role === 'admin' && (
+                                <Link href="/dashboard-student" className="text-[10px] font-bold uppercase tracking-widest text-[#32cd32] border border-[#32cd32] px-2 py-1 rounded hover:bg-[#32cd32] hover:text-[#0d2b17] transition-colors duration-300 ml-2">
+                                    Modo Aluno
+                                </Link>
+                            )}
                         </div>
                     </div>
 
@@ -262,9 +267,14 @@ export default function Navbar({ transparent }: NavbarProps) {
                                         {isTeacherMode || userProfile?.role === 'teacher' || userProfile?.role === 'admin' ? (
                                             <>
                                                 {userProfile?.role === 'admin' && (
-                                                    <DropdownMenuItem onSelect={() => router.push("/admin/settings")} className="flex items-center gap-4 px-4 py-3 rounded-none cursor-pointer hover:bg-white/10 text-white/80 transition-colors outline-none focus:bg-white/10 border border-white/5 mb-1">
-                                                        <Settings size={18} className="text-white/40" /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Configurações do Site</span>
-                                                    </DropdownMenuItem>
+                                                    <>
+                                                        <DropdownMenuItem onSelect={() => router.push("/admin/settings")} className="flex items-center gap-4 px-4 py-3 rounded-none cursor-pointer hover:bg-white/10 text-white/80 transition-colors outline-none focus:bg-white/10 border border-white/5 mb-1">
+                                                            <Settings size={18} className="text-white/40" /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Configurações do Site</span>
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem onSelect={() => router.push("/dashboard-student")} className="flex items-center gap-4 px-4 py-3 rounded-none cursor-pointer hover:bg-[#32cd32]/20 text-[#32cd32] transition-colors outline-none focus:bg-[#32cd32]/20 border border-[#32cd32]/30 mb-1 bg-[#32cd32]/10">
+                                                            <GraduationCap size={18} className="text-[#32cd32]" /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Modo Aluno (Testes)</span>
+                                                        </DropdownMenuItem>
+                                                    </>
                                                 )}
                                                 <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/profile")} className="flex items-center gap-4 px-4 py-3 rounded-none cursor-pointer hover:bg-white/10 text-white/80 transition-colors outline-none focus:bg-white/10 border-none">
                                                     <UserCog size={18} className="text-white/40" /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Editar Perfil</span>
@@ -389,6 +399,9 @@ export default function Navbar({ transparent }: NavbarProps) {
                             <div className={`pt-3 border-t mt-3 ${'border-white/10'}`}>
                                 <Link href="/admin/settings" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-sm transition ${'text-white/50 hover:bg-white/5'}`}>
                                     <Settings size={16} /> Configurações do Site
+                                </Link>
+                                <Link href="/dashboard-student" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-sm transition text-[#32cd32] hover:bg-white/5`}>
+                                    <GraduationCap size={16} /> Modo Aluno (Testes)
                                 </Link>
                             </div>
                         )}
