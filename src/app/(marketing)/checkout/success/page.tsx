@@ -31,10 +31,10 @@ export default function CheckoutSuccessPage() {
                             transition={{ duration: 0.5 }}
                             className="relative"
                         >
-                            <div className="w-32 h-32 bg-[#00C402] rounded-[40px] flex items-center justify-center shadow-2xl shadow-[#00C402]/40">
+                            <div className="w-32 h-32 bg-[#1D5F31] rounded-[40px] flex items-center justify-center shadow-2xl shadow-[#1D5F31]/40">
                                 <CheckCircle2 size={64} className="text-white" strokeWidth={3} />
                             </div>
-                            <div className="absolute inset-0 bg-[#00C402]/30 rounded-full blur-3xl -z-10"></div>
+                            <div className="absolute inset-0 bg-[#1D5F31]/30 rounded-full blur-3xl -z-10"></div>
                         </motion.div>
 
                         {/* Main Content: High Contrast Typography - FORCE WHITE */}
@@ -42,9 +42,9 @@ export default function CheckoutSuccessPage() {
                             <div className="space-y-2">
                                 <h1 className="text-5xl md:text-6xl font-bold tracking-tighter leading-tight uppercase italic drop-shadow-xl !text-white">
                                     PARABÉNS! <br />
-                                    <span className="text-[#00C402]">SEU TREINAMENTO FOI LIBERADO</span>
+                                    <span className="text-[#1D5F31]">SEU TREINAMENTO FOI LIBERADO</span>
                                 </h1>
-                                <div className="w-24 h-1.5 bg-[#00C402] mx-auto rounded-full"></div>
+                                <div className="w-24 h-1.5 bg-[#1D5F31] mx-auto rounded-full"></div>
                             </div>
 
                             <p className="text-xl md:text-2xl font-medium max-w-lg mx-auto leading-relaxed !text-white">
@@ -59,7 +59,7 @@ export default function CheckoutSuccessPage() {
                                 <motion.button
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
-                                    className="w-full bg-[#00C402] text-white py-7 rounded-[24px] font-bold uppercase italic tracking-[4px] shadow-2xl shadow-[#00C402]/40 flex items-center justify-center gap-4 group text-lg"
+                                    className="w-full bg-[#1D5F31] text-white py-7 rounded-[24px] font-bold uppercase italic tracking-[4px] shadow-2xl shadow-[#1D5F31]/40 flex items-center justify-center gap-4 group text-lg"
                                 >
                                     <GraduationCap size={28} />
                                     Bons Estudos

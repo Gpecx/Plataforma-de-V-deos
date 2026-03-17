@@ -31,7 +31,7 @@ export const useCourseFormStore = create<CourseFormStore>((set) => ({
         category: '',
         subtitle: '',
         description: '',
-        price: 157.00,
+        price: 0,
         duration: 0,
         intro_video_url: '',
         lessons: []
@@ -48,7 +48,7 @@ export const useCourseFormStore = create<CourseFormStore>((set) => ({
             category: '',
             subtitle: '',
             description: '',
-            price: 157.00,
+            price: 0,
             duration: 0,
             intro_video_url: '',
             lessons: []

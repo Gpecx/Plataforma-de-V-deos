@@ -71,7 +71,7 @@ export default function BannersAdminPage() {
                 </div>
                 <Button
                     onClick={() => addBanner(id)}
-                    className="bg-[#00C402] hover:bg-[#00A802] text-white text-[9px] font-black uppercase tracking-widest h-8 px-4 rounded-lg transition-all"
+                    className="bg-[#1D5F31] hover:bg-[#00A802] text-white text-[9px] font-black uppercase tracking-widest h-8 px-4 rounded-lg transition-all"
                 >
                     + Adicionar
                 </Button>
@@ -93,7 +93,7 @@ export default function BannersAdminPage() {
                                     value={url}
                                     onChange={(e) => updateBanner(id, index, e.target.value)}
                                     placeholder="https://..."
-                                    className="font-medium bg-slate-50 border-slate-200 focus:border-[#00C402] focus:ring-[#00C402] rounded-xl h-10 text-xs"
+                                    className="font-medium bg-slate-50 border-slate-200 focus:border-[#1D5F31] focus:ring-[#1D5F31] rounded-xl h-10 text-xs"
                                 />
                             </div>
                             <Button
@@ -119,7 +119,7 @@ export default function BannersAdminPage() {
         <div className="max-w-4xl mx-auto p-4 md:p-8 font-exo">
             <div className="mb-8 flex flex-col items-center md:items-start text-center md:text-left">
                 <h1 className="text-3xl font-black uppercase tracking-tighter text-slate-900 flex items-center gap-3">
-                    <ImageIcon className="text-[#00C402]" size={32} />
+                    <ImageIcon className="text-[#1D5F31]" size={32} />
                     Gestão de Banners
                 </h1>
                 <p className="text-slate-500 uppercase tracking-widest text-[10px] font-bold mt-1">
@@ -152,7 +152,7 @@ export default function BannersAdminPage() {
                 <Button
                     onClick={handleSave}
                     disabled={saving}
-                    className="bg-[#00C402] hover:bg-[#00A802] text-white font-black uppercase tracking-[2px] px-8 h-14 text-[11px] rounded-2xl transition-all shadow-xl shadow-[#00C402]/20 w-full md:w-auto"
+                    className="bg-[#1D5F31] hover:bg-[#00A802] text-white font-black uppercase tracking-[2px] px-8 h-14 text-[11px] rounded-2xl transition-all shadow-xl shadow-[#1D5F31]/20 w-full md:w-auto"
                 >
                     {saving ? 'SALVANDO...' : 'SALVAR ALTERAÇÕES'}
                 </Button>

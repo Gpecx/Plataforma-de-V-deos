@@ -70,23 +70,23 @@ export default function TeacherCoursesPage() {
 
     if (loading) {
         return (
-            <div className="flex h-screen items-center justify-center bg-[#0d2b17]">
-                <Loader2 className="animate-spin text-[#00C402]" size={48} />
+            <div className="flex h-screen items-center justify-center bg-transparent">
+                <Loader2 className="animate-spin text-[#1D5F31]" size={48} />
             </div>
         )
     }
 
     return (
-        <div className="pb-16 md:pb-24 bg-[#0d2b17] min-h-screen text-white font-exo">
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center pt-0 px-4 md:px-8 mb-12 gap-8">
+        <div className="pb-16 md:pb-24 bg-transparent min-h-screen text-white font-exo">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center pt-8 px-4 md:px-8 mb-12 gap-8">
                 <div>
                     <h1 className="text-3xl font-black tracking-tighter uppercase leading-none">
-                        Meus <span className="text-[#00C402]">Cursos</span>
+                        Meus <span className="text-[#1D5F31]">Cursos</span>
                     </h1>
                     <p className="text-slate-400 mt-2 text-[10px] font-bold uppercase tracking-[3px]">Gerencie e acompanhe o desempenho de suas aulas.</p>
                 </div>
                 <Link href="/dashboard-teacher/courses/new">
-                    <Button className="bg-[#00C402] text-white font-black uppercase text-[10px] tracking-widest px-8 h-14 rounded-none hover:bg-[#28b828] shadow-none border border-[#1e4d2b]/20">
+                    <Button className="bg-[#1D5F31] text-white font-black uppercase text-[10px] tracking-widest px-8 h-14 rounded-none hover:bg-[#28b828] shadow-none border border-[#1D5F31]/20">
                         <Plus size={18} className="mr-2" />
                         Lançar Novo Curso
                     </Button>
@@ -101,21 +101,21 @@ export default function TeacherCoursesPage() {
                             placeholder="Buscar por nome do curso..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="bg-[#0f1f14] border-[#1e4d2b] pl-12 h-14 rounded-none focus:border-[#00C402] focus:ring-[#00C402] text-sm font-medium text-white"
+                            className="bg-[#061629] border-[#1D5F31] pl-12 h-14 rounded-none focus:border-[#1D5F31] focus:ring-[#1D5F31] text-sm font-medium text-white"
                         />
                     </div>
-                    <div className="bg-[#0f1f14] border border-[#1e4d2b] text-slate-400 h-14 px-8 rounded-none flex items-center gap-3 shadow-none">
-                        <Filter size={16} className="text-[#00C402]" />
+                    <div className="bg-[#061629] border border-[#1D5F31] text-slate-400 h-14 px-8 rounded-none flex items-center gap-3 shadow-none">
+                        <Filter size={16} className="text-[#1D5F31]" />
                         <span className="text-[10px] font-black uppercase tracking-widest">{filteredCourses.length} Encontrados</span>
                     </div>
                 </div>
             </div>
 
             <div className="px-4 md:px-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                     {filteredCourses.map((curso) => (
-                        <div key={curso.id} className="bg-[#0f1f14] border border-[#1e4d2b] rounded-none overflow-hidden group shadow-sm hover:border-[#00C402]/30 transition-all flex flex-col">
-                            <div className="relative h-48 bg-[#0d2b17] overflow-hidden">
+                        <div key={curso.id} className="bg-[#061629] border border-[#1D5F31] rounded-none overflow-hidden group shadow-sm hover:border-[#1D5F31]/30 transition-all flex flex-col">
+                            <div className="relative h-40 bg-[#061629] overflow-hidden">
                                 <img
                                     src={curso.image_url || "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400"}
                                     alt={curso.title}
@@ -123,13 +123,13 @@ export default function TeacherCoursesPage() {
                                 />
                             </div>
 
-                            <div className="p-6 flex-grow flex flex-col">
-                                <h3 className="text-xl font-black tracking-tighter text-white mb-2 truncate">{curso.title}</h3>
-                                <div className="flex justify-between items-center mb-6">
+                            <div className="p-4 flex-grow flex flex-col">
+                                <h3 className="text-lg font-black tracking-tighter text-white mb-2 truncate">{curso.title}</h3>
+                                <div className="flex justify-between items-center mb-4">
                                     <p className="text-slate-500 text-[10px] font-black uppercase tracking-[2px]">{curso.category || 'Sem categoria'}</p>
                                     <div className="flex flex-col items-end">
                                         <span className="text-[7px] font-black uppercase text-slate-400 tracking-[1px]">Valor</span>
-                                        <span className="text-[#00C402] font-black text-lg tracking-tighter leading-none">
+                                        <span className="text-[#1D5F31] font-black text-md tracking-tighter leading-none">
                                             {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(curso.price || 0)}
                                         </span>
                                     </div>
@@ -137,7 +137,7 @@ export default function TeacherCoursesPage() {
 
                                 <div className="mt-auto flex gap-4">
                                     <Link href={`/dashboard-teacher/courses/${curso.id}/edit`} className="flex-grow">
-                                        <Button className="w-full bg-[#0d2b17] hover:bg-[#1e4d2b] text-white border border-[#1e4d2b] font-black uppercase tracking-widest py-3 h-auto rounded-none transition-all duration-300">
+                                        <Button className="w-full bg-[#061629] hover:bg-[#1D5F31] text-white border border-[#1D5F31] font-black uppercase tracking-widest py-3 h-auto rounded-none transition-all duration-300">
                                             <Edit size={16} className="mr-2" /> Editar
                                         </Button>
                                     </Link>
@@ -145,7 +145,7 @@ export default function TeacherCoursesPage() {
                                     <Button
                                         variant="outline"
                                         onClick={() => handleDelete(curso.id)}
-                                        className="border-[#1e4d2b] text-slate-500 hover:text-red-500 hover:border-red-900 hover:bg-red-950/30 p-3 rounded-none transition-colors"
+                                        className="border-[#1D5F31] text-slate-500 hover:text-red-500 hover:border-red-900 hover:bg-red-950/30 p-3 rounded-none transition-colors"
                                     >
                                         <Trash2 size={20} />
                                     </Button>

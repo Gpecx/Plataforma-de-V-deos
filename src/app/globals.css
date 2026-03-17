@@ -1,53 +1,68 @@
 @import "tailwindcss";
 
 :root {
-  /* === IDENTIDADE: Deep Black === */
-  --background-color: #000000;
-  --accent-green: #32cd32;
+  /* === IDENTIDADE: Deep Premium === */
+  --background-color: #061629;
+  --accent-green: #1D5F31;
+  --secondary-green: #28a745;
 
   /* === NAVBAR GLASSMORPHISM === */
-  --navbar-bg: rgba(0, 0, 0, 0.75);
-  --navbar-blur: blur(12px);
+  --navbar-bg: rgba(6, 22, 41, 0.8);
+  --navbar-blur: blur(16px);
   --navbar-border: rgba(255, 255, 255, 0.05);
 
   /* === SISTEMA === */
   --background: var(--background-color);
-  --foreground: #e2e8f0;
-  --border: #1e4d2b;
-  --input: #1e4d2b;
-  --ring: var(--accent-green);
-  --radius: 0.5rem;
+  --foreground: #f8fafc;
+  --border: rgba(29, 95, 49, 0.3);
+  --input: rgba(29, 95, 49, 0.2);
+  --radius: 0rem;
+  --global-bg-gradient: linear-gradient(135deg, #061629 0%, #061629 25%, #1D5F31 100%) fixed;
 
   --primary: var(--accent-green);
   --primary-foreground: #ffffff;
 
-  --muted: #0a1f10;
+  --muted: #040d18;
   --muted-foreground: #94a3b8;
+
+  /* === GRADIENTES === */
+  --premium-gradient: linear-gradient(135deg, #061629 0%, #061629 25%, #1D5F31 100%);
+  --overlay-gradient: linear-gradient(180deg, rgba(6, 22, 41, 0.8) 0%, rgba(6, 22, 41, 0) 30%, rgba(6, 22, 41, 0) 60%, rgba(6, 22, 41, 1) 100%);
+  --btn-gradient: linear-gradient(to top, #061629 0%, #1D5F31 100%);
 }
+
 
 html,
 body {
-  background-color: var(--background-color) !important;
+  background: var(--global-bg-gradient) !important;
   color: var(--foreground);
   font-family: var(--font-exo);
   font-size: 0.875rem;
   -webkit-font-smoothing: antialiased;
-  min-height: 100%;
+  min-height: 100vh;
+  margin: 0;
 }
 
-/* Soft Matte Filter aplicado no wrapper interno para não quebrar position:fixed dos portals/modais.
-   NUNCA aplique filter, transform ou will-change no body/html pois cria stacking context e quebra fixed. */
+/* Gradients Utilities */
+.bg-premium-gradient {
+  background: var(--premium-gradient);
+}
+
+.bg-overlay-gradient {
+  background: var(--overlay-gradient);
+}
+
+.bg-btn-gradient {
+  background: var(--btn-gradient);
+}
+
+/* Soft Matte Filter */
 .page-filter {
   filter: saturate(0.95) brightness(0.98);
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  color: #f1f5f9;
+h1,h2,h3,h4,h5,h6 {
+  color: #ffffff;
   font-weight: 700;
   letter-spacing: -0.025em;
 }
@@ -56,39 +71,39 @@ p {
   color: #94a3b8;
 }
 
-/* Dark card style */
+/* Dark card style - Premium Depth */
 .dark-card {
-  background: #0f1f14;
-  border: 1px solid #1e4d2b;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  background: rgba(6, 22, 41, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(29, 95, 49, 0.4);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+  transition: all 0.3s ease;
+}
+
+.dark-card:hover {
+  border-color: var(--accent-green);
+  box-shadow: 0 15px 40px -10px rgba(29, 95, 49, 0.2);
 }
 
 /* Custom Scrollbar */
-.custom-scrollbar {
-  scrollbar-gutter: stable;
-}
-
 .custom-scrollbar::-webkit-scrollbar {
-  display: none;
+  width: 6px;
 }
 
-.custom-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--background-color);
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(50, 205, 50, 0.7);
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--accent-green);
+  border-radius: 10px;
 }
 
 /* Hero Section */
 .hero-section {
   position: relative;
   min-height: 100vh;
-  background-image: url('/images/hero-bg.png');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  background: transparent;
   display: flex;
   flex-direction: column;
 }
@@ -96,13 +111,7 @@ p {
 .hero-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.8) 0%,
-    rgba(0, 0, 0, 0) 40%,
-    rgba(0, 0, 0, 0) 60%,
-    rgba(0, 0, 0, 1) 100%
-  );
+  background: var(--overlay-gradient);
   z-index: 1;
 }
 
@@ -113,76 +122,84 @@ p {
 
 /* Benefits cards */
 .benefit-card {
-  background: rgba(15, 31, 20, 0.9);
-  border: 1px solid rgba(50, 205, 50, 0.15);
-  border-radius: 12px;
+  background: rgba(29, 95, 49, 0.05);
+  border: 1px solid rgba(29, 95, 49, 0.2);
+  border-radius: 0;
   padding: 2rem;
-  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  transition: all 0.3s ease;
   cursor: default;
 }
 
 .benefit-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 12px 40px rgba(50, 205, 50, 0.15);
-  border-color: rgba(50, 205, 50, 0.4);
+  background: rgba(29, 95, 49, 0.1);
+  box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.5);
+  border-color: var(--accent-green);
 }
 
 /* Course cards dark */
 .course-card-dark {
-  background: #0f1f14;
-  border: 1px solid #1e4d2b;
-  border-radius: 10px;
+  background: #040d18;
+  border: 1px solid rgba(29, 95, 49, 0.3);
+  border-radius: 0;
   overflow: hidden;
-  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .course-card-dark:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  border-color: rgba(50, 205, 50, 0.4);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
+  border-color: var(--accent-green);
 }
 
-/* Green CTA Button */
+/* Premium CTA Button */
 .btn-cta {
-  background: #32cd32;
+  background: var(--btn-gradient);
   color: #fff;
   font-weight: 900;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   padding: 0.9rem 2.5rem;
-  border-radius: 6px;
-  border: 2px solid #32cd32;
+  border: 1px solid var(--accent-green);
   cursor: pointer;
-  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   font-size: 1rem;
+  position: relative;
+  overflow: hidden;
 }
 
 .btn-cta:hover {
-  background: #28b828;
-  transform: scale(1.03);
-  box-shadow: 0 0 20px rgba(50, 205, 50, 0.5);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -10px var(--accent-green);
+  filter: brightness(1.1);
+}
+
+.btn-cta:active {
+  transform: translateY(0);
 }
 
 /* Email input hero */
 .hero-email-input {
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.25);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(29, 95, 49, 0.4);
   color: #fff;
-  border-radius: 6px;
+  border-radius: 0;
   padding: 0.9rem 1.5rem;
   font-size: 1rem;
   width: 100%;
   max-width: 420px;
   outline: none;
-  transition: border-color 0.2s, background 0.2s;
+  transition: all 0.2s;
   backdrop-filter: blur(6px);
 }
 
 .hero-email-input::placeholder {
-  color: rgba(255,255,255,0.55);
+  color: rgba(255, 255, 255, 0.3);
 }
 
 .hero-email-input:focus {
-  border-color: #32cd32;
-  background: rgba(255,255,255,0.12);
+  border-color: var(--accent-green);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 0 0 4px rgba(29, 95, 49, 0.1);
 }

@@ -12,13 +12,13 @@ export function ToastNotification() {
 
     const icons = {
         info: <Info className="text-blue-500" size={20} />,
-        success: <CheckCircle2 className="text-[#00C402]" size={20} />,
+        success: <CheckCircle2 className="text-[#1D5F31]" size={20} />,
         error: <XCircle className="text-red-500" size={20} />,
     }
 
     const bgColors = {
         info: "bg-blue-50/90 border-blue-100",
-        success: "bg-[#00C402]/10 border-[#00C402]/20",
+        success: "bg-[#1D5F31]/10 border-[#1D5F31]/20",
         error: "bg-red-50/90 border-red-100",
     }
 

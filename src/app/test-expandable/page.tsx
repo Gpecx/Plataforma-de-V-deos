@@ -29,8 +29,8 @@ const MOCK_COURSES = [
 export default function TestPage() {
     return (
         <main className="min-h-screen bg-[#0a140e] p-12">
-            <h1 className="text-4xl font-black text-white mb-12 border-l-4 border-[#00C402] pl-6 uppercase tracking-tighter">
-                Expandable Card <span className="text-[#00C402]">Demo</span>
+            <h1 className="text-4xl font-black text-white mb-12 border-l-4 border-[#1D5F31] pl-6 uppercase tracking-tighter">
+                Expandable Card <span className="text-[#1D5F31]">Demo</span>
             </h1>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

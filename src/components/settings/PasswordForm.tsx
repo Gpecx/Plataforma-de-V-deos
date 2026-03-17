@@ -37,7 +37,7 @@ export const PasswordForm = () => {
                             {...register("currentPassword")}
                             type="password"
                             placeholder="••••••••"
-                            className="bg-slate-50 border-slate-100 h-14 rounded-2xl text-slate-900 focus:border-[#00C402] placeholder:text-slate-400 font-bold text-sm"
+                            className="bg-slate-50 border-slate-100 h-14 rounded-2xl text-slate-900 focus:border-[#1D5F31] placeholder:text-slate-400 font-bold text-sm"
                             disabled={isLoading}
                         />
                     </div>
@@ -56,7 +56,7 @@ export const PasswordForm = () => {
                             {...register("newPassword")}
                             type="password"
                             placeholder="Mín. 8 caracteres"
-                            className="bg-slate-50 border-slate-100 h-14 rounded-2xl text-slate-900 focus:border-[#00C402] placeholder:text-slate-400 font-bold text-sm"
+                            className="bg-slate-50 border-slate-100 h-14 rounded-2xl text-slate-900 focus:border-[#1D5F31] placeholder:text-slate-400 font-bold text-sm"
                             disabled={isLoading}
                         />
                     </div>
@@ -75,7 +75,7 @@ export const PasswordForm = () => {
                             {...register("confirmPassword")}
                             type="password"
                             placeholder="Repita a senha"
-                            className="bg-slate-50 border-slate-100 h-14 rounded-2xl text-slate-900 focus:border-[#00C402] placeholder:text-slate-400 font-bold text-sm"
+                            className="bg-slate-50 border-slate-100 h-14 rounded-2xl text-slate-900 focus:border-[#1D5F31] placeholder:text-slate-400 font-bold text-sm"
                             disabled={isLoading}
                         />
                     </div>
@@ -95,9 +95,9 @@ export const PasswordForm = () => {
                     className="border-slate-100 text-slate-400 hover:bg-slate-50 hover:text-slate-900 h-14 px-8 rounded-2xl font-black uppercase tracking-[2px] text-[10px] transition-all gap-3 overflow-hidden group/btn"
                 >
                     {isLoading ? (
-                        <Loader2 className="animate-spin text-[#00C402]" size={18} />
+                        <Loader2 className="animate-spin text-[#1D5F31]" size={18} />
                     ) : (
-                        <KeyRound className="group-hover/btn:rotate-12 transition-transform text-slate-300 group-hover/btn:text-[#00C402]" size={18} />
+                        <KeyRound className="group-hover/btn:rotate-12 transition-transform text-slate-300 group-hover/btn:text-[#1D5F31]" size={18} />
                     )}
                     {isLoading ? "Processando..." : "Sincronizar Acesso"}
                 </Button>

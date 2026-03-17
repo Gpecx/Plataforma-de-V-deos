@@ -31,18 +31,18 @@ export function SalesChart({ data }: { data: SalesData[] }) {
                         contentStyle={{
                             backgroundColor: '#ffffff',
                             border: '1px solid #E2E8F0',
-                            borderRadius: '12px',
+                            borderRadius: '0px',
                             color: '#334155',
                             boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
                         }}
-                        itemStyle={{ color: '#00C402', fontWeight: 'bold' }}
+                        itemStyle={{ color: '#1D5F31', fontWeight: 'bold' }}
                     />
                     <Line
                         type="monotone"
                         dataKey="vendas"
-                        stroke="#00C402"
+                        stroke="#1D5F31"
                         strokeWidth={3}
-                        dot={{ fill: '#00C402', strokeWidth: 2, r: 4 }}
+                        dot={{ fill: '#1D5F31', strokeWidth: 2, r: 4 }}
                         activeDot={{ r: 6, strokeWidth: 0 }}
                     />
                 </LineChart>

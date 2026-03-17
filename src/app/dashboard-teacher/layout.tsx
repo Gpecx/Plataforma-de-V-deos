@@ -21,7 +21,7 @@ export default async function TeacherLayout({
     }
 
     return (
-        <div className="min-h-screen bg-[var(--background-color)] text-[var(--foreground)] flex flex-col">
+        <div className="min-h-screen bg-transparent text-[var(--foreground)] flex flex-col">
             <ScrollToTop />
             <Navbar />
 

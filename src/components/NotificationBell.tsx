@@ -20,7 +20,7 @@ interface Notification {
 }
 
 export function NotificationBell({
-    accent = '#00C402',
+    accent = '#1D5F31',
     isTeacher = false
 }: {
     accent?: string,
@@ -100,19 +100,19 @@ export function NotificationBell({
 
     return (
         <div className="relative" ref={menuRef}>
-            <button onClick={() => setOpen(prev => !prev)} className="text-white hover:text-[#00C402] transition cursor-pointer relative outline-none flex items-center justify-center">
+            <button onClick={() => setOpen(prev => !prev)} className="text-white hover:text-[#1D5F31] transition cursor-pointer relative outline-none flex items-center justify-center">
                 <Bell size={20} />
                 {unread > 0 && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-none text-white text-[9px] font-black flex items-center justify-center border border-[#0d2b17]" style={{ backgroundColor: accent }}>
+                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-none text-white text-[9px] font-black flex items-center justify-center border border-[#061629]" style={{ backgroundColor: accent }}>
                         {unread}
                     </span>
                 )}
             </button>
 
             {open && (
-                <div className="absolute right-0 mt-3 w-80 md:w-96 z-[1000] !bg-[#0f1f14] border-2 border-[#1e4d2b] shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="absolute right-0 mt-3 w-80 md:w-96 z-[1000] !bg-[#061629] border border-[#1D5F31]/30 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                         {/* Header com contraste corrigido */}
-                        <div className="flex items-center justify-between px-6 py-5 border-b-2 border-[#1e4d2b]">
+                        <div className="flex items-center justify-between px-6 py-5 border-b border-[#1D5F31]/20">
                             <div>
                                 <h3 className="font-black uppercase tracking-tighter text-base !text-white">
                                     {isTeacher ? 'Painel de Alertas' : 'Notificações'}
@@ -125,7 +125,7 @@ export function NotificationBell({
                             </div>
                             <div className="flex items-center gap-3">
                                 {unread > 0 && (
-                                    <button onClick={markAllRead} className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-[2px] !text-slate-200 hover:!text-white transition px-3 py-1.5 border border-[#1e4d2b] hover:border-[#00C402]">
+                                    <button onClick={markAllRead} className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-[2px] !text-slate-200 hover:!text-white transition px-3 py-1.5 border border-[#1D5F31]/30 hover:border-[#1D5F31]">
                                         <CheckCheck size={12} /> Limpar
                                     </button>
                                 )}
@@ -136,12 +136,12 @@ export function NotificationBell({
                         </div>
 
                         {/* Lista Forçada */}
-                        <div className="max-h-[400px] overflow-y-auto !bg-[#0f1f14]">
+                        <div className="max-h-[400px] overflow-y-auto !bg-[#061629]">
                             {loading ? (
                                 <div className="py-12 text-center !text-slate-400 text-xs font-bold uppercase tracking-widest">Carregando...</div>
                             ) : notifications.length === 0 ? (
                                 <div className="py-16 text-center">
-                                    <Bell size={40} className="mx-auto !text-[#1e4d2b] mb-4" />
+                                    <Bell size={40} className="mx-auto !text-[#1D5F31]/20 mb-4" />
                                     <p className="text-[10px] font-black uppercase !text-slate-500 tracking-[4px]">Tudo em dia!</p>
                                 </div>
                             ) : (
@@ -149,9 +149,9 @@ export function NotificationBell({
                                     <button
                                         key={notif.id}
                                         onClick={() => handleClick(notif)}
-                                        className="w-full flex items-start gap-4 px-6 py-5 text-left transition-all border-b border-[#1e4d2b] last:border-0 group !bg-[#0f1f14] hover:!bg-[#152a1a]"
+                                        className="w-full flex items-start gap-4 px-6 py-5 text-left transition-all border-b border-[#1D5F31]/10 last:border-0 group !bg-[#061629] hover:!bg-white/5"
                                     >
-                                        <div className={`w-10 h-10 flex items-center justify-center shrink-0 mt-0.5 border border-[#1e4d2b] ${notif.read ? '!bg-[#0d2b17]' : '!bg-[#0f1f14]'}`}>
+                                        <div className={`w-10 h-10 flex items-center justify-center shrink-0 mt-0.5 border border-[#1D5F31]/20 ${notif.read ? '!bg-[#061629]' : '!bg-[#061629]'}`}>
                                             {notif.type === 'reply' && <MessageSquare size={18} className={notif.read ? "!text-slate-600" : "!text-white"} />}
                                             {notif.type === 'new_lesson' && <PlayCircle size={18} className={notif.read ? "!text-slate-600" : "!text-white"} />}
                                             {notif.type === 'sale' && <TrendingUp size={18} className={notif.read ? "!text-slate-600" : "!text-white"} />}
@@ -165,15 +165,15 @@ export function NotificationBell({
                                                 {notif.subtitle}
                                             </p>
                                         </div>
-                                        {!notif.read && <div className="w-2 h-2 mt-2 shrink-0 animate-pulse !bg-[#00C402]" />}
+                                        {!notif.read && <div className="w-2 h-2 mt-2 shrink-0 animate-pulse !bg-[#1D5F31]" />}
                                     </button>
                                 ))
                             )}
                         </div>
 
                         {/* Footer */}
-                        <div className="px-6 py-4 border-t-2 border-[#1e4d2b] !bg-[#0f1f14]">
-                            <button onClick={() => { setOpen(false); router.push(isTeacher ? '/dashboard-teacher/analytics' : '/dashboard-student/chat') }} className="w-full text-[9px] font-black uppercase tracking-[3px] py-3 border border-[#1e4d2b] hover:border-[#00C402] !text-slate-300 hover:!text-[#00C402] transition-all">
+                        <div className="px-6 py-4 border-t border-[#1D5F31]/20 !bg-[#061629]">
+                            <button onClick={() => { setOpen(false); router.push(isTeacher ? '/dashboard-teacher/analytics' : '/dashboard-student/chat') }} className="w-full text-[9px] font-black uppercase tracking-[3px] py-3 border border-[#1D5F31]/30 hover:border-[#1D5F31] !text-slate-300 hover:!text-[#1D5F31] transition-all">
                                 {isTeacher ? 'Ver relatório de vendas' : 'Ver todas as mensagens'}
                             </button>
                         </div>

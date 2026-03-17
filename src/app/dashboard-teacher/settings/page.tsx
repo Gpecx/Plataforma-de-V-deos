@@ -85,29 +85,29 @@ export default function TeacherSettingsPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-[#0d2b17]">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#00C402]"></div>
+            <div className="min-h-screen flex items-center justify-center bg-transparent">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1D5F31]"></div>
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen bg-[#0d2b17] p-8 md:p-12 space-y-16 font-exo border-t border-[#1e4d2b] pb-32">
+        <div className="min-h-screen bg-transparent p-8 md:p-12 space-y-16 font-exo border-t border-[#1D5F31] pb-32">
             <header className="max-w-6xl mx-auto">
                 <div className="flex items-center gap-3 mb-2">
-                    <span className="text-[10px] font-black uppercase tracking-[5px] text-[#00C402]">WORKSPACE SETTINGS</span>
+                    <span className="text-[10px] font-black uppercase tracking-[5px] text-[#1D5F31]">WORKSPACE SETTINGS</span>
                 </div>
                 <h1 className="text-4xl font-black tracking-tighter text-white">
-                    CONFIGURAÇÕES DO <span className="text-[#00C402] uppercase">TEACHER</span>
+                    CONFIGURAÇÕES DO <span className="text-[#1D5F31] uppercase">TEACHER</span>
                 </h1>
                 <p className="text-slate-400 mt-2 font-semibold text-xs tracking-widest uppercase">Gerencie suas preferências de faturamento e alertas de sistema.</p>
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
                 {/* Configurações Financeiras - rounded-none */}
-                <section className="bg-[#0f1f14] border border-[#1e4d2b] rounded-none p-10 shadow-sm space-y-10">
+                <section className="bg-[#061629] border border-[#1D5F31] rounded-none p-10 shadow-sm space-y-10">
                     <div className="flex items-center gap-4">
-                        <div className="p-4 bg-[#0d2b17] rounded-none text-white border border-[#1e4d2b]">
+                        <div className="p-4 bg-[#061629] rounded-none text-white border border-[#1D5F31]">
                             <Wallet size={24} strokeWidth={2.5} />
                         </div>
                         <div>
@@ -120,12 +120,12 @@ export default function TeacherSettingsPage() {
                         <div className="space-y-3">
                             <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 px-1">Chave PIX Estratégica</label>
                             <div className="relative group">
-                                <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-[#00C402] transition-colors" size={20} />
+                                <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-[#1D5F31] transition-colors" size={20} />
                                 <Input
                                     value={pixKey}
                                     onChange={(e) => setPixKey(e.target.value)}
                                     placeholder="CPF, E-mail ou Chave Aleatória"
-                                    className="bg-[#0d2b17] border-[#1e4d2b] rounded-none pl-12 h-14 focus:border-[#00C402] focus:ring-4 focus:ring-[#00C402]/5 font-bold text-sm text-white"
+                                    className="bg-[#061629] border-[#1D5F31] rounded-none pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-white"
                                 />
                             </div>
                             <p className="text-[9px] text-slate-400 font-medium italic px-1">As comissões de vendas serão auditadas e enviadas para esta chave.</p>
@@ -134,9 +134,9 @@ export default function TeacherSettingsPage() {
                 </section>
 
                 {/* Notificações - rounded-none */}
-                <section className="bg-[#0f1f14] border border-[#1e4d2b] rounded-none p-10 shadow-sm space-y-10">
+                <section className="bg-[#061629] border border-[#1D5F31] rounded-none p-10 shadow-sm space-y-10">
                     <div className="flex items-center gap-4">
-                        <div className="p-4 bg-[#0d2b17] rounded-none text-white border border-[#1e4d2b]">
+                        <div className="p-4 bg-[#061629] rounded-none text-white border border-[#1D5F31]">
                             <Bell size={24} strokeWidth={2.5} />
                         </div>
                         <div>
@@ -146,27 +146,27 @@ export default function TeacherSettingsPage() {
                     </div>
 
                     <div className="space-y-4">
-                        <div className="flex items-center justify-between p-6 bg-[#0d2b17] rounded-none border border-[#1e4d2b] hover:border-[#1e4d2b]/60 transition-all">
+                        <div className="flex items-center justify-between p-6 bg-[#061629] rounded-none border border-[#1D5F31] hover:border-[#1D5F31]/60 transition-all">
                             <div>
                                 <h3 className="text-xs font-black uppercase tracking-widest text-white">Relatórios de Performance</h3>
                                 <p className="text-[10px] text-slate-500 font-medium mt-1">Resumo semanal do ecossistema por e-mail.</p>
                             </div>
                             <button
                                 onClick={() => setEmailEnabled(!emailEnabled)}
-                                className={`w-12 h-6 rounded-none transition-all relative ${emailEnabled ? 'bg-[#00C402]' : 'bg-slate-200 shadow-inner'}`}
+                                className={`w-12 h-6 rounded-none transition-all relative ${emailEnabled ? 'bg-[#1D5F31]' : 'bg-slate-200 shadow-inner'}`}
                             >
                                 <div className={`absolute top-1 w-4 h-4 rounded-none bg-white transition-all shadow-md ${emailEnabled ? 'right-1' : 'left-1'}`}></div>
                             </button>
                         </div>
 
-                        <div className="flex items-center justify-between p-6 bg-[#0d2b17] rounded-none border border-[#1e4d2b] hover:border-[#1e4d2b]/60 transition-all">
+                        <div className="flex items-center justify-between p-6 bg-[#061629] rounded-none border border-[#1D5F31] hover:border-[#1D5F31]/60 transition-all">
                             <div>
                                 <h3 className="text-xs font-black uppercase tracking-widest text-white">Novos Leads e Alunos</h3>
                                 <p className="text-[10px] text-slate-500 font-medium mt-1">Push notifications em tempo real.</p>
                             </div>
                             <button
                                 onClick={() => setBrowserEnabled(!browserEnabled)}
-                                className={`w-12 h-6 rounded-none transition-all relative ${browserEnabled ? 'bg-[#00C402]' : 'bg-slate-200 shadow-inner'}`}
+                                className={`w-12 h-6 rounded-none transition-all relative ${browserEnabled ? 'bg-[#1D5F31]' : 'bg-slate-200 shadow-inner'}`}
                             >
                                 <div className={`absolute top-1 w-4 h-4 rounded-none bg-white transition-all shadow-md ${browserEnabled ? 'right-1' : 'left-1'}`}></div>
                             </button>
@@ -175,9 +175,9 @@ export default function TeacherSettingsPage() {
                 </section>
 
                 {/* Segurança - rounded-none */}
-                <section className="bg-[#0f1f14] border border-[#1e4d2b] rounded-none p-10 shadow-sm space-y-10 lg:col-span-2 relative overflow-hidden group">
+                <section className="bg-[#061629] border border-[#1D5F31] rounded-none p-10 shadow-sm space-y-10 lg:col-span-2 relative overflow-hidden group">
                     <div className="flex items-center gap-4 relative z-10">
-                        <div className="p-4 bg-[#0d2b17] rounded-none text-[#00C402] border border-[#1e4d2b]">
+                        <div className="p-4 bg-[#061629] rounded-none text-[#1D5F31] border border-[#1D5F31]">
                             <Shield size={24} strokeWidth={2.5} />
                         </div>
                         <div>
@@ -189,7 +189,7 @@ export default function TeacherSettingsPage() {
                     <form onSubmit={handleUpdatePassword} className="space-y-8 relative z-10">
                         {needsReauth && (
                             <div className="max-w-md space-y-3 animate-in fade-in slide-in-from-top-2">
-                                <label className="text-[10px] font-black uppercase tracking-[3px] text-[#00C402] px-1 flex items-center gap-2">
+                                <label className="text-[10px] font-black uppercase tracking-[3px] text-[#1D5F31] px-1 flex items-center gap-2">
                                     <Key size={14} />
                                     Senha Atual Necessária
                                 </label>
@@ -198,7 +198,7 @@ export default function TeacherSettingsPage() {
                                     value={currentPassword}
                                     onChange={(e) => setCurrentPassword(e.target.value)}
                                     placeholder="Confirme sua senha atual"
-                                    className="bg-[#00C402]/5 border-[#00C402]/20 h-14 rounded-none text-white focus:border-[#00C402] font-bold text-sm"
+                                    className="bg-[#1D5F31]/5 border-[#1D5F31]/20 h-14 rounded-none text-white focus:border-[#1D5F31] font-bold text-sm"
                                     required
                                 />
                             </div>
@@ -213,7 +213,7 @@ export default function TeacherSettingsPage() {
                                         value={newPassword}
                                         onChange={(e) => setNewPassword(e.target.value)}
                                         placeholder="Nova senha master"
-                                        className="bg-[#0d2b17] border-[#1e4d2b] h-14 rounded-none text-white focus:border-[#00C402] placeholder:text-slate-600 font-bold text-sm"
+                                        className="bg-[#061629] border-[#1D5F31] h-14 rounded-none text-white focus:border-[#1D5F31] placeholder:text-slate-600 font-bold text-sm"
                                         required
                                         minLength={6}
                                     />
@@ -222,7 +222,7 @@ export default function TeacherSettingsPage() {
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
                                         placeholder="Confirmar nova senha"
-                                        className="bg-[#0d2b17] border-[#1e4d2b] h-14 rounded-none text-white focus:border-[#00C402] placeholder:text-slate-600 font-bold text-sm"
+                                        className="bg-[#061629] border-[#1D5F31] h-14 rounded-none text-white focus:border-[#1D5F31] placeholder:text-slate-600 font-bold text-sm"
                                         required
                                         minLength={6}
                                     />
@@ -236,7 +236,7 @@ export default function TeacherSettingsPage() {
                                     className="border-slate-100 text-slate-400 hover:bg-slate-50 hover:text-slate-900 h-14 px-8 rounded-none font-black uppercase tracking-[2px] text-[10px] transition-all gap-2"
                                 >
                                     {isUpdatingPassword ? (
-                                        <div className="w-4 h-4 border-2 border-slate-200 border-t-[#00C402] rounded-none animate-spin" />
+                                        <div className="w-4 h-4 border-2 border-slate-200 border-t-[#1D5F31] rounded-none animate-spin" />
                                     ) : (
                                         <Save size={16} />
                                     )}
@@ -250,7 +250,7 @@ export default function TeacherSettingsPage() {
                 {/* Zona de Perigo - rounded-none */}
                 <section className="bg-red-950/20 border border-red-900/40 rounded-none p-10 shadow-sm space-y-8 lg:col-span-2">
                     <div className="flex items-center gap-4">
-                        <div className="p-4 bg-[#0f1f14] border border-red-900/40 rounded-none text-red-500 shadow-sm">
+                        <div className="p-4 bg-[#061629] border border-red-900/40 rounded-none text-red-500 shadow-sm">
                             <Trash2 size={24} strokeWidth={2.5} />
                         </div>
                         <div>
@@ -268,7 +268,7 @@ export default function TeacherSettingsPage() {
             </div>
 
             <div className="flex justify-end pt-8 max-w-6xl mx-auto">
-                <Button className="bg-[#00C402] text-white font-black uppercase tracking-[3px] h-14 px-12 rounded-none hover:bg-[#28b828] shadow-xl shadow-[#00C402]/20 transition-all gap-4 animate-in fade-in slide-in-from-bottom-4 text-[11px]">
+                <Button className="bg-[#1D5F31] text-white font-black uppercase tracking-[3px] h-14 px-12 rounded-none hover:bg-[#28b828] shadow-xl shadow-[#1D5F31]/20 transition-all gap-4 animate-in fade-in slide-in-from-bottom-4 text-[11px]">
                     <Save size={18} strokeWidth={3} />
                     Salvar Todas Alterações
                 </Button>

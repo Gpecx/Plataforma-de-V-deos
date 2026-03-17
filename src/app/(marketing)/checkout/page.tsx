@@ -69,12 +69,12 @@ export default function CheckoutPage() {
             <div className="max-w-6xl mx-auto p-8 md:p-12">
                 {/* Header Compacto */}
                 <div className="mb-12 flex items-center justify-between">
-                    <Link href="/cart" className="p-3 bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-[#00C402] transition text-slate-400 hover:text-[#00C402]">
+                    <Link href="/cart" className="p-3 bg-white rounded-2xl border border-slate-200 shadow-sm hover:border-[#1D5F31] transition text-slate-400 hover:text-[#1D5F31]">
                         <ArrowLeft size={24} />
                     </Link>
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-[#00C402]/10 rounded-lg flex items-center justify-center">
-                            <Lock size={16} className="text-[#00C402]" />
+                        <div className="w-8 h-8 bg-[#1D5F31]/10 rounded-lg flex items-center justify-center">
+                            <Lock size={16} className="text-[#1D5F31]" />
                         </div>
                         <span className="text-[10px] font-black uppercase tracking-[4px] text-slate-400 italic">Pagamento 100% Seguro</span>
                     </div>
@@ -85,28 +85,28 @@ export default function CheckoutPage() {
                     <div className="lg:col-span-2 space-y-10">
                         <div>
                             <h2 className="text-3xl font-black italic uppercase tracking-tighter mb-8 text-slate-900">
-                                Escolha como <span className="text-[#00C402]">Pagar</span>
+                                Escolha como <span className="text-[#1D5F31]">Pagar</span>
                             </h2>
 
                             {/* Tabs Elite */}
                             <div className="grid grid-cols-3 gap-4 mb-10">
                                 <button
                                     onClick={() => setMethod('card')}
-                                    className={`flex flex-col items-center gap-3 p-6 rounded-3xl border transition-all ${method === 'card' ? 'bg-[#00C402] border-[#00C402] text-white shadow-lg scale-105' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-400 shadow-sm'}`}
+                                    className={`flex flex-col items-center gap-3 p-6 rounded-3xl border transition-all ${method === 'card' ? 'bg-[#1D5F31] border-[#1D5F31] text-white shadow-lg scale-105' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-400 shadow-sm'}`}
                                 >
                                     <CreditCard size={28} strokeWidth={method === 'card' ? 3 : 2} />
                                     <span className="text-[10px] font-black uppercase tracking-widest">Cartão</span>
                                 </button>
                                 <button
                                     onClick={() => setMethod('pix')}
-                                    className={`flex flex-col items-center gap-3 p-6 rounded-3xl border transition-all ${method === 'pix' ? 'bg-[#00C402] border-[#00C402] text-white shadow-lg scale-105' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-400 shadow-sm'}`}
+                                    className={`flex flex-col items-center gap-3 p-6 rounded-3xl border transition-all ${method === 'pix' ? 'bg-[#1D5F31] border-[#1D5F31] text-white shadow-lg scale-105' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-400 shadow-sm'}`}
                                 >
                                     <Smartphone size={28} strokeWidth={method === 'pix' ? 3 : 2} />
                                     <span className="text-[10px] font-black uppercase tracking-widest">PIX</span>
                                 </button>
                                 <button
                                     onClick={() => setMethod('boleto')}
-                                    className={`flex flex-col items-center gap-3 p-6 rounded-3xl border transition-all ${method === 'boleto' ? 'bg-[#00C402] border-[#00C402] text-white shadow-lg scale-105' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-400 shadow-sm'}`}
+                                    className={`flex flex-col items-center gap-3 p-6 rounded-3xl border transition-all ${method === 'boleto' ? 'bg-[#1D5F31] border-[#1D5F31] text-white shadow-lg scale-105' : 'bg-white border-slate-200 text-slate-400 hover:border-slate-400 shadow-sm'}`}
                                 >
                                     <FileText size={28} strokeWidth={method === 'boleto' ? 3 : 2} />
                                     <span className="text-[10px] font-black uppercase tracking-widest">Boleto</span>
@@ -119,24 +119,24 @@ export default function CheckoutPage() {
                                     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                         <div className="grid md:grid-cols-2 gap-6">
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-[#00C402] italic">Número do Cartão</label>
-                                                <input type="text" placeholder="0000 0000 0000 0000" className="w-full bg-[#F8FAFC] border border-slate-200 rounded-2xl p-4 focus:border-[#00C402] outline-none font-bold italic tracking-widest text-slate-900" />
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-[#1D5F31] italic">Número do Cartão</label>
+                                                <input type="text" placeholder="0000 0000 0000 0000" className="w-full bg-[#F8FAFC] border border-slate-200 rounded-2xl p-4 focus:border-[#1D5F31] outline-none font-bold italic tracking-widest text-slate-900" />
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-[#00C402] italic">Nome no Cartão</label>
-                                                <input type="text" placeholder="NOME COMO NO CARTÃO" className="w-full bg-[#F8FAFC] border border-slate-200 rounded-2xl p-4 focus:border-[#00C402] outline-none font-bold uppercase text-slate-900" />
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-[#1D5F31] italic">Nome no Cartão</label>
+                                                <input type="text" placeholder="NOME COMO NO CARTÃO" className="w-full bg-[#F8FAFC] border border-slate-200 rounded-2xl p-4 focus:border-[#1D5F31] outline-none font-bold uppercase text-slate-900" />
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-[#00C402] italic">Validade</label>
-                                                <input type="text" placeholder="MM/AA" className="w-full bg-[#F8FAFC] border border-slate-200 rounded-2xl p-4 focus:border-[#00C402] outline-none font-bold italic text-slate-900" />
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-[#1D5F31] italic">Validade</label>
+                                                <input type="text" placeholder="MM/AA" className="w-full bg-[#F8FAFC] border border-slate-200 rounded-2xl p-4 focus:border-[#1D5F31] outline-none font-bold italic text-slate-900" />
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-[#00C402] italic">CVV</label>
-                                                <input type="text" placeholder="000" className="w-full bg-[#F8FAFC] border border-slate-200 rounded-2xl p-4 focus:border-[#00C402] outline-none font-bold italic text-slate-900" />
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-[#1D5F31] italic">CVV</label>
+                                                <input type="text" placeholder="000" className="w-full bg-[#F8FAFC] border border-slate-200 rounded-2xl p-4 focus:border-[#1D5F31] outline-none font-bold italic text-slate-900" />
                                             </div>
                                         </div>
-                                        <div className="p-6 bg-[#00C402]/5 border border-[#00C402]/10 rounded-2xl flex items-center gap-4">
-                                            <ShieldCheck size={28} className="text-[#00C402]" />
+                                        <div className="p-6 bg-[#1D5F31]/5 border border-[#1D5F31]/10 rounded-2xl flex items-center gap-4">
+                                            <ShieldCheck size={28} className="text-[#1D5F31]" />
                                             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider leading-relaxed">
                                                 Seus dados estão protegidos por criptografia de ponta a ponta PowerPlay Shield. Nunca armazenamos seu CVV.
                                             </p>
@@ -154,7 +154,7 @@ export default function CheckoutPage() {
                                             <p className="text-xs text-slate-500 font-bold uppercase tracking-widest max-w-xs mx-auto">A liberação do treinamento é imediata após a confirmação do PIX.</p>
                                         </div>
                                         <button className="flex items-center gap-3 bg-white hover:bg-slate-50 border border-slate-200 rounded-2xl px-8 py-4 mx-auto text-[10px] font-black uppercase tracking-[3px] transition-all shadow-sm">
-                                            <Copy size={16} className="text-[#00C402]" />
+                                            <Copy size={16} className="text-[#1D5F31]" />
                                             Copiar Código PIX
                                         </button>
                                     </div>
@@ -186,7 +186,7 @@ export default function CheckoutPage() {
                     {/* Lado Direito: Order Summary */}
                     <aside className="space-y-8">
                         <section className="bg-white border border-slate-200 rounded-[40px] p-8 shadow-xl relative overflow-hidden group">
-                            <h3 className="text-sm font-black uppercase tracking-[5px] text-[#00C402] mb-8 italic">Seu Pedido</h3>
+                            <h3 className="text-sm font-black uppercase tracking-[5px] text-[#1D5F31] mb-8 italic">Seu Pedido</h3>
 
                             <div className="space-y-6 mb-8 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                                 {items.map(item => (
@@ -196,7 +196,7 @@ export default function CheckoutPage() {
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <h4 className="text-[10px] font-black uppercase tracking-tight truncate text-slate-900">{item.title}</h4>
-                                            <span className="text-xs font-black italic text-[#00C402]">R$ {item.price.toFixed(2)}</span>
+                                            <span className="text-xs font-black italic text-[#1D5F31]">R$ {item.price.toFixed(2)}</span>
                                         </div>
                                     </div>
                                 ))}
@@ -207,7 +207,7 @@ export default function CheckoutPage() {
                                     <span>Valor Bruto</span>
                                     <span>R$ {total.toFixed(2)}</span>
                                 </div>
-                                <div className="flex justify-between font-bold uppercase text-[10px] tracking-widest text-[#00C402]">
+                                <div className="flex justify-between font-bold uppercase text-[10px] tracking-widest text-[#1D5F31]">
                                     <span>Desconto PowerPlay</span>
                                     <span>- R$ 0,00</span>
                                 </div>
@@ -223,7 +223,7 @@ export default function CheckoutPage() {
                             <button
                                 onClick={handlePayment}
                                 disabled={isProcessing}
-                                className={`w-full py-6 mt-10 rounded-[20px] font-black uppercase italic tracking-[3px] transition-all flex items-center justify-center gap-3 shadow-lg ${isProcessing ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-[#00C402] text-white hover:scale-[1.02] shadow-[0_10px_30px_rgba(0,196,2,0.3)]'}`}
+                                className={`w-full py-6 mt-10 rounded-[20px] font-black uppercase italic tracking-[3px] transition-all flex items-center justify-center gap-3 shadow-lg ${isProcessing ? 'bg-slate-200 text-slate-400 cursor-not-allowed' : 'bg-[#1D5F31] text-white hover:scale-[1.02] shadow-[0_10px_30px_rgba(0,196,2,0.3)]'}`}
                             >
                                 {isProcessing ? (
                                     <>

@@ -34,7 +34,7 @@ const DEFAULT_SETTINGS: GlobalSettings = {
     branding: {
         logoUrl: '',
         siteName: 'PowerPlay',
-        primaryColor: '#00C402',
+        primaryColor: '#1D5F31',
     }
 }
 

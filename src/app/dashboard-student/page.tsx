@@ -48,22 +48,22 @@ export default async function StudentDashboard() {
     const cursosDisponiveis = allCourses.filter(c => !purchasedCourseIds.includes(c.id))
 
     return (
-        <div className="min-h-screen bg-[#0d2b17] text-[#e2e8f0] font-exo relative pb-16">
+        <div className="min-h-screen bg-transparent text-[#e2e8f0] font-exo relative pb-16">
             {/* Lógica para sincronizar cursos comprados com o Zustand no Client Side se necessário */}
             <StoreInitializer purchasedCourseIds={purchasedCourseIds} />
 
             {/* Main Content (Constrained Width) */}
             <div className="max-w-none space-y-8">
                 {/* Header de Boas-vindas - Compacto no Topo */}
-                <header className="pt-0 px-6 md:px-12 lg:px-16">
+                <header className="pt-8 px-6 md:px-12 lg:px-16">
                     <div className="flex items-center gap-2 mb-0.5">
-                        <span className="text-[8px] font-bold uppercase tracking-[4px] text-[#00C402]">WORKSPACE STUDENT</span>
+                        <span className="text-[8px] font-bold uppercase tracking-[4px] text-white">WORKSPACE STUDENT</span>
                     </div>
                     <div className="flex flex-col md:flex-row md:items-baseline gap-2 md:gap-4">
                         <h1 className="text-2xl md:text-3xl font-black tracking-tighter text-white">
-                            BEM-VINDO, <span className="text-[#00C402] uppercase">{profile?.full_name?.split(' ')[0] || 'ALUNO'}!</span>
+                            BEM-VINDO, <span className="text-white uppercase">{profile?.full_name?.split(' ')[0] || 'ALUNO'}!</span>
                         </h1>
-                        <p className="text-slate-400 font-bold text-[9px] tracking-widest uppercase">Eleve sua carreira hoje.</p>
+                        <p className="text-white font-bold text-[9px] tracking-widest uppercase opacity-80">Eleve sua carreira hoje.</p>
                     </div>
                 </header>
 
@@ -76,18 +76,18 @@ export default async function StudentDashboard() {
                 <div className="px-6 md:px-12 lg:px-16 space-y-12">
                     {/* Seção: Meus Cursos */}
                     <section>
-                        <div className="flex items-center justify-between mb-6 pb-3 border-b border-[#1e4d2b]">
-                            <h2 className="text-lg font-black uppercase tracking-tighter flex items-center gap-3 text-white/50">
-                                <BookOpen size={18} className="text-[#00C402]" />
+                        <div className="flex items-center justify-between mb-6 pb-3 border-b border-[#1D5F31]/30">
+                            <h2 className="text-lg font-black uppercase tracking-tighter flex items-center gap-3 text-white/70">
+                                <BookOpen size={18} className="text-[#1D5F31]" />
                                 Seu Aprendizado
                             </h2>
-                            <span className="text-[8px] font-black uppercase tracking-[2px] text-slate-400">{meusCursos.length} TREINAMENTOS</span>
+                            <span className="text-[8px] font-black uppercase tracking-[2px] text-white/60">{meusCursos.length} TREINAMENTOS</span>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             {meusCursos.length > 0 ? (
                                 meusCursos.map((curso) => (
-                                    <div key={curso.id} className="bg-[#0f1f14] rounded-none overflow-hidden border border-[#1e4d2b] hover:border-[#00C402] transition-all group">
+                                    <div key={curso.id} className="bg-[#05111f]/40 backdrop-blur-md rounded-xl overflow-hidden border border-[#1D5F31]/20 hover:border-[#1D5F31] transition-all group shadow-lg">
                                         <div className="relative h-40 bg-slate-100">
                                             <img
                                                 src={curso.image_url || "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400"}
@@ -99,19 +99,19 @@ export default async function StudentDashboard() {
                                             </div>
                                         </div>
                                         <div className="p-6">
-                                            <h3 className="font-bold text-base mb-3 tracking-tight text-white line-clamp-1 group-hover:text-[#00C402] transition">{curso.title}</h3>
+                                            <h3 className="font-bold text-base mb-3 tracking-tight text-white line-clamp-1 group-hover:text-white/90 transition">{curso.title}</h3>
 
                                             <div className="relative group/progress mb-2">
                                                 <div className="w-full bg-slate-100 h-1 rounded-full overflow-hidden">
-                                                    <div className="bg-[#00C402] h-full" style={{ width: `45%` }}></div>
+                                                    <div className="bg-[#1D5F31] h-full" style={{ width: `45%` }}></div>
                                                 </div>
                                             </div>
 
-                                            <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-widest text-[#00C402]">
+                                            <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-widest text-white/90">
                                                 <span>45% COMPLETADO</span>
                                             </div>
                                             <Link href={`/classroom/${curso.id}`}>
-                                                <button className="w-full mt-6 bg-slate-900 text-white font-bold uppercase text-[10px] tracking-widest py-3 rounded-none hover:bg-slate-800 transition shadow-sm">
+                                                <button className="w-full mt-6 bg-[#061629]/80 text-white font-bold uppercase text-[10px] tracking-widest py-3 rounded-xl hover:bg-[#1D5F31] transition shadow-sm border border-[#1D5F31]/30">
                                                     Continuar
                                                 </button>
                                             </Link>
@@ -119,25 +119,25 @@ export default async function StudentDashboard() {
                                     </div>
                                 ))
                             ) : (
-                                <div className="col-span-full py-16 border border-dashed border-[#1e4d2b] rounded-none text-center bg-[#0f1f14]/50">
-                                    <p className="text-slate-400 text-[10px] font-semibold uppercase tracking-widest">Sua estante está vazia.</p>
+                                <div className="col-span-full py-16 border border-dashed border-[#1D5F31]/30 rounded-xl text-center bg-[#05111f]/50">
+                                    <p className="text-white/60 text-[10px] font-semibold uppercase tracking-widest">Sua estante está vazia.</p>
                                 </div>
                             )}
                         </div>
                     </section>
 
                     {/* Seção Founders */}
-                    <section className="bg-[#0f1f14] rounded-none border border-[#1e4d2b] p-8 overflow-hidden relative shadow-sm">
+                    <section className="bg-[#05111f]/40 backdrop-blur-md rounded-xl border border-[#1D5F31]/20 p-8 overflow-hidden relative shadow-lg">
                         <div className="absolute top-0 right-0 w-1/4 h-full opacity-5 pointer-events-none">
                             <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=600" alt="Tech" className="w-full h-full object-cover grayscale" />
                         </div>
                         <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center">
                             <div className="flex-1 text-center md:text-left">
                                 <h2 className="text-lg font-black uppercase tracking-tighter text-white mb-2 flex items-center justify-center md:justify-start gap-3">
-                                    <Trophy size={18} className="text-[#00C402]" />
+                                    <Trophy size={18} className="text-[#1D5F31]" />
                                     Conteúdo Inovador
                                 </h2>
-                                <p className="text-slate-500 font-medium italic text-xs leading-relaxed max-w-xl">
+                                <p className="text-white/90 font-medium italic text-xs leading-relaxed max-w-xl">
                                     "Unimos a precisão técnica da engenharia com a agilidade estratégica que o mercado exige."
                                 </p>
                             </div>
@@ -146,17 +146,17 @@ export default async function StudentDashboard() {
 
                     {/* Seção: Vitrine de Cursos */}
                     <section className="pb-16">
-                        <div className="flex items-center justify-between mb-6 pb-3 border-b border-[#1e4d2b]">
+                        <div className="flex items-center justify-between mb-6 pb-3 border-b border-[#1D5F31]/30">
                             <h2 className="text-lg font-black uppercase tracking-tighter flex items-center gap-3 text-white">
-                                <CreditCard size={18} className="text-[#00C402]" />
+                                <CreditCard size={18} className="text-[#1D5F31]" />
                                 Recomendados
                             </h2>
-                            <span className="text-[8px] font-black uppercase tracking-[2px] text-slate-400">VITRINE POWERPLAY</span>
+                            <span className="text-[8px] font-black uppercase tracking-[2px] text-white/60">VITRINE POWERPLAY</span>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             {cursosDisponiveis.map((curso) => (
-                                <div key={curso.id} className="bg-[#0f1f14] rounded-none overflow-hidden border border-[#1e4d2b] hover:border-[#00C402] transition-all flex flex-col group">
+                                <div key={curso.id} className="bg-[#05111f]/40 backdrop-blur-md rounded-xl overflow-hidden border border-[#1D5F31]/20 hover:border-[#1D5F31] transition-all flex flex-col group shadow-lg">
                                     <div className="relative h-40 overflow-hidden">
                                         <img
                                             src={curso.image_url || "https://images.unsplash.com/photo-1558655146-d09347e92766?w=400"}
@@ -166,15 +166,15 @@ export default async function StudentDashboard() {
                                     </div>
                                     <div className="p-5 flex-grow flex flex-col justify-between">
                                         <div className="mb-4">
-                                            <h3 className="font-bold text-sm mb-1.5 tracking-tight text-white line-clamp-1 group-hover:text-[#00C402] transition">{curso.title}</h3>
-                                            <p className="text-slate-500 text-[9px] font-medium leading-relaxed line-clamp-2">{curso.description || 'Domine esta habilidade com o método PowerPlay.'}</p>
+                                            <h3 className="font-bold text-sm mb-1.5 tracking-tight text-white line-clamp-1 group-hover:text-white transition">{curso.title}</h3>
+                                            <p className="text-white/70 text-[9px] font-medium leading-relaxed line-clamp-2">{curso.description || 'Domine esta habilidade com o método PowerPlay.'}</p>
                                         </div>
                                         <div>
                                             <div className="flex items-center justify-between mb-4">
                                                 <span className="text-white font-black text-lg tracking-tighter">
                                                     R$ {Number(curso.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                                 </span>
-                                                <Link href={`/course/${curso.id}`} className="text-[7px] font-bold uppercase tracking-widest text-slate-400 hover:text-slate-900 transition underline underline-offset-4">
+                                                <Link href={`/course/${curso.id}`} className="text-[7px] font-bold uppercase tracking-widest text-white/80 hover:text-white transition underline underline-offset-4">
                                                     Detalhes
                                                 </Link>
                                             </div>

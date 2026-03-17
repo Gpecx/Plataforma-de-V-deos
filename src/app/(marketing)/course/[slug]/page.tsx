@@ -89,7 +89,7 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
 
     // O RETURN QUE ESTAVA FALTANDO COMEÇA AQUI:
     return (
-        <div className="min-h-screen bg-[#0d2b17] text-white/90 font-exo">
+        <div className="min-h-screen bg-transparent text-white/90 font-exo">
             <Navbar />
 
             {/* HERO & VIDEO SECTION - BORDAS QUADRADAS E ALINHAMENTO RIGOROSO */}
@@ -99,14 +99,14 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                     <div className="px-6 md:px-12 lg:px-16 pb-10 space-y-3 border-b border-white/10">
                         <Link
                             href="/course"
-                            className="inline-flex items-center gap-2 text-white/40 hover:text-[#00C402] transition text-[10px] font-black uppercase tracking-[3px]"
+                            className="inline-flex items-center gap-2 text-white/40 hover:text-[#1D5F31] transition text-[10px] font-black uppercase tracking-[3px]"
                         >
                             <ArrowLeft size={14} />
                             Voltar ao Catálogo
                         </Link>
 
                         <div className="flex items-center gap-3">
-                            <span className="inline-block bg-[#00C402] text-white text-[9px] font-black px-3 py-1 uppercase tracking-widest rounded-none">
+                            <span className="inline-block bg-[#1D5F31] text-white text-[9px] font-black px-3 py-1 uppercase tracking-widest rounded-none">
                                 {course.tag || "PREMIUM"}
                             </span>
                         </div>
@@ -146,11 +146,11 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                                     <BuyButton
                                         course={course}
                                         label="Matricular-se Agora"
-                                        className="w-full py-8 text-sm tracking-[4px] font-black bg-[#00C402] hover:bg-white hover:text-black transition-all uppercase rounded-none"
+                                        className="w-full py-8 text-sm tracking-[4px] font-black bg-[#1D5F31] hover:bg-white hover:text-black transition-all uppercase rounded-none"
                                         purchasedCourseIds={purchasedCourseIds}
                                     />
                                     <div className="flex items-center gap-2 text-white/40 text-[9px] font-bold uppercase tracking-widest pt-2">
-                                        <ShieldCheck size={16} className="text-[#00C402]" />
+                                        <ShieldCheck size={16} className="text-[#1D5F31]" />
                                         <span>Garantia de 7 Dias Incondicional</span>
                                     </div>
                                 </div>
@@ -162,7 +162,7 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                                         { icon: <CheckCircle2 size={18} />, text: "Material Complementar" },
                                     ].map((item, i) => (
                                         <div key={i} className="flex items-center gap-4 text-white/60 font-bold text-[11px] uppercase tracking-widest">
-                                            <div className="text-[#00C402]">{item.icon}</div>
+                                            <div className="text-[#1D5F31]">{item.icon}</div>
                                             {item.text}
                                         </div>
                                     ))}
@@ -174,10 +174,10 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
             </section>
 
             {/* DESCRIÇÃO E EMENTA */}
-            <section className="py-24 px-6 md:px-12 lg:px-16 bg-[#0d2b17]">
+            <section className="py-24 px-6 md:px-12 lg:px-16 bg-[#061629]">
                 <div className="max-w-none mx-auto grid lg:grid-cols-12 gap-0">
                     <div className="lg:col-span-8 space-y-8">
-                        <h3 className="text-3xl font-black text-white uppercase tracking-tighter border-l-4 border-[#00C402] pl-6">Sobre o treinamento</h3>
+                        <h3 className="text-3xl font-black text-white uppercase tracking-tighter border-l-4 border-[#1D5F31] pl-6">Sobre o treinamento</h3>
                         <p className="text-white/60 text-lg leading-relaxed font-medium pl-6 max-w-none">
                             {course.description}
                         </p>
@@ -185,9 +185,9 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                         {/* Ementa Estilo Industrial */}
                         <div className="mt-16 space-y-1">
                             {curriculum[0].lessons.map((lesson: any, index: number) => (
-                                <div key={index} className="flex items-center justify-between bg-white/5 p-6 border border-white/5 hover:bg-[#00C402]/10 transition-colors">
+                                <div key={index} className="flex items-center justify-between bg-white/5 p-6 border border-white/5 hover:bg-[#1D5F31]/10 transition-colors">
                                     <div className="flex items-center gap-4">
-                                        <span className="text-[#00C402] font-black text-xs">{(index + 1).toString().padStart(2, '0')}</span>
+                                        <span className="text-[#1D5F31] font-black text-xs">{(index + 1).toString().padStart(2, '0')}</span>
                                         <span className="font-bold uppercase tracking-tight text-white/80">{lesson.title}</span>
                                     </div>
                                     <PlayCircle size={16} className="text-white/20" />

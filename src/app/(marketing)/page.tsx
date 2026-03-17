@@ -85,10 +85,16 @@ export default function WelcomePage() {
     ];
 
     return (
-        <div style={{ minHeight: "100vh", color: "#e2e8f0" }}>
+        <div style={{ minHeight: "100vh", color: "#e2e8f0", background: "transparent" }}>
             {/* ───────────────── HERO SECTION ───────────────── */}
-            <section className="hero-section">
-
+            <section 
+                className="hero-section"
+                style={{
+                    backgroundImage: "url('/images/hero-bg.png')",
+                    backgroundSize: "cover",
+                    backgroundPosition: "center"
+                }}
+            >
                 {/* Dark overlay */}
                 <div className="hero-overlay" />
 
@@ -100,17 +106,17 @@ export default function WelcomePage() {
                     {/* Badge */}
                     <span
                         style={{
-                            background: "rgba(50,205,50,0.15)",
-                            border: "1px solid rgba(50,205,50,0.35)",
-                            color: "#32cd32",
+                            background: "rgba(255, 255, 255, 0.1)",
+                            border: "1px solid rgba(255, 255, 255, 0.3)",
+                            color: "#ffffff",
                             fontSize: "0.7rem",
                             fontWeight: 900,
                             letterSpacing: "0.2em",
                             textTransform: "uppercase",
                             padding: "0.3rem 1rem",
-                            borderRadius: "999px",
                             marginBottom: "1.5rem",
                             display: "inline-block",
+                            borderRadius: "100px",
                         }}
                     >
                         PowerPlay — Plataforma de Ensino Profissional
@@ -121,6 +127,7 @@ export default function WelcomePage() {
                         style={{
                             fontSize: "clamp(2.2rem, 6vw, 5rem)",
                             fontWeight: 900,
+                            fontStyle: "italic",
                             color: "#fff",
                             lineHeight: 1.05,
                             letterSpacing: "-0.02em",
@@ -130,13 +137,13 @@ export default function WelcomePage() {
                         }}
                     >
                         DOMINE A TECNOLOGIA.<br />
-                        <span style={{ color: "#32cd32" }}>CRIE O FUTURO.</span>
+                        <span style={{ color: "#ffffff" }}>CRIE O FUTURO.</span>
                     </h1>
 
                     {/* Subtítulo */}
                     <p
                         style={{
-                            color: "rgba(255,255,255,0.8)",
+                            color: "#ffffff",
                             fontSize: "clamp(1rem, 2vw, 1.2rem)",
                             fontWeight: 500,
                             marginBottom: "2.5rem",
@@ -176,23 +183,12 @@ export default function WelcomePage() {
                             </button>
                         </Link>
                     </div>
-                    <p style={{ color: "rgba(255,255,255,0.45)", fontSize: "0.75rem", marginTop: "0.75rem" }}>
+                    <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.75rem", marginTop: "0.75rem" }}>
                         Sem compromisso. Cancele quando quiser.
                     </p>
                 </div>
 
-                {/* Gradient fade into next section */}
-                <div
-                    style={{
-                        position: "absolute",
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        height: "120px",
-                        background: "linear-gradient(to bottom, transparent, #000)",
-                        zIndex: 2,
-                    }}
-                />
+                {/* Content flows directly over global background */}
             </section>
 
             {/* ───────────────── DIVISÓRIA COM FRASE ───────────────── */}
@@ -206,12 +202,12 @@ export default function WelcomePage() {
                 <p
                     style={{
                         fontSize: "clamp(1rem, 2.5vw, 1.4rem)",
-                        color: "rgba(255,255,255,0.75)",
+                        color: "#ffffff",
                         fontWeight: 600,
                         letterSpacing: "0.02em",
                     }}
                 >
-                    Junte-se a <span style={{ color: "#32cd32", fontWeight: 900 }}>milhares de profissionais</span> que já transformaram suas carreiras.
+                    Junte-se a <span style={{ color: "#ffffff", fontWeight: 900 }}>milhares de profissionais</span> que já transformaram suas carreiras.
                 </p>
             </div>
 
@@ -229,14 +225,15 @@ export default function WelcomePage() {
                         style={{
                             fontSize: "clamp(1.3rem, 2.5vw, 2rem)",
                             fontWeight: 900,
+                            fontStyle: "italic",
                             color: "#fff",
                             textTransform: "uppercase",
                             letterSpacing: "-0.02em",
                         }}
                     >
-                        TREINAMENTOS EM <span style={{ color: "#32cd32" }}>DESTAQUE</span>
+                        TREINAMENTOS EM <span style={{ color: "#ffffff" }}>DESTAQUE</span>
                     </h2>
-                    <p style={{ color: "#94a3b8", fontSize: "0.9rem", marginTop: "0.5rem" }}>
+                    <p style={{ color: "#ffffff", fontSize: "0.9rem", marginTop: "0.5rem" }}>
                         Explore nossos melhores conteúdos pensados para sua evolução.
                     </p>
                 </div>
@@ -251,7 +248,7 @@ export default function WelcomePage() {
                 >
                     {loading ? (
                         <div style={{ gridColumn: "1/-1", display: "flex", justifyContent: "center", padding: "5rem 0" }}>
-                            <Loader2 className="animate-spin" size={36} style={{ color: "#32cd32" }} />
+                            <Loader2 className="animate-spin" size={36} style={{ color: "#1D5F31" }} />
                         </div>
                     ) : courses.map((course: any, i: number) => (
                         <ExpandableCard
@@ -271,20 +268,19 @@ export default function WelcomePage() {
                         <button
                             style={{
                                 background: "transparent",
-                                border: "1px solid rgba(50,205,50,0.4)",
-                                color: "#32cd32",
+                                border: "1px solid rgba(255, 255, 255, 0.4)",
+                                color: "#ffffff",
                                 fontWeight: 800,
                                 fontSize: "0.8rem",
                                 textTransform: "uppercase",
                                 letterSpacing: "0.15em",
                                 padding: "0.6rem 2rem",
-                                borderRadius: "6px",
                                 cursor: "pointer",
                                 transition: "all 0.2s",
                             }}
                             onMouseEnter={e => {
                                 const t = e.currentTarget;
-                                t.style.background = "rgba(50,205,50,0.1)";
+                                t.style.background = "rgba(255, 255, 255, 0.1)";
                             }}
                             onMouseLeave={e => {
                                 const t = e.currentTarget;
@@ -304,14 +300,15 @@ export default function WelcomePage() {
                         style={{
                             fontSize: "clamp(1.5rem, 3vw, 2.5rem)",
                             fontWeight: 900,
+                            fontStyle: "italic",
                             color: "#fff",
                             textTransform: "uppercase",
                             letterSpacing: "-0.02em",
                         }}
                     >
-                        POR QUE ESCOLHER A <span style={{ color: "#32cd32" }}>POWERPLAY?</span>
+                        POR QUE ESCOLHER A <span style={{ color: "#ffffff" }}>POWERPLAY?</span>
                     </h2>
-                    <p style={{ color: "#94a3b8", marginTop: "0.75rem", fontSize: "1rem" }}>
+                    <p style={{ color: "#ffffff", marginTop: "0.75rem", fontSize: "1rem" }}>
                         Uma plataforma pensada para quem leva o conhecimento a sério.
                     </p>
                 </div>
@@ -331,14 +328,14 @@ export default function WelcomePage() {
                                     style={{
                                         width: "56px",
                                         height: "56px",
-                                        borderRadius: "14px",
-                                        background: "rgba(50,205,50,0.12)",
-                                        border: "1px solid rgba(50,205,50,0.25)",
+                                        background: "rgba(255, 255, 255, 0.1)",
+                                        border: "1px solid rgba(255, 255, 255, 0.3)",
                                         display: "flex",
                                         alignItems: "center",
                                         justifyContent: "center",
                                         marginBottom: "1.25rem",
-                                        color: "#32cd32",
+                                        color: "#ffffff",
+                                        borderRadius: "12px",
                                     }}
                                 >
                                     <Icon size={26} />
@@ -355,7 +352,7 @@ export default function WelcomePage() {
                                 >
                                     {b.title}
                                 </h3>
-                                <p style={{ color: "#94a3b8", fontSize: "0.9rem", lineHeight: 1.65 }}>
+                                <p style={{ color: "#ffffff", fontSize: "0.9rem", lineHeight: 1.65 }}>
                                     {b.description}
                                 </p>
                             </div>
@@ -415,7 +412,6 @@ export default function WelcomePage() {
                                                         background: "rgba(255,255,255,0.1)",
                                                         border: "1px solid rgba(255,255,255,0.15)",
                                                         padding: "0.3rem 1rem",
-                                                        borderRadius: "999px",
                                                         backdropFilter: "blur(8px)",
                                                     }}
                                                 >
@@ -425,15 +421,16 @@ export default function WelcomePage() {
                                                     style={{
                                                         fontSize: "clamp(2rem, 4vw, 3.5rem)",
                                                         fontWeight: 900,
+                                                        fontStyle: "italic",
                                                         color: "#fff",
                                                         lineHeight: 1.1,
                                                         textTransform: "uppercase",
                                                         letterSpacing: "-0.02em",
                                                     }}
                                                 >
-                                                    {idx === 0 ? (<>APRENDA COM <br /><span style={{ color: "#32cd32" }}>ESPECIALISTAS</span></>) : idx === 1 ? (<>LABORATÓRIOS DA <br /><span style={{ color: "#32cd32" }}>VIDA REAL</span></>) : (<>TRANSFORME SUA <br /><span style={{ color: "#32cd32" }}>CARREIRA</span> AGORA</>)}
+                                                    {idx === 0 ? (<>APRENDA COM <br /><span style={{ color: "#ffffff" }}>ESPECIALISTAS</span></>) : idx === 1 ? (<>LABORATÓRIOS DA <br /><span style={{ color: "#ffffff" }}>VIDA REAL</span></>) : (<>TRANSFORME SUA <br /><span style={{ color: "#ffffff" }}>CARREIRA</span> AGORA</>)}
                                                 </h2>
-                                                <p style={{ color: "rgba(255,255,255,0.8)", fontSize: "1.05rem", fontWeight: 500, lineHeight: 1.6 }}>
+                                                <p style={{ color: "#ffffff", fontSize: "1.05rem", fontWeight: 500, lineHeight: 1.6 }}>
                                                     {idx === 0
                                                         ? 'Trilhas de conhecimento desenhadas por profissionais que lideram grandes projetos.'
                                                         : idx === 1
@@ -455,16 +452,15 @@ export default function WelcomePage() {
                     <div style={{ position: "relative", height: "600px", width: "100%", overflow: "hidden" }}>
                         <img
                             src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2671&auto=format&fit=crop"
-                            alt="Standard Banner"
                             style={{ objectFit: "cover", width: "100%", height: "100%", filter: "brightness(0.35)" }}
                         />
                         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(0,0,0,0.9), transparent)", display: "flex", alignItems: "center" }}>
                             <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem" }}>
                                 <div style={{ maxWidth: "520px", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-                                    <h2 style={{ fontSize: "clamp(2rem, 4vw, 3.2rem)", fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+                                    <h2 style={{ fontSize: "clamp(2rem, 4vw, 3.2rem)", fontWeight: 900, fontStyle: "italic", color: "#fff", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
                                         Potencialize <br />seu Futuro
                                     </h2>
-                                    <p style={{ color: "rgba(255,255,255,0.75)", fontSize: "1.05rem", fontWeight: 500 }}>
+                                    <p style={{ color: "#ffffff", fontSize: "1.05rem", fontWeight: 500 }}>
                                         Inicie sua jornada na PowerPlay e domine o mercado.
                                     </p>
                                     <Link href="/register">
@@ -491,13 +487,14 @@ export default function WelcomePage() {
                             textAlign: "center",
                             fontSize: "clamp(1.3rem, 2.5vw, 2rem)",
                             fontWeight: 900,
+                            fontStyle: "italic",
                             color: "#fff",
                             textTransform: "uppercase",
                             letterSpacing: "-0.02em",
                             marginBottom: "3rem",
                         }}
                     >
-                        NOSSOS <span style={{ color: "#32cd32" }}>DIFERENCIAIS</span>
+                        NOSSOS <span style={{ color: "#ffffff" }}>DIFERENCIAIS</span>
                     </h2>
                     <div
                         style={{
@@ -519,13 +516,13 @@ export default function WelcomePage() {
                                     style={{
                                         width: "72px",
                                         height: "72px",
-                                        borderRadius: "20px",
-                                        background: "rgba(50,205,50,0.1)",
-                                        border: "1px solid rgba(50,205,50,0.25)",
+                                        background: "rgba(255, 255, 255, 0.1)",
+                                        border: "1px solid rgba(255, 255, 255, 0.3)",
                                         display: "flex",
                                         alignItems: "center",
                                         justifyContent: "center",
-                                        color: "#32cd32",
+                                        color: "#ffffff",
+                                        borderRadius: "16px",
                                     }}
                                 >
                                     <Icon size={32} />
@@ -533,7 +530,7 @@ export default function WelcomePage() {
                                 <h3 style={{ color: "#f1f5f9", fontWeight: 900, fontSize: "1.1rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                                     {title}
                                 </h3>
-                                <p style={{ color: "#94a3b8", fontSize: "0.9rem", lineHeight: 1.7, maxWidth: "260px" }}>
+                                <p style={{ color: "#ffffff", fontSize: "0.9rem", lineHeight: 1.7, maxWidth: "260px" }}>
                                     {text}
                                 </p>
                             </div>

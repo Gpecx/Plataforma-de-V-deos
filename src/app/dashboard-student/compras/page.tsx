@@ -127,7 +127,7 @@ export default function ComprasPage() {
     if (authLoading || loading) {
         return (
             <div className="p-8 min-h-[60vh] flex items-center justify-center">
-                <Loader2 className="animate-spin text-[#00C402]" size={48} />
+                <Loader2 className="animate-spin text-[#1D5F31]" size={48} />
             </div>
         )
     }
@@ -136,10 +136,10 @@ export default function ComprasPage() {
         <div className="p-8 md:p-12 min-h-screen font-exo text-slate-800 animate-in fade-in duration-500 bg-[#F4F7F9]">
             <header className="mb-12">
                 <div className="flex items-center gap-3 mb-2">
-                    <span className="text-[10px] font-black uppercase tracking-[5px] text-[#00C402]">FINANCEIRO</span>
+                    <span className="text-[10px] font-black uppercase tracking-[5px] text-[#1D5F31]">FINANCEIRO</span>
                 </div>
                 <h1 className="text-4xl font-black tracking-tighter text-slate-900 uppercase">
-                    MINHAS <span className="text-[#00C402]">COMPRAS</span>
+                    MINHAS <span className="text-[#1D5F31]">COMPRAS</span>
                 </h1>
                 <p className="text-slate-400 font-bold text-xs tracking-widest uppercase mt-2">Gerencie seus métodos e histórico de transações.</p>
             </header>
@@ -150,7 +150,7 @@ export default function ComprasPage() {
                     <div className="bg-white rounded-[40px] border border-slate-100 p-8 md:p-10 shadow-sm relative overflow-hidden h-full flex flex-col">
                         <div className="flex items-center justify-between mb-10">
                             <h2 className="text-lg font-black uppercase tracking-tighter text-slate-800">Histórico de Transações</h2>
-                            <button className="text-[10px] font-black uppercase tracking-widest text-[#00C402] hover:text-slate-900 transition-colors">
+                            <button className="text-[10px] font-black uppercase tracking-widest text-[#1D5F31] hover:text-slate-900 transition-colors">
                                 Exportar PDF
                             </button>
                         </div>
@@ -174,7 +174,7 @@ export default function ComprasPage() {
                                                 <td className="py-6 text-xs font-black uppercase tracking-widest text-slate-400">#{t.id}</td>
                                                 <td className="py-6 text-xs font-bold text-slate-500 tracking-tight">{t.date}</td>
                                                 <td className="py-6 text-sm font-black text-slate-800 tracking-tighter max-w-[150px] truncate pr-4">{t.courseTitle}</td>
-                                                <td className="py-6 text-sm font-black text-[#00C402] tracking-tighter">{t.value}</td>
+                                                <td className="py-6 text-sm font-black text-[#1D5F31] tracking-tighter">{t.value}</td>
                                                 <td className="py-6">
                                                     <div className="flex items-center gap-3">
                                                         <t.icon size={14} className="text-slate-400" />
@@ -183,8 +183,8 @@ export default function ComprasPage() {
                                                 </td>
                                                 <td className="py-6">
                                                     <div className="flex items-center gap-2">
-                                                        <div className="w-1.5 h-1.5 rounded-full bg-[#00C402]" />
-                                                        <span className="text-[9px] font-black text-[#00C402] uppercase tracking-widest">{t.status}</span>
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-[#1D5F31]" />
+                                                        <span className="text-[9px] font-black text-[#1D5F31] uppercase tracking-widest">{t.status}</span>
                                                     </div>
                                                 </td>
                                             </tr>
@@ -211,7 +211,7 @@ export default function ComprasPage() {
                 <div className="space-y-8">
                     {/* Cartão Salvo */}
                     <div className="bg-slate-900 rounded-[40px] p-10 text-white shadow-2xl relative overflow-hidden group">
-                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#00C402]/20 blur-[100px] pointer-events-none"></div>
+                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#1D5F31]/20 blur-[100px] pointer-events-none"></div>
 
                         <div className="relative z-10">
                             <h3 className="text-sm font-black uppercase tracking-[3px] text-slate-400 mb-8">Cartão Principal</h3>
@@ -223,7 +223,7 @@ export default function ComprasPage() {
                                         <p className="text-xs font-bold tracking-widest">12/28</p>
                                     </div>
                                     <div className="w-12 h-8 bg-white/10 rounded-lg flex items-center justify-center">
-                                        <CreditCard size={20} className="text-[#00C402]" />
+                                        <CreditCard size={20} className="text-[#1D5F31]" />
                                     </div>
                                 </div>
                             </div>
@@ -251,7 +251,7 @@ export default function ComprasPage() {
                                         type="text"
                                         required
                                         placeholder="0000 0000 0000 0000"
-                                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:border-[#00C402] transition-colors"
+                                        className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:border-[#1D5F31] transition-colors"
                                     />
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
@@ -261,7 +261,7 @@ export default function ComprasPage() {
                                             type="text"
                                             required
                                             placeholder="MM/AA"
-                                            className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:border-[#00C402] transition-colors"
+                                            className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:border-[#1D5F31] transition-colors"
                                         />
                                     </div>
                                     <div>
@@ -270,7 +270,7 @@ export default function ComprasPage() {
                                             type="text"
                                             required
                                             placeholder="123"
-                                            className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:border-[#00C402] transition-colors"
+                                            className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:border-[#1D5F31] transition-colors"
                                         />
                                     </div>
                                 </div>
@@ -285,7 +285,7 @@ export default function ComprasPage() {
                                     <button
                                         type="submit"
                                         disabled={isSavingCard}
-                                        className="flex-1 py-3 px-4 bg-[#00C402] text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm hover:opacity-90 transition-colors flex justify-center items-center gap-2 disabled:opacity-50"
+                                        className="flex-1 py-3 px-4 bg-[#1D5F31] text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm hover:opacity-90 transition-colors flex justify-center items-center gap-2 disabled:opacity-50"
                                     >
                                         {isSavingCard ? <Loader2 size={16} className="animate-spin" /> : <><CheckCircle2 size={16} /> Salvar</>}
                                     </button>

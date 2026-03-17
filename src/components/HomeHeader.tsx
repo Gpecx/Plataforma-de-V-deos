@@ -64,9 +64,9 @@ export default function HomeHeader() {
                             fontWeight: 900,
                             textTransform: 'uppercase',
                             letterSpacing: '0.15em',
-                            background: '#32cd32',
+                            background: '#1D5F31',
                             color: '#fff',
-                            border: '2px solid #32cd32',
+                            border: '2px solid #1D5F31',
                             padding: '0.5rem 1.25rem',
                             borderRadius: '8px',
                             cursor: 'pointer',
@@ -77,7 +77,7 @@ export default function HomeHeader() {
                             e.currentTarget.style.transform = 'scale(1.03)'
                         }}
                         onMouseLeave={e => {
-                            e.currentTarget.style.background = '#32cd32'
+                            e.currentTarget.style.background = '#1D5F31'
                             e.currentTarget.style.transform = 'scale(1)'
                         }}
                     >

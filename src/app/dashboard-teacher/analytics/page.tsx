@@ -118,20 +118,20 @@ export default async function FinancialDashboardPage() {
         .reduce((acc: number, s: any) => acc + parseFloat(s.commission.replace('R$ ', '').replace('.', '').replace(',', '.')), 0)
 
     return (
-        <div className="pb-16 md:pb-24 bg-[#0d2b17] min-h-screen text-slate-200 font-exo">
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center pt-0 px-4 md:px-8 mb-12 gap-6">
+        <div className="pb-16 md:pb-24 bg-transparent min-h-screen text-slate-200 font-exo">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center pt-8 px-4 md:px-8 mb-12 gap-6">
                 <div>
                     <h1 className="text-2xl font-black tracking-tighter text-white">
-                        GESTÃO <span className="text-[#00C402]">FINANCEIRA</span>
+                        GESTÃO <span className="text-[#1D5F31]">FINANCEIRA</span>
                     </h1>
                     <p className="text-slate-400 mt-1 text-sm font-medium">Acompanhe suas vendas, comissões e solicite saques com facilidade.</p>
                 </div>
 
                 <div className="flex gap-4">
-                    <Button variant="outline" className="border-[#1e4d2b] text-slate-400 font-bold uppercase text-[10px] tracking-widest px-6 hover:bg-[#1e4d2b]/20 transition-colors bg-[#0f1f14] rounded-none">
+                    <Button variant="outline" className="border-[#1D5F31] text-slate-400 font-bold uppercase text-[10px] tracking-widest px-6 hover:bg-[#1D5F31]/20 transition-colors bg-[#061629] rounded-none">
                         <Download size={14} className="mr-2" /> Relatório CSV
                     </Button>
-                    <Button className="bg-[#00C402] text-white font-black uppercase text-xs tracking-widest px-8 shadow-sm hover:brightness-105 transition-all rounded-none">
+                    <Button className="bg-[#1D5F31] text-white font-black uppercase text-xs tracking-widest px-8 shadow-sm hover:brightness-105 transition-all rounded-none">
                         Solicitar Saque
                     </Button>
                 </div>
@@ -140,8 +140,8 @@ export default async function FinancialDashboardPage() {
             {/* Cards de Saldo */}
             <div className="px-4 md:px-8 mb-16">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
-                    <div className="bg-[#0f1f14]/80 backdrop-blur-md border border-[#1e4d2b] p-8 rounded-none relative overflow-hidden group transition-all hover:border-[#00C402]/20 shadow-sm">
-                        <div className="absolute top-0 right-0 p-6 opacity-5 text-[#00C402] group-hover:scale-110 transition-transform">
+                    <div className="bg-[#061629]/80 backdrop-blur-md border border-[#1D5F31] p-8 rounded-none relative overflow-hidden group transition-all hover:border-[#1D5F31]/20 shadow-sm">
+                        <div className="absolute top-0 right-0 p-6 opacity-5 text-[#1D5F31] group-hover:scale-110 transition-transform">
                             <Wallet size={80} />
                         </div>
                         <div className="relative z-10">
@@ -150,13 +150,13 @@ export default async function FinancialDashboardPage() {
                                 <span className="text-[10px] font-black uppercase tracking-widest">Saldo Disponível</span>
                             </div>
                             <h3 className="text-4xl font-black mb-2 text-white">R$ {totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
-                            <p className="text-[#00C402] text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
+                            <p className="text-[#1D5F31] text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
                                 <TrendingUp size={12} /> Saldo acumulado
                             </p>
                         </div>
                     </div>
 
-                    <div className="bg-[#0f1f14]/80 backdrop-blur-md border border-[#1e4d2b] p-8 rounded-none relative overflow-hidden group shadow-sm transition-all hover:border-slate-200">
+                    <div className="bg-[#061629]/80 backdrop-blur-md border border-[#1D5F31] p-8 rounded-none relative overflow-hidden group shadow-sm transition-all hover:border-slate-200">
                         <div className="relative z-10">
                             <div className="flex items-center gap-2 text-slate-500 mb-4">
                                 <Calendar size={14} />
@@ -167,18 +167,18 @@ export default async function FinancialDashboardPage() {
                         </div>
                     </div>
 
-                    <div className="bg-[#0f1f14]/80 backdrop-blur-md border border-[#1e4d2b] p-8 rounded-none flex flex-col justify-between group shadow-sm">
+                    <div className="bg-[#061629]/80 backdrop-blur-md border border-[#1D5F31] p-8 rounded-none flex flex-col justify-between group shadow-sm">
                         <div className="space-y-4">
                             <div className="flex items-center gap-2 text-slate-500">
                                 <Info size={14} />
                                 <span className="text-[10px] font-black uppercase tracking-widest">Contrato Ativo</span>
                             </div>
                             <div className="flex items-end gap-3">
-                                <h3 className="text-5xl font-black text-[#00C402]">70%</h3>
+                                <h3 className="text-5xl font-black text-[#1D5F31]">70%</h3>
                                 <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-2">Comissão PowerPlay</p>
                             </div>
                         </div>
-                        <button className="text-[10px] font-black uppercase tracking-widest text-[#00C402] hover:text-white transition flex items-center gap-1 mt-6">
+                        <button className="text-[10px] font-black uppercase tracking-widest text-[#1D5F31] hover:text-white transition flex items-center gap-1 mt-6">
                             Detalhes do plano <ChevronRight size={12} />
                         </button>
                     </div>
@@ -187,14 +187,14 @@ export default async function FinancialDashboardPage() {
 
             {/* Tabela de Vendas Recentes */}
             <div className="px-4 md:px-8">
-                <div className="bg-[#0f1f14] border border-[#1e4d2b] rounded-none p-8 space-y-8 shadow-sm overflow-hidden">
+                <div className="bg-[#061629] border border-[#1D5F31] rounded-none p-8 space-y-8 shadow-sm overflow-hidden">
                     <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-                        <h2 className="text-lg font-black uppercase tracking-tighter text-white">Histórico de <span className="text-[#00C402]">Vendas</span></h2>
+                        <h2 className="text-lg font-black uppercase tracking-tighter text-white">Histórico de <span className="text-[#1D5F31]">Vendas</span></h2>
                         <div className="relative w-full md:w-64">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
                             <input
                                 placeholder="Pesquisar venda..."
-                                className="w-full bg-[#0d2b17] border border-[#1e4d2b] rounded-none px-10 py-2.5 text-xs text-white focus:border-[#00C402] outline-none transition-all font-bold uppercase tracking-widest placeholder:text-slate-600"
+                                className="w-full bg-[#061629] border border-[#1D5F31] rounded-none px-10 py-2.5 text-xs text-white focus:border-[#1D5F31] outline-none transition-all font-bold uppercase tracking-widest placeholder:text-slate-600"
                             />
                         </div>
                     </div>
@@ -223,10 +223,10 @@ export default async function FinancialDashboardPage() {
                                             </td>
                                             <td className="py-6 px-4 italic text-slate-400 font-medium">{sale.course}</td>
                                             <td className="py-6 px-4 font-bold text-white">{sale.value}</td>
-                                            <td className="py-6 px-4 font-black text-[#00C402]">{sale.commission}</td>
+                                            <td className="py-6 px-4 font-black text-[#1D5F31]">{sale.commission}</td>
                                             <td className="py-6 px-4 text-xs text-slate-400 uppercase font-bold">{sale.date}</td>
                                             <td className="py-6 px-4 text-right">
-                                                <span className="px-3 py-1 rounded-none bg-[#00C402]/10 text-[#00C402] text-[9px] font-black uppercase tracking-widest border border-[#00C402]/20">
+                                                <span className="px-3 py-1 rounded-none bg-[#1D5F31]/10 text-[#1D5F31] text-[9px] font-black uppercase tracking-widest border border-[#1D5F31]/20">
                                                     {sale.status}
                                                 </span>
                                             </td>
@@ -250,18 +250,18 @@ export default async function FinancialDashboardPage() {
 
 function NoSales() {
     return (
-        <div className="pb-16 md:pb-24 bg-[#0d2b17] min-h-screen text-white font-exo">
-            <header className="pt-0 px-4 md:px-8 mb-12">
+        <div className="pb-16 md:pb-24 bg-transparent min-h-screen text-white font-exo">
+            <header className="pt-8 px-4 md:px-8 mb-12">
                 <h1 className="text-2xl font-black tracking-tighter text-white uppercase">
-                    GESTÃO <span className="text-[#00C402]">FINANCEIRA</span>
+                    GESTÃO <span className="text-[#1D5F31]">FINANCEIRA</span>
                 </h1>
             </header>
             <div className="px-4 md:px-8">
-                <div className="bg-[#0f1f14] border border-[#1e4d2b] rounded-none p-20 text-center shadow-sm">
+                <div className="bg-[#061629] border border-[#1D5F31] rounded-none p-20 text-center shadow-sm">
                     <p className="text-slate-500 italic font-medium uppercase tracking-widest text-[10px]">
                         Você ainda não possui vendas registradas.
                     </p>
-                    <Link href="/dashboard-teacher/courses" className="inline-block mt-6 text-[10px] font-black uppercase tracking-[3px] text-[#00C402] hover:underline">
+                    <Link href="/dashboard-teacher/courses" className="inline-block mt-6 text-[10px] font-black uppercase tracking-[3px] text-[#1D5F31] hover:underline">
                         Divulgar meus Cursos
                     </Link>
                 </div>

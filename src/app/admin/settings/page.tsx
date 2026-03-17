@@ -13,7 +13,7 @@ import { uploadCourseImage } from '@/lib/storage-helpers'
 export default function AdminSettingsPage() {
     const [settings, setSettings] = useState<GlobalSettings>({
         banners: { hero_home: [], hero_dashboard: [], hero_course: [] },
-        branding: { logoUrl: '', siteName: 'PowerPlay', primaryColor: '#00C402' }
+        branding: { logoUrl: '', siteName: 'PowerPlay', primaryColor: '#1D5F31' }
     })
     const [loading, setLoading] = useState(true)
     const [saving, setSaving] = useState(false)
@@ -102,24 +102,24 @@ export default function AdminSettingsPage() {
     )
 
     const BannerField = ({ id, label, description, items }: { id: keyof BannersData; label: string; description: string; items: BannerItem[] }) => (
-        <Card className="mb-6 rounded-none border border-[#1e4d2b] shadow-sm bg-[#0f1f14]">
-            <CardHeader className="bg-[#0d2b17] border-b border-[#1e4d2b] flex flex-row items-center justify-between py-4 rounded-t-none">
+        <Card className="mb-6 rounded-none border border-[#1D5F31] shadow-sm bg-[#061629]">
+            <CardHeader className="bg-[#061629] border-b border-[#1D5F31] flex flex-row items-center justify-between py-4 rounded-t-none">
                 <div>
                     <CardTitle className="text-base uppercase tracking-tighter text-white font-black">{label}</CardTitle>
                     <CardDescription className="uppercase tracking-[2px] text-[9px] font-bold text-slate-400">{description}</CardDescription>
                 </div>
-                <Button onClick={() => addBanner(id)} className="bg-[#00C402] hover:bg-[#00A802] text-white text-[9px] font-black uppercase tracking-widest h-8 px-4 rounded-none">
+                <Button onClick={() => addBanner(id)} className="bg-[#1D5F31] hover:bg-[#00A802] text-white text-[9px] font-black uppercase tracking-widest h-8 px-4 rounded-none">
                     + Adicionar
                 </Button>
             </CardHeader>
             <CardContent className="space-y-4 pt-5">
                 {items.length === 0 && (
-                    <div className="text-center py-6 border-2 border-dashed border-[#1e4d2b] rounded-none">
+                    <div className="text-center py-6 border-2 border-dashed border-[#1D5F31] rounded-none">
                         <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Nenhum banner adicionado</p>
                     </div>
                 )}
                 {items.sort((a, b) => a.order - b.order).map((item, index) => (
-                    <div key={index} className="space-y-3 p-4 border border-[#1e4d2b] rounded-none bg-[#0d2b17]/50">
+                    <div key={index} className="space-y-3 p-4 border border-[#1D5F31] rounded-none bg-[#061629]/50">
                         <div className="flex gap-3 items-start">
                             <div className="flex flex-col gap-1">
                                 <Label className="text-[9px] font-black uppercase tracking-widest text-slate-500">Ordem</Label>
@@ -127,7 +127,7 @@ export default function AdminSettingsPage() {
                                     type="number"
                                     value={item.order}
                                     onChange={(e) => updateBanner(id, index, 'order', e.target.value)}
-                                    className="w-16 bg-[#0d2b17] border-[#1e4d2b] rounded-none h-9 text-xs font-bold text-center text-white"
+                                    className="w-16 bg-[#061629] border-[#1D5F31] rounded-none h-9 text-xs font-bold text-center text-white"
                                 />
                                 <div className="flex gap-1 mt-1">
                                     <Button
@@ -135,7 +135,7 @@ export default function AdminSettingsPage() {
                                         size="icon"
                                         onClick={() => moveBanner(id, index, 'up')}
                                         disabled={index === 0}
-                                        className="h-7 w-7 rounded-none border-[#1e4d2b] text-slate-400 bg-[#0f1f14] hover:bg-[#1e4d2b]"
+                                        className="h-7 w-7 rounded-none border-[#1D5F31] text-slate-400 bg-[#061629] hover:bg-[#1D5F31]"
                                     >
                                         <ArrowUp size={12} />
                                     </Button>
@@ -144,7 +144,7 @@ export default function AdminSettingsPage() {
                                         size="icon"
                                         onClick={() => moveBanner(id, index, 'down')}
                                         disabled={index === items.length - 1}
-                                        className="h-7 w-7 rounded-none border-[#1e4d2b] text-slate-400 bg-[#0f1f14] hover:bg-[#1e4d2b]"
+                                        className="h-7 w-7 rounded-none border-[#1D5F31] text-slate-400 bg-[#061629] hover:bg-[#1D5F31]"
                                     >
                                         <ArrowDown size={12} />
                                     </Button>
@@ -152,12 +152,12 @@ export default function AdminSettingsPage() {
                             </div>
                             <div className="flex-1 space-y-1">
                                 <Label className="text-[9px] font-black uppercase tracking-widest text-slate-500">URL da Imagem</Label>
-                                <Input value={item.url} onChange={(e) => updateBanner(id, index, 'url', e.target.value)} placeholder="https://..." className="bg-[#0d2b17] border-[#1e4d2b] rounded-none h-9 text-xs text-white" />
+                                <Input value={item.url} onChange={(e) => updateBanner(id, index, 'url', e.target.value)} placeholder="https://..." className="bg-[#061629] border-[#1D5F31] rounded-none h-9 text-xs text-white" />
                             </div>
                             <Button variant="outline" onClick={() => removeBanner(id, index)} className="mt-5 border-red-900/50 text-red-400 hover:bg-red-950/30 h-9 px-3 rounded-none text-xs">✕</Button>
                         </div>
                         {item.url && (
-                            <div className="rounded-none overflow-hidden bg-black aspect-video max-w-xs transition-all hover:shadow-md border border-[#1e4d2b]">
+                            <div className="rounded-none overflow-hidden bg-black aspect-video max-w-xs transition-all hover:shadow-md border border-[#1D5F31]">
                                 <img src={item.url} alt={label} className="object-cover w-full h-full" />
                             </div>
                         )}
@@ -168,12 +168,12 @@ export default function AdminSettingsPage() {
     )
 
     return (
-        <div className="min-h-screen bg-[#0d2b17] text-white">
+        <div className="min-h-screen bg-transparent text-white">
             <div className="max-w-4xl mx-auto p-4 md:p-8 font-exo pb-24">
                 {/* Header */}
                 <div className="mb-10">
                     <h1 className="text-3xl font-black uppercase tracking-tighter text-white flex items-center gap-3">
-                        <Settings className="text-[#00C402]" size={30} />
+                        <Settings className="text-[#1D5F31]" size={30} />
                         Configurações Globais
                     </h1>
                     <p className="text-slate-400 uppercase tracking-widest text-[10px] font-bold mt-1">
@@ -184,12 +184,12 @@ export default function AdminSettingsPage() {
                 {/* ─── BRANDING ─────────────────────────────── */}
                 <div className="mb-12">
                     <div className="flex items-center gap-3 mb-5">
-                        <Palette size={20} className="text-[#00C402]" />
+                        <Palette size={20} className="text-[#1D5F31]" />
                         <h2 className="text-lg font-black uppercase tracking-tighter text-white">Branding</h2>
                         <div className="flex-1 h-px bg-white/5" />
                     </div>
 
-                    <Card className="rounded-none border border-[#1e4d2b] shadow-sm bg-[#0f1f14] mb-6">
+                    <Card className="rounded-none border border-[#1D5F31] shadow-sm bg-[#061629] mb-6">
                         <CardContent className="pt-6 space-y-8">
                             {/* Site Name */}
                             <div className="space-y-2">
@@ -200,7 +200,7 @@ export default function AdminSettingsPage() {
                                     value={settings.branding.siteName}
                                     onChange={(e) => setBranding('siteName', e.target.value)}
                                     placeholder="Ex: PowerPlay"
-                                    className="rounded-none h-11 font-semibold text-white bg-[#0d2b17] border-[#1e4d2b]"
+                                    className="rounded-none h-11 font-semibold text-white bg-[#061629] border-[#1D5F31]"
                                 />
                             </div>
 
@@ -215,12 +215,12 @@ export default function AdminSettingsPage() {
                                         {...getRootProps()}
                                         className={`
                                             border-2 border-dashed rounded-none p-8 transition-all cursor-pointer flex flex-col items-center justify-center gap-3 text-center
-                                            ${isDragActive ? 'border-[#00C402] bg-[#00C402]/5' : 'border-[#1e4d2b] hover:border-[#00C402]/30 bg-[#0d2b17]/50'}
+                                            ${isDragActive ? 'border-[#1D5F31] bg-[#1D5F31]/5' : 'border-[#1D5F31] hover:border-[#1D5F31]/30 bg-[#061629]/50'}
                                         `}
                                     >
                                         <input {...getInputProps()} />
                                         {uploadingLogo ? (
-                                            <Loader2 className="animate-spin text-[#00C402]" size={24} />
+                                            <Loader2 className="animate-spin text-[#1D5F31]" size={24} />
                                         ) : (
                                             <UploadCloud size={24} className="text-slate-500" />
                                         )}
@@ -230,7 +230,7 @@ export default function AdminSettingsPage() {
                                         </div>
                                     </div>
 
-                                    <div className="bg-[#0d2b17] border border-[#1e4d2b] rounded-none p-6 flex flex-col items-center justify-center min-h-[140px]">
+                                    <div className="bg-[#061629] border border-[#1D5F31] rounded-none p-6 flex flex-col items-center justify-center min-h-[140px]">
                                         <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-4">Logo Atual</p>
                                         <div className="h-16 w-full flex items-center justify-center">
                                             <img
@@ -254,13 +254,13 @@ export default function AdminSettingsPage() {
                                         type="color"
                                         value={settings.branding.primaryColor}
                                         onChange={(e) => setBranding('primaryColor', e.target.value)}
-                                        className="w-11 h-11 rounded-none cursor-pointer border border-[#1e4d2b] p-1 bg-[#0d2b17]"
+                                        className="w-11 h-11 rounded-none cursor-pointer border border-[#1D5F31] p-1 bg-[#061629]"
                                     />
                                     <Input
                                         value={settings.branding.primaryColor}
                                         onChange={(e) => setBranding('primaryColor', e.target.value)}
-                                        placeholder="#00C402"
-                                        className="rounded-none h-11 font-mono text-sm max-w-[150px] bg-[#0d2b17] border-[#1e4d2b] text-white"
+                                        placeholder="#1D5F31"
+                                        className="rounded-none h-11 font-mono text-sm max-w-[150px] bg-[#061629] border-[#1D5F31] text-white"
                                     />
                                     <div className="h-11 px-4 flex items-center rounded-none text-white text-xs font-black uppercase tracking-widest" style={{ backgroundColor: settings.branding.primaryColor }}>
                                         Preview
@@ -274,7 +274,7 @@ export default function AdminSettingsPage() {
                 {/* ─── BANNERS ─────────────────────────────── */}
                 <div className="mb-8">
                     <div className="flex items-center gap-3 mb-5">
-                        <ImageIcon size={20} className="text-[#00C402]" />
+                        <ImageIcon size={20} className="text-[#1D5F31]" />
                         <h2 className="text-lg font-black uppercase tracking-tighter text-white">Banners & Carrosséis</h2>
                         <div className="flex-1 h-px bg-white/5" />
                     </div>
@@ -286,12 +286,12 @@ export default function AdminSettingsPage() {
             </div>
 
             {/* Sticky Save Bar */}
-            <div className="fixed bottom-0 left-0 right-0 bg-[#0d2b17]/80 backdrop-blur-md border-t border-[#1e4d2b] p-4 flex justify-end z-50">
+            <div className="fixed bottom-0 left-0 right-0 bg-[#061629]/80 backdrop-blur-md border-t border-[#1D5F31] p-4 flex justify-end z-50">
                 <Button
                     onClick={handleSave}
                     disabled={saving}
                     className="font-black uppercase tracking-[2px] px-10 h-12 text-[11px] rounded-none transition-all shadow-xl text-white"
-                    style={{ backgroundColor: saving ? '#1e4d2b' : saved ? '#22c55e' : '#00C402' }}
+                    style={{ backgroundColor: saving ? '#1D5F31' : saved ? '#22c55e' : '#1D5F31' }}
                 >
                     {saving ? 'SALVANDO...' : saved ? '✓ SALVO!' : 'SALVAR ALTERAÇÕES'}
                 </Button>

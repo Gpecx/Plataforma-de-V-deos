@@ -21,7 +21,7 @@ export default async function StudentLayout({
     }
 
     return (
-        <div className="min-h-screen bg-[var(--background-color)] text-[var(--foreground)] text-[var(--foreground)] font-exo flex flex-col">
+        <div className="min-h-screen bg-transparent text-[var(--foreground)] font-exo flex flex-col">
             <ScrollToTop />
             <Navbar />
 

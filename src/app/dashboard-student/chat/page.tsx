@@ -154,30 +154,30 @@ export default function StudentChatPage() {
 
     if (loading) {
         return (
-            <div className="h-screen flex items-center justify-center bg-[#0d2b17]">
+            <div className="h-screen flex items-center justify-center bg-transparent">
                 <div className="flex flex-col items-center gap-4">
                     {/* A alteração deve ser aqui, voltando para rounded-full */}
-                    <div className="w-12 h-12 border-4 border-[#00C402] border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-12 h-12 border-4 border-[#1D5F31] border-t-transparent rounded-full animate-spin"></div>
                     <p className="text-[10px] font-black uppercase tracking-[4px] text-slate-400">Iniciando Suporserver PowerPlay...</p>
                 </div>
             </div>
         )
     }
     return (
-        <div className="h-[calc(100vh-20px)] bg-[#0d2b17] flex flex-col overflow-hidden">
+        <div className="h-[calc(100vh-20px)] bg-[#061629] flex flex-col overflow-hidden">
             <div className="max-w-full w-full mx-auto flex flex-col flex-1 pt-0 pb-1 px-2 gap-1 overflow-hidden">
 
                 <div className="flex items-center justify-between mt-0 scale-90 origin-left">
                     <div className="flex items-center gap-4">
                         <Link
                             href="/dashboard-student"
-                            className="p-3 bg-[#0f1f14] border-2 border-[#1e4d2b] rounded-none hover:border-[#00C402] text-white transition shadow-sm"
+                            className="p-3 bg-[#061629] border-2 border-[#1D5F31] rounded-none hover:border-[#1D5F31] text-white transition shadow-sm"
                         >
                             <ArrowLeft size={20} />
                         </Link>
                         <div>
                             <h1 className="text-2xl font-black tracking-tighter uppercase text-white">
-                                SUPORTE <span className="text-[#00C402]">ESPECIALIZADO</span>
+                                SUPORTE <span className="text-[#1D5F31]">ESPECIALIZADO</span>
                             </h1>
                             <p className="text-[9px] font-black uppercase tracking-[4px] text-slate-400 mt-0.5">Tira-dúvidas em tempo real com seus mentores</p>
                         </div>
@@ -192,9 +192,9 @@ export default function StudentChatPage() {
                                 <button
                                     key={`${teacher.id}-${teacher.course}`}
                                     onClick={() => setSelectedTeacher(teacher)}
-                                    className={`flex items-center gap-4 p-5 rounded-none border-2 text-left transition-all ${selectedTeacher?.id === teacher.id && selectedTeacher?.course === teacher.course ? 'bg-[#1e4d2b]/20 border-[#00C402] shadow-md ring-1 ring-[#00C402]/5' : 'bg-[#0f1f14]/50 border-[#1e4d2b] hover:border-[#00C402]/20'}`}
+                                    className={`flex items-center gap-4 p-5 rounded-none border-2 text-left transition-all ${selectedTeacher?.id === teacher.id && selectedTeacher?.course === teacher.course ? 'bg-[#1D5F31]/20 border-[#1D5F31] shadow-md ring-1 ring-[#1D5F31]/5' : 'bg-[#061629]/50 border-[#1D5F31] hover:border-[#1D5F31]/20'}`}
                                 >
-                                    <div className={`w-11 h-11 rounded-none flex items-center justify-center font-black text-xs shrink-0 ${selectedTeacher?.id === teacher.id ? 'bg-[#00C402] text-white' : 'bg-[#1e4d2b] text-slate-300'}`}>
+                                    <div className={`w-11 h-11 rounded-none flex items-center justify-center font-black text-xs shrink-0 ${selectedTeacher?.id === teacher.id ? 'bg-[#1D5F31] text-white' : 'bg-[#1D5F31] text-slate-300'}`}>
                                         {teacher.initials}
                                     </div>
                                     <div className="min-w-0">
@@ -202,55 +202,55 @@ export default function StudentChatPage() {
                                             {teacher.name}
                                         </h4>
                                         <div className="flex items-center gap-1.5 mt-1">
-                                            <BookOpen size={10} className="text-[#00C402] shrink-0" />
+                                            <BookOpen size={10} className="text-[#1D5F31] shrink-0" />
                                             <p className="text-[9px] font-bold uppercase tracking-wide text-slate-500 truncate italic">{teacher.course}</p>
                                         </div>
                                     </div>
                                 </button>
                             ))
                         ) : (
-                            <div className="p-6 bg-[#0f1f14]/50 border-2 border-dashed border-[#1e4d2b] rounded-none text-center">
+                            <div className="p-6 bg-[#061629]/50 border-2 border-dashed border-[#1D5F31] rounded-none text-center">
                                 <p className="text-[10px] font-black uppercase tracking-[2px] text-slate-500">Você ainda não tem cursos ativos para suporte.</p>
-                                <Link href="/dashboard-student" className="inline-block mt-4 text-[9px] font-black uppercase tracking-widest text-[#00C402] hover:underline">Ver Cursos</Link>
+                                <Link href="/dashboard-student" className="inline-block mt-4 text-[9px] font-black uppercase tracking-widest text-[#1D5F31] hover:underline">Ver Cursos</Link>
                             </div>
                         )}
                     </aside>
 
-                    <section className="flex-1 flex flex-col bg-[#0f1f14] border-2 border-[#1e4d2b] rounded-none overflow-hidden shadow-2xl mb-2">
+                    <section className="flex-1 flex flex-col bg-[#061629] border-2 border-[#1D5F31] rounded-none overflow-hidden shadow-2xl mb-2">
                         {selectedTeacher ? (
                             <>
-                                <div className="flex items-center gap-5 px-8 py-5 border-b-2 border-[#1e4d2b] bg-[#0d2b17]/50">
-                                    <div className="w-11 h-11 rounded-none bg-[#1e4d2b] flex items-center justify-center text-white font-black text-sm shadow-sm border border-[#00C402]/20">
+                                <div className="flex items-center gap-5 px-8 py-5 border-b-2 border-[#1D5F31] bg-[#061629]/50">
+                                    <div className="w-11 h-11 rounded-none bg-[#1D5F31] flex items-center justify-center text-white font-black text-sm shadow-sm border border-[#1D5F31]/20">
                                         {selectedTeacher.initials}
                                     </div>
                                     <div>
                                         <h3 className="font-black uppercase tracking-tighter text-base text-white">{selectedTeacher.name}</h3>
                                         <div className="flex items-center gap-2 mt-0.5">
-                                            <div className="w-1.5 h-1.5 rounded-none bg-[#00C402]"></div>
-                                            <span className="text-[9px] font-black uppercase tracking-[3px] text-[#00C402]">Canal Online · Mentoria Ativa</span>
+                                            <div className="w-1.5 h-1.5 rounded-none bg-[#1D5F31]"></div>
+                                            <span className="text-[9px] font-black uppercase tracking-[3px] text-[#1D5F31]">Canal Online · Mentoria Ativa</span>
                                         </div>
                                     </div>
                                     <div className="ml-auto">
-                                        <div className="hidden lg:flex items-center gap-2 text-[8px] font-black uppercase tracking-[2px] text-slate-300 border-2 border-[#1e4d2b] px-4 py-2 rounded-none bg-[#1e4d2b]/20">
-                                            <GraduationCap size={12} className="text-[#00C402]" />
+                                        <div className="hidden lg:flex items-center gap-2 text-[8px] font-black uppercase tracking-[2px] text-slate-300 border-2 border-[#1D5F31] px-4 py-2 rounded-none bg-[#1D5F31]/20">
+                                            <GraduationCap size={12} className="text-[#1D5F31]" />
                                             {selectedTeacher.course}
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="flex-1 overflow-y-auto px-6 md:px-10 py-8 space-y-8 bg-[#0d2b17]/30 custom-scrollbar">
+                                <div className="flex-1 overflow-y-auto px-6 md:px-10 py-8 space-y-8 bg-[#061629]/30 custom-scrollbar">
                                     {messages.length > 0 ? (
                                         messages.map(msg => (
                                             <div
                                                 key={msg.id}
                                                 className={`flex gap-4 ${msg.role === 'student' ? 'flex-row-reverse' : 'flex-row'} animate-in fade-in slide-in-from-bottom-2 duration-300`}
                                             >
-                                                <div className={`w-8 h-8 rounded-none shrink-0 flex items-center justify-center font-black text-[9px] mt-1 ${msg.role === 'teacher' ? 'bg-[#1e4d2b] text-white border border-[#00C402]/20' : 'bg-[#00C402] text-white'}`}>
+                                                <div className={`w-8 h-8 rounded-none shrink-0 flex items-center justify-center font-black text-[9px] mt-1 ${msg.role === 'teacher' ? 'bg-[#1D5F31] text-white border border-[#1D5F31]/20' : 'bg-[#1D5F31] text-white'}`}>
                                                     {msg.role === 'teacher' ? selectedTeacher.initials : 'EU'}
                                                 </div>
 
                                                 <div className={`max-w-[75%] ${msg.role === 'student' ? 'items-end' : 'items-start'} flex flex-col gap-1.5`}>
-                                                    <div className={`px-6 py-4 rounded-none text-[13px] md:text-sm font-bold leading-relaxed shadow-sm ${msg.role === 'teacher' ? 'bg-[#1e4d2b]/40 border-2 border-[#1e4d2b] text-white' : 'bg-[#00C402] text-white'}`}>
+                                                    <div className={`px-6 py-4 rounded-none text-[13px] md:text-sm font-bold leading-relaxed shadow-sm ${msg.role === 'teacher' ? 'bg-[#1D5F31]/40 border-2 border-[#1D5F31] text-white' : 'bg-[#1D5F31] text-white'}`}>
                                                         {msg.content}
                                                     </div>
                                                     <span className="text-[8px] font-black uppercase tracking-widest text-slate-500 px-2">{msg.time}</span>
@@ -259,7 +259,7 @@ export default function StudentChatPage() {
                                         ))
                                     ) : (
                                         <div className="h-full flex flex-col items-center justify-center text-center p-12 space-y-4">
-                                            <div className="w-20 h-20 bg-[#1e4d2b]/20 rounded-none flex items-center justify-center text-[#00C402] shadow-inner mb-2 border border-[#1e4d2b]">
+                                            <div className="w-20 h-20 bg-[#1D5F31]/20 rounded-none flex items-center justify-center text-[#1D5F31] shadow-inner mb-2 border border-[#1D5F31]">
                                                 <MessageSquare size={32} />
                                             </div>
                                             <h3 className="text-xl font-black uppercase tracking-tighter text-white">Inicie uma conversa</h3>
@@ -269,12 +269,12 @@ export default function StudentChatPage() {
                                     <div ref={bottomRef} />
                                 </div>
 
-                                <div className="px-6 md:px-8 py-6 border-t-2 border-[#1e4d2b] bg-[#0d2b17]/80">
+                                <div className="px-6 md:px-8 py-6 border-t-2 border-[#1D5F31] bg-[#061629]/80">
                                     <div className="flex items-end gap-3 md:gap-5">
-                                        <button className="p-3 text-slate-400 hover:text-[#00C402] hover:scale-110 transition shrink-0">
+                                        <button className="p-3 text-slate-400 hover:text-[#1D5F31] hover:scale-110 transition shrink-0">
                                             <Paperclip size={20} />
                                         </button>
-                                        <div className="flex-1 bg-[#1e4d2b]/20 border-2 border-[#1e4d2b] rounded-none flex items-end px-6 py-4 focus-within:border-[#00C402]/50 transition shadow-sm">
+                                        <div className="flex-1 bg-[#1D5F31]/20 border-2 border-[#1D5F31] rounded-none flex items-end px-6 py-4 focus-within:border-[#1D5F31]/50 transition shadow-sm">
                                             <textarea
                                                 value={input}
                                                 onChange={e => setInput(e.target.value)}
@@ -288,7 +288,7 @@ export default function StudentChatPage() {
                                         <button
                                             onClick={handleSend}
                                             disabled={!input.trim()}
-                                            className="w-14 h-14 bg-[#00C402] text-white rounded-none flex items-center justify-center hover:bg-[#28b828] disabled:opacity-20 active:scale-95 transition-all shadow-xl shrink-0 group"
+                                            className="w-14 h-14 bg-[#1D5F31] text-white rounded-none flex items-center justify-center hover:bg-[#28b828] disabled:opacity-20 active:scale-95 transition-all shadow-xl shrink-0 group"
                                         >
                                             <Send size={20} strokeWidth={2.5} className="group-hover:rotate-12 transition-transform" />
                                         </button>
@@ -299,7 +299,7 @@ export default function StudentChatPage() {
                         ) : (
                             <div className="flex-1 flex items-center justify-center p-12 text-center">
                                 <div className="space-y-6">
-                                    <div className="w-24 h-24 bg-[#1e4d2b]/20 rounded-none flex items-center justify-center text-slate-700 mx-auto shadow-inner border border-[#1e4d2b]">
+                                    <div className="w-24 h-24 bg-[#1D5F31]/20 rounded-none flex items-center justify-center text-slate-700 mx-auto shadow-inner border border-[#1D5F31]">
                                         <Users size={40} />
                                     </div>
                                     <div>
@@ -321,11 +321,11 @@ export default function StudentChatPage() {
                     background: transparent;
                 }
                 .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: #1e4d2b;
+                    background: #1D5F31;
                     border-radius: 0px;
                 }
                 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: #00C402;
+                    background: #1D5F31;
                 }
             `}</style>
         </div>

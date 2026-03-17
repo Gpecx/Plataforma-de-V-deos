@@ -83,7 +83,7 @@ export default function InstructorProfile({
                 <div className="min-w-0 space-y-12">
                     {/* Identidade */}
                     <div className="space-y-4">
-                        <span className="text-[#00C402] text-[10px] font-black uppercase tracking-[5px] block">
+                        <span className="text-[#1D5F31] text-[10px] font-black uppercase tracking-[5px] block">
                             INSTRUTOR ORIGINAL POWERPLAY
                         </span>
                         <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-slate-900 leading-none uppercase">
@@ -99,7 +99,7 @@ export default function InstructorProfile({
                         <div className="space-y-1">
                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-[2px]">Total de Alunos</p>
                             <div className="flex items-center gap-2">
-                                <Users size={16} className="text-[#00C402]" />
+                                <Users size={16} className="text-[#1D5F31]" />
                                 <span className="text-2xl font-black text-slate-800 tracking-tighter">
                                     {stats.totalStudents.toLocaleString()}
                                 </span>
@@ -127,7 +127,7 @@ export default function InstructorProfile({
 
                     {/* Bio */}
                     <div className="space-y-4 pt-4">
-                        <h3 className="text-xl font-black text-slate-900 uppercase tracking-tighter border-l-4 border-[#00C402] pl-4">
+                        <h3 className="text-xl font-black text-slate-900 uppercase tracking-tighter border-l-4 border-[#1D5F31] pl-4">
                             Sobre mim
                         </h3>
                         <p className="text-slate-500 text-base leading-relaxed font-medium">
@@ -151,7 +151,7 @@ export default function InstructorProfile({
                                 <Link
                                     key={course.id}
                                     href={`/course/${course.id}`}
-                                    className="group bg-white border border-slate-100 rounded-2xl overflow-hidden hover:border-[#00C402]/30 transition-all duration-300 flex flex-col shadow-sm hover:shadow-lg"
+                                    className="group bg-white border border-slate-100 rounded-2xl overflow-hidden hover:border-[#1D5F31]/30 transition-all duration-300 flex flex-col shadow-sm hover:shadow-lg"
                                 >
                                     <div className="aspect-video relative overflow-hidden bg-slate-100">
                                         {course.image_url ? (
@@ -165,16 +165,16 @@ export default function InstructorProfile({
                                                 <BookOpen size={32} />
                                             </div>
                                         )}
-                                        <div className="absolute top-2 right-2 bg-white/95 backdrop-blur-sm border border-slate-100 text-[#00C402] px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-widest shadow-sm">
+                                        <div className="absolute top-2 right-2 bg-white/95 backdrop-blur-sm border border-slate-100 text-[#1D5F31] px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-widest shadow-sm">
                                             {course.tag || 'PREMIUM'}
                                         </div>
                                     </div>
                                     <div className="p-4 flex-grow flex flex-col justify-between">
                                         <div className="space-y-1">
-                                            <p className="text-[7px] font-black text-[#00C402] uppercase tracking-[2px]">
+                                            <p className="text-[7px] font-black text-[#1D5F31] uppercase tracking-[2px]">
                                                 {course.category || 'Módulo'}
                                             </p>
-                                            <h4 className="text-xs font-black text-slate-800 leading-tight group-hover:text-[#00C402] transition-colors line-clamp-2 uppercase tracking-tighter">
+                                            <h4 className="text-xs font-black text-slate-800 leading-tight group-hover:text-[#1D5F31] transition-colors line-clamp-2 uppercase tracking-tighter">
                                                 {course.title}
                                             </h4>
                                         </div>
@@ -187,7 +187,7 @@ export default function InstructorProfile({
                                                     R$ {Number(course.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 0 })}
                                                 </span>
                                             </div>
-                                            <div className="w-7 h-7 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 group-hover:bg-[#00C402] group-hover:text-white transition-all">
+                                            <div className="w-7 h-7 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 group-hover:bg-[#1D5F31] group-hover:text-white transition-all">
                                                 <ChevronRight size={14} />
                                             </div>
                                         </div>
@@ -245,7 +245,7 @@ export default function InstructorProfile({
                             </h2>
                             <div className="flex flex-wrap justify-center gap-3">
                                 {instructor.social.website && (
-                                    <a href={instructor.social.website} target="_blank" rel="noopener noreferrer" className="p-3 bg-white border border-slate-100 rounded-xl hover:text-[#00C402] hover:border-[#00C402]/30 transition shadow-sm"><Globe size={18} /></a>
+                                    <a href={instructor.social.website} target="_blank" rel="noopener noreferrer" className="p-3 bg-white border border-slate-100 rounded-xl hover:text-[#1D5F31] hover:border-[#1D5F31]/30 transition shadow-sm"><Globe size={18} /></a>
                                 )}
                                 {instructor.social.linkedin && (
                                     <a href={instructor.social.linkedin} target="_blank" rel="noopener noreferrer" className="p-3 bg-white border border-slate-100 rounded-xl hover:text-blue-600 hover:border-blue-600/30 transition shadow-sm"><LinkedInIcon size={18} /></a>

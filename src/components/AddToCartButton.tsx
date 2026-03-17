@@ -41,8 +41,8 @@ export function AddToCartButton({ course, purchasedCourseIds = [] }: AddToCartBu
             onClick={handleAdd}
             disabled={isInCart}
             className={`w-full font-black uppercase text-[10px] tracking-[2px] py-3 rounded-none transition-all shadow-lg flex items-center justify-center gap-2 group ${isInCart
-                ? 'bg-[#00C402]/20 text-[#00C402] border border-[#00C402]/30 cursor-default'
-                : 'bg-white text-black hover:bg-[#00C402] hover:text-white'
+                ? 'bg-[#1D5F31]/20 text-[#1D5F31] border border-[#1D5F31]/30 cursor-default'
+                : 'bg-white text-black hover:bg-[#1D5F31] hover:text-white'
                 }`}
         >
             {isInCart ? (

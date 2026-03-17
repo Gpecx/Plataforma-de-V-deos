@@ -18,7 +18,7 @@ export default async function RootLayout({
   let branding: BrandingData = {
     logoUrl: '',
     siteName: 'PowerPlay',
-    primaryColor: '#00C402',
+    primaryColor: '#1D5F31',
   }
   try {
     const settings = await getSettings()
@@ -27,7 +27,7 @@ export default async function RootLayout({
 
   return (
     <html lang="pt-br" className={exo.variable}>
-      <body className="font-exo bg-[#0d2b17] text-white">
+      <body className="font-exo bg-[#061629] text-white">
         <BrandingProvider value={branding}>
           <ToastNotification />
           {children}

@@ -108,7 +108,7 @@ export default function ClassroomPage() {
     if (loading) {
         return (
             <div className="h-screen bg-[#F4F7F9] flex items-center justify-center">
-                <Loader2 className="animate-spin text-[#00C402]" size={48} />
+                <Loader2 className="animate-spin text-[#1D5F31]" size={48} />
             </div>
         )
     }
@@ -118,7 +118,7 @@ export default function ClassroomPage() {
             <div className="h-screen bg-[#F4F7F9] flex flex-col items-center justify-center p-8 text-center">
                 <Lock size={64} className="text-slate-300 mb-6" />
                 <h1 className="text-2xl font-black uppercase italic tracking-tighter text-slate-800">Treinamento não encontrado</h1>
-                <Link href="/dashboard-student" className="mt-6 text-[#00C402] font-bold uppercase text-xs tracking-widest underline">Voltar para o Dashboard</Link>
+                <Link href="/dashboard-student" className="mt-6 text-[#1D5F31] font-bold uppercase text-xs tracking-widest underline">Voltar para o Dashboard</Link>
             </div>
         )
     }
@@ -128,9 +128,9 @@ export default function ClassroomPage() {
         : 0
 
     return (
-        <div className={`flex flex-col h-screen overflow-hidden font-exo transition-colors duration-500 ${isDark ? 'bg-[#000000] text-white' : 'bg-[#0d2b17] text-white'}`}>
+        <div className={`flex flex-col h-screen overflow-hidden font-exo transition-colors duration-500 ${isDark ? 'bg-[#000000] text-white' : 'bg-transparent text-white'}`}>
             {/* Header Imersivo */}
-            <header className={`h-16 flex items-center justify-between px-6 border-b transition-all duration-500 z-50 bg-[#0d2b17] border-white/10 shadow-sm ${isDark ? 'opacity-30 hover:opacity-100' : 'opacity-100'}`}>
+            <header className={`h-16 flex items-center justify-between px-6 border-b transition-all duration-500 z-50 bg-[#061629] border-white/10 shadow-sm ${isDark ? 'opacity-30 hover:opacity-100' : 'opacity-100'}`}>
                 {/* Lado Esquerdo: Logo */}
                 <div className="flex items-center w-1/4">
                     <Logo href="/dashboard-student" className="h-12 md:h-14" />
@@ -149,11 +149,11 @@ export default function ClassroomPage() {
                         <div className="flex flex-col items-end">
                             <div className="flex items-center gap-2">
                                 <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Progresso Final</span>
-                                <span className="text-xs font-black text-[#00C402]">{progressPercent}%</span>
+                                <span className="text-xs font-black text-[#1D5F31]">{progressPercent}%</span>
                             </div>
                             <div className="w-20 h-1 rounded-full overflow-hidden mt-1 bg-slate-100">
                                 <div
-                                    className="h-full bg-[#00C402] transition-all duration-1000 shadow-[0_0_10px_rgba(0,196,2,0.5)]"
+                                    className="h-full bg-[#1D5F31] transition-all duration-1000 shadow-[0_0_10px_rgba(0,196,2,0.5)]"
                                     style={{ width: `${progressPercent}%` }}
                                 ></div>
                             </div>
@@ -165,14 +165,14 @@ export default function ClassroomPage() {
                         <button
                             onClick={() => setIsDark(!isDark)}
                             className={`group relative p-2 rounded-xl transition-all duration-300 border ${isDark
-                                ? 'bg-[#00C402]/20 border-[#00C402]/30 text-[#00C402] shadow-[0_0_15px_rgba(0,196,2,0.2)]'
+                                ? 'bg-[#1D5F31]/20 border-[#1D5F31]/30 text-[#1D5F31] shadow-[0_0_15px_rgba(0,196,2,0.2)]'
                                 : 'bg-white/10 border-white/10 text-white/70 hover:bg-white/20 hover:text-white'
                                 }`}
                             title={isDark ? "Apagar as luzes" : "Modo Cinema"}
                         >
                             <div className="relative">
                                 {isDark ? (
-                                    <Lightbulb size={18} className="fill-[#00C402]/20 animate-pulse" />
+                                    <Lightbulb size={18} className="fill-[#1D5F31]/20 animate-pulse" />
                                 ) : (
                                     <Moon size={18} />
                                 )}
@@ -191,7 +191,7 @@ export default function ClassroomPage() {
 
             <main className="flex flex-1 overflow-hidden">
                 {/* Player Section */}
-                <div className={`flex-1 overflow-y-auto flex flex-col transition-colors duration-500 ${isDark ? 'bg-[#050505]' : 'bg-[#0d2b17]'}`}>
+                <div className={`flex-1 overflow-y-auto flex flex-col transition-colors duration-500 ${isDark ? 'bg-[#050505]' : 'bg-[#061629]'}`}>
                     <div className="flex-1 flex items-center justify-center p-0 md:p-6 lg:p-8">
                         <div className="w-full max-w-6xl aspect-video relative group animate-in zoom-in-95 duration-700">
                             <div className={`relative w-full h-full rounded-none overflow-hidden border transition-all duration-500 bg-black ${isDark
@@ -213,7 +213,7 @@ export default function ClassroomPage() {
                                     disabled={lessons.findIndex(l => l.id === currentLesson?.id) === 0}
                                     className={`flex items-center gap-2 px-8 py-4 rounded-none font-black uppercase tracking-tighter transition-all shadow-sm border ${lessons.findIndex(l => l.id === currentLesson?.id) === 0
                                         ? isDark ? 'bg-white/5 text-slate-700 border-white/5 cursor-not-allowed' : 'bg-white/5 text-white/20 border-white/5 cursor-not-allowed'
-                                        : isDark ? 'bg-white/5 text-slate-400 hover:text-white border-white/10 hover:border-[#00C402]/40' : 'bg-white/10 text-white/70 hover:text-white border-white/10 hover:border-[#32cd32]/40'
+                                        : isDark ? 'bg-white/5 text-slate-400 hover:text-white border-white/10 hover:border-[#1D5F31]/40' : 'bg-white/10 text-white/70 hover:text-white border-white/10 hover:border-[#1D5F31]/40'
                                         }`}
                                 >
                                     <ChevronLeft size={20} />
@@ -225,7 +225,7 @@ export default function ClassroomPage() {
                                     disabled={lessons.findIndex(l => l.id === currentLesson?.id) === lessons.length - 1}
                                     className={`flex items-center gap-2 px-8 py-4 rounded-none font-black uppercase tracking-tighter transition-all shadow-md ${lessons.findIndex(l => l.id === currentLesson?.id) === lessons.length - 1
                                         ? isDark ? 'bg-white/5 text-slate-700 border-white/5 cursor-not-allowed' : 'bg-white text-slate-200 border-slate-100 cursor-not-allowed'
-                                        : 'bg-[#32cd32] text-white hover:bg-[#28b828] hover:scale-105 transition-all'
+                                        : 'bg-[#1D5F31] text-white hover:bg-[#28b828] hover:scale-105 transition-all'
                                         }`}
                                 >
                                     <span className="text-xs">Próxima Aula</span>
@@ -252,12 +252,12 @@ export default function ClassroomPage() {
                     className={`
                         fixed md:relative top-0 right-0 h-full w-full md:w-[420px] transition-all duration-500 ease-in-out z-40 shadow-xl border-l
                         ${sidebarOpen ? 'translate-x-0' : 'translate-x-full md:hidden'}
-                        ${isDark ? 'bg-[#0a0a0a] border-white/5' : 'bg-[#0d2b17] border-white/5'}
+                        ${isDark ? 'bg-[#0a0a0a] border-white/5' : 'bg-[#061629] border-white/5'}
                     `}
                 >
                     <div className="flex flex-col h-full">
                         <div className={`p-8 border-b transition-colors duration-500 ${isDark ? 'bg-[#0f0f0f] border-white/5' : 'bg-white/5 border-white/5'}`}>
-                            <h3 className="text-[10px] font-black uppercase tracking-[4px] text-[#00C402] mb-1">CONTEÚDO DO CURSO</h3>
+                            <h3 className="text-[10px] font-black uppercase tracking-[4px] text-[#1D5F31] mb-1">CONTEÚDO DO CURSO</h3>
                             <p className={`text-[11px] font-black uppercase truncate tracking-tight ${isDark ? 'text-slate-300' : 'text-white'}`}>{course?.title}</p>
                         </div>
 
@@ -279,7 +279,7 @@ export default function ClassroomPage() {
                                     >
                                         {/* Indicador de Aula Atual */}
                                         {currentLesson?.id === lesson.id && (
-                                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#00C402]"></div>
+                                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#1D5F31]"></div>
                                         )}
 
                                         <div
@@ -290,16 +290,16 @@ export default function ClassroomPage() {
                                             className={`
                                                 flex-shrink-0 w-6 h-6 rounded-full border flex items-center justify-center transition-all
                                                 ${completedLessons.includes(lesson.id)
-                                                    ? 'bg-[#00C402] border-[#00C402]'
+                                                    ? 'bg-[#1D5F31] border-[#1D5F31]'
                                                     : isDark
-                                                        ? 'border-white/10 group-hover:border-[#00C402]/40 bg-[#000000]'
-                                                        : 'border-white/20 group-hover:border-[#32cd32]/40 bg-white/5'}
+                                                        ? 'border-white/10 group-hover:border-[#1D5F31]/40 bg-[#000000]'
+                                                        : 'border-white/20 group-hover:border-[#1D5F31]/40 bg-white/5'}
                                             `}
                                         >
                                             {completedLessons.includes(lesson.id) ? (
                                                 <CheckCircle2 size={12} className="text-white" />
                                             ) : (
-                                                <PlayCircle size={10} className="text-slate-300 group-hover:text-[#00C402] opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                <PlayCircle size={10} className="text-slate-300 group-hover:text-[#1D5F31] opacity-0 group-hover:opacity-100 transition-opacity" />
                                             )}
                                         </div>
 
@@ -312,7 +312,7 @@ export default function ClassroomPage() {
                                             <div className="flex items-center gap-2 mt-1">
                                                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">VÍDEO AULA</span>
                                                 {currentLesson?.id === lesson.id && (
-                                                    <span className="flex h-1 w-1 rounded-full bg-[#00C402] animate-pulse"></span>
+                                                    <span className="flex h-1 w-1 rounded-full bg-[#1D5F31] animate-pulse"></span>
                                                 )}
                                             </div>
                                         </div>

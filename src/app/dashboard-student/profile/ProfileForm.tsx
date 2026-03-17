@@ -20,7 +20,7 @@ export function ProfileForm({ initialFullName }: ProfileFormProps) {
         <form action={formAction} className="space-y-10">
             <div className="space-y-8">
                 <div className="flex items-center gap-6 mb-10">
-                    <div className="w-20 h-20 bg-[#1e4d2b]/20 border border-[#1e4d2b] rounded-none flex items-center justify-center text-white shadow-sm relative overflow-hidden group/avatar">
+                    <div className="w-20 h-20 bg-[#1D5F31]/20 border border-[#1D5F31] rounded-none flex items-center justify-center text-white shadow-sm relative overflow-hidden group/avatar">
                         <User size={40} className="group-hover/avatar:scale-110 transition-transform duration-500 text-slate-400" />
                         <div className="absolute inset-0 bg-black/20 opacity-0 group-hover/avatar:opacity-100 transition-opacity" />
                     </div>
@@ -39,7 +39,7 @@ export function ProfileForm({ initialFullName }: ProfileFormProps) {
                             type="text"
                             name="fullName"
                             defaultValue={initialFullName}
-                            className="w-full bg-[#1e4d2b]/20 border border-[#1e4d2b] rounded-none px-5 py-4 focus:outline-none focus:border-[#00C402] focus:ring-4 focus:ring-[#00C402]/5 transition-all text-white font-medium placeholder-slate-500"
+                            className="w-full bg-[#1D5F31]/20 border border-[#1D5F31] rounded-none px-5 py-4 focus:outline-none focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 transition-all text-white font-medium placeholder-slate-500"
                             placeholder="Seu nome"
                             required
                         />
@@ -61,11 +61,11 @@ export function ProfileForm({ initialFullName }: ProfileFormProps) {
                 )}
             </div>
 
-            <div className="pt-8 border-t border-[#1e4d2b]">
+            <div className="pt-8 border-t border-[#1D5F31]">
                 <button
                     type="submit"
                     disabled={isPending}
-                    className="flex items-center justify-center gap-3 w-full md:w-auto px-12 h-14 bg-[#00C402] text-white font-black uppercase tracking-[2px] rounded-none hover:bg-[#28b828] transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:hover:scale-100 group"
+                    className="flex items-center justify-center gap-3 w-full md:w-auto px-12 h-14 bg-[#1D5F31] text-white font-black uppercase tracking-[2px] rounded-none hover:bg-[#28b828] transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:hover:scale-100 group"
                 >
                     <Save size={20} className={`${isPending ? 'animate-pulse' : ''} group-hover:scale-110 transition-transform`} />
                     {isPending ? 'Salvando...' : 'Salvar Alterações'}

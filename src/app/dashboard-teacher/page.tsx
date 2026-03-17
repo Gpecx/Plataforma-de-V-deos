@@ -74,7 +74,7 @@ export default async function TeacherDashboard() {
     })
 
     const metrics = [
-        { label: 'Receita Mensal', value: `R$ ${monthlyRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: DollarSign, color: 'text-[#00C402]' },
+        { label: 'Receita Mensal', value: `R$ ${monthlyRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: DollarSign, color: 'text-[#1D5F31]' },
         { label: 'Total Alunos', value: totalStudents.toString(), icon: Users, color: 'text-blue-500' },
         { label: 'Avaliação Média', value: '4.8', icon: Star, color: 'text-yellow-500' },
         { label: 'Vendas Hoje', value: `R$ ${todaySales.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: TrendingUp, color: 'text-purple-500' },
@@ -87,16 +87,16 @@ export default async function TeacherDashboard() {
     ]
 
     return (
-        <div className="min-h-screen bg-[#0d2b17] text-white font-exo pb-24 pt-12">
+        <div className="min-h-screen bg-transparent text-white font-exo pb-24 pt-12 relative">
             <header className="flex justify-between items-center px-8 mb-12">
                 <div>
                     <h1 className="text-4xl font-black tracking-tighter uppercase leading-none">
-                        Bem-vindo, <span className="text-[#00C402]">{profile?.full_name || 'Professor'}!</span>
+                        Bem-vindo, <span className="text-[#1D5F31]">{profile?.full_name || 'Professor'}!</span>
                     </h1>
                     <p className="text-slate-400 mt-2 font-bold uppercase text-[10px] tracking-[3px]">Gerencie seus cursos no Creator Studio.</p>
                 </div>
                 <Link href="/dashboard-teacher/courses/new">
-                    <button className="flex items-center gap-3 bg-[#00C402] text-white font-black uppercase tracking-widest px-10 py-5 rounded-none hover:bg-[#28b828] transition shadow-lg shadow-[#00C402]/20 shrink-0">
+                    <button className="flex items-center gap-3 bg-[#1D5F31] text-white font-black uppercase tracking-widest px-10 py-5 hover:bg-[#28b828] transition shadow-lg shadow-[#1D5F31]/20 shrink-0">
                         <Plus size={20} strokeWidth={3} /> Criar Novo Curso
                     </button>
                 </Link>
@@ -105,8 +105,8 @@ export default async function TeacherDashboard() {
             <div className="px-8 space-y-16">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     {metrics.map((metric, idx) => (
-                        <div key={idx} className="bg-[#0f1f14] p-8 border-2 border-[#1e4d2b]">
-                            <div className={`p-4 w-fit bg-[#0d2b17] border-2 border-[#1e4d2b] mb-6 ${metric.color}`}>
+                        <div key={idx} className="bg-[#061629]/40 backdrop-blur-md p-8 border border-[#1D5F31]/30 hover:border-[#1D5F31] transition-all shadow-lg">
+                            <div className={`p-4 w-fit bg-[#061629]/60 border border-[#1D5F31]/40 mb-6 ${metric.color}`}>
                                 <metric.icon size={22} />
                             </div>
                             <p className="text-slate-500 text-[10px] font-black uppercase tracking-[2px]">{metric.label}</p>
@@ -115,9 +115,9 @@ export default async function TeacherDashboard() {
                     ))}
                 </div>
 
-                <section className="bg-[#0f1f14] p-10 border-2 border-[#1e4d2b]">
+                <section className="bg-[#061629]/40 backdrop-blur-md p-10 border border-[#1D5F31]/30 shadow-lg">
                     <div className="flex items-center gap-4 mb-12">
-                        <TrendingUp size={24} className="text-[#00C402]" />
+                        <TrendingUp size={24} className="text-[#1D5F31]" />
                         <h2 className="text-2xl font-black uppercase tracking-tighter">Desempenho de Vendas <span className="text-slate-500 font-bold text-sm tracking-widest ml-4">(7 DIAS)</span></h2>
                     </div>
                     <SalesChart data={chartData} />
@@ -125,35 +125,35 @@ export default async function TeacherDashboard() {
 
                 <div className="grid lg:grid-cols-3 gap-16">
                     <section className="lg:col-span-2 space-y-10">
-                        <div className="border-b-2 border-[#1e4d2b] pb-6 flex justify-between items-center">
+                        <div className="border-b-2 border-[#1D5F31] pb-6 flex justify-between items-center">
                             <h2 className="text-2xl font-black uppercase tracking-tighter">Meus Cursos</h2>
                             <Link href="/dashboard-teacher/courses" className="text-[10px] text-slate-500 hover:text-white font-black uppercase tracking-[3px]">Ver todos</Link>
                         </div>
-                        <div className="grid md:grid-cols-2 gap-10">
+                        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
                             {courses.length > 0 ? courses.map((curso) => (
-                                <div key={curso.id} className="bg-[#0f1f14] border-2 border-[#1e4d2b] flex flex-col">
-                                    <div className="h-48 bg-[#0d2b17] border-b-2 border-[#1e4d2b]">
+                                <div key={curso.id} className="bg-[#061629]/40 backdrop-blur-md border border-[#1D5F31]/30 flex flex-col hover:border-[#1D5F31] transition-all shadow-lg overflow-hidden">
+                                    <div className="h-40 bg-[#061629]/20 border-b border-[#1D5F31]/30">
                                         <img src={curso.image_url} className="w-full h-full object-cover" alt={curso.title} />
                                     </div>
-                                    <div className="p-6 flex-grow">
-                                        <h3 className="font-black text-xl mb-6 tracking-tighter line-clamp-1">{curso.title}</h3>
+                                    <div className="p-4 flex-grow">
+                                        <h3 className="font-black text-lg mb-4 tracking-tighter line-clamp-1">{curso.title}</h3>
                                         <Link href={`/dashboard-teacher/courses/${curso.id}/edit`}>
-                                            <button className="w-full bg-[#0d2b17] border-2 border-[#1e4d2b] text-white font-black uppercase tracking-widest py-4 hover:border-[#00C402] transition-all">Editar no Studio</button>
+                                            <button className="w-full bg-[#061629]/60 border border-[#1D5F31]/30 text-white font-black uppercase tracking-widest py-3 hover:bg-[#1D5F31] hover:border-[#1D5F31] transition-all">Editar no Studio</button>
                                         </Link>
                                     </div>
                                 </div>
-                            )) : <div className="col-span-full py-24 border-2 border-dashed border-[#1e4d2b] text-center bg-[#0f1f14] font-black uppercase tracking-[4px]">Crie seu primeiro curso!</div>}
+                            )) : <div className="col-span-full py-24 border-2 border-dashed border-[#1D5F31] text-center bg-[#061629] font-black uppercase tracking-[4px]">Crie seu primeiro curso!</div>}
                         </div>
                     </section>
 
                     <section className="space-y-10">
-                        <div className="border-b-2 border-[#1e4d2b] pb-6">
+                        <div className="border-b-2 border-[#1D5F31] pb-6">
                             <h2 className="text-2xl font-black uppercase tracking-tighter">Dúvidas Inbox</h2>
                         </div>
                         <div className="space-y-6">
                             {recentActivities.map((activity) => (
-                                <div key={activity.id} className="bg-[#0f1f14] p-7 border-2 border-[#1e4d2b] flex gap-5">
-                                    <div className="h-14 w-14 bg-[#0d2b17] flex items-center justify-center border-2 border-[#1e4d2b]">
+                                <div key={activity.id} className="bg-[#061629]/40 backdrop-blur-md p-7 border border-[#1D5F31]/30 flex gap-5 hover:border-[#1D5F31] transition-all shadow-lg">
+                                    <div className="h-14 w-14 bg-[#061629]/60 flex items-center justify-center border border-[#1D5F31]/30">
                                         <MessageSquare size={20} className="text-slate-400" />
                                     </div>
                                     <div className="min-w-0">

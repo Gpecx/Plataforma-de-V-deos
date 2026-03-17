@@ -9,7 +9,7 @@ export default function Footer() {
     const year = new Date().getFullYear()
 
     return (
-        <footer className="relative pt-12 pb-10 overflow-hidden font-exo z-[10] bg-[#0d2b17]">
+        <footer className="relative pt-12 pb-10 overflow-hidden font-exo z-[10] bg-transparent">
             <div className="max-w-7xl mx-auto px-8 md:px-12 flex flex-col items-center space-y-8">
                 {/* Logo Principal (Aumentada) */}
                 <Logo className="h-24 py-2" />
@@ -17,9 +17,9 @@ export default function Footer() {
                 {/* Navegação Minimalista */}
                 <div className="flex flex-wrap justify-center gap-x-16 gap-y-6 text-[12px] font-black uppercase tracking-widest text-white/80">
 
-                    <Link href="/course" className="hover:text-[#32cd32] transition-colors duration-300">Cursos</Link>
-                    <Link href="/dashboard-student" className="hover:text-[#32cd32] transition-colors duration-300">Painel</Link>
-                    <Link href="/cart" className="hover:text-[#32cd32] transition-colors duration-300">Carrinho</Link>
+                    <Link href="/course" className="hover:text-[#1D5F31] transition-colors duration-300">Cursos</Link>
+                    <Link href="/dashboard-student" className="hover:text-[#1D5F31] transition-colors duration-300">Painel</Link>
+                    <Link href="/cart" className="hover:text-[#1D5F31] transition-colors duration-300">Carrinho</Link>
                 </div>
 
                 {/* Copyright Sutil */}

@@ -186,15 +186,15 @@ export default function RegisterPage() {
     const inputClass = (hasError: boolean = false) =>
         `w-full p-4 bg-black/40 text-white border transition-all outline-none text-sm font-medium placeholder:text-gray-600 hover:bg-black/60 ${hasError
             ? 'border-red-500 focus:border-red-600'
-            : 'border-[#1e4d2b] focus:border-[#00C402] focus:ring-1 focus:ring-[#00C402]'
+            : 'border-[#1D5F31] focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]'
         }`
 
-    const labelClass = 'text-[10px] font-black uppercase tracking-widest text-[#00C402]/80'
+    const labelClass = 'text-[10px] font-black uppercase tracking-widest text-[#1D5F31]/80'
 
     return (
         <div className="min-h-screen w-full flex flex-row bg-[#08150c] overflow-hidden font-exo">
             {/* Left Side - Visual (Full Column Image) */}
-            <div className="hidden md:flex md:w-1/2 bg-[#08150c] items-center justify-center p-0 overflow-hidden border-r border-[#1e4d2b]">
+            <div className="hidden md:flex md:w-1/2 bg-[#08150c] items-center justify-center p-0 overflow-hidden border-r border-[#1D5F31]">
                 <div className="w-full h-full relative">
                     <img
                         src="/register-illustration.png"
@@ -215,23 +215,23 @@ export default function RegisterPage() {
                         </div>
                         <div className="flex flex-col items-center">
                             <h2 className="text-2xl md:text-3xl font-black tracking-tight uppercase text-white">Criar Conta Grátis</h2>
-                            <p className="text-[#32cd32] font-bold uppercase text-[9px] tracking-[4px] mt-2 opacity-80">Evolução e Conquistas</p>
+                            <p className="text-[#1D5F31] font-bold uppercase text-[9px] tracking-[4px] mt-2 opacity-80">Evolução e Conquistas</p>
                         </div>
                     </div>
 
                     {/* Form Container (Square Card) */}
-                    <div className="bg-black/20 p-8 border border-[#1e4d2b] shadow-2xl">
+                    <div className="bg-black/20 p-8 border border-[#1D5F31] shadow-2xl">
                         <form onSubmit={handleRegister} className="space-y-6">
                             <div className="space-y-5">
 
                                 {/* Tipo de Conta */}
                                 <div className="space-y-2 mb-2">
                                     <label className={labelClass}>Tipo de Perfil</label>
-                                    <div className="flex gap-2 p-1 bg-black/40 border border-[#1e4d2b]">
+                                    <div className="flex gap-2 p-1 bg-black/40 border border-[#1D5F31]">
                                         <button
                                             type="button"
                                             onClick={() => setRole('student')}
-                                            className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-black uppercase transition-all ${role === 'student' ? 'bg-[#00C402]/20 text-[#00C402] border border-[#00C402]/30' : 'text-gray-500 hover:text-gray-300'}`}
+                                            className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-black uppercase transition-all ${role === 'student' ? 'bg-[#1D5F31]/20 text-[#1D5F31] border border-[#1D5F31]/30' : 'text-gray-500 hover:text-gray-300'}`}
                                         >
                                             <User className="w-4 h-4" />
                                             Aluno
@@ -239,7 +239,7 @@ export default function RegisterPage() {
                                         <button
                                             type="button"
                                             onClick={() => setRole('teacher')}
-                                            className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-black uppercase transition-all ${role === 'teacher' ? 'bg-[#00C402]/20 text-[#00C402] border border-[#00C402]/30' : 'text-gray-500 hover:text-gray-300'}`}
+                                            className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-black uppercase transition-all ${role === 'teacher' ? 'bg-[#1D5F31]/20 text-[#1D5F31] border border-[#1D5F31]/30' : 'text-gray-500 hover:text-gray-300'}`}
                                         >
                                             <GraduationCap className="w-4 h-4" />
                                             Professor
@@ -291,12 +291,12 @@ export default function RegisterPage() {
                                     <div className="space-y-2">
                                         <div className="flex justify-between items-end mb-1">
                                             <label className={labelClass}>Documento</label>
-                                            <div className="flex gap-1 bg-black/40 p-0.5 border border-[#1e4d2b]">
+                                            <div className="flex gap-1 bg-black/40 p-0.5 border border-[#1D5F31]">
                                                 <button
                                                     type="button"
                                                     onClick={() => handleTypeChange('CPF')}
                                                     className={`px-2 py-0.5 text-[8px] font-black uppercase transition-all ${personType === 'CPF'
-                                                        ? 'bg-[#00C402] text-black'
+                                                        ? 'bg-[#1D5F31] text-black'
                                                         : 'text-gray-500 hover:text-gray-300'
                                                         }`}
                                                 >
@@ -306,7 +306,7 @@ export default function RegisterPage() {
                                                     type="button"
                                                     onClick={() => handleTypeChange('CNPJ')}
                                                     className={`px-2 py-0.5 text-[8px] font-black uppercase transition-all ${personType === 'CNPJ'
-                                                        ? 'bg-[#00C402] text-black'
+                                                        ? 'bg-[#1D5F31] text-black'
                                                         : 'text-gray-500 hover:text-gray-300'
                                                         }`}
                                                 >
@@ -350,7 +350,7 @@ export default function RegisterPage() {
                             <button
                                 type="submit"
                                 disabled={loading || !isFormValid}
-                                className="group relative w-full overflow-hidden bg-[#32cd32] hover:bg-[#28b828] text-white font-black uppercase tracking-[2px] py-4 transition-all disabled:opacity-30 disabled:cursor-not-allowed mt-4 active:scale-[0.99]"
+                                className="group relative w-full overflow-hidden bg-[#1D5F31] hover:bg-[#28b828] text-white font-black uppercase tracking-[2px] py-4 transition-all disabled:opacity-30 disabled:cursor-not-allowed mt-4 active:scale-[0.99]"
                             >
                                 <span className="relative z-10 flex items-center justify-center gap-2">
                                     {loading ? (
@@ -379,7 +379,7 @@ export default function RegisterPage() {
                             <div className="mt-10 pt-6 border-t border-white/10 text-center">
                                 <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
                                     Já possui acesso?{' '}
-                                    <Link href="/login" className="text-[#32cd32] font-black hover:text-[#28b828] transition-colors underline underline-offset-4">
+                                    <Link href="/login" className="text-[#1D5F31] font-black hover:text-[#28b828] transition-colors underline underline-offset-4">
                                         ENTRAR AGORA
                                     </Link>
                                 </p>

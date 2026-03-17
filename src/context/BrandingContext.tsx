@@ -7,7 +7,7 @@ import { BrandingData } from '@/app/admin/settings/actions'
 export const DEFAULT_BRANDING: BrandingData = {
     logoUrl: '',
     siteName: 'PowerPlay',
-    primaryColor: '#00C402',
+    primaryColor: '#1D5F31',
 }
 
 const BrandingContext = createContext<BrandingData>(DEFAULT_BRANDING)

@@ -51,7 +51,7 @@ export default function CourseModal({ course, isOpen, onClose }: CourseModalProp
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-white via-white/20 to-transparent" />
                     <div className="absolute bottom-8 left-8 right-8 space-y-4">
-                        <span className="bg-[#00C402] text-white text-[10px] font-black px-2 py-1 rounded w-fit uppercase tracking-widest">
+                        <span className="bg-[#1D5F31] text-white text-[10px] font-black px-2 py-1 rounded w-fit uppercase tracking-widest">
                             {course.tag || "PREMIUM"}
                         </span>
                         <h2 className="text-3xl md:text-4xl font-black text-slate-800 leading-tight">
@@ -63,7 +63,7 @@ export default function CourseModal({ course, isOpen, onClose }: CourseModalProp
                                 <Link 
                                     href={`/professor/${course.teacher_id}`}
                                     onClick={onClose}
-                                    className="text-[9px] font-black text-[#00C402] uppercase tracking-[2px] hover:underline"
+                                    className="text-[9px] font-black text-[#1D5F31] uppercase tracking-[2px] hover:underline"
                                 >
                                     {course.teacher_name}
                                 </Link>
@@ -84,7 +84,7 @@ export default function CourseModal({ course, isOpen, onClose }: CourseModalProp
                     <div className="md:col-span-2 space-y-8">
                         <div>
                             <h3 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                                <Info size={18} className="text-[#00C402]" />
+                                <Info size={18} className="text-[#1D5F31]" />
                                 Sobre este treinamento
                             </h3>
                             <p className="text-slate-500 leading-relaxed text-sm">

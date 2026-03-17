@@ -79,8 +79,8 @@ export function StudentCarousel({ heroBanners }: { heroBanners?: BannerItem[] })
             <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent flex items-center px-8 md:px-20">
                 <div className="max-w-2xl animate-in fade-in slide-in-from-left-4 duration-700">
                     <div className="flex items-center gap-2 mb-4">
-                        <div className="w-8 h-px bg-[#00C402]" />
-                        <span className="text-[10px] font-black uppercase tracking-[5px] text-[#00C402]">
+                        <div className="w-8 h-px bg-white" />
+                        <span className="text-[10px] font-black uppercase tracking-[5px] text-white">
                             {displayItems[currentIndex].accent}
                         </span>
                     </div>
@@ -118,7 +118,7 @@ export function StudentCarousel({ heroBanners }: { heroBanners?: BannerItem[] })
                         <button
                             key={i}
                             onClick={() => setCurrentIndex(i)}
-                            className={`h-1.5 rounded-full transition-all ${currentIndex === i ? 'w-8 bg-[#00C402]' : 'w-2 bg-white/40 hover:bg-white/60'}`}
+                            className={`h-1.5 rounded-full transition-all ${currentIndex === i ? 'w-8 bg-white' : 'w-2 bg-white/40 hover:bg-white/60'}`}
                         />
                     ))}
                 </div>

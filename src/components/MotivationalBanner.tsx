@@ -44,9 +44,9 @@ export function MotivationalBanner() {
                         <span className="text-white">O seu futuro começa no conhecimento.</span>
                     </h3>
                     <div className="flex items-center gap-4 mt-4">
-                        <div className="h-[2px] w-8 bg-[#00C402]"></div>
+                        <div className="h-[2px] w-8 bg-[#1D5F31]"></div>
                         <p className="text-white/40 text-[9px] font-black uppercase tracking-[5px]">POWERPLAY · MENTALIDADE DE VALOR</p>
-                        <div className="h-[2px] w-8 bg-[#00C402]"></div>
+                        <div className="h-[2px] w-8 bg-[#1D5F31]"></div>
                     </div>
                 </div>
 
@@ -55,7 +55,7 @@ export function MotivationalBanner() {
                     {IMAGES.map((_, idx) => (
                         <div
                             key={idx}
-                            className={`h-1 rounded-full transition-all duration-500 ${idx === currentIndex ? 'w-8 bg-[#00C402]' : 'w-2 bg-white/20'
+                            className={`h-1 rounded-full transition-all duration-500 ${idx === currentIndex ? 'w-8 bg-[#1D5F31]' : 'w-2 bg-white/20'
                                 }`}
                         />
                     ))}

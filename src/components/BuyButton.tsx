@@ -62,7 +62,7 @@ export function BuyButton({ course, size = "default", label = "Comprar Agora", c
     }
 
     const baseClass =
-        "flex items-center justify-center gap-3 font-black uppercase italic tracking-widest rounded-none transition-all shadow-[0_0_30px_rgba(0,196,2,0.3)] bg-[#00C402] text-black hover:bg-white hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed group"
+        "flex items-center justify-center gap-3 font-black uppercase italic tracking-widest rounded-none transition-all shadow-[0_0_30px_rgba(0,196,2,0.3)] bg-[#1D5F31] text-black hover:bg-white hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed group"
 
     const basePurchasedClass =
         "flex items-center justify-center gap-3 font-black uppercase italic tracking-widest rounded-none transition-all bg-slate-900 text-white hover:bg-slate-800 hover:scale-105 group"
@@ -94,7 +94,7 @@ export function BuyButton({ course, size = "default", label = "Comprar Agora", c
             {loading ? (
                 <Loader2 size={22} className="animate-spin text-black" />
             ) : (
-                <ShoppingCart size={22} className="group-hover:text-[#00C402] transition-colors" />
+                <ShoppingCart size={22} className="group-hover:text-[#1D5F31] transition-colors" />
             )}
             <span>{loading ? "Aguarde..." : label}</span>
         </button>

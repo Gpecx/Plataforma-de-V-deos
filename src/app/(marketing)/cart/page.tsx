@@ -20,20 +20,20 @@ export default function CartPage() {
     const subtotal = getTotal()
 
     return (
-        <div className="min-h-screen bg-[#0d2b17] text-white font-exo border-t border-[#1e4d2b]">
+        <div className="min-h-screen bg-transparent text-white font-exo border-t border-[#1D5F31]">
             {/* Removido o max-w-6xl para dar mais largura à página */}
             <div className="w-full px-8 py-12">
                 <div className="mb-12 flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div className="flex items-center gap-5">
-                        <div className="w-14 h-14 bg-[#1e4d2b] flex items-center justify-center text-white shadow-md relative border border-[#00C402]/20">
+                        <div className="w-14 h-14 bg-[#1D5F31] flex items-center justify-center text-white shadow-md relative border border-[#1D5F31]/20">
                             <ShoppingCart size={24} strokeWidth={2.5} />
-                            <span className="absolute -top-2 -right-2 bg-[#00C402] text-white text-[10px] font-black w-6 h-6 flex items-center justify-center border-2 border-[#0d2b17]">
+                            <span className="absolute -top-2 -right-2 bg-[#1D5F31] text-white text-[10px] font-black w-6 h-6 flex items-center justify-center border-2 border-[#061629]">
                                 {items.length}
                             </span>
                         </div>
                         <div>
                             <h1 className="text-3xl font-black tracking-tighter uppercase mb-1 text-white">
-                                SEU <span className="text-[#00C402]">CARRINHO</span>
+                                SEU <span className="text-[#1D5F31]">CARRINHO</span>
                             </h1>
                             <p className="text-slate-400 font-bold uppercase text-[9px] tracking-[3px]">
                                 {items.length === 0 ? 'Seu carrinho está vazio' : `VOCÊ TEM ${items.length} ITENS SELECIONADOS`}
@@ -42,7 +42,7 @@ export default function CartPage() {
                     </div>
                     <Link
                         href="/course"
-                        className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition group border border-[#1e4d2b] bg-[#1e4d2b]/20 px-6 py-4 shadow-sm"
+                        className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition group border border-[#1D5F31] bg-[#1D5F31]/20 px-6 py-4 shadow-sm"
                     >
                         <ArrowLeft size={14} className="group-hover:-translate-x-1 transition" />
                         Continuar Comprando
@@ -56,9 +56,9 @@ export default function CartPage() {
                             {items.map((course) => (
                                 <div
                                     key={course.id}
-                                    className="bg-[#0f1f14] border border-[#1e4d2b] p-8 flex flex-col md:flex-row gap-8 items-center hover:border-[#00C402]/20 transition-all group shadow-sm relative"
+                                    className="bg-[#061629] border border-[#1D5F31] p-8 flex flex-col md:flex-row gap-8 items-center hover:border-[#1D5F31]/20 transition-all group shadow-sm relative"
                                 >
-                                    <div className="w-full md:w-48 h-28 bg-[#0d2b17] border border-[#1e4d2b] shrink-0 relative">
+                                    <div className="w-full md:w-48 h-28 bg-[#061629] border border-[#1D5F31] shrink-0 relative">
                                         <img
                                             src={course.image_url || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=80"}
                                             alt={course.title}
@@ -66,18 +66,18 @@ export default function CartPage() {
                                         />
                                     </div>
                                     <div className="flex-1 text-center md:text-left">
-                                        <h3 className="text-xl font-black tracking-tighter mb-2 group-hover:text-[#00C402] transition uppercase text-white leading-tight">{course.title}</h3>
+                                        <h3 className="text-xl font-black tracking-tighter mb-2 group-hover:text-[#1D5F31] transition uppercase text-white leading-tight">{course.title}</h3>
                                         <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
                                             <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1.5">
-                                                <div className="w-1 h-1 bg-[#00C402]"></div>
+                                                <div className="w-1 h-1 bg-[#1D5F31]"></div>
                                                 Acesso vitalício
                                             </span>
                                             <span className="text-[9px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1.5">
-                                                <div className="w-1 h-1 bg-[#00C402]"></div>
+                                                <div className="w-1 h-1 bg-[#1D5F31]"></div>
                                                 Certificado PowerPlay
                                             </span>
                                         </div>
-                                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#1e4d2b]/30 border border-[#1e4d2b] text-slate-400 text-[9px] font-black uppercase tracking-[2px]">
+                                        <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#1D5F31]/30 border border-[#1D5F31] text-slate-400 text-[9px] font-black uppercase tracking-[2px]">
                                             Treinamento Premium
                                         </div>
                                     </div>
@@ -99,8 +99,8 @@ export default function CartPage() {
 
                         {/* Summary Section - Ocupa 1/4 da tela */}
                         <div className="xl:col-span-1 space-y-4">
-                            <div className="bg-[#0f1f14] border border-[#1e4d2b] p-10 shadow-sm">
-                                <h2 className="text-xl font-black uppercase mb-8 border-b border-[#1e4d2b] pb-6 tracking-tighter text-white">RESUMO DO <span className="text-[#00C402]">PEDIDO</span></h2>
+                            <div className="bg-[#061629] border border-[#1D5F31] p-10 shadow-sm">
+                                <h2 className="text-xl font-black uppercase mb-8 border-b border-[#1D5F31] pb-6 tracking-tighter text-white">RESUMO DO <span className="text-[#1D5F31]">PEDIDO</span></h2>
 
                                 <div className="space-y-4 mb-10">
                                     <div className="flex justify-between font-bold uppercase text-[10px] tracking-widest text-slate-500">
@@ -109,9 +109,9 @@ export default function CartPage() {
                                     </div>
                                     <div className="flex justify-between font-bold uppercase text-[10px] tracking-widest text-slate-500">
                                         <span>Descontos</span>
-                                        <span className="text-[#00C402]">R$ 0,00</span>
+                                        <span className="text-[#1D5F31]">R$ 0,00</span>
                                     </div>
-                                    <div className="h-px bg-[#1e4d2b] my-6"></div>
+                                    <div className="h-px bg-[#1D5F31] my-6"></div>
                                     <div className="flex flex-col gap-1">
                                         <span className="text-[9px] font-black uppercase tracking-[3px] text-slate-500">Total do Investimento</span>
                                         <div className="text-4xl font-black text-white tracking-tight">
@@ -122,7 +122,7 @@ export default function CartPage() {
 
                                 <button
                                     onClick={() => router.push('/checkout')}
-                                    className="w-full py-5 bg-[#00C402] text-white font-black uppercase tracking-[2px] hover:brightness-105 active:scale-[0.98] transition-all shadow-md flex items-center justify-center gap-3 text-sm"
+                                    className="w-full py-5 bg-[#1D5F31] text-white font-black uppercase tracking-[2px] hover:brightness-105 active:scale-[0.98] transition-all shadow-md flex items-center justify-center gap-3 text-sm"
                                 >
                                     <CreditCard size={18} />
                                     Finalizar Pagamento
@@ -130,10 +130,10 @@ export default function CartPage() {
                                 </button>
                             </div>
 
-                            <div className="bg-[#1e4d2b]/20 border border-[#1e4d2b] p-8">
+                            <div className="bg-[#1D5F31]/20 border border-[#1D5F31] p-8">
                                 <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-8 h-8 bg-[#0d2b17] border border-[#1e4d2b] flex items-center justify-center shadow-sm">
-                                        <ShieldCheck size={16} className="text-[#00C402]" />
+                                    <div className="w-8 h-8 bg-[#061629] border border-[#1D5F31] flex items-center justify-center shadow-sm">
+                                        <ShieldCheck size={16} className="text-[#1D5F31]" />
                                     </div>
                                     <h4 className="text-[10px] font-black uppercase tracking-[2px] text-white">Compra Segura PowerPlay</h4>
                                 </div>
@@ -144,14 +144,14 @@ export default function CartPage() {
                         </div>
                     </div>
                 ) : (
-                    <div className="text-center py-32 bg-[#0f1f14] border border-[#1e4d2b] shadow-sm">
-                        <div className="w-20 h-20 bg-[#1e4d2b]/20 flex items-center justify-center mx-auto mb-8 border border-[#1e4d2b]">
+                    <div className="text-center py-32 bg-[#061629] border border-[#1D5F31] shadow-sm">
+                        <div className="w-20 h-20 bg-[#1D5F31]/20 flex items-center justify-center mx-auto mb-8 border border-[#1D5F31]">
                             <BookOpen size={32} className="text-slate-700" />
                         </div>
                         <h2 className="text-2xl font-black tracking-tighter mb-4 text-white uppercase">Seu carrinho está vazio</h2>
                         <p className="text-slate-500 mb-10 font-bold uppercase text-[10px] tracking-[3px]">Explore nossos treinamentos e comece sua evolução hoje.</p>
                         <Link href="/course">
-                            <button className="px-10 py-5 bg-[#00C402] text-white font-black uppercase tracking-widest text-xs hover:bg-[#28b828] transition-all shadow-lg">
+                            <button className="px-10 py-5 bg-[#1D5F31] text-white font-black uppercase tracking-widest text-xs hover:bg-[#28b828] transition-all shadow-lg">
                                 Ver Catálogo de Cursos
                             </button>
                         </Link>

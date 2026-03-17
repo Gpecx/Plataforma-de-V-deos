@@ -24,7 +24,7 @@ export function MyLearningSidebar({ recentCourses }: MyLearningSidebarProps) {
             <div className="bg-white rounded-2xl p-6 shadow-sm">
                 <div className="flex items-center justify-between mb-6">
                     <h3 className="text-xs font-black uppercase tracking-[3px] text-slate-800">MEU APRENDIZADO</h3>
-                    <TrendingUp size={14} className="text-[#00C402]" />
+                    <TrendingUp size={14} className="text-[#1D5F31]" />
                 </div>
 
                 <div className="space-y-6">
@@ -44,14 +44,14 @@ export function MyLearningSidebar({ recentCourses }: MyLearningSidebarProps) {
                                     />
                                 </div>
                                 <div className="min-w-0 flex-1 py-1">
-                                    <h4 className="font-bold text-[11px] text-slate-700 leading-tight truncate uppercase tracking-tighter mb-2 group-hover:text-[#00C402] transition-colors">
+                                    <h4 className="font-bold text-[11px] text-slate-700 leading-tight truncate uppercase tracking-tighter mb-2 group-hover:text-[#1D5F31] transition-colors">
                                         {curso.title}
                                     </h4>
 
                                     {/* Barra de Progresso Linear */}
                                     <div className="w-full bg-slate-50 h-1.5 rounded-full overflow-hidden border border-slate-100">
                                         <div
-                                            className="bg-[#00C402] h-full transition-all duration-1000"
+                                            className="bg-[#1D5F31] h-full transition-all duration-1000"
                                             style={{ width: `65%` }}
                                         ></div>
                                     </div>
@@ -60,7 +60,7 @@ export function MyLearningSidebar({ recentCourses }: MyLearningSidebarProps) {
 
                             {/* Detalhes ao passar o mouse */}
                             <div className={`mt-4 overflow-hidden transition-all duration-300 ease-in-out ${isHovered === curso.id ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'}`}>
-                                <div className="flex items-center justify-between text-[8px] font-black tracking-widest text-[#00C402] mb-4">
+                                <div className="flex items-center justify-between text-[8px] font-black tracking-widest text-[#1D5F31] mb-4">
                                     <span className="flex items-center gap-1"><Clock size={10} /> 4h restantes</span>
                                     <span>65% CONCLUÍDO</span>
                                 </div>
@@ -75,7 +75,7 @@ export function MyLearningSidebar({ recentCourses }: MyLearningSidebarProps) {
                 </div>
 
                 <div className="mt-8 pt-6 border-t border-slate-50">
-                    <Link href="/dashboard-student/my-courses" className="text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-[#00C402] transition-colors flex items-center justify-center gap-2">
+                    <Link href="/dashboard-student/my-courses" className="text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-[#1D5F31] transition-colors flex items-center justify-center gap-2">
                         Ver todos os cursos
                     </Link>
                 </div>

@@ -7,7 +7,7 @@ export default function MarketingLayout({
     children: React.ReactNode
 }) {
     return (
-        <div className="flex flex-col min-h-screen" style={{ backgroundColor: "#0d2b17" }}>
+        <div className="flex flex-col min-h-screen bg-transparent">
             <Navbar />
 
             {/* A classe 'pt-24' (ou pt-[80px]) é essencial aqui. 

@@ -66,14 +66,14 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
     }
 
     return (
-        <div className="max-w-4xl mx-auto bg-[#0f1f14] border border-[#1e4d2b] rounded-none p-10 md:p-16 shadow-sm relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-[#0d2b17] rounded-none blur-3xl -mr-32 -mt-32 -z-10 opacity-20"></div>
+        <div className="max-w-4xl mx-auto bg-[#061629] border border-[#1D5F31] rounded-none p-10 md:p-16 shadow-sm relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-[#061629] rounded-none blur-3xl -mr-32 -mt-32 -z-10 opacity-20"></div>
 
             <div className="flex flex-col md:flex-row gap-16 relative z-10">
                 {/* Foto de Perfil */}
                 <div className="flex flex-col items-center space-y-6 shrink-0">
                     <div className="relative group">
-                        <div className="w-40 h-40 rounded-none bg-[#0d2b17] border-2 border-dashed border-[#1e4d2b] flex items-center justify-center text-slate-500 overflow-hidden transition-all group-hover:border-[#00C402]/30 group-hover:bg-[#00C402]/5">
+                        <div className="w-40 h-40 rounded-none bg-[#061629] border-2 border-dashed border-[#1D5F31] flex items-center justify-center text-slate-500 overflow-hidden transition-all group-hover:border-[#1D5F31]/30 group-hover:bg-[#1D5F31]/5">
                             {avatarUrl ? (
                                 <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                             ) : (
@@ -81,13 +81,13 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                             )}
                         </div>
                         
-                        <label className="absolute -bottom-4 -right-4 w-14 h-14 bg-black text-white rounded-none flex items-center justify-center shadow-2xl hover:bg-slate-900 transition-all hover:scale-110 border-4 border-[#0f1f14] cursor-pointer group-hover:bg-[#00C402]">
+                        <label className="absolute -bottom-4 -right-4 w-14 h-14 bg-black text-white rounded-none flex items-center justify-center shadow-2xl hover:bg-slate-900 transition-all hover:scale-110 border-4 border-[#061629] cursor-pointer group-hover:bg-[#1D5F31]">
                             {isUploading ? <Loader2 className="animate-spin" size={24} /> : <Camera size={24} />}
                             <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={isUploading} />
                         </label>
                     </div>
                     <div className="text-center">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-[#00C402]">Foto Quadrada</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-[#1D5F31]">Foto Quadrada</p>
                         <p className="text-[9px] font-bold text-slate-500 mt-1 uppercase">JPG/PNG Ideal 500x500px</p>
                     </div>
                 </div>
@@ -98,11 +98,11 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                         <div className="space-y-3">
                             <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-500 px-1">Nome de Exibição</label>
                             <div className="relative group">
-                                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#00C402] transition-colors" size={18} />
+                                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#1D5F31] transition-colors" size={18} />
                                 <Input
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    className="bg-[#0d2b17] border-[#1e4d2b] rounded-none pl-12 h-14 focus:border-[#00C402] focus:ring-1 focus:ring-[#00C402]/20 font-bold text-white placeholder:text-slate-600"
+                                    className="bg-[#061629] border-[#1D5F31] rounded-none pl-12 h-14 focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]/20 font-bold text-white placeholder:text-slate-600"
                                 />
                             </div>
                         </div>
@@ -113,7 +113,7 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                                 <Input
                                     value={email}
                                     readOnly
-                                    className="bg-black/20 border-[#1e4d2b]/50 pl-12 h-14 text-slate-500 cursor-not-allowed rounded-none font-medium"
+                                    className="bg-black/20 border-[#1D5F31]/50 pl-12 h-14 text-slate-500 cursor-not-allowed rounded-none font-medium"
                                 />
                             </div>
                         </div>
@@ -122,11 +122,11 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                     <div className="space-y-3">
                         <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-500 px-1">Expertise / Especialização</label>
                         <div className="relative group">
-                            <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#00C402] transition-colors" size={18} />
+                            <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#1D5F31] transition-colors" size={18} />
                             <Input
                                 value={specialization}
                                 onChange={(e) => setSpecialization(e.target.value)}
-                                className="bg-[#0d2b17] border-[#1e4d2b] rounded-none pl-12 h-14 focus:border-[#00C402] focus:ring-1 focus:ring-[#00C402]/20 font-bold text-white placeholder:text-slate-600"
+                                className="bg-[#061629] border-[#1D5F31] rounded-none pl-12 h-14 focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]/20 font-bold text-white placeholder:text-slate-600"
                                 placeholder="Ex: Estrategista Digital, Especialista em Performance..."
                             />
                         </div>
@@ -137,7 +137,7 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                         <textarea
                             value={bio}
                             onChange={(e) => setBio(e.target.value)}
-                            className="w-full min-h-[160px] bg-[#0d2b17] border border-[#1e4d2b] rounded-none p-6 text-sm font-medium focus:outline-none focus:border-[#00C402] focus:ring-1 focus:ring-[#00C402]/20 transition-all resize-none text-slate-300 leading-relaxed placeholder:text-slate-600"
+                            className="w-full min-h-[160px] bg-[#061629] border border-[#1D5F31] rounded-none p-6 text-sm font-medium focus:outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]/20 transition-all resize-none text-slate-300 leading-relaxed placeholder:text-slate-600"
                             placeholder="Descreva sua jornada e o valor que você entrega aos seus alunos..."
                         />
                     </div>
@@ -149,11 +149,11 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                             <div className="space-y-3">
                                 <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-500 px-1">Website</label>
                                 <div className="relative group">
-                                    <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#00C402] transition-colors" size={18} />
+                                    <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#1D5F31] transition-colors" size={18} />
                                     <Input
                                         value={website}
                                         onChange={(e) => setWebsite(e.target.value)}
-                                        className="bg-[#0d2b17] border-[#1e4d2b] rounded-none pl-12 h-14 focus:border-[#00C402] focus:ring-1 focus:ring-[#00C402]/20 font-bold text-white text-sm placeholder:text-slate-600"
+                                        className="bg-[#061629] border-[#1D5F31] rounded-none pl-12 h-14 focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]/20 font-bold text-white text-sm placeholder:text-slate-600"
                                         placeholder="https://seu-site.com"
                                     />
                                 </div>
@@ -165,7 +165,7 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                                     <Input
                                         value={linkedin}
                                         onChange={(e) => setLinkedin(e.target.value)}
-                                        className="bg-[#0d2b17] border-[#1e4d2b] rounded-none pl-12 h-14 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 font-bold text-white text-sm placeholder:text-slate-600"
+                                        className="bg-[#061629] border-[#1D5F31] rounded-none pl-12 h-14 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 font-bold text-white text-sm placeholder:text-slate-600"
                                         placeholder="URL do Perfil"
                                     />
                                 </div>
@@ -177,7 +177,7 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                                     <Input
                                         value={twitter}
                                         onChange={(e) => setTwitter(e.target.value)}
-                                        className="bg-[#0d2b17] border-[#1e4d2b] rounded-none pl-12 h-14 focus:border-sky-500 focus:ring-1 focus:ring-sky-500/20 font-bold text-white text-sm placeholder:text-slate-600"
+                                        className="bg-[#061629] border-[#1D5F31] rounded-none pl-12 h-14 focus:border-sky-500 focus:ring-1 focus:ring-sky-500/20 font-bold text-white text-sm placeholder:text-slate-600"
                                         placeholder="URL do Perfil"
                                     />
                                 </div>
@@ -189,7 +189,7 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                                     <Input
                                         value={youtube}
                                         onChange={(e) => setYoutube(e.target.value)}
-                                        className="bg-[#0d2b17] border-[#1e4d2b] rounded-none pl-12 h-14 focus:border-red-500 focus:ring-1 focus:ring-red-500/20 font-bold text-white text-sm placeholder:text-slate-600"
+                                        className="bg-[#061629] border-[#1D5F31] rounded-none pl-12 h-14 focus:border-red-500 focus:ring-1 focus:ring-red-500/20 font-bold text-white text-sm placeholder:text-slate-600"
                                         placeholder="URL do Canal"
                                     />
                                 </div>
@@ -201,7 +201,7 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                         <Button 
                             onClick={handleSave}
                             disabled={isSaving || isUploading}
-                            className="bg-[#00C402] text-white font-black uppercase tracking-[4px] py-8 px-12 rounded-none hover:bg-[#00A802] shadow-2xl transition-all gap-4 w-full md:w-auto h-auto"
+                            className="bg-[#1D5F31] text-white font-black uppercase tracking-[4px] py-8 px-12 rounded-none hover:bg-[#00A802] shadow-2xl transition-all gap-4 w-full md:w-auto h-auto"
                         >
                             {isSaving ? <Loader2 className="animate-spin" size={24} strokeWidth={3} /> : <Save size={24} strokeWidth={3} />}
                             {isSaving ? 'Sincronizando...' : 'Sincronizar Perfil'}

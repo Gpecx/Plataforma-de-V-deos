@@ -13,7 +13,7 @@ interface LogoProps {
 export default function Logo({ className = '', variant = 'horizontal', href = '/', logoUrl }: LogoProps) {
     const branding = useBranding()
     const siteName = branding.siteName || 'PowerPlay'
-    const primaryColor = branding.primaryColor || '#32cd32'
+    const primaryColor = branding.primaryColor || '#1D5F31'
 
     const PowerPlayLogo = () => (
         <svg 

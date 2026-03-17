@@ -33,17 +33,17 @@ export default function ForgotPasswordPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#0d2b17] flex items-center justify-center px-6 font-exo">
-            <div className="w-full max-w-xl bg-[#0f1f14] p-12 md:p-16 border-2 border-[#1e4d2b] relative overflow-hidden">
+        <div className="min-h-screen bg-transparent flex items-center justify-center px-6 font-exo">
+            <div className="w-full max-w-xl bg-[#061629] p-12 md:p-16 border-2 border-[#1D5F31] relative overflow-hidden">
 
                 {!isSubmitted ? (
                     <>
                         <div className="text-center space-y-6 relative z-10">
-                            <div className="inline-flex p-5 bg-[#0d2b17] text-[#00C402] border-2 border-[#1e4d2b] mb-4">
+                            <div className="inline-flex p-5 bg-[#061629] text-[#1D5F31] border-2 border-[#1D5F31] mb-4">
                                 <KeyRound size={40} strokeWidth={2.5} />
                             </div>
                             <h2 className="text-4xl font-black text-white tracking-tighter uppercase leading-none">
-                                RECUPERAR <span className="text-[#00C402]">ACESSO</span>
+                                RECUPERAR <span className="text-[#1D5F31]">ACESSO</span>
                             </h2>
                             <p className="text-slate-400 text-xs font-bold uppercase tracking-[2px] max-w-sm mx-auto">
                                 Insira seu e-mail para restaurarmos suas credenciais PowerPlay.
@@ -52,7 +52,7 @@ export default function ForgotPasswordPage() {
 
                         <form onSubmit={handleReset} className="space-y-10 mt-12 relative z-10">
                             <div className="space-y-4">
-                                <label className="text-[10px] font-black uppercase tracking-[4px] text-[#00C402]">
+                                <label className="text-[10px] font-black uppercase tracking-[4px] text-[#1D5F31]">
                                     E-mail Corporativo/Pessoal
                                 </label>
                                 <Input
@@ -61,14 +61,14 @@ export default function ForgotPasswordPage() {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="EXEMPLO@POWERPLAY.COM"
-                                    className="bg-[#0d2b17] border-2 border-[#1e4d2b] text-white rounded-none h-16 font-black text-xs uppercase tracking-widest px-8 focus:border-[#00C402] focus:ring-0"
+                                    className="bg-[#061629] border-2 border-[#1D5F31] text-white rounded-none h-16 font-black text-xs uppercase tracking-widest px-8 focus:border-[#1D5F31] focus:ring-0"
                                 />
                                 {error && <p className="text-red-500 text-[10px] font-black uppercase tracking-widest">{error}</p>}
                             </div>
 
                             <Button
                                 disabled={loading}
-                                className="w-full bg-[#00C402] hover:bg-[#00e602] text-white font-black uppercase italic tracking-[4px] h-16 rounded-none transition-all"
+                                className="w-full bg-[#1D5F31] hover:bg-[#00e602] text-white font-black uppercase italic tracking-[4px] h-16 rounded-none transition-all"
                             >
                                 {loading ? <Loader2 className="animate-spin" /> : "ENVIAR LINK DE RECUPERAÇÃO"}
                             </Button>
@@ -76,7 +76,7 @@ export default function ForgotPasswordPage() {
                     </>
                 ) : (
                     <div className="py-10 flex flex-col items-center text-center animate-in fade-in zoom-in duration-500">
-                        <div className="w-24 h-24 bg-[#0d2b17] border-2 border-[#00C402] flex items-center justify-center text-[#00C402] mb-8">
+                        <div className="w-24 h-24 bg-[#061629] border-2 border-[#1D5F31] flex items-center justify-center text-[#1D5F31] mb-8">
                             <CheckCircle2 size={48} />
                         </div>
                         <h2 className="text-2xl font-black uppercase text-white mb-4">E-MAIL ENVIADO!</h2>
@@ -86,7 +86,7 @@ export default function ForgotPasswordPage() {
                     </div>
                 )}
 
-                <div className="text-center mt-12 pt-8 border-t border-[#1e4d2b]">
+                <div className="text-center mt-12 pt-8 border-t border-[#1D5F31]">
                     <Link href="/login" className="inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[4px] text-slate-500 hover:text-white transition-colors">
                         <ArrowLeft size={16} /> VOLTAR PARA O LOGIN
                     </Link>

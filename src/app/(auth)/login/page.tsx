@@ -133,7 +133,7 @@ function LoginContent() {
                                 />
                                 <Button
                                     type="submit"
-                                    className="w-full font-black uppercase tracking-[4px] h-14 rounded-xl shadow-lg transition-all flex items-center justify-center gap-4 bg-[#32cd32] hover:bg-[#28b828] text-white hover:scale-[1.01] active:scale-[0.99] group mt-2"
+                                    className="w-full font-black uppercase tracking-[4px] h-14 rounded-xl shadow-lg transition-all flex items-center justify-center gap-4 bg-[#1D5F31] hover:bg-[#28b828] text-white hover:scale-[1.01] active:scale-[0.99] group mt-2"
                                 >
                                     ENTRAR AGORA
                                     <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
@@ -144,7 +144,7 @@ function LoginContent() {
                         {/* Footer Links (Closer) */}
                         <div className="mt-12 pt-8 border-t border-slate-100 text-center">
                             <p className="text-[11px] text-green-200 font-bold uppercase tracking-widest">
-                                Não tem uma conta? <Link href="/register" className="font-black text-[#00C402] hover:underline underline-offset-8 ml-2">Crie agora</Link>
+                                Não tem uma conta? <Link href="/register" className="font-black text-[#1D5F31] hover:underline underline-offset-8 ml-2">Crie agora</Link>
                             </p>
                         </div>
                     </div>
@@ -159,7 +159,7 @@ export default function LoginPage() {
         <Suspense fallback={
             <div className="w-full h-full min-h-screen flex items-center justify-center p-8 bg-[var(--background-color)]">
                 <div className="text-center space-y-4">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#00C402] mx-auto"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1D5F31] mx-auto"></div>
                     <p className="text-[var(--foreground)] font-black uppercase text-[10px] tracking-[3px]">Carregando portal...</p>
                 </div>
             </div>

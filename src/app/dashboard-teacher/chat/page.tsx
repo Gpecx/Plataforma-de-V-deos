@@ -80,7 +80,7 @@ export default function TeacherChatPage() {
     }
 
     return (
-        <div className="h-[calc(100vh-20px)] bg-[#0d2b17] flex flex-col overflow-hidden font-exo">
+        <div className="h-[calc(100vh-20px)] bg-transparent flex flex-col overflow-hidden font-exo">
             <div className="max-w-full w-full mx-auto flex flex-col flex-1 pt-0 pb-1 px-2 gap-1 overflow-hidden">
 
                 {/* Page Header */}
@@ -88,15 +88,15 @@ export default function TeacherChatPage() {
                     <div className="flex items-center gap-4">
                         <Link
                             href="/dashboard-teacher"
-                            className="p-3 bg-[#0f1f14] border border-[#1e4d2b] rounded-none hover:border-[#00C402] text-white hover:text-[#00C402] transition shadow-none"
+                            className="p-3 bg-white/5 border border-white/20 rounded-none hover:border-white text-white transition shadow-none backdrop-blur-sm"
                         >
                             <ArrowLeft size={20} />
                         </Link>
                         <div>
                             <h1 className="text-2xl font-black tracking-tighter uppercase text-white">
-                                CENTRAL DE <span className="text-[#00C402]">MENSAGENS</span>
+                                CENTRAL DE <span className="text-[#1D5F31]">MENSAGENS</span>
                             </h1>
-                            <p className="text-[9px] font-black uppercase tracking-[4px] text-white/60 mt-0.5">Gestão de suporte e dúvidas dos alunos em tempo real</p>
+                            <p className="text-[9px] font-black uppercase tracking-[4px] text-white/80 mt-0.5">Gestão de suporte e dúvidas dos alunos em tempo real</p>
                         </div>
                     </div>
                 </div>
@@ -109,40 +109,40 @@ export default function TeacherChatPage() {
                             <button
                                 key={student.id}
                                 onClick={() => setSelectedStudent(student)}
-                                className={`flex items-center gap-4 p-5 rounded-none border border-[#1e4d2b] text-left transition-all ${selectedStudent.id === student.id ? 'bg-[#00C402]/10 border-[#00C402] shadow-none' : 'bg-transparent border-white/5 hover:border-[#1e4d2b]'}`}
+                                className={`flex items-center gap-4 p-5 rounded-none border border-[#1D5F31] text-left transition-all ${selectedStudent.id === student.id ? 'bg-[#1D5F31]/10 border-[#1D5F31] shadow-none' : 'bg-transparent border-white/5 hover:border-[#1D5F31]'}`}
                             >
-                                <div className={`w-11 h-11 rounded-none flex items-center justify-center font-black text-xs shrink-0 ${selectedStudent.id === student.id ? 'bg-[#00C402] text-black' : 'bg-[#0d2b17] text-white border border-[#1e4d2b]'}`}>
+                                <div className={`w-11 h-11 rounded-none flex items-center justify-center font-black text-xs shrink-0 ${selectedStudent.id === student.id ? 'bg-[#1D5F31] text-black' : 'bg-[#061629] text-white border border-[#1D5F31]'}`}>
                                     {student.initials}
                                 </div>
                                 <div className="min-w-0">
-                                    <h4 className={`font-black uppercase text-[11px] tracking-tight truncate ${selectedStudent.id === student.id ? 'text-black' : 'text-white/80'}`}>
+                                    <h4 className={`font-black uppercase text-[11px] tracking-tight truncate ${selectedStudent.id === student.id ? 'text-black' : 'text-white'}`}>
                                         {student.name}
                                     </h4>
-                                    <p className="text-[9px] font-bold uppercase tracking-wide text-white/50 truncate mt-1 italic">{student.course}</p>
+                                    <p className="text-[9px] font-bold uppercase tracking-wide text-white/70 truncate mt-1 italic">{student.course}</p>
                                 </div>
                             </button>
                         ))}
                     </aside>
 
                     {/* Chat Window */}
-                    <section className="flex-1 flex flex-col bg-[#0f1f14] border border-[#1e4d2b] rounded-none overflow-hidden shadow-none mb-2">
+                    <section className="flex-1 flex flex-col bg-white/5 backdrop-blur-md border border-white/10 rounded-none overflow-hidden shadow-none mb-2">
                         {/* Chat Header */}
-                        <div className="flex items-center gap-5 px-8 py-5 border-b border-white/5 bg-[#0d2b17]/50">
-                            <div className="w-11 h-11 rounded-none bg-[#00C402] flex items-center justify-center text-black font-black text-sm shadow-none">
+                        <div className="flex items-center gap-5 px-8 py-5 border-b border-white/10 bg-white/5">
+                            <div className="w-11 h-11 rounded-none bg-[#1D5F31] flex items-center justify-center text-black font-black text-sm shadow-none">
                                 {selectedStudent.initials}
                             </div>
                             <div>
                                 <h3 className="font-black uppercase tracking-tighter text-base text-white">{selectedStudent.name}</h3>
                                 <div className="flex items-center gap-2 mt-0.5">
-                                    <div className={`w-1.5 h-1.5 rounded-none ${selectedStudent.status === 'online' ? 'bg-[#00C402]' : 'bg-slate-700'}`}></div>
-                                    <span className={`text-[9px] font-black uppercase tracking-[3px] ${selectedStudent.status === 'online' ? 'text-[#00C402]' : 'text-white/20'}`}>
+                                    <div className={`w-1.5 h-1.5 rounded-none ${selectedStudent.status === 'online' ? 'bg-[#1D5F31]' : 'bg-slate-700'}`}></div>
+                                    <span className={`text-[9px] font-black uppercase tracking-[3px] ${selectedStudent.status === 'online' ? 'text-[#1D5F31]' : 'text-white/20'}`}>
                                         {selectedStudent.status === 'online' ? 'Aluno Online' : 'Aluno Offline'}
                                     </span>
                                 </div>
                             </div>
                             <div className="ml-auto">
-                                <div className="hidden lg:flex items-center gap-2 text-[8px] font-black uppercase tracking-[2px] text-white/40 border border-[#1e4d2b] px-4 py-2 rounded-none">
-                                    <Users size={12} className="text-[#00C402]" />
+                                <div className="hidden lg:flex items-center gap-2 text-[8px] font-black uppercase tracking-[2px] text-white border-2 border-white px-4 py-2 rounded-none bg-white/10">
+                                    <Users size={12} className="text-white" />
                                     Matriculado em: {selectedStudent.course}
                                 </div>
                             </div>
@@ -156,16 +156,16 @@ export default function TeacherChatPage() {
                                     className={`flex gap-4 ${msg.role === 'teacher' ? 'flex-row-reverse' : 'flex-row'} animate-in fade-in slide-in-from-bottom-2 duration-300`}
                                 >
                                     {/* Avatar */}
-                                    <div className={`w-8 h-8 rounded-none shrink-0 flex items-center justify-center font-black text-[9px] mt-1 ${msg.role === 'student' ? 'bg-[#0d2b17] text-white border border-[#1e4d2b]' : 'bg-[#00C402] text-black'}`}>
+                                    <div className={`w-8 h-8 rounded-none shrink-0 flex items-center justify-center font-black text-[9px] mt-1 ${msg.role === 'student' ? 'bg-[#061629] text-white border border-[#1D5F31]' : 'bg-white text-black border-2 border-white'}`}>
                                         {msg.role === 'student' ? selectedStudent.initials : 'EU'}
                                     </div>
 
                                     {/* Bubble */}
                                     <div className={`max-w-[75%] ${msg.role === 'teacher' ? 'items-end' : 'items-start'} flex flex-col gap-1.5`}>
-                                        <div className={`px-6 py-4 rounded-none text-[13px] md:text-sm font-bold leading-relaxed shadow-none ${msg.role === 'student' ? 'bg-[#0d2b17]/50 border border-[#1e4d2b] text-white/90' : 'bg-[#00C402] text-black'}`}>
+                                        <div className={`px-6 py-4 rounded-none text-[13px] md:text-sm font-bold leading-relaxed shadow-none ${msg.role === 'student' ? 'bg-[#061629]/50 border border-[#1D5F31] text-white/90' : 'bg-white text-black border-2 border-white'}`}>
                                             {msg.content}
                                         </div>
-                                        <span className="text-[8px] font-black uppercase tracking-widest text-white/20 px-2">{msg.time}</span>
+                                        <span className="text-[8px] font-black uppercase tracking-widest text-white/40 px-2">{msg.time}</span>
                                     </div>
                                 </div>
                             ))}
@@ -173,26 +173,26 @@ export default function TeacherChatPage() {
                         </div>
 
                         {/* Input Bar */}
-                        <div className="px-6 md:px-8 py-6 border-t border-white/5 bg-[#0d2b17]/50">
+                        <div className="px-6 md:px-8 py-6 border-t border-white/10 bg-white/5">
                             <div className="flex items-end gap-3 md:gap-5">
-                                <button className="p-3 text-white/20 hover:text-[#00C402] transition shrink-0">
+                                <button className="p-3 text-white/20 hover:text-[#1D5F31] transition shrink-0">
                                     <MessageSquare size={20} />
                                 </button>
-                                <div className="flex-1 bg-[#0d2b17] border border-[#1e4d2b] rounded-none flex items-end px-6 py-4 focus-within:border-[#00C402] transition shadow-none">
+                                <div className="flex-1 bg-white/5 border border-white/20 rounded-none flex items-end px-6 py-4 focus-within:border-white transition shadow-none backdrop-blur-sm">
                                     <textarea
                                         value={input}
                                         onChange={e => setInput(e.target.value)}
                                         onKeyDown={handleKey}
                                         placeholder="Responda seu aluno aqui..."
                                         rows={2}
-                                        className="flex-1 bg-transparent outline-none resize-none font-bold text-sm text-white placeholder:text-white/10 placeholder:font-black max-h-40"
+                                        className="flex-1 bg-transparent outline-none resize-none font-bold text-sm text-white placeholder:text-white/30 placeholder:font-black max-h-40"
                                         style={{ lineHeight: '1.6' }}
                                     />
                                 </div>
                                 <button
                                     onClick={handleSend}
                                     disabled={!input.trim()}
-                                    className="w-14 h-14 bg-[#00C402] text-black rounded-none flex items-center justify-center hover:bg-[#00C402] disabled:opacity-20 active:scale-95 transition-all shadow-none group"
+                                    className="w-14 h-14 bg-white text-black rounded-none flex items-center justify-center hover:bg-white/90 disabled:opacity-20 active:scale-95 transition-all shadow-none group"
                                 >
                                     <Send size={20} strokeWidth={2.5} className="group-hover:rotate-12 transition-transform" />
                                 </button>
