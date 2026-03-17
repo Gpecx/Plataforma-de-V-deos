@@ -112,10 +112,10 @@ export default function TeacherCoursesPage() {
             </div>
 
             <div className="px-4 md:px-8">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
                     {filteredCourses.map((curso) => (
                         <div key={curso.id} className="bg-[#061629] border border-[#1D5F31] rounded-none overflow-hidden group shadow-sm hover:border-[#1D5F31]/30 transition-all flex flex-col">
-                            <div className="relative h-40 bg-[#061629] overflow-hidden">
+                            <div className="relative h-32 bg-[#061629] overflow-hidden">
                                 <img
                                     src={curso.image_url || "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400"}
                                     alt={curso.title}
@@ -123,13 +123,13 @@ export default function TeacherCoursesPage() {
                                 />
                             </div>
 
-                            <div className="p-4 flex-grow flex flex-col">
-                                <h3 className="text-lg font-black tracking-tighter text-white mb-2 truncate">{curso.title}</h3>
+                            <div className="p-3 flex-grow flex flex-col">
+                                <h3 className="text-base font-black tracking-tighter text-white mb-2 truncate">{curso.title}</h3>
                                 <div className="flex justify-between items-center mb-4">
                                     <p className="text-slate-500 text-[10px] font-black uppercase tracking-[2px]">{curso.category || 'Sem categoria'}</p>
                                     <div className="flex flex-col items-end">
                                         <span className="text-[7px] font-black uppercase text-slate-400 tracking-[1px]">Valor</span>
-                                        <span className="text-[#1D5F31] font-black text-md tracking-tighter leading-none">
+                                        <span className="text-[#1D5F31] font-black text-sm tracking-tighter leading-none">
                                             {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(curso.price || 0)}
                                         </span>
                                     </div>
@@ -137,8 +137,8 @@ export default function TeacherCoursesPage() {
 
                                 <div className="mt-auto flex gap-4">
                                     <Link href={`/dashboard-teacher/courses/${curso.id}/edit`} className="flex-grow">
-                                        <Button className="w-full bg-[#061629] hover:bg-[#1D5F31] text-white border border-[#1D5F31] font-black uppercase tracking-widest py-3 h-auto rounded-none transition-all duration-300">
-                                            <Edit size={16} className="mr-2" /> Editar
+                                        <Button className="w-full bg-[#061629] hover:bg-[#1D5F31] text-white border border-[#1D5F31] font-black uppercase tracking-widest py-2 h-auto rounded-none transition-all duration-300 text-[10px]">
+                                            <Edit size={14} className="mr-2" /> Editar
                                         </Button>
                                     </Link>
 
@@ -147,7 +147,7 @@ export default function TeacherCoursesPage() {
                                         onClick={() => handleDelete(curso.id)}
                                         className="border-[#1D5F31] text-slate-500 hover:text-red-500 hover:border-red-900 hover:bg-red-950/30 p-3 rounded-none transition-colors"
                                     >
-                                        <Trash2 size={20} />
+                                        <Trash2 size={16} />
                                     </Button>
                                 </div>
                             </div>

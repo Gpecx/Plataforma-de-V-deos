@@ -80,11 +80,7 @@ export default async function TeacherDashboard() {
         { label: 'Vendas Hoje', value: `R$ ${todaySales.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: TrendingUp, color: 'text-purple-500' },
     ]
 
-    const recentActivities = [
-        { id: 1, user: 'Ana Silva', comment: 'Tenho uma dúvida sobre a aula 4...', date: 'há 2 horas' },
-        { id: 2, user: 'João Pereira', comment: 'O material de apoio está excelente!', date: 'há 5 horas' },
-        { id: 3, user: 'Maria Santos', comment: 'Não consegui baixar o certificado.', date: 'há 1 dia' },
-    ]
+
 
     return (
         <div className="min-h-screen bg-transparent text-white font-exo pb-24 pt-12 relative">
@@ -123,48 +119,27 @@ export default async function TeacherDashboard() {
                     <SalesChart data={chartData} />
                 </section>
 
-                <div className="grid lg:grid-cols-3 gap-16">
-                    <section className="lg:col-span-2 space-y-10">
-                        <div className="border-b-2 border-[#1D5F31] pb-6 flex justify-between items-center">
-                            <h2 className="text-2xl font-black uppercase tracking-tighter">Meus Cursos</h2>
-                            <Link href="/dashboard-teacher/courses" className="text-[10px] text-slate-500 hover:text-white font-black uppercase tracking-[3px]">Ver todos</Link>
-                        </div>
-                        <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-                            {courses.length > 0 ? courses.map((curso) => (
-                                <div key={curso.id} className="bg-[#061629]/40 backdrop-blur-md border border-[#1D5F31]/30 flex flex-col hover:border-[#1D5F31] transition-all shadow-lg overflow-hidden">
-                                    <div className="h-40 bg-[#061629]/20 border-b border-[#1D5F31]/30">
-                                        <img src={curso.image_url} className="w-full h-full object-cover" alt={curso.title} />
-                                    </div>
-                                    <div className="p-4 flex-grow">
-                                        <h3 className="font-black text-lg mb-4 tracking-tighter line-clamp-1">{curso.title}</h3>
-                                        <Link href={`/dashboard-teacher/courses/${curso.id}/edit`}>
-                                            <button className="w-full bg-[#061629]/60 border border-[#1D5F31]/30 text-white font-black uppercase tracking-widest py-3 hover:bg-[#1D5F31] hover:border-[#1D5F31] transition-all">Editar no Studio</button>
-                                        </Link>
-                                    </div>
+                <section className="space-y-10">
+                    <div className="border-b-2 border-[#1D5F31] pb-6 flex justify-between items-center">
+                        <h2 className="text-2xl font-black uppercase tracking-tighter">Meus Cursos</h2>
+                        <Link href="/dashboard-teacher/courses" className="text-[10px] text-slate-500 hover:text-white font-black uppercase tracking-[3px]">Ver todos</Link>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
+                        {courses.length > 0 ? courses.map((curso) => (
+                            <div key={curso.id} className="bg-[#061629]/40 backdrop-blur-md border border-[#1D5F31]/30 flex flex-col hover:border-[#1D5F31] transition-all shadow-lg overflow-hidden">
+                                <div className="h-32 bg-[#061629]/20 border-b border-[#1D5F31]/30">
+                                    <img src={curso.image_url} className="w-full h-full object-cover" alt={curso.title} />
                                 </div>
-                            )) : <div className="col-span-full py-24 border-2 border-dashed border-[#1D5F31] text-center bg-[#061629] font-black uppercase tracking-[4px]">Crie seu primeiro curso!</div>}
-                        </div>
-                    </section>
-
-                    <section className="space-y-10">
-                        <div className="border-b-2 border-[#1D5F31] pb-6">
-                            <h2 className="text-2xl font-black uppercase tracking-tighter">Dúvidas Inbox</h2>
-                        </div>
-                        <div className="space-y-6">
-                            {recentActivities.map((activity) => (
-                                <div key={activity.id} className="bg-[#061629]/40 backdrop-blur-md p-7 border border-[#1D5F31]/30 flex gap-5 hover:border-[#1D5F31] transition-all shadow-lg">
-                                    <div className="h-14 w-14 bg-[#061629]/60 flex items-center justify-center border border-[#1D5F31]/30">
-                                        <MessageSquare size={20} className="text-slate-400" />
-                                    </div>
-                                    <div className="min-w-0">
-                                        <h4 className="font-black text-[11px] uppercase tracking-widest">{activity.user}</h4>
-                                        <p className="text-[11px] text-slate-500 italic">"{activity.comment}"</p>
-                                    </div>
+                                <div className="p-3 flex-grow">
+                                    <h3 className="font-black text-base mb-4 tracking-tighter line-clamp-1">{curso.title}</h3>
+                                    <Link href={`/dashboard-teacher/courses/${curso.id}/edit`}>
+                                        <button className="w-full bg-[#061629]/60 border border-[#1D5F31]/30 text-white font-black uppercase tracking-widest py-2 hover:bg-[#1D5F31] hover:border-[#1D5F31] transition-all text-[10px]">Editar no Studio</button>
+                                    </Link>
                                 </div>
-                            ))}
-                        </div>
-                    </section>
-                </div>
+                            </div>
+                        )) : <div className="col-span-full py-24 border-2 border-dashed border-[#1D5F31] text-center bg-[#061629] font-black uppercase tracking-[4px]">Crie seu primeiro curso!</div>}
+                    </div>
+                </section>
             </div>
         </div>
     );
