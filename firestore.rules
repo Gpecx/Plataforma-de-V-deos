@@ -57,5 +57,17 @@ service cloud.firestore {
                     && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
       allow create, delete: if false;
     }
+
+    // Configurações Globais: Apenas Admin
+    match /config/{settingId} {
+      allow read, write: if isSignedIn() && request.auth.token.role == 'admin';
+    }
+
+    // Pagamentos (financeiro): Apenas Admin
+    match /payments/{paymentId} {
+      allow read, write: if isSignedIn() && request.auth.token.role == 'admin';
+    }
   }
 }
+
+

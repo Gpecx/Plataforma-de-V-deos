@@ -1,8 +1,19 @@
 "use client"
 
 import { Zap, CheckCircle2, ArrowRight, ShieldCheck, Star } from 'lucide-react'
+import { getFinancialSettings, PlanData } from '@/app/actions/financial'
+import { useState, useEffect } from 'react'
 
 export default function SubscriptionsPage() {
+    const [premiumPlan, setPremiumPlan] = useState<PlanData | null>(null)
+
+    useEffect(() => {
+        getFinancialSettings().then(settings => {
+            const elite = settings.plans.find(p => p.id === 'premium') || settings.plans[0]
+            if (elite) setPremiumPlan(elite)
+        })
+    }, [])
+
     return (
         <div className="p-8 md:p-12 min-h-screen font-exo text-white bg-transparent animate-in fade-in duration-500">
             <header className="mb-12">
@@ -27,17 +38,21 @@ export default function SubscriptionsPage() {
                             </div>
 
                             <div>
-                                <h2 className="text-5xl font-black tracking-tighter text-white mb-2">PREMIUM <span className="text-[#1D5F31]">ELITE</span></h2>
+                                <h2 className="text-5xl font-black tracking-tighter text-white mb-2">
+                                    {premiumPlan?.name.split(' ')[0] || 'PREMIUM'} <span className="text-[#1D5F31]">{premiumPlan?.name.split(' ').slice(1).join(' ') || 'ELITE'}</span>
+                                </h2>
                                 <p className="text-slate-400 text-sm font-bold uppercase tracking-widest italic">Acesso total ao Ecossistema PowerPlay</p>
                             </div>
 
                             <div className="flex items-baseline gap-2">
-                                <span className="text-4xl font-black tracking-tighter text-white">R$ 49,90</span>
+                                <span className="text-4xl font-black tracking-tighter text-white">
+                                    R$ {premiumPlan?.price.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) || '49,90'}
+                                </span>
                                 <span className="text-slate-400 text-xs font-black uppercase tracking-widest">/ mês</span>
                             </div>
 
                             <div className="space-y-3">
-                                {['Todos os Treinamentos', 'Certificados Ilimitados', 'Mentorias ao Vivo', 'Comunidade Exclusiva'].map(item => (
+                                {(premiumPlan?.features || ['Todos os Treinamentos', 'Certificados Ilimitados', 'Mentorias ao Vivo', 'Comunidade Exclusiva']).map(item => (
                                     <div key={item} className="flex items-center gap-3">
                                         <CheckCircle2 size={16} className="text-[#1D5F31]" />
                                         <span className="text-xs font-bold text-slate-300 uppercase tracking-wide">{item}</span>

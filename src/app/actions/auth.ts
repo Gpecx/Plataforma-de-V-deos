@@ -12,15 +12,19 @@ export async function getSessionUser() {
     try {
         const decodedToken = await adminAuth.verifyIdToken(token)
         const uid = decodedToken.uid
+        const tokenRole = decodedToken.role
 
-        // Buscar o papel (role) no Firestore
+        // Buscar o papel (role) no Firestore (como fallback ou sincronização)
         const profileDoc = await adminDb.collection('profiles').doc(uid).get()
         const profileData = profileDoc.data()
+
+        // Prioridade: Reivindicação customizada (Claim) > Firestore > Default (student)
+        const activeRole = tokenRole || profileData?.role || 'student'
 
         return {
             uid: uid,
             email: decodedToken.email,
-            role: profileData?.role || 'student'
+            role: activeRole
         }
     } catch (error) {
         console.error('getSessionUser Error:', error)

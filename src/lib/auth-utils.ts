@@ -25,20 +25,14 @@ export async function getServerSession(): Promise<UserSession | null> {
         // Verify the ID token
         const decodedToken = await adminAuth.verifyIdToken(token);
         const uid = decodedToken.uid;
+        const tokenRole = decodedToken.role as UserRole | undefined;
 
-        // Fetch user profile from Firestore to get the role
+        // Fetch user profile from Firestore (fallback or for additional data)
         const profileDoc = await adminDb.collection('profiles').doc(uid).get();
-
-        if (!profileDoc.exists) {
-            return {
-                uid,
-                email: decodedToken.email,
-                role: 'student', // Default role if profile doesn't exist
-            };
-        }
-
         const profileData = profileDoc.data();
-        const role = (profileData?.role as UserRole) || 'student';
+        
+        // Priority: Custom Claim > Firestore > Default (student)
+        const role = tokenRole || (profileData?.role as UserRole) || 'student';
 
         return {
             uid,

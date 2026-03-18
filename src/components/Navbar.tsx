@@ -25,7 +25,8 @@ import {
     UserCog,
     TrendingUp,
     BookOpen,
-    Menu
+    Menu,
+    ShieldAlert
 } from 'lucide-react'
 import { useCartStore } from '@/store/useCartStore'
 import { NotificationBell } from '@/components/NotificationBell'
@@ -166,9 +167,14 @@ export default function Navbar({ transparent }: NavbarProps) {
                                 </Link>
                             ))}
                             {userProfile?.role === 'admin' && (
-                                <Link href="/dashboard-student" className="text-[10px] font-bold uppercase tracking-widest text-[#1D5F31] border border-[#1D5F31] px-2 py-1 rounded-none hover:bg-[#1D5F31] hover:text-white transition-colors duration-300 ml-2">
-                                    Modo Aluno
-                                </Link>
+                                <>
+                                    <Link href="/admin/dashboard" className="text-[10px] font-black uppercase tracking-[0.2em] text-[#22c55e] border border-[#22c55e]/30 px-3 py-2 rounded-none hover:bg-[#22c55e]/10 transition-all duration-300 ml-2">
+                                        Painel Admin
+                                    </Link>
+                                    <Link href="/dashboard-student" className="text-[10px] font-bold uppercase tracking-widest text-slate-400 border border-white/10 px-3 py-2 rounded-none hover:bg-white/5 transition-all duration-300 ml-2">
+                                        Modo Aluno
+                                    </Link>
+                                </>
                             )}
                         </div>
                     </div>
@@ -271,11 +277,14 @@ export default function Navbar({ transparent }: NavbarProps) {
                                             <>
                                                 {userProfile?.role === 'admin' && (
                                                     <>
+                                                        <DropdownMenuItem onSelect={() => router.push("/admin/dashboard")} className="flex items-center gap-4 px-4 py-3 rounded-none cursor-pointer hover:bg-[#1D5F31]/20 text-[#22c55e] transition-colors outline-none focus:bg-[#1D5F31]/20 border border-[#1D5F31]/30 mb-1 bg-[#1D5F31]/10">
+                                                            <ShieldAlert size={18} className="text-[#22c55e]" /><span className="text-[11px] font-black uppercase tracking-widest leading-none">Acessar Painel Admin</span>
+                                                        </DropdownMenuItem>
                                                         <DropdownMenuItem onSelect={() => router.push("/admin/settings")} className="flex items-center gap-4 px-4 py-3 rounded-none cursor-pointer hover:bg-white/10 text-white transition-colors outline-none focus:bg-white/10 border border-white/5 mb-1">
                                                             <Settings size={18} className="text-white/80" /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Configurações do Site</span>
                                                         </DropdownMenuItem>
-                                                        <DropdownMenuItem onSelect={() => router.push("/dashboard-student")} className="flex items-center gap-4 px-4 py-3 rounded-none cursor-pointer hover:bg-[#1D5F31]/20 text-[#1D5F31] transition-colors outline-none focus:bg-[#1D5F31]/20 border border-[#1D5F31]/30 mb-1 bg-[#1D5F31]/10">
-                                                            <GraduationCap size={18} className="text-[#1D5F31]" /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Modo Aluno (Testes)</span>
+                                                        <DropdownMenuItem onSelect={() => router.push("/dashboard-student")} className="flex items-center gap-4 px-4 py-3 rounded-none cursor-pointer hover:bg-white/10 text-slate-400 transition-colors outline-none focus:bg-white/10 border border-white/5 mb-1">
+                                                            <GraduationCap size={18} className="text-slate-400" /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Modo Aluno (Testes)</span>
                                                         </DropdownMenuItem>
                                                     </>
                                                 )}
