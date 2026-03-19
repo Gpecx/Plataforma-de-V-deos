@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation"
 import Link from "next/link"
-import { BuyButton } from "@/components/BuyButton"
 import Navbar from "@/components/Navbar"
 import { MotivationalBanner } from "@/components/MotivationalBanner"
 import {
@@ -9,37 +8,17 @@ import {
     Clock,
     ShieldCheck,
     ArrowLeft,
+    ArrowRight,
+    Globe,
+    Info,
 } from "lucide-react"
 import { db } from "@/lib/firebase"
 import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore"
-import { cookies } from "next/headers"
 import { parseFirebaseDate } from '@/lib/date-utils'
-import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { CourseIntroPlayer } from "@/components/CourseIntroPlayer"
 
 export default async function CourseDetailPage({ params }: { params: { slug: string } }) {
     const { slug } = await params
-
-    // 0. Verifica se o usuário está logado e já possui o curso
-    let purchasedCourseIds: string[] = []
-    const cookieStore = cookies()
-    const token = (await cookieStore).get('firebase-token')?.value
-
-    if (token) {
-        try {
-            const decodedToken = await adminAuth.verifyIdToken(token)
-            const enrollmentSnap = await adminDb.collection('enrollments')
-                .where('user_id', '==', decodedToken.uid)
-                .where('course_id', '==', slug)
-                .get()
-
-            if (!enrollmentSnap.empty) {
-                purchasedCourseIds = [slug]
-            }
-        } catch (error) {
-            console.error("Erro ao verificar matrícula:", error)
-        }
-    }
 
     // 1. Busca o curso por ID
     let course: any = null
@@ -84,43 +63,39 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
 
     const curriculum = [{ title: "Grade Curricular Completa", lessons: lessons || [] }]
     const totalLessons = lessons?.length || 0
-    const rawPrice = course?.price ?? 157
-    const coursePrice = typeof rawPrice === 'number' ? rawPrice : parseFloat(rawPrice)
 
-    // O RETURN QUE ESTAVA FALTANDO COMEÇA AQUI:
     return (
         <div className="min-h-screen bg-transparent text-white/90 font-exo">
             <Navbar />
 
             {/* HERO & VIDEO SECTION - BORDAS QUADRADAS E ALINHAMENTO RIGOROSO */}
-            <section className="relative pt-16 pb-0 overflow-hidden">
-                <div className="max-w-none mx-auto w-full">
-                    {/* INFO E TÍTULO - ALINHADO COM O PADDING PADRÃO */}
-                    <div className="px-6 md:px-12 lg:px-16 pb-10 space-y-3 border-b border-white/10">
+            <section className="relative pt-24 pb-0 overflow-hidden">
+                <div className="max-w-[1440px] mx-auto w-full px-6 md:px-12 lg:px-16">
+                    {/* INFO E TÍTULO */}
+                    <div className="pb-10 space-y-4">
                         <Link
                             href="/course"
-                            className="inline-flex items-center gap-2 text-white/40 hover:text-[#1D5F31] transition text-[10px] font-black uppercase tracking-[3px]"
+                            className="inline-flex items-center gap-2 text-[#1D5F31] hover:text-white transition text-[10px] font-black uppercase tracking-[3px]"
                         >
                             <ArrowLeft size={14} />
                             Voltar ao Catálogo
                         </Link>
 
                         <div className="flex items-center gap-3">
-                            <span className="inline-block bg-[#1D5F31] text-white text-[9px] font-black px-3 py-1 uppercase tracking-widest rounded-none">
+                            <span className="inline-block bg-[#1D5F31] text-white text-[9px] font-black px-3 py-1.5 uppercase tracking-[3px] rounded-none">
                                 {course.tag || "PREMIUM"}
                             </span>
                         </div>
 
-                        <h1 className="text-3xl md:text-5xl font-black tracking-tighter text-white leading-[0.9] uppercase max-w-4xl">
+                        <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-white leading-[0.85] uppercase max-w-5xl italic">
                             {course.title}
                         </h1>
                     </div>
 
-                    <div className="grid lg:grid-cols-12 gap-0 items-stretch border-b border-white/10 px-6 md:px-12 lg:px-16">
+                    <div className="grid lg:grid-cols-12 gap-12 items-start pb-24">
                         {/* LADO ESQUERDO: VÍDEO */}
-                        <div className="lg:col-span-8 flex flex-col border-r border-white/10">
-                            {/* Player de Vídeo sem arredondamento */}
-                            <div className="w-full bg-black/20 aspect-video">
+                        <div className="lg:col-span-8 flex flex-col">
+                            <div className="w-full bg-black/40 aspect-video shadow-2xl border border-[#1D5F31]/20 overflow-hidden relative group">
                                 <CourseIntroPlayer
                                     videoUrl={course.intro_video_url}
                                     thumbnail={course.image_url}
@@ -128,75 +103,92 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                             </div>
                         </div>
 
-                        {/* LADO DIREITO: COMPRA E BENEFÍCIOS (ALINHADO AO TOPO DO VÍDEO) */}
-                        <div className="lg:col-span-4 bg-white/5 backdrop-blur-sm flex flex-col">
-                            <div className="p-10 md:p-12 space-y-10 flex-grow">
-                                <div className="space-y-2 pb-8 border-b border-white/10">
-                                    <p className="text-[10px] text-white/40 uppercase tracking-[5px] font-black">Investimento único</p>
-                                    <div className="flex items-baseline gap-1">
-                                        <span className="text-2xl font-bold text-white">R$</span>
-                                        <span className="text-7xl font-black text-white tracking-tighter">
-                                            {coursePrice.toFixed(0)}
-                                        </span>
-                                        <span className="text-2xl font-bold text-white/40">,00</span>
-                                    </div>
-                                </div>
+                        {/* LADO DIREITO: INFORMAÇÕES DO CURSO */}
+                        <div className="lg:col-span-4 flex flex-col space-y-10">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-px bg-[#1D5F31]" />
+                                <span className="text-[10px] font-black uppercase tracking-[4px] text-[#1D5F31]">
+                                    Detalhes da Formação
+                                </span>
+                            </div>
 
-                                <div className="space-y-4">
-                                    <BuyButton
-                                        course={course}
-                                        label="Matricular-se Agora"
-                                        className="w-full py-8 text-sm tracking-[4px] font-black bg-[#1D5F31] hover:bg-white hover:text-black transition-all uppercase rounded-none"
-                                        purchasedCourseIds={purchasedCourseIds}
-                                    />
-                                    <div className="flex items-center gap-2 text-white/40 text-[9px] font-bold uppercase tracking-widest pt-2">
-                                        <ShieldCheck size={16} className="text-[#1D5F31]" />
-                                        <span>Garantia de 7 Dias Incondicional</span>
-                                    </div>
-                                </div>
+                            <div className="space-y-6">
+                                <h3 className="text-lg font-black text-white uppercase tracking-tight flex items-center gap-2">
+                                    <Info size={18} className="text-[#1D5F31]" />
+                                    Sobre este treinamento
+                                </h3>
+                                <p className="text-slate-400 text-sm leading-relaxed font-medium line-clamp-6">
+                                    {course.description || 'Explore técnicas avançadas e domine o mercado com este treinamento exclusivo da PowerPlay. Conteúdo focado em performance e resultados reais.'}
+                                </p>
+                            </div>
 
-                                <div className="space-y-6 pt-4">
-                                    {[
-                                        { icon: <Clock size={18} />, text: `${course.duration || 24}H de Conteúdo` },
-                                        { icon: <PlayCircle size={18} />, text: `${totalLessons} Aulas Práticas` },
-                                        { icon: <CheckCircle2 size={18} />, text: "Material Complementar" },
-                                    ].map((item, i) => (
-                                        <div key={i} className="flex items-center gap-4 text-white/60 font-bold text-[11px] uppercase tracking-widest">
-                                            <div className="text-[#1D5F31]">{item.icon}</div>
-                                            {item.text}
+                            {/* Info Grid Minimalista */}
+                            <div className="grid grid-cols-2 gap-y-8 gap-x-4 py-8 border-y border-white/10">
+                                {[
+                                    { icon: <Clock size={16} />, label: "Duração", text: `${course.duration || 12} Horas` },
+                                    { icon: <Globe size={16} />, label: "Idioma", text: "Português" },
+                                    { icon: <PlayCircle size={16} />, label: "Aulas", text: `${totalLessons} Práticas` },
+                                    { icon: <ShieldCheck size={16} />, label: "Certificado", text: "Incluso" },
+                                ].map((item, i) => (
+                                    <div key={i} className="flex gap-3 items-start">
+                                        <div className="text-[#1D5F31] mt-0.5">{item.icon}</div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[9px] uppercase font-bold text-slate-500 tracking-widest mb-1">{item.label}</span>
+                                            <span className="text-[11px] font-black text-white uppercase tracking-tighter leading-none">{item.text}</span>
                                         </div>
-                                    ))}
-                                </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="pt-4">
+                                <Link href={`/classroom/${course.id}`} className="block w-full">
+                                    <button className="btn-cta w-full flex items-center justify-center gap-3 group py-5 shadow-2xl shadow-[#1D5F31]/20">
+                                        <span className="relative z-10 flex items-center gap-3 text-[11px] tracking-[4px]">
+                                            INICIAR TREINAMENTO <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
+                                        </span>
+                                    </button>
+                                </Link>
+                                <p className="text-[9px] text-center text-white/30 uppercase tracking-widest mt-4 font-bold">
+                                    Acesso Vitalício Liberado
+                                </p>
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* DESCRIÇÃO E EMENTA */}
-            <section className="py-24 px-6 md:px-12 lg:px-16 bg-[#061629]">
-                <div className="max-w-none mx-auto grid lg:grid-cols-12 gap-0">
-                    <div className="lg:col-span-8 space-y-8">
-                        <h3 className="text-3xl font-black text-white uppercase tracking-tighter border-l-4 border-[#1D5F31] pl-6">Sobre o treinamento</h3>
-                        <p className="text-white/60 text-lg leading-relaxed font-medium pl-6 max-w-none">
-                            {course.description}
+            {/* CURRÍCULO ESTILO INDUSTRIAL */}
+            <section className="py-24 px-6 md:px-12 lg:px-16 bg-black/20 border-t border-white/5">
+                <div className="max-w-[1440px] mx-auto">
+                    <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-3">
+                                <div className="w-12 h-px bg-[#1D5F31]" />
+                                <span className="text-[10px] font-black uppercase tracking-[4px] text-[#1D5F31]">Cronograma</span>
+                            </div>
+                            <h2 className="text-3xl md:text-5xl font-black text-white uppercase tracking-tighter italic">Grade <br className="hidden md:block"/> Curricular</h2>
+                        </div>
+                        <p className="text-slate-500 text-sm max-w-md font-medium uppercase tracking-widest leading-loose">
+                            Explore os módulos desenhados para levar seu conhecimento ao nível máximo de performance técnica.
                         </p>
+                    </div>
 
-                        {/* Ementa Estilo Industrial */}
-                        <div className="mt-16 space-y-1">
+                    <div className="grid lg:grid-cols-12 gap-0">
+                        <div className="lg:col-span-8 space-y-1">
                             {curriculum[0].lessons.map((lesson: any, index: number) => (
-                                <div key={index} className="flex items-center justify-between bg-white/5 p-6 border border-white/5 hover:bg-[#1D5F31]/10 transition-colors">
-                                    <div className="flex items-center gap-4">
-                                        <span className="text-[#1D5F31] font-black text-xs">{(index + 1).toString().padStart(2, '0')}</span>
-                                        <span className="font-bold uppercase tracking-tight text-white/80">{lesson.title}</span>
+                                <div key={index} className="flex items-center justify-between bg-white/[0.02] p-6 border border-white/5 hover:bg-[#1D5F31]/10 transition-all group cursor-default">
+                                    <div className="flex items-center gap-6">
+                                        <span className="text-[#1D5F31] font-black text-xs tabular-nums">{(index + 1).toString().padStart(2, '0')}</span>
+                                        <span className="font-bold uppercase tracking-widest text-[11px] text-white/80 group-hover:text-white transition-colors">{lesson.title}</span>
                                     </div>
-                                    <PlayCircle size={16} className="text-white/20" />
+                                    <div className="flex items-center gap-4 text-white/20 group-hover:text-[#1D5F31] transition-colors">
+                                        <span className="text-[9px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Visualizar</span>
+                                        <PlayCircle size={18} />
+                                    </div>
                                 </div>
                             ))}
                         </div>
                     </div>
-                    {/* Placeholder para a coluna 4 da ementa (opcional) */}
-                    <div className="lg:col-span-4 hidden lg:block"></div>
                 </div>
             </section>
 
