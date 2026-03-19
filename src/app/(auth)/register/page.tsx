@@ -184,29 +184,29 @@ export default function RegisterPage() {
     }
 
     const inputClass = (hasError: boolean = false) =>
-        `w-full p-4 bg-black/40 text-white border transition-all outline-none text-sm font-medium placeholder:text-gray-600 hover:bg-black/60 ${hasError
+        `w-full p-4 bg-[#153b1b] text-white border transition-all outline-none text-sm font-medium placeholder:text-green-700 hover:bg-black/60 ${hasError
             ? 'border-red-500 focus:border-red-600'
-            : 'border-[#1D5F31] focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]'
+            : 'border-[#266d35] focus:border-slate-800'
         }`
 
-    const labelClass = 'text-[10px] font-black uppercase tracking-widest text-[#1D5F31]/80'
+    const labelClass = 'text-[10px] font-black uppercase tracking-widest text-green-200 mr-2 ml-1 shadow-sm'
 
     return (
-        <div className="min-h-screen w-full flex flex-row bg-[#08150c] overflow-hidden font-exo">
+        <div className="min-h-screen w-full flex flex-row bg-[var(--background-color)] overflow-hidden font-exo">
             {/* Left Side - Visual (Full Column Image) */}
-            <div className="hidden md:flex md:w-1/2 bg-[#08150c] items-center justify-center p-0 overflow-hidden border-r border-[#1D5F31]">
+            <div className="hidden md:flex md:w-1/2 bg-[var(--background-color)] items-center justify-center p-0 overflow-hidden border-r border-white/5">
                 <div className="w-full h-full relative">
                     <img
                         src="/register-illustration.png"
                         alt="PowerPlay"
-                        className="w-full h-full object-cover object-center brightness-90 saturate-[0.8]"
+                        className="w-full h-full object-cover object-center brightness-110 saturate-[0.9]"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#08150c]/80" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[var(--background-color)]/80" />
                 </div>
             </div>
 
             {/* Right Side - Form Area */}
-            <div className="w-full md:w-1/2 flex flex-col items-center justify-start pt-8 md:pt-12 lg:pt-16 p-6 md:p-12 bg-[#08150c] relative overflow-y-auto custom-scrollbar">
+            <div className="w-full md:w-1/2 flex flex-col items-center justify-start pt-8 md:pt-12 lg:pt-16 p-6 md:p-12 bg-[var(--background-color)] relative overflow-y-auto custom-scrollbar">
                 <div className="w-full max-w-[450px]">
                     {/* Header Section */}
                     <div className="text-center space-y-4 mb-8">
@@ -220,18 +220,18 @@ export default function RegisterPage() {
                     </div>
 
                     {/* Form Container (Square Card) */}
-                    <div className="bg-black/20 p-8 border border-[#1D5F31] shadow-2xl">
+                    <div className="bg-transparent p-8 border-t border-white/5">
                         <form onSubmit={handleRegister} className="space-y-6">
                             <div className="space-y-5">
 
                                 {/* Tipo de Conta */}
                                 <div className="space-y-2 mb-2">
                                     <label className={labelClass}>Tipo de Perfil</label>
-                                    <div className="flex gap-2 p-1 bg-black/40 border border-[#1D5F31]">
+                                    <div className="flex gap-2 p-1 bg-[#153b1b] border border-[#266d35] rounded-xl">
                                         <button
                                             type="button"
                                             onClick={() => setRole('student')}
-                                            className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-black uppercase transition-all ${role === 'student' ? 'bg-[#1D5F31]/20 text-[#1D5F31] border border-[#1D5F31]/30' : 'text-gray-500 hover:text-gray-300'}`}
+                                            className={`flex-1 flex items-center justify-center gap-2 py-3 text-[10px] font-black uppercase transition-all rounded-lg ${role === 'student' ? 'bg-[#1D5F31] text-white shadow-xl translate-y-[-1px]' : 'text-green-700/60 hover:text-green-200'}`}
                                         >
                                             <User className="w-4 h-4" />
                                             Aluno
@@ -239,7 +239,7 @@ export default function RegisterPage() {
                                         <button
                                             type="button"
                                             onClick={() => setRole('teacher')}
-                                            className={`flex-1 flex items-center justify-center gap-2 py-3 text-xs font-black uppercase transition-all ${role === 'teacher' ? 'bg-[#1D5F31]/20 text-[#1D5F31] border border-[#1D5F31]/30' : 'text-gray-500 hover:text-gray-300'}`}
+                                            className={`flex-1 flex items-center justify-center gap-2 py-3 text-[10px] font-black uppercase transition-all rounded-lg ${role === 'teacher' ? 'bg-[#1D5F31] text-white shadow-xl translate-y-[-1px]' : 'text-green-700/60 hover:text-green-200'}`}
                                         >
                                             <GraduationCap className="w-4 h-4" />
                                             Professor
@@ -291,13 +291,13 @@ export default function RegisterPage() {
                                     <div className="space-y-2">
                                         <div className="flex justify-between items-end mb-1">
                                             <label className={labelClass}>Documento</label>
-                                            <div className="flex gap-1 bg-black/40 p-0.5 border border-[#1D5F31]">
+                                            <div className="flex gap-1 bg-[#153b1b] p-0.5 border border-[#266d35] rounded-lg">
                                                 <button
                                                     type="button"
                                                     onClick={() => handleTypeChange('CPF')}
-                                                    className={`px-2 py-0.5 text-[8px] font-black uppercase transition-all ${personType === 'CPF'
-                                                        ? 'bg-[#1D5F31] text-black'
-                                                        : 'text-gray-500 hover:text-gray-300'
+                                                    className={`px-3 py-1 text-[8px] font-black uppercase transition-all rounded ${personType === 'CPF'
+                                                        ? 'bg-[#1D5F31] text-white shadow'
+                                                        : 'text-green-700 hover:text-green-200'
                                                         }`}
                                                 >
                                                     CPF
@@ -305,9 +305,9 @@ export default function RegisterPage() {
                                                 <button
                                                     type="button"
                                                     onClick={() => handleTypeChange('CNPJ')}
-                                                    className={`px-2 py-0.5 text-[8px] font-black uppercase transition-all ${personType === 'CNPJ'
-                                                        ? 'bg-[#1D5F31] text-black'
-                                                        : 'text-gray-500 hover:text-gray-300'
+                                                    className={`px-3 py-1 text-[8px] font-black uppercase transition-all rounded ${personType === 'CNPJ'
+                                                        ? 'bg-[#1D5F31] text-white shadow'
+                                                        : 'text-green-700 hover:text-green-200'
                                                         }`}
                                                 >
                                                     CNPJ
