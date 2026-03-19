@@ -31,7 +31,7 @@ export async function createCourseAction(formData: any) {
             category: formData.category || '',
             price: Number(formData.price) || 157.0,
             duration: Number(formData.duration) || 0,
-            status: 'published',
+            status: 'PENDENTE',
             image_url: formData.image_url || "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=2070",
             intro_video_url: formData.intro_video_url || '',
             created_at: new Date(),
@@ -51,6 +51,7 @@ export async function createCourseAction(formData: any) {
                     title: lesson.title,
                     video_url: lesson.video_url,
                     position: index + 1,
+                    status: 'PENDENTE',
                     created_at: new Date()
                 })
             })
@@ -132,7 +133,11 @@ export async function updateCourseAction(courseId: string, formData: any) {
         const lessons = formData.lessons || []
         const lessonsRef = adminDb.collection('lessons')
         const existingLessonsSnapshot = await lessonsRef.where('course_id', '==', courseId).get()
-        const existingIds = existingLessonsSnapshot.docs.map(doc => doc.id)
+        const existingLessonsMap = new Map()
+        existingLessonsSnapshot.docs.forEach(doc => {
+            existingLessonsMap.set(doc.id, doc.data())
+        })
+        const existingIds = Array.from(existingLessonsMap.keys())
 
         const incomingIds = lessons.map((l: any) => l.id).filter((id: string) => id && !id.startsWith('new-'))
         const idsToDelete = existingIds.filter(id => !incomingIds.includes(id))
@@ -154,7 +159,20 @@ export async function updateCourseAction(courseId: string, formData: any) {
                 position: index + 1,
                 updated_at: new Date()
             }
-            if (isNew) payload.created_at = new Date()
+            
+            if (isNew) {
+                payload.created_at = new Date()
+                payload.status = 'PENDENTE'
+            } else {
+                // Se já existia, verifica se mudou algo vital para resetar o status
+                const existing = existingLessonsMap.get(lesson.id)
+                if (existing) {
+                    const hasChanged = existing.title !== lesson.title || existing.video_url !== lesson.video_url
+                    if (hasChanged) {
+                        payload.status = 'PENDENTE'
+                    }
+                }
+            }
 
             batch.set(lessonRef, payload, { merge: true })
         })

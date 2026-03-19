@@ -61,6 +61,7 @@ export default function ClassroomPage() {
                     const q = query(
                         lessonsRef,
                         where('course_id', '==', courseId),
+                        where('status', '==', 'APROVADO'),
                         orderBy('position', 'asc')
                     )
                     const lessonsSnapshot = await getDocs(q)

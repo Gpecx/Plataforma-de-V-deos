@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Users, BookOpen, GraduationCap, Search, ChevronRight, Loader2 } from 'lucide-react'
-import { getTeacherStudents } from '@/app/actions/admin'
+import { getTeacherStudents, toggleUserStatus } from '@/app/actions/admin'
 
 interface Teacher {
     id: string
@@ -33,6 +33,24 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
         const res = await getTeacherStudents(teacher.id)
         setStudents(res as Student[])
         setLoading(false)
+    }
+
+    const handleToggleStatus = async (uid: string, currentStatus: boolean, e: React.MouseEvent) => {
+        e.stopPropagation()
+        if (!confirm(`Deseja ${currentStatus ? 'desativar' : 'ativar'} este usuário?`)) return
+        
+        try {
+            const res = await toggleUserStatus(uid, currentStatus)
+            if (res.success) {
+                // Como teachers vem da prop initialTeachers, precisamos localmente atualizar se quisermos refletir imediato
+                // Ou podemos revalidar (o action já faz revalidatePath)
+                window.location.reload() // Simples para este contexto de admin
+            } else {
+                alert(res.error)
+            }
+        } catch (error) {
+            alert('Erro ao atualizar status')
+        }
     }
 
     const filteredTeachers = initialTeachers.filter(t => 
@@ -83,6 +101,18 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                                     </td>
                                     <td className="py-6 px-4 text-xs text-slate-400 font-bold tracking-tight">
                                         {teacher.email}
+                                    </td>
+                                    <td className="py-6 px-4">
+                                        <button 
+                                            onClick={(e) => handleToggleStatus(teacher.id, teacher.ativo ?? true, e)}
+                                            className={`px-3 py-1 text-[8px] font-black uppercase tracking-widest transition-all ${
+                                                teacher.ativo !== false 
+                                                ? 'bg-[#1D5F31]/20 text-[#1D5F31] hover:bg-[#1D5F31] hover:text-black' 
+                                                : 'bg-rose-950/20 text-rose-500 hover:bg-rose-600 hover:text-white'
+                                            }`}
+                                        >
+                                            {teacher.ativo !== false ? 'Ativo' : 'Inativo'}
+                                        </button>
                                     </td>
                                     <td className="py-6 px-4 text-right">
                                         <ChevronRight 

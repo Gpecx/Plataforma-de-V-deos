@@ -15,21 +15,26 @@ service cloud.firestore {
       return isSignedIn() && getUserRole() in ['teacher', 'admin'];
     }
 
-    // Profiles: cada usuário lê/edita apenas o próprio
+    function isAdmin() {
+      return isSignedIn() && getUserRole() == 'admin';
+    }
+
+    // Profiles: cada usuário lê/edita apenas o próprio. Admin lê todos.
     match /profiles/{userId} {
-      allow read, write: if isSignedIn() && isOwner(userId);
+      allow read: if isSignedIn() && (isOwner(userId) || isAdmin());
+      allow write: if isSignedIn() && (isOwner(userId) || isAdmin());
     }
 
-    // Courses: qualquer um lê; teacher cria/edita os seus
+    // Courses: qualquer um lê se aprovado; teacher cria/edita os seus. Admin lê/escreve todos.
     match /courses/{courseId} {
-      allow read: if true; // Permitir leitura para que o checkout encontre os dados do curso
-      allow write: if isSignedIn() && isTeacherOrAdmin();
+      allow read: if (resource.data.status == 'APROVADO') || (isSignedIn() && (isOwner(resource.data.teacher_id) || isAdmin()));
+      allow write: if isSignedIn() && (isTeacherOrAdmin() || isAdmin());
     }
 
-    // Lessons: qualquer um lê; teacher escreve
+    // Lessons: análogo a courses
     match /lessons/{lessonId} {
-      allow read: if true;
-      allow write: if isSignedIn() && isTeacherOrAdmin();
+      allow read: if (resource.data.status == 'APROVADO') || (isSignedIn() && (isAdmin() || (exists(/databases/$(database)/documents/courses/$(resource.data.course_id)) && get(/databases/$(database)/documents/courses/$(resource.data.course_id)).data.teacher_id == request.auth.uid)));
+      allow write: if isSignedIn() && (isTeacherOrAdmin() || isAdmin());
     }
 
     // Enrollments: aluno lê as suas, permite criação pelo aluno
@@ -38,34 +43,27 @@ service cloud.firestore {
         resource.data.user_id == request.auth.uid || isTeacherOrAdmin()
       );
       allow create: if isSignedIn() && request.resource.data.user_id == request.auth.uid;
-      allow update, delete: if isSignedIn() && isTeacherOrAdmin();
+      allow update, delete: if isAdmin();
     }
 
-    // Sales: Aluno lê as suas, permite criação pelo aluno
+    // Vendas Logs: Apenas Admin
+    match /vendas_logs/{saleId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Sales (legacy/others): Aluno lê as suas
     match /sales/{saleId} {
       allow read: if isSignedIn() && (
-        resource.data.studentId == request.auth.uid || isTeacherOrAdmin()
+        resource.data.studentId == request.auth.uid || isAdmin()
       );
       allow create: if isSignedIn() && request.resource.data.studentId == request.auth.uid;
-      allow update, delete: if false; // Vendas são permanentes
-    }
-
-    // Notifications: Apenas leitura e atualização pelo professor
-    match /notifications/{notificationId} {
-      allow read: if isSignedIn() && resource.data.teacherId == request.auth.uid;
-      allow update: if isSignedIn() && resource.data.teacherId == request.auth.uid 
-                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
-      allow create, delete: if false;
+      allow update, delete: if false;
     }
 
     // Configurações Globais: Apenas Admin
     match /config/{settingId} {
-      allow read, write: if isSignedIn() && request.auth.token.role == 'admin';
-    }
-
-    // Pagamentos (financeiro): Apenas Admin
-    match /payments/{paymentId} {
-      allow read, write: if isSignedIn() && request.auth.token.role == 'admin';
+      allow read: if true;
+      allow write: if isAdmin();
     }
   }
 }

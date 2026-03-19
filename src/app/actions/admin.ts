@@ -2,6 +2,7 @@
 
 import { adminDb } from '@/lib/firebase-admin'
 import { revalidatePath } from 'next/cache'
+import { parseFirebaseDate } from '@/lib/date-utils'
 
 /**
  * Busca todas as configurações globais da plataforma.
@@ -17,10 +18,10 @@ export async function getPlatformSettings() {
                 updated_at: new Date()
             }
         }
-        return {
+        return JSON.parse(JSON.stringify({
             ...settingsDoc.data(),
             id: settingsDoc.id
-        }
+        }))
     } catch (error) {
         console.error("Error getting platform settings:", error)
         return { platform_tax: 20 }
@@ -55,10 +56,12 @@ export async function getAllTeachers() {
             .where('role', '==', 'teacher')
             .get()
             
-        return teachersSnap.docs.map(doc => ({
+        const teachers = teachersSnap.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }))
+
+        return JSON.parse(JSON.stringify(teachers))
     } catch (error) {
         console.error("Error getting teachers:", error)
         return []
@@ -109,7 +112,7 @@ export async function getFinancialData() {
                 grossValue,
                 platformShare,
                 teacherShare,
-                date: e.created_at
+                date: parseFirebaseDate(e.created_at)?.toISOString()
             }
         })
 
@@ -117,13 +120,15 @@ export async function getFinancialData() {
         const totalPlatform = detailedPayments.reduce((acc, p) => acc + p.platformShare, 0)
         const totalTeacher = detailedPayments.reduce((acc, p) => acc + p.teacherShare, 0)
 
-        return {
+        const result = {
             totalGross,
             totalPlatform,
             totalTeacher,
             payments: detailedPayments,
             platformTaxPercent
         }
+
+        return JSON.parse(JSON.stringify(result))
     } catch (error) {
         console.error("Error getting financial data:", error)
         return { totalGross: 0, totalPlatform: 0, totalTeacher: 0, payments: [], platformTaxPercent: 20 }
@@ -158,12 +163,225 @@ export async function getTeacherStudents(teacherId: string) {
             .where('__name__', 'in', uniqueUserIds)
             .get()
             
-        return profilesSnap.docs.map(doc => ({
+        const students = profilesSnap.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
         }))
+
+        return JSON.parse(JSON.stringify(students))
     } catch (error) {
         console.error("Error getting teacher students:", error)
+        return []
+    }
+}
+
+/**
+ * Lista todos os usuários que são alunos (role == 'student' ou sem role).
+ */
+export async function getAllStudents() {
+    try {
+        const studentsSnap = await adminDb.collection('profiles')
+            .where('role', '==', 'student')
+            .get()
+            
+        const students = studentsSnap.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }))
+
+        return JSON.parse(JSON.stringify(students))
+    } catch (error) {
+        console.error("Error getting students:", error)
+        return []
+    }
+}
+/**
+ * Lista todos os cursos com status PENDENTE.
+ */
+export async function getPendingCourses() {
+    try {
+        const coursesSnap = await adminDb.collection('courses')
+            .where('status', '==', 'PENDENTE')
+            .get()
+            
+        const courses = coursesSnap.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }))
+
+        return JSON.parse(JSON.stringify(courses))
+    } catch (error) {
+        console.error("Error getting pending courses:", error)
+        return []
+    }
+}
+
+/**
+ * Lista todas as aulas com status PENDENTE.
+ */
+export async function getPendingLessons() {
+    try {
+        const lessonsSnap = await adminDb.collection('lessons')
+            .where('status', '==', 'PENDENTE')
+            .get()
+            
+        const lessons = await Promise.all(lessonsSnap.docs.map(async (doc) => {
+            const data = doc.data()
+            // Busca o nome do curso para contexto
+            const courseDoc = await adminDb.collection('courses').doc(data.course_id).get()
+            const courseData = courseDoc.exists ? courseDoc.data() : null
+            
+            return {
+                id: doc.id,
+                ...data,
+                course_title: courseData?.title || 'Curso N/A',
+                course_status: courseData?.status || 'N/A',
+                teacher_id: courseData?.teacher_id || null
+            }
+        }))
+
+        return JSON.parse(JSON.stringify(lessons))
+    } catch (error) {
+        console.error("Error getting pending lessons:", error)
+        return []
+    }
+}
+
+/**
+ * Aprova apenas o curso (aulas continuam pendentes).
+ */
+// ... dentro da função approveCourse
+export async function approveCourse(courseId: string) {
+    try {
+        // 1. Atualiza apenas o curso
+        const courseRef = adminDb.collection('courses').doc(courseId)
+        await courseRef.update({ 
+            status: 'published',
+            updated_at: new Date()
+        })
+
+        revalidatePath('/admin/approvals')
+        revalidatePath('/course')
+        revalidatePath('/dashboard-student')
+        revalidatePath('/')
+        return { success: true }
+    } catch (error) {
+        console.error("Error approving course:", error)
+        return { success: false, error: "Falha ao aprovar curso." }
+    }
+}
+
+/**
+ * Aprova uma aula individualmente.
+ */
+export async function approveLesson(lessonId: string) {
+    try {
+        await adminDb.collection('lessons').doc(lessonId).update({
+            status: 'published',
+            approved_at: new Date(),
+            updated_at: new Date()
+        })
+        
+        revalidatePath('/admin/approvals')
+        revalidatePath('/course')
+        revalidatePath('/dashboard-student')
+        revalidatePath('/')
+        return { success: true }
+    } catch (error) {
+        console.error("Error approving lesson:", error)
+        return { success: false, error: "Falha ao aprovar aula." }
+    }
+}
+
+/**
+ * Rejeita uma aula individualmente.
+ */
+export async function rejectLesson(lessonId: string, reason: string) {
+    try {
+        await adminDb.collection('lessons').doc(lessonId).update({
+            status: 'REJEITADO',
+            motivoRejeicao: reason,
+            updated_at: new Date()
+        })
+        
+        revalidatePath('/admin/approvals')
+        return { success: true }
+    } catch (error) {
+        console.error("Error rejecting lesson:", error)
+        return { success: false, error: "Falha ao rejeitar aula." }
+    }
+}
+
+/**
+ * Rejeita um curso e salva o motivo.
+ */
+export async function rejectCourse(courseId: string, reason: string) {
+    try {
+        await adminDb.collection('courses').doc(courseId).update({
+            status: 'REJEITADO',
+            motivoRejeicao: reason,
+            updated_at: new Date()
+        })
+        
+        revalidatePath('/admin/approvals')
+        return { success: true }
+    } catch (error) {
+        console.error("Error rejecting course:", error)
+        return { success: false, error: "Falha ao rejeitar curso." }
+    }
+}
+
+/**
+ * Ativa ou desativa um usuário (aluno ou professor).
+ */
+export async function toggleUserStatus(uid: string, currentStatus: boolean) {
+    try {
+        await adminDb.collection('profiles').doc(uid).update({
+            ativo: !currentStatus,
+            updated_at: new Date()
+        })
+        
+        revalidatePath('/admin/users')
+        revalidatePath('/admin/teachers')
+        return { success: true }
+    } catch (error) {
+        console.error("Error toggling user status:", error)
+        return { success: false, error: "Falha ao atualizar status do usuário." }
+    }
+}
+
+/**
+ * Busca logs de vendas com filtros opcionais.
+ */
+export async function getSalesLogs(professorId?: string, startDate?: Date, endDate?: Date) {
+    try {
+        let query: any = adminDb.collection('vendas_logs')
+
+        if (professorId) {
+            query = query.where('professorId', '==', professorId)
+        }
+
+        // Ordenação por data (descendente)
+        query = query.orderBy('dataCriacao', 'desc')
+
+        const salesSnap = await query.get()
+        let sales = salesSnap.docs.map((doc: any) => ({
+            id: doc.id,
+            ...doc.data(),
+            dataCriacao: doc.data().dataCriacao?.toDate() || new Date()
+        }))
+
+        // Filtro de data via código (Firestore não permite múltiplos filtros de desigualdade facilmente sem índices complexos)
+        if (startDate) {
+            sales = sales.filter((s: any) => s.dataCriacao >= startDate)
+        }
+        if (endDate) {
+            sales = sales.filter((s: any) => s.dataCriacao <= endDate)
+        }
+
+        return JSON.parse(JSON.stringify(sales))
+    } catch (error) {
+        console.error("Error getting sales logs:", error)
         return []
     }
 }

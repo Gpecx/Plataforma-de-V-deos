@@ -49,6 +49,12 @@ const menuItems: MenuItem[] = [
         description: 'Banners e Logos'
     },
     {
+        title: 'Moderação de Conteúdo',
+        icon: ShieldAlert,
+        href: '/admin/approvals',
+        description: 'Cursos e Aulas'
+    },
+    {
         title: 'Auditoria de Vendas',
         icon: ShieldAlert,
         href: '/admin/audit',

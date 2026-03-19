@@ -81,8 +81,25 @@ export default function AdminFinancialPage() {
     }
 
     if (loading || !settings) return (
-        <div className="p-8 text-center text-slate-500 font-black uppercase tracking-widest text-sm animate-pulse">
-            Carregando Dados Financeiros...
+        <div className="max-w-[1600px] mx-auto p-4 md:p-12 font-exo pb-64">
+            <header className="mb-16 animate-pulse">
+                <div className="flex items-center gap-3 mb-2">
+                    <div className="h-[2px] w-8 bg-slate-800" />
+                    <div className="h-2 w-24 bg-slate-800 rounded" />
+                </div>
+                <div className="h-10 w-64 bg-slate-800 rounded mb-4" />
+                <div className="h-4 w-96 bg-slate-800 rounded" />
+            </header>
+
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-12 items-start opacity-50">
+                <div className="xl:col-span-4 lg:col-span-12">
+                    <div className="h-[300px] bg-slate-900/50 border border-slate-800 rounded-none animate-pulse" />
+                </div>
+                <div className="xl:col-span-8 lg:col-span-12 space-y-10">
+                    <div className="h-[400px] bg-slate-900/50 border border-slate-800 rounded-none animate-pulse" />
+                    <div className="h-[400px] bg-slate-900/50 border border-slate-800 rounded-none animate-pulse" />
+                </div>
+            </div>
         </div>
     )
 
@@ -117,7 +134,7 @@ export default function AdminFinancialPage() {
                                         type="number" 
                                         value={settings.platformTax} 
                                         onChange={(e) => setSettings({ ...settings, platformTax: Number(e.target.value) })}
-                                        className="bg-[#061629] border-[#1D5F31]/50 rounded-none h-14 text-2xl font-black text-white px-6 focus:border-[#1D5F31] transition-all"
+                                        className="bg-[#061629] border-[#1D5F31]/50 rounded-none h-14 text-2xl font-mono font-black text-white px-6 focus:border-[#1D5F31] transition-all"
                                     />
                                     <div className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-500 font-black">%</div>
                                 </div>
@@ -132,7 +149,7 @@ export default function AdminFinancialPage() {
                 </div>
 
                 {/* ─── PLANOS DE ASSINATURA ────────────────────────── */}
-                <div className="xl:col-span-8 lg:col-span-12 space-y-10">
+                <div className="xl:col-span-8 lg:col-span-12 space-y-10 min-h-[600px]">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
                             <ShieldCheck className="text-[#1D5F31]" size={20} />
@@ -167,7 +184,7 @@ export default function AdminFinancialPage() {
                                                 type="number" 
                                                 value={plan.price} 
                                                 onChange={(e) => updatePlan(pIdx, 'price', e.target.value)}
-                                                className="bg-[#061629] border-[#1D5F31]/20 rounded-none h-11 pl-10 text-white font-bold"
+                                                className="bg-[#061629] border-[#1D5F31]/20 rounded-none h-11 pl-10 text-white font-mono font-bold"
                                             />
                                         </div>
                                     </div>
@@ -184,7 +201,7 @@ export default function AdminFinancialPage() {
 
                                 <div className="space-y-3">
                                     <Label className="text-[9px] font-black uppercase tracking-widest text-slate-500">Benefícios / Features</Label>
-                                    <div className="space-y-2">
+                                    <div className="space-y-2 min-h-[150px]">
                                         {plan.features.map((feat, fIdx) => (
                                             <div key={fIdx} className="flex gap-2">
                                                 <Input 
@@ -213,12 +230,12 @@ export default function AdminFinancialPage() {
                 </div>
             </div>
 
-            {/* Fixed Save Button */}
-            <div className="fixed bottom-4 right-10 z-[100]">
+            {/* Fixed Save Button - Lateral Direita */}
+            <div className="fixed bottom-6 right-6 z-[100]">
                 <Button
                     onClick={handleSave}
                     disabled={saving}
-                    className="bg-[#1D5F31] hover:bg-[#22c55e] text-white font-black uppercase tracking-[4px] w-80 h-16 text-[14px] rounded-none transition-all shadow-[0_20px_50px_rgba(29,95,49,0.4)] border border-[#1D5F31] flex items-center justify-center gap-4 group"
+                    className="bg-[#1D5F31] hover:bg-[#22c55e] text-white font-black uppercase tracking-[4px] w-[320px] h-16 text-[14px] rounded-none transition-all shadow-[0_20px_50px_rgba(29,95,49,0.4)] border border-[#1D5F31] flex items-center justify-center gap-4 group"
                 >
                     {saving ? (
                         <><Loader2 size={20} className="animate-spin" /> SINCRONIZANDO...</>

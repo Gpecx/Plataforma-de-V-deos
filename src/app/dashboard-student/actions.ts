@@ -21,10 +21,33 @@ export async function buyCourse(courseId: string) {
     if (!user) throw new Error('Não autorizado')
 
     try {
+        const courseDoc = await adminDb.collection('courses').doc(courseId).get()
+        if (!courseDoc.exists) return { success: false, error: 'Curso não encontrado' }
+
+        const courseData = courseDoc.data() as any
+        const settingsDoc = await adminDb.collection('config').doc('platform_settings').get()
+        const platformTaxPercent = settingsDoc.exists ? settingsDoc.data()?.platform_tax : 20
+
+        const platformShare = (courseData.price || 0) * (platformTaxPercent / 100)
+        const teacherShare = (courseData.price || 0) - platformShare
+
         await adminDb.collection('enrollments').add({
             user_id: user.uid,
             course_id: courseId,
             created_at: new Date()
+        })
+
+        // Log da Venda
+        await adminDb.collection('vendas_logs').add({
+            idTransacao: `TR-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+            alunoId: user.uid,
+            cursoId: courseId,
+            professorId: courseData.teacher_id,
+            valorBruto: courseData.price || 0,
+            taxaPlataforma: platformShare,
+            repasseProfessor: teacherShare,
+            statusPagamento: 'pago',
+            dataCriacao: new Date()
         })
 
         revalidatePath('/dashboard-student')
@@ -40,15 +63,40 @@ export async function processCheckoutAction(courseIds: string[]) {
     if (!user) return { success: false, error: 'Não autorizado' }
 
     try {
+        const settingsDoc = await adminDb.collection('config').doc('platform_settings').get()
+        const platformTaxPercent = settingsDoc.exists ? settingsDoc.data()?.platform_tax : 20
+
         const batch = adminDb.batch()
-        courseIds.forEach(id => {
+        
+        for (const id of courseIds) {
+            const courseDoc = await adminDb.collection('courses').doc(id).get()
+            if (!courseDoc.exists) continue
+            
+            const courseData = courseDoc.data() as any
             const enrollRef = adminDb.collection('enrollments').doc()
             batch.set(enrollRef, {
                 user_id: user.uid,
                 course_id: id,
                 created_at: new Date()
             })
-        })
+
+            const platformShare = (courseData.price || 0) * (platformTaxPercent / 100)
+            const teacherShare = (courseData.price || 0) - platformShare
+
+            const saleRef = adminDb.collection('vendas_logs').doc()
+            batch.set(saleRef, {
+                idTransacao: `TR-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                alunoId: user.uid,
+                cursoId: id,
+                professorId: courseData.teacher_id,
+                valorBruto: courseData.price || 0,
+                taxaPlataforma: platformShare,
+                repasseProfessor: teacherShare,
+                statusPagamento: 'pago',
+                dataCriacao: new Date()
+            })
+        }
+
         await batch.commit()
 
         revalidatePath('/dashboard-student')

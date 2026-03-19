@@ -1,12 +1,5 @@
 'use client'
 
-import { Lexend } from 'next/font/google'
-
-const lexend = Lexend({
-  subsets: ['latin'],
-  weight: ['400', '700', '900'],
-})
-
 export default function GlobalError({
   error,
   reset,
@@ -18,50 +11,76 @@ export default function GlobalError({
     <html lang="pt-br">
       <body style={{
         margin: 0,
-        backgroundColor: '#061629',
+        backgroundColor: '#020617', // Slate 950 for deep dark feel
         color: 'white',
-        fontFamily: 'sans-serif',
+        fontFamily: 'system-ui, -apple-system, sans-serif',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         height: '100vh',
         textAlign: 'center',
-        padding: '20px'
+        padding: '24px'
       }}>
         <div style={{
-          padding: '40px',
-          borderRadius: '8px',
-          border: '1px solid rgba(255,255,255,0.1)',
-          maxWidth: '500px',
-          width: '100%'
+          padding: '48px',
+          border: '1px solid rgba(255,255,255,0.05)',
+          backgroundColor: 'rgba(255,255,255,0.02)',
+          maxWidth: '480px',
+          width: '100%',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)'
         }}>
-          <h1 style={{ 
-            fontSize: '24px', 
-            fontWeight: '900', 
-            color: '#1D5F31',
-            marginBottom: '16px',
-            textTransform: 'uppercase',
-            letterSpacing: '-0.05em'
+          {/* Mockup Logo PowerPlay */}
+          <div style={{
+            display: 'inline-block',
+            padding: '8px 16px',
+            backgroundColor: '#1D5F31',
+            color: 'white',
+            fontWeight: '900',
+            fontSize: '12px',
+            letterSpacing: '0.2em',
+            marginBottom: '32px',
+            textTransform: 'uppercase'
           }}>
-            PowerPlay
+            POWERPLAY
+          </div>
+          
+          <h1 style={{ 
+            fontSize: '28px', 
+            fontWeight: '800', 
+            marginBottom: '12px',
+            letterSpacing: '-0.02em',
+            color: '#ffffff'
+          }}>
+            Tivemos um problema de conexão
           </h1>
-          <h2 style={{ fontSize: '20px', marginBottom: '8px' }}>Tivemos um problema de conexão</h2>
-          <p style={{ opacity: 0.7, marginBottom: '24px', fontSize: '14px' }}>
-            Não foi possível carregar a plataforma no momento. Por favor, tente recarregar a página.
+          
+          <p style={{ 
+            color: '#94a3b8', 
+            marginBottom: '40px', 
+            fontSize: '16px',
+            lineHeight: '1.6'
+          }}>
+            Não foi possível carregar a plataforma no momento. Pode ser uma instabilidade temporária no servidor.
           </p>
+          
           <button
             onClick={() => window.location.reload()}
             style={{
               backgroundColor: '#1D5F31',
               color: 'white',
               border: 'none',
-              padding: '12px 24px',
+              padding: '16px 32px',
               fontSize: '14px',
-              fontWeight: 'bold',
+              fontWeight: '800',
               cursor: 'pointer',
-              textTransform: 'uppercase'
+              textTransform: 'uppercase',
+              letterSpacing: '0.1em',
+              transition: 'background-color 0.2s',
+              width: '100%'
             }}
+            onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#28b828')}
+            onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#1D5F31')}
           >
             Recarregar Plataforma
           </button>
