@@ -74,7 +74,7 @@ export default async function AdminDashboardPage() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-[#1D5F31]/10">
-                                    {data.payments.map((p) => (
+                                    {data.payments.map((p: any) => (
                                         <tr key={p.id} className="group hover:bg-[#1D5F31]/5 transition-colors">
                                             <td className="py-6 pr-4">
                                                 <div className="text-xs font-black uppercase tracking-widest text-white truncate max-w-[200px]">
