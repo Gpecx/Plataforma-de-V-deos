@@ -48,9 +48,9 @@ function LoginContent() {
                 const profileData = profileDoc.data()
 
                 if (profileData?.role === 'teacher' || profileData?.role === 'admin') {
-                    router.push('/dashboard-teacher')
+                    router.push('/dashboard-teacher/courses')
                 } else {
-                    router.push('/dashboard-student')
+                    router.push('/course')
                 }
             }
             router.refresh()

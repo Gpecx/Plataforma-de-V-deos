@@ -59,66 +59,69 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
     )
 
     return (
-        <div className="grid lg:grid-cols-2 gap-12">
+        <div className="grid lg:grid-cols-2 gap-10">
             {/* Teachers Table */}
-            <div className="bg-[#061629]/40 backdrop-blur-md p-10 border border-[#1D5F31]/20">
-                <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-10">
-                    <div className="flex items-center gap-3">
-                        <GraduationCap className="text-[#1D5F31]" size={24} />
-                        <h2 className="text-xl font-black uppercase tracking-tighter">Gestão de Professores</h2>
+            <div className="bg-white p-12 rounded-[40px] border border-slate-200 shadow-sm overflow-hidden flex flex-col h-fit">
+                <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-8 mb-12">
+                    <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100">
+                            <GraduationCap className="text-[#1D5F31]" size={20} strokeWidth={2.5} />
+                        </div>
+                        <h2 className="text-xl font-black uppercase tracking-tighter text-slate-900">Gestão de Professores</h2>
                     </div>
-                    <div className="relative w-full md:w-64">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
+                    <div className="relative w-full xl:w-72 group">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 transition-colors group-focus-within:text-[#1D5F31]" size={16} />
                         <input
-                            placeholder="Buscar professor..."
+                            placeholder="Buscar professor por nome..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-[#061629] border border-[#1D5F31]/30 rounded-none px-10 py-2.5 text-xs text-white focus:border-[#1D5F31] outline-none transition-all font-bold uppercase tracking-widest placeholder:text-slate-600"
+                            className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-12 py-4 text-[10px] text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all font-black uppercase tracking-widest placeholder:text-slate-400 shadow-inner"
                         />
                     </div>
                 </div>
 
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left">
+                    <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="border-b border-[#1D5F31]/20 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
-                                <th className="pb-6 px-4">Nome</th>
-                                <th className="pb-6 px-4">Email</th>
-                                <th className="pb-6 px-4 text-right">Ação</th>
+                            <tr className="border-b border-slate-50 text-[10px] font-black uppercase tracking-[2px] text-slate-600">
+                                <th className="pb-8 px-4">Institucional</th>
+                                <th className="pb-8 px-4">Status</th>
+                                <th className="pb-8 px-4 text-right">Ficha</th>
                             </tr>
                         </thead>
                         <tbody className="text-sm">
                             {filteredTeachers.map((teacher) => (
                                 <tr 
                                     key={teacher.id} 
-                                    className={`border-b border-white/5 hover:bg-[#1D5F31]/5 transition-all group cursor-pointer ${selectedTeacher?.id === teacher.id ? 'bg-[#1D5F31]/10' : ''}`}
+                                    className={`border-b border-slate-50 hover:bg-slate-50/50 transition-all group cursor-pointer ${selectedTeacher?.id === teacher.id ? 'bg-slate-50' : ''}`}
                                     onClick={() => handleSelectTeacher(teacher)}
                                 >
-                                    <td className="py-6 px-4">
-                                        <div className="font-black text-white uppercase tracking-widest text-[11px]">
-                                            {teacher.full_name || 'N/A'}
+                                    <td className="py-8 px-4">
+                                        <div className="flex flex-col">
+                                            <span className="font-black text-slate-900 uppercase tracking-tight text-[12px] group-hover:text-[#1D5F31] transition-colors">
+                                                {teacher.full_name || 'N/A'}
+                                            </span>
+                                            <span className="text-[9px] text-slate-600 font-bold tracking-widest uppercase mt-1 italic">
+                                                {teacher.email}
+                                            </span>
                                         </div>
                                     </td>
-                                    <td className="py-6 px-4 text-xs text-slate-400 font-bold tracking-tight">
-                                        {teacher.email}
-                                    </td>
-                                    <td className="py-6 px-4">
+                                    <td className="py-8 px-4">
                                         <button 
                                             onClick={(e) => handleToggleStatus(teacher.id, teacher.ativo ?? true, e)}
-                                            className={`px-3 py-1 text-[8px] font-black uppercase tracking-widest transition-all ${
+                                            className={`px-4 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all shadow-sm ${
                                                 teacher.ativo !== false 
-                                                ? 'bg-[#1D5F31]/20 text-[#1D5F31] hover:bg-[#1D5F31] hover:text-black' 
-                                                : 'bg-rose-950/20 text-rose-500 hover:bg-rose-600 hover:text-white'
+                                                ? 'bg-[#1D5F31] text-white hover:opacity-90' 
+                                                : 'bg-rose-500 text-white hover:opacity-90'
                                             }`}
                                         >
-                                            {teacher.ativo !== false ? 'Ativo' : 'Inativo'}
+                                            {teacher.ativo !== false ? 'ATIVO' : 'SUSPENSO'}
                                         </button>
                                     </td>
-                                    <td className="py-6 px-4 text-right">
-                                        <ChevronRight 
-                                            size={16} 
-                                            className={`inline transition-transform duration-300 ${selectedTeacher?.id === teacher.id ? 'text-[#1D5F31] translate-x-1' : 'text-slate-700'}`} 
-                                        />
+                                    <td className="py-8 px-4 text-right">
+                                        <div className={`inline-flex items-center justify-center w-8 h-8 rounded-full border border-slate-200 transition-all duration-300 ${selectedTeacher?.id === teacher.id ? 'bg-[#1D5F31] border-[#1D5F31] text-white translate-x-1' : 'bg-white text-slate-600 group-hover:border-[#1D5F31] group-hover:text-[#1D5F31]'}`}>
+                                            <ChevronRight size={16} strokeWidth={3} />
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -128,44 +131,60 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
             </div>
 
             {/* Students View (Filtered) */}
-            <div className="bg-[#061629]/40 backdrop-blur-md p-10 border border-[#1D5F31]/20 flex flex-col">
-                <div className="flex items-center gap-4 mb-10 border-b border-[#1D5F31]/20 pb-6">
-                    <Users className="text-[#1D5F31]" size={20} />
-                    <h2 className="text-lg font-black uppercase tracking-tighter">
-                        {selectedTeacher ? `Alunos de ${selectedTeacher.full_name}` : 'Selecione um Professor'}
+            <div className="bg-white p-12 rounded-[40px] border border-slate-200 shadow-sm flex flex-col min-h-[600px]">
+                <div className="flex items-center gap-4 mb-12 border-b border-slate-50 pb-8">
+                    <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100">
+                        <Users className="text-[#1D5F31]" size={20} strokeWidth={2.5} />
+                    </div>
+                    <h2 className="text-xl font-black uppercase tracking-tighter text-slate-900">
+                        {selectedTeacher ? `Matrículas de ${selectedTeacher.full_name?.split(' ')[0]}` : 'Selecione um Professor'}
                     </h2>
                 </div>
 
                 {loading ? (
                     <div className="flex-grow flex flex-col items-center justify-center py-24">
-                        <Loader2 className="animate-spin text-[#1D5F31] mb-4" size={32} />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 animate-pulse">Carregando Matrículas...</span>
+                        <div className="relative">
+                            <div className="w-16 h-16 rounded-full border-4 border-slate-100 border-t-[#1D5F31] animate-spin"></div>
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <Users size={20} className="text-[#1D5F31]" />
+                            </div>
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-[4px] text-slate-600 mt-6 animate-pulse">Auditando Registros...</span>
                     </div>
                 ) : selectedTeacher ? (
                     students.length > 0 ? (
-                        <div className="space-y-4 max-h-[600px] overflow-y-auto custom-scrollbar pr-2">
+                        <div className="space-y-4 max-h-[700px] overflow-y-auto custom-scrollbar pr-4">
                             {students.map((student) => (
-                                <div key={student.id} className="bg-[#061629]/60 p-6 border border-[#1D5F31]/10 hover:border-[#1D5F31]/30 transition-all flex justify-between items-center group">
-                                    <div>
-                                        <h4 className="font-black text-xs uppercase tracking-widest text-white group-hover:text-[#1D5F31] transition-colors">{student.full_name}</h4>
-                                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">{student.email}</p>
+                                <div key={student.id} className="bg-slate-50/50 p-8 rounded-[24px] border border-slate-100 hover:border-[#1D5F31]/30 transition-all flex justify-between items-center group shadow-sm">
+                                    <div className="flex items-center gap-5">
+                                        <div className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center text-white font-black text-xs border-2 border-white shadow-md">
+                                            {student.full_name?.charAt(0)}
+                                        </div>
+                                        <div>
+                                            <h4 className="font-black text-xs uppercase tracking-widest text-slate-900 group-hover:text-[#1D5F31] transition-colors">{student.full_name}</h4>
+                                            <p className="text-[10px] text-slate-600 font-bold uppercase tracking-widest mt-1 italic">{student.email}</p>
+                                        </div>
                                     </div>
-                                    <div className="h-8 w-8 bg-[#1D5F31]/10 flex items-center justify-center text-[#1D5F31]">
-                                        <BookOpen size={14} />
+                                    <div className="h-10 w-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-600 group-hover:text-[#1D5F31] group-hover:border-[#1D5F31]/30 transition-all shadow-sm">
+                                        <BookOpen size={16} strokeWidth={2.5} />
                                     </div>
                                 </div>
                             ))}
                         </div>
                     ) : (
-                        <div className="flex-grow flex flex-col items-center justify-center py-24 text-center opacity-40">
-                            <BookOpen size={48} className="text-slate-700 mb-6" />
-                            <p className="text-[10px] font-black uppercase tracking-[3px] text-slate-500">Este professor ainda não possui alunos matriculados.</p>
+                        <div className="flex-grow flex flex-col items-center justify-center py-24 text-center">
+                            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-8 border border-slate-100 shadow-inner">
+                                <BookOpen size={32} className="text-slate-400" />
+                            </div>
+                            <p className="text-[10px] font-black uppercase tracking-[4px] text-slate-600 max-w-[200px] mx-auto">Este instrutor ainda não possui registros de matrículas identificados.</p>
                         </div>
                     )
                 ) : (
-                    <div className="flex-grow flex flex-col items-center justify-center py-24 text-center opacity-40">
-                        <Users size={48} className="text-slate-700 mb-6" />
-                        <p className="text-[10px] font-black uppercase tracking-[3px] text-slate-500">Clique em um professor para visualizar seus alunos.</p>
+                    <div className="flex-grow flex flex-col items-center justify-center py-24 text-center">
+                        <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-8 border border-slate-100 shadow-inner">
+                            <Users size={32} className="text-slate-400" />
+                        </div>
+                        <p className="text-[10px] font-black uppercase tracking-[4px] text-slate-600 max-w-[200px] mx-auto">Selecione um professor na lista ao lado para auditar suas turmas.</p>
                     </div>
                 )}
             </div>

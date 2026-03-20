@@ -81,67 +81,71 @@ export default function AdminFinancialPage() {
     }
 
     if (loading || !settings) return (
-        <div className="max-w-[1600px] mx-auto p-4 md:p-12 font-exo pb-64">
+        <div className="max-w-[1600px] mx-auto p-8 md:p-16 font-exo pb-64">
             <header className="mb-16 animate-pulse">
-                <div className="flex items-center gap-3 mb-2">
-                    <div className="h-[2px] w-8 bg-slate-800" />
-                    <div className="h-2 w-24 bg-slate-800 rounded" />
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="h-[1px] w-10 bg-slate-200" />
+                    <div className="h-2 w-24 bg-slate-100 rounded" />
                 </div>
-                <div className="h-10 w-64 bg-slate-800 rounded mb-4" />
-                <div className="h-4 w-96 bg-slate-800 rounded" />
+                <div className="h-10 w-64 bg-slate-100 rounded mb-6" />
+                <div className="h-4 w-96 bg-slate-100 rounded" />
             </header>
 
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-12 items-start opacity-50">
                 <div className="xl:col-span-4 lg:col-span-12">
-                    <div className="h-[300px] bg-slate-900/50 border border-slate-800 rounded-none animate-pulse" />
+                    <div className="h-[400px] bg-white border border-slate-100 rounded-[40px] animate-pulse shadow-sm" />
                 </div>
                 <div className="xl:col-span-8 lg:col-span-12 space-y-10">
-                    <div className="h-[400px] bg-slate-900/50 border border-slate-800 rounded-none animate-pulse" />
-                    <div className="h-[400px] bg-slate-900/50 border border-slate-800 rounded-none animate-pulse" />
+                    <div className="h-[500px] bg-white border border-slate-100 rounded-[40px] animate-pulse shadow-sm" />
                 </div>
             </div>
         </div>
     )
 
     return (
-        <div className="max-w-[1600px] mx-auto p-4 md:p-12 font-exo pb-64 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="max-w-[1600px] mx-auto p-8 md:p-16 font-exo pb-64 animate-in fade-in duration-1000">
             <header className="mb-16">
-                <div className="flex items-center gap-3 mb-2">
-                    <div className="h-[2px] w-8 bg-[#1D5F31]" />
+                <div className="flex items-center gap-4 mb-6">
+                    <div className="h-[1px] w-12 bg-[#1D5F31]" />
                     <span className="text-[10px] font-black uppercase tracking-[5px] text-[#1D5F31]">Financeiro & Planos</span>
                 </div>
-                <h1 className="text-4xl font-black tracking-tighter uppercase leading-none text-white">
+                <h1 className="text-5xl font-black tracking-tighter uppercase leading-none text-slate-900">
                     Configurações <span className="text-[#1D5F31]">Estratégicas</span>
                 </h1>
-                <p className="text-slate-400 font-bold text-xs tracking-widest uppercase mt-2">Gestão de taxas de repasse e precificação de assinaturas.</p>
+                <p className="text-slate-600 font-bold text-[11px] tracking-[3px] uppercase mt-8 max-w-2xl leading-relaxed italic">
+                    Gestão centralizada de taxas de intermediação e arquitetura de precificação recursiva.
+                </p>
             </header>
 
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-12 items-start">
                 {/* ─── TAXA DA PLATAFORMA ─────────────────────────── */}
                 <div className="xl:col-span-4 lg:col-span-12">
-                    <Card className="rounded-none border-2 border-[#1D5F31] shadow-[0_0_50px_rgba(29,95,49,0.15)] bg-[#061629]/80 backdrop-blur-xl sticky top-24">
-                        <CardHeader className="border-b border-[#1D5F31]/20">
-                            <CardTitle className="text-sm font-black uppercase tracking-widest text-white flex items-center gap-2">
-                                <Percent size={16} className="text-[#1D5F31]" /> Taxa da Plataforma
+                    <Card className="rounded-[40px] border border-slate-200 shadow-xl bg-white overflow-hidden sticky top-32">
+                        <CardHeader className="p-10 border-b border-slate-50">
+                            <CardTitle className="text-xs font-black uppercase tracking-[3px] text-slate-900 flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100">
+                                    <Percent size={14} className="text-[#1D5F31]" strokeWidth={3} />
+                                </div>
+                                Fee da Plataforma
                             </CardTitle>
-                            <CardDescription className="text-[10px] uppercase font-bold text-slate-500">Comissão por venda de cursos</CardDescription>
+                            <CardDescription className="text-[10px] uppercase font-bold text-slate-600 mt-2">Dedução Automática por Transação</CardDescription>
                         </CardHeader>
-                        <CardContent className="pt-8 space-y-6">
-                            <div className="space-y-3">
-                                <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Porcentagem (%)</Label>
-                                <div className="relative">
+                        <CardContent className="p-10 space-y-8">
+                            <div className="space-y-4">
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-[#1D5F31]/60">Alíquota de Desconto (%)</Label>
+                                <div className="relative group">
                                     <Input 
                                         type="number" 
                                         value={settings.platformTax} 
                                         onChange={(e) => setSettings({ ...settings, platformTax: Number(e.target.value) })}
-                                        className="bg-[#061629] border-[#1D5F31]/50 rounded-none h-14 text-2xl font-mono font-black text-white px-6 focus:border-[#1D5F31] transition-all"
+                                        className="bg-slate-50 border border-slate-100 rounded-3xl h-20 text-4xl font-black text-slate-900 px-10 focus:border-[#1D5F31]/30 focus:bg-white transition-all shadow-inner"
                                     />
-                                    <div className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-500 font-black">%</div>
+                                    <div className="absolute right-10 top-1/2 -translate-y-1/2 text-slate-400 font-black text-2xl group-hover:text-slate-500 transition-colors">%</div>
                                 </div>
                             </div>
-                            <div className="p-4 bg-[#1D5F31]/10 border border-[#1D5F31]/20">
-                                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider leading-relaxed">
-                                    * Esta taxa define quanto a plataforma retém de cada venda. Ex: Se um curso custa R$ 100,00 e a taxa é {settings.platformTax}%, a plataforma fica com R$ {Number(100 * (settings.platformTax/100)).toFixed(2)} e o professor com R$ {Number(100 * (1 - settings.platformTax/100)).toFixed(2)}.
+                            <div className="p-8 bg-slate-50 rounded-[32px] border border-slate-100 border-dashed">
+                                <p className="text-[10px] text-slate-600 font-bold uppercase tracking-tight leading-relaxed italic">
+                                    * Este parâmetro impacta o split em tempo real. Uma taxa de {settings.platformTax}% resulta em um repasse líquido de {100 - settings.platformTax}% para o produtor.
                                 </p>
                             </div>
                         </CardContent>
@@ -150,98 +154,118 @@ export default function AdminFinancialPage() {
 
                 {/* ─── PLANOS DE ASSINATURA ────────────────────────── */}
                 <div className="xl:col-span-8 lg:col-span-12 space-y-10 min-h-[600px]">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                            <ShieldCheck className="text-[#1D5F31]" size={20} />
-                            <h2 className="text-lg font-black uppercase tracking-tighter text-white">Planos de Assinatura</h2>
+                    <div className="flex items-center justify-between mb-8 bg-white p-8 rounded-[32px] border border-slate-200 shadow-sm">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center border border-slate-100">
+                                <ShieldCheck className="text-[#1D5F31]" size={24} strokeWidth={2.5} />
+                            </div>
+                            <div>
+                                <h2 className="text-base font-black uppercase tracking-widest text-slate-900">Catálogo de Assinaturas</h2>
+                                <p className="text-[10px] text-slate-600 font-bold uppercase tracking-[2px]">Estruturas de Acesso Recorrente</p>
+                            </div>
                         </div>
-                        <Button onClick={addPlan} className="bg-white text-black hover:bg-[#1D5F31] hover:text-white text-[10px] font-black uppercase tracking-widest h-10 px-6 rounded-none transition-all">
-                            <Plus size={14} className="mr-2" /> Novo Plano
+                        <Button onClick={addPlan} className="bg-slate-900 text-white hover:bg-[#1D5F31] text-[10px] font-black uppercase tracking-[3px] h-14 px-8 rounded-2xl transition-all shadow-lg active:scale-95">
+                            <Plus size={16} className="mr-2" /> Novo Modelo
                         </Button>
                     </div>
 
-                    {settings.plans.map((plan, pIdx) => (
-                        <Card key={plan.id} className="rounded-none border border-[#1D5F31]/40 bg-[#061629]/60 hover:border-[#1D5F31] transition-all group overflow-hidden shadow-2xl">
-                            <CardHeader className="flex flex-row items-center justify-between bg-[#1D5F31]/10 border-b border-[#1D5F31]/20 py-6 px-8">
-                                <div className="flex-1">
-                                    <Input 
-                                        value={plan.name} 
-                                        onChange={(e) => updatePlan(pIdx, 'name', e.target.value)}
-                                        className="bg-transparent border-none text-base font-black uppercase tracking-tighter text-white p-0 h-auto focus-visible:ring-0"
-                                    />
-                                </div>
-                                <Button variant="ghost" onClick={() => removePlan(pIdx)} className="text-slate-600 hover:text-red-500 hover:bg-red-500/10 transition-colors rounded-none">
-                                    <Trash2 size={20} />
-                                </Button>
-                            </CardHeader>
-                            <CardContent className="p-8 grid grid-cols-1 md:grid-cols-2 gap-12">
-                                <div className="space-y-4">
-                                    <div className="space-y-2">
-                                        <Label className="text-[9px] font-black uppercase tracking-widest text-slate-500">Preço Mensal (R$)</Label>
-                                        <div className="relative">
-                                            <DollarSign size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#1D5F31]" />
-                                            <Input 
-                                                type="number" 
-                                                value={plan.price} 
-                                                onChange={(e) => updatePlan(pIdx, 'price', e.target.value)}
-                                                className="bg-[#061629] border-[#1D5F31]/20 rounded-none h-11 pl-10 text-white font-mono font-bold"
-                                            />
+                    <div className="space-y-8">
+                        {settings.plans.map((plan, pIdx) => (
+                            <Card key={plan.id} className="rounded-[40px] border border-slate-200 bg-white hover:border-[#1D5F31]/30 transition-all duration-500 group overflow-hidden shadow-sm hover:shadow-2xl">
+                                <CardHeader className="flex flex-row items-center justify-between bg-slate-50/50 border-b border-slate-50 py-8 px-10">
+                                    <div className="flex-1">
+                                        <Input 
+                                            value={plan.name} 
+                                            onChange={(e) => updatePlan(pIdx, 'name', e.target.value)}
+                                            className="bg-transparent border-none text-xl font-black uppercase tracking-tighter text-slate-900 p-0 h-auto focus-visible:ring-0 placeholder:text-slate-400"
+                                            placeholder="NOME DO PLANO"
+                                        />
+                                    </div>
+                                    <Button variant="ghost" onClick={() => removePlan(pIdx)} className="w-12 h-12 p-0 text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-all rounded-full active:scale-75">
+                                        <Trash2 size={20} />
+                                    </Button>
+                                </CardHeader>
+                                <CardContent className="p-10 grid grid-cols-1 md:grid-cols-2 gap-16">
+                                    <div className="space-y-8">
+                                        <div className="space-y-4">
+                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-900">Mensalidade Nominal (BRL)</Label>
+                                            <div className="relative group">
+                                                <DollarSign size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-200 group-hover:text-[#1D5F31] transition-colors" />
+                                                <Input 
+                                                    type="number" 
+                                                    value={plan.price} 
+                                                    onChange={(e) => updatePlan(pIdx, 'price', e.target.value)}
+                                                    className="bg-slate-50 border border-slate-100 rounded-2xl h-16 pl-14 text-lg text-slate-900 font-mono font-black focus:border-[#1D5F31]/30 focus:bg-white transition-all shadow-inner"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div 
+                                            onClick={() => updatePlan(pIdx, 'active', !plan.active)}
+                                            className={`flex items-center gap-4 p-4 rounded-3xl cursor-pointer border transition-all ${
+                                                plan.active 
+                                                ? 'bg-emerald-50 border-emerald-100 text-emerald-700' 
+                                                : 'bg-slate-50 border-slate-100 text-slate-400'
+                                            }`}
+                                        >
+                                            <div className={`w-3 h-3 rounded-full ${plan.active ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
+                                            <span className="text-[10px] font-black uppercase tracking-[3px]">Status: {plan.active ? 'ATIVO NO MERCADO' : 'EM MODO RASCUNHO'}</span>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3 mt-4">
-                                        <input 
-                                            type="checkbox" 
-                                            checked={plan.active} 
-                                            onChange={(e) => updatePlan(pIdx, 'active', e.target.checked)}
-                                            className="w-5 h-5 accent-[#1D5F31] cursor-pointer"
-                                        />
-                                        <span className="text-[11px] font-black uppercase tracking-widest text-[#1D5F31]">Instância Ativa</span>
-                                    </div>
-                                </div>
 
-                                <div className="space-y-3">
-                                    <Label className="text-[9px] font-black uppercase tracking-widest text-slate-500">Benefícios / Features</Label>
-                                    <div className="space-y-2 min-h-[150px]">
-                                        {plan.features.map((feat, fIdx) => (
-                                            <div key={fIdx} className="flex gap-2">
-                                                <Input 
-                                                    value={feat} 
-                                                    onChange={(e) => updateFeature(pIdx, fIdx, e.target.value)}
-                                                    className="bg-[#061629] border-[#1D5F31]/10 rounded-none h-9 text-[11px] text-slate-300"
-                                                    placeholder="Ex: Acesso offline"
-                                                />
-                                                <Button variant="ghost" size="icon" onClick={() => removeFeature(pIdx, fIdx)} className="h-9 w-9 text-slate-700 hover:text-red-800">
-                                                    <Trash2 size={12} />
-                                                </Button>
-                                            </div>
-                                        ))}
-                                        <Button 
-                                            variant="ghost" 
-                                            onClick={() => addFeature(pIdx)}
-                                            className="w-full border border-dashed border-[#1D5F31]/30 text-slate-500 hover:text-[#1D5F31] hover:bg-[#1D5F31]/5 text-[9px] font-black uppercase tracking-widest h-9"
-                                        >
-                                            + Adicionar Benefício
-                                        </Button>
+                                    <div className="space-y-6">
+                                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-900 flex items-center justify-between">
+                                            Vantagens Competitivas
+                                            <span className="text-[8px] opacity-50">{plan.features.length} ITENS</span>
+                                        </Label>
+                                        <div className="space-y-3">
+                                            {plan.features.map((feat, fIdx) => (
+                                                <div key={fIdx} className="flex gap-3 group/feature">
+                                                    <Input 
+                                                        value={feat} 
+                                                        onChange={(e) => updateFeature(pIdx, fIdx, e.target.value)}
+                                                        className="bg-slate-50 border border-slate-50 rounded-xl h-12 text-[11px] text-slate-600 font-bold focus:bg-white focus:border-[#1D5F31]/20 transition-all"
+                                                        placeholder="Vantagem técnica..."
+                                                    />
+                                                    <Button variant="ghost" size="icon" onClick={() => removeFeature(pIdx, fIdx)} className="h-12 w-12 text-slate-200 hover:text-rose-500 hover:bg-rose-50 transition-all rounded-xl active:scale-75">
+                                                        <Trash2 size={14} />
+                                                    </Button>
+                                                </div>
+                                            ))}
+                                            <Button 
+                                                variant="ghost" 
+                                                onClick={() => addFeature(pIdx)}
+                                                className="w-full border-2 border-dashed border-slate-200 text-slate-600 hover:text-[#1D5F31] hover:bg-[#1D5F31]/5 hover:border-[#1D5F31]/20 text-[10px] font-black uppercase tracking-widest h-12 rounded-xl transition-all"
+                                            >
+                                                + Adicionar Recurso
+                                            </Button>
+                                        </div>
                                     </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
                 </div>
             </div>
 
-            {/* Fixed Save Button - Lateral Direita */}
-            <div className="fixed bottom-6 right-6 z-[100]">
+            {/* Fixed Save Bar */}
+            <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] w-full max-w-xl px-4 animate-in slide-in-from-bottom-10 duration-1000">
                 <Button
                     onClick={handleSave}
                     disabled={saving}
-                    className="bg-[#1D5F31] hover:bg-[#22c55e] text-white font-black uppercase tracking-[4px] w-[320px] h-16 text-[14px] rounded-none transition-all shadow-[0_20px_50px_rgba(29,95,49,0.4)] border border-[#1D5F31] flex items-center justify-center gap-4 group"
+                    className="w-full bg-[#1D5F31] hover:bg-slate-900 text-white font-black uppercase tracking-[6px] h-20 text-[12px] rounded-full transition-all shadow-[0_30px_60px_rgba(29,95,49,0.3)] border-2 border-white/20 flex items-center justify-center gap-6 group overflow-hidden active:scale-95"
                 >
                     {saving ? (
-                        <><Loader2 size={20} className="animate-spin" /> SINCRONIZANDO...</>
+                        <div className="flex items-center gap-4">
+                            <Loader2 size={24} className="animate-spin" />
+                            <span>COMPROMETENDO...</span>
+                        </div>
                     ) : (
-                        <><Save size={20} className="group-hover:scale-110 transition-transform" /> APLICAR ALTERAÇÕES</>
+                        <div className="flex items-center gap-4">
+                            <Save size={24} className="group-hover:scale-125 transition-transform" />
+                            <span>SINCRONIZAR ARQUITETURA</span>
+                        </div>
                     )}
+                    <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
                 </Button>
             </div>
         </div>

@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthProvider";
 import { ArrowRight, Clock, Infinity, Award, Headphones, TrendingUp, Handshake, BarChart3, Loader2 } from "lucide-react";
 import { db, auth } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
@@ -18,11 +20,20 @@ interface LandingPageProps {
     } | null;
 }
 
-export default function LandingPageClient({ user }: LandingPageProps) {
+export default function LandingPageClient({ user: initialUser }: LandingPageProps) {
+    const { user, loading: authLoading } = useAuth();
+    const router = useRouter();
     const [courses, setCourses] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [email, setEmail] = useState("");
     const [banners, setBanners] = useState<BannersData | null>(null);
+
+    // Redirect if authenticated
+    useEffect(() => {
+        if (!authLoading && user) {
+            router.push('/course');
+        }
+    }, [user, authLoading, router]);
 
     useEffect(() => {
         async function fetchTopCourses() {
@@ -72,6 +83,17 @@ export default function LandingPageClient({ user }: LandingPageProps) {
             description: "Conte com mentores e uma comunidade ativa para tirar dúvidas e acelerar seu crescimento.",
         },
     ];
+
+    if (authLoading || user) {
+        return (
+            <div className="fixed inset-0 z-[999] bg-[#061629] flex flex-col items-center justify-center gap-4">
+                <Loader2 className="animate-spin text-[#1D5F31]" size={48} />
+                <p className="text-white font-exo font-black uppercase tracking-[0.2em] text-sm italic">
+                    PowerPlay — Carregando sua experiência...
+                </p>
+            </div>
+        );
+    }
 
     return (
         <div style={{ minHeight: "100vh", color: "#e2e8f0", background: "transparent" }}>
@@ -166,7 +188,7 @@ export default function LandingPageClient({ user }: LandingPageProps) {
                                 style={{ width: "100%" }}
                             />
                         </div>
-                        {user ? (
+                        {user || initialUser ? (
                             <button 
                                 className="btn-cta" 
                                 style={{ whiteSpace: "nowrap", padding: "0.9rem 2rem" }}
@@ -436,7 +458,7 @@ export default function LandingPageClient({ user }: LandingPageProps) {
                                                             ? 'Nossa metodologia foca na resolução de desafios reais com ferramentas de ponta.'
                                                             : 'Junte-se a milhares de alunos que já alcançaram cargos de destaque.'}
                                                 </p>
-                                                {user ? (
+                                                {user || initialUser ? (
                                                     <button 
                                                         className="btn-cta"
                                                         onClick={() => useCartStore.getState().showNotification("Você já está logado no sistema.", "info")}
@@ -471,7 +493,7 @@ export default function LandingPageClient({ user }: LandingPageProps) {
                                     <p style={{ color: "#ffffff", fontSize: "1.05rem", fontWeight: 500 }}>
                                         Inicie sua jornada na PowerPlay e domine o mercado.
                                     </p>
-                                    {user ? (
+                                    {user || initialUser ? (
                                         <button 
                                             className="btn-cta"
                                             onClick={() => useCartStore.getState().showNotification("Você já está logado no sistema.", "info")}

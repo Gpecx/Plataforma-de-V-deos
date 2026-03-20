@@ -43,10 +43,10 @@ const menuItems: MenuItem[] = [
         description: 'Filtro por Professor'
     },
     {
-        title: 'Branding & Marketing',
+        title: 'Branding & Banners',
         icon: LayoutDashboard,
         href: '/admin/settings',
-        description: 'Banners e Logos'
+        description: 'Identidade e Marketing'
     },
     {
         title: 'Moderação de Conteúdo',
@@ -57,7 +57,7 @@ const menuItems: MenuItem[] = [
     {
         title: 'Auditoria de Vendas',
         icon: ShieldAlert,
-        href: '/admin/audit',
+        href: '/admin/sales',
         description: 'Logs Financeiros'
     },
 ]
@@ -73,12 +73,12 @@ export default function AdminSidebar() {
     }
 
     return (
-        <aside className="fixed left-0 top-0 h-screen w-72 bg-[#061629]/80 backdrop-blur-xl border-r border-[#1D5F31]/30 flex flex-col z-50">
-            <div className="p-8 border-b border-[#1D5F31]/20">
-                <Logo />
+        <aside className="fixed left-0 top-0 h-screen w-72 bg-white border-r border-slate-200 flex flex-col z-50">
+            <div className="p-8 border-b border-slate-100">
+                <Logo light />
                 <div className="mt-4 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-[#1D5F31] animate-pulse" />
-                    <span className="text-[10px] font-black uppercase tracking-[4px] text-slate-400">Admin Panel</span>
+                    <div className="w-2 h-2 bg-[#1D5F31]" />
+                    <span className="text-[10px] font-black uppercase tracking-[4px] text-slate-600">Admin Panel</span>
                 </div>
             </div>
 
@@ -90,21 +90,21 @@ export default function AdminSidebar() {
                             key={item.href} 
                             href={item.href}
                             className={cn(
-                                "group flex items-center gap-4 p-4 text-white transition-all duration-300 relative overflow-hidden",
-                                isActive ? "bg-[#1D5F31]/20 border-l-4 border-[#1D5F31]" : "hover:bg-[#1D5F31]/10 border-l-4 border-transparent"
+                                "group flex items-center gap-4 p-4 transition-all duration-300 relative overflow-hidden rounded-xl",
+                                isActive ? "bg-slate-50 text-slate-900 shadow-sm" : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                             )}
                         >
                             <item.icon 
                                 size={20} 
                                 className={cn(
                                     "transition-colors duration-300",
-                                    isActive ? "text-[#1D5F31]" : "text-slate-500 group-hover:text-white"
+                                    isActive ? "text-[#1D5F31]" : "text-slate-400 group-hover:text-[#1D5F31]"
                                 )} 
                             />
                             <div className="flex flex-col">
                                 <span className={cn(
                                     "text-xs font-black uppercase tracking-widest",
-                                    isActive ? "text-white" : "text-slate-400 group-hover:text-white"
+                                    isActive ? "text-slate-900" : "text-slate-600 group-hover:text-slate-900"
                                 )}>
                                     {item.title}
                                 </span>
@@ -116,7 +116,7 @@ export default function AdminSidebar() {
                                 size={14} 
                                 className={cn(
                                     "ml-auto transition-transform duration-300",
-                                    isActive ? "text-[#1D5F31] translate-x-0" : "text-slate-700 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0"
+                                    isActive ? "text-[#1D5F31] translate-x-0" : "text-slate-600 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0"
                                 )} 
                             />
                         </Link>
@@ -124,11 +124,11 @@ export default function AdminSidebar() {
                 })}
             </nav>
 
-            <div className="p-8 border-t border-[#1D5F31]/20">
+            <div className="p-8 border-t border-slate-100">
                 <button 
                     onClick={handleExitPanel}
                     disabled={isLoggingOut}
-                    className="flex items-center gap-3 text-slate-500 hover:text-red-500 transition-colors uppercase font-black text-[10px] tracking-widest group disabled:opacity-50"
+                    className="flex items-center gap-3 text-slate-600 hover:text-red-500 transition-colors uppercase font-black text-[10px] tracking-widest group disabled:opacity-50"
                 >
                     {isLoggingOut ? (
                         <Loader2 className="animate-spin" size={16} />

@@ -85,42 +85,50 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
 
     if (lessonList.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-20 border border-white/5 bg-white/[0.02] animate-in fade-in duration-700">
-                <PlaySquare size={48} className="text-slate-800 mb-6" />
-                <p className="text-slate-500 font-black uppercase tracking-[4px] text-[10px]">Tudo em Dia: Nenhuma aula pendente</p>
+            <div className="flex flex-col items-center justify-center py-32 bg-white border border-slate-200 rounded-[40px] animate-in fade-in duration-700 shadow-sm">
+                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-8 border border-slate-100 shadow-inner">
+                    <PlaySquare size={40} className="text-slate-200" />
+                </div>
+                <p className="text-slate-600 font-black uppercase tracking-[4px] text-[10px] italic">Tudo em Dia: Nenhuma aula pendente</p>
             </div>
         )
     }
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-700">
+        <div className="space-y-6 animate-in fade-in duration-700 font-exo">
             <div className="overflow-x-auto">
-                <table className="w-full text-left border-separate border-spacing-y-2">
+                <table className="w-full text-left border-separate border-spacing-y-4">
                     <thead>
-                        <tr className="text-[10px] font-black uppercase tracking-widest text-slate-500">
-                            <th className="px-6 py-4">Aula / Curso</th>
-                            <th className="px-6 py-4">Instrutor</th>
-                            <th className="px-6 py-4 text-center">Ações</th>
+                        <tr className="text-[10px] font-black uppercase tracking-[3px] text-slate-600 text-left">
+                            <th className="px-10 py-4">Ficha Técnica</th>
+                            <th className="px-10 py-4">Procedência</th>
+                            <th className="px-10 py-4 text-center">Protocolo</th>
                         </tr>
                     </thead>
                     <tbody>
                         {lessonList.map((lesson) => (
-                            <tr key={lesson.id} className="group bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] transition-all duration-300">
-                                <td className="px-6 py-6 border-y border-l border-white/5 group-hover:border-[#00FF00]/20">
-                                    <h3 className="font-bold text-white uppercase italic tracking-tighter text-sm group-hover:text-[#00FF00] transition-colors">{lesson.title}</h3>
-                                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">
-                                        Curso: <span className="text-slate-300">{lesson.course_title}</span>
-                                    </p>
+                            <tr key={lesson.id} className="group bg-white border border-slate-200 hover:border-[#1D5F31]/30 transition-all duration-300 shadow-sm hover:shadow-xl">
+                                <td className="px-10 py-8 rounded-l-[32px]">
+                                    <div className="flex flex-col">
+                                        <h3 className="font-black text-slate-900 uppercase tracking-tight text-base group-hover:text-[#1D5F31] transition-colors">{lesson.title}</h3>
+                                        <div className="flex items-center gap-2 mt-2">
+                                            <div className="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
+                                            <p className="text-[10px] text-slate-600 font-bold uppercase tracking-widest italic">
+                                                CURSO: <span className="text-slate-900 font-black">{lesson.course_title}</span>
+                                            </p>
+                                        </div>
+                                    </div>
                                 </td>
-                                <td className="px-6 py-6 border-y border-white/5 group-hover:border-[#00FF00]/20">
-                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                                        {teachersMap[lesson.teacher_id] || 'Instrutor Desconhecido'}
-                                    </p>
+                                <td className="px-10 py-8">
+                                    <div className="flex flex-col text-[10px] text-slate-600 font-bold uppercase tracking-widest">
+                                        <span className="text-[8px] text-slate-400 mb-1">CRIADOR</span>
+                                        <span className="text-slate-900 font-black">{teachersMap[lesson.teacher_id] || 'Instrutor Desconhecido'}</span>
+                                    </div>
                                 </td>
-                                <td className="px-6 py-6 border-y border-r border-white/5 group-hover:border-[#00FF00]/20 text-center">
+                                <td className="px-10 py-8 rounded-r-[32px] text-center">
                                     <button
                                         onClick={() => setReviewingLesson(lesson)}
-                                        className="px-6 py-3 bg-white/5 border border-white/10 text-white text-[9px] font-black uppercase tracking-[2px] hover:bg-[#00FF00] hover:text-black transition-all duration-300 shadow-sm hover:shadow-[#00FF00]/20"
+                                        className="h-14 px-10 bg-slate-900 text-white text-[10px] font-black uppercase tracking-[3px] hover:bg-[#1D5F31] rounded-2xl transition-all duration-300 shadow-lg shadow-slate-900/10 active:scale-95"
                                     >
                                         Revisar Aula
                                     </button>
@@ -132,27 +140,32 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
             </div>
 
             {reviewingLesson && (
-                <div className="fixed inset-0 z-[60] lg:pl-72 flex items-center justify-center p-2 sm:p-6 bg-black/95 backdrop-blur-xl animate-in fade-in duration-300">
-                    <div className="w-[95%] max-w-[1200px] max-h-[92vh] bg-[#061629] border border-white/10 flex flex-col overflow-y-auto shadow-2xl custom-scrollbar">
-                        <div className="flex flex-col lg:flex-row">
+                <div className="fixed inset-0 z-[60] lg:pl-72 flex items-center justify-center p-4 sm:p-10 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="w-full max-w-[1200px] max-h-[90vh] bg-white rounded-[40px] border border-slate-200 flex flex-col overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.1)]">
+                        <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
 
                             {/* Player Column */}
-                            <div className="flex-1 bg-black border-b lg:border-b-0 lg:border-r border-white/5 flex flex-col sticky top-0 z-10 lg:static">
-                                <header className="p-4 lg:p-6 flex justify-between items-center bg-white/[0.02] border-b border-white/5">
-                                    <div className="flex items-center gap-3">
-                                        <PlaySquare size={16} className="text-[#00FF00]" />
-                                        <h2 className="text-[10px] lg:text-xs font-black uppercase tracking-widest text-[#00FF00]">Auditoria de Vídeo-Aula</h2>
+                            <div className="flex-1 bg-slate-50 border-b lg:border-b-0 lg:border-r border-slate-100 flex flex-col min-h-0">
+                                <header className="p-8 flex justify-between items-center bg-white border-b border-slate-50">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100">
+                                            <PlaySquare size={18} className="text-[#1D5F31]" strokeWidth={2.5} />
+                                        </div>
+                                        <h2 className="text-xs font-black uppercase tracking-[3px] text-slate-900">AUDITORIA DE VÍDEO-AULA</h2>
                                     </div>
-                                    <button onClick={() => setReviewingLesson(null)} className="p-2 hover:bg-white/5 transition-colors">
-                                        <X size={20} className="text-slate-500 hover:text-white" />
+                                    <button 
+                                        onClick={() => setReviewingLesson(null)} 
+                                        className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all active:scale-90"
+                                    >
+                                        <X size={20} />
                                     </button>
                                 </header>
 
-                                <div className="flex-1 flex items-center justify-center bg-black min-h-[250px] lg:min-h-0" key={reviewingLesson.id}>
+                                <div className="flex-1 flex items-center justify-center bg-slate-900 p-0 relative group" key={reviewingLesson.id}>
                                     {isExternalVideo(reviewingLesson.video_url) ? (
                                         <iframe
                                             src={getEmbedUrl(reviewingLesson.video_url)}
-                                            className="w-full aspect-video border-0 shadow-2xl"
+                                            className="w-full h-full aspect-video border-0"
                                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                                             allowFullScreen
                                         ></iframe>
@@ -163,46 +176,54 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
                                             autoPlay
                                             muted
                                             playsInline
-                                            className="w-full aspect-video object-contain bg-black shadow-2xl"
+                                            className="w-full h-full aspect-video object-contain"
                                         />
                                     )}
                                 </div>
                             </div>
 
                             {/* Moderation Column */}
-                            <div className="w-full lg:w-[400px] p-6 lg:p-8 flex flex-col bg-white/[0.01]">
-                                <div className="mb-8">
-                                    <span className="text-[10px] font-black uppercase tracking-[4px] text-[#00FF00] block mb-2">Detalhes da Aula</span>
-                                    <h3 className="text-xl lg:text-2xl font-black uppercase italic tracking-tighter leading-tight break-words">{reviewingLesson.title}</h3>
-                                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-4">Vinculada ao curso:</p>
-                                    <p className="text-[12px] text-white font-black uppercase italic tracking-widest mt-1">{reviewingLesson.course_title}</p>
+                            <div className="w-full lg:w-[450px] p-10 lg:p-14 flex flex-col bg-white overflow-y-auto custom-scrollbar">
+                                <div className="mb-12">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <div className="w-1 h-1 rounded-full bg-[#1D5F31]"></div>
+                                        <span className="text-[10px] font-black uppercase tracking-[4px] text-[#1D5F31]">DETALHES DA UNIDADE</span>
+                                    </div>
+                                    <h3 className="text-3xl font-black uppercase tracking-tighter leading-none text-slate-900">{reviewingLesson.title}</h3>
+                                    <div className="mt-8 p-6 bg-slate-50 rounded-2xl border border-slate-100">
+                                        <p className="text-[9px] text-slate-600 font-black uppercase tracking-widest mb-1">VINCULADA AO CURSO</p>
+                                        <p className="text-[12px] text-slate-900 font-black uppercase tracking-widest leading-tight">{reviewingLesson.course_title}</p>
+                                    </div>
                                 </div>
 
-                                <div className="space-y-6 lg:mt-auto">
-                                    <div>
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 block mb-3">Feedback Técnico</label>
+                                <div className="space-y-10">
+                                    <div className="space-y-5">
+                                        <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-900 flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 bg-[#1D5F31] rounded-full"></div>
+                                            Feedback Técnico
+                                        </label>
                                         <textarea
                                             value={rejectionReason}
                                             onChange={(e) => setRejectionReason(e.target.value)}
-                                            placeholder="Detalhe os motivos da reprovação..."
-                                            className="w-full h-32 bg-black border border-white/5 p-4 text-xs text-white focus:border-[#00FF00] outline-none transition-colors resize-none placeholder:text-slate-700"
+                                            placeholder="Detalhamento das correções técnicas necessárias..."
+                                            className="w-full h-44 bg-slate-50 border border-slate-100 rounded-[24px] p-8 text-sm text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all resize-none placeholder:text-slate-400 font-bold shadow-inner"
                                         />
                                     </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <button
-                                            onClick={() => handleReject(reviewingLesson.id)}
-                                            disabled={loadingId === reviewingLesson.id}
-                                            className="h-14 border border-rose-600/30 bg-rose-950/20 text-rose-500 text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all disabled:opacity-50"
-                                        >
-                                            Reprovar
-                                        </button>
+                                    <div className="grid grid-cols-1 gap-4">
                                         <button
                                             onClick={() => handleApprove(reviewingLesson.id)}
                                             disabled={loadingId === reviewingLesson.id}
-                                            className="h-14 bg-[#00FF00] text-black text-[10px] font-black uppercase tracking-widest hover:brightness-110 hover:shadow-[0_0_20px_#00FF00] transition-all disabled:opacity-50 flex items-center justify-center"
+                                            className="h-20 bg-[#1D5F31] text-white text-[11px] font-black uppercase tracking-[4px] hover:opacity-90 hover:shadow-2xl hover:shadow-[#1D5F31]/30 transition-all disabled:opacity-50 flex items-center justify-center rounded-[24px] active:scale-95"
                                         >
-                                            {loadingId === reviewingLesson.id ? <Loader2 size={20} className="animate-spin" /> : "Aprovar Aula"}
+                                            {loadingId === reviewingLesson.id ? <Loader2 size={24} className="animate-spin" /> : "APROVAR AULA"}
+                                        </button>
+                                        <button
+                                            onClick={() => handleReject(reviewingLesson.id)}
+                                            disabled={loadingId === reviewingLesson.id}
+                                            className="h-16 border-2 border-slate-50 text-rose-500 text-[10px] font-black uppercase tracking-[4px] hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all disabled:opacity-50 rounded-[20px] active:scale-95"
+                                        >
+                                            Reprovar Unidade
                                         </button>
                                     </div>
                                 </div>

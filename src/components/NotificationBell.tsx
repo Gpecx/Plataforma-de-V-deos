@@ -8,6 +8,7 @@ import { auth, db } from '@/lib/firebase'
 import { collection, query, where, orderBy, limit, getDocs, onSnapshot, doc, getDoc } from 'firebase/firestore'
 import { getPublicProfile } from '@/app/actions/profile'
 import { parseFirebaseDate } from '@/lib/date-utils'
+import { cn } from '@/lib/utils'
 
 interface Notification {
     id: string
@@ -21,10 +22,12 @@ interface Notification {
 
 export function NotificationBell({
     accent = '#1D5F31',
-    isTeacher = false
+    isTeacher = false,
+    light = false
 }: {
     accent?: string,
-    isTeacher?: boolean
+    isTeacher?: boolean,
+    light?: boolean
 }) {
     const router = useRouter()
     const [open, setOpen] = useState(false)
@@ -100,10 +103,13 @@ export function NotificationBell({
 
     return (
         <div className="relative" ref={menuRef}>
-            <button onClick={() => setOpen(prev => !prev)} className="text-white hover:text-[#1D5F31] transition cursor-pointer relative outline-none flex items-center justify-center">
+            <button onClick={() => setOpen(prev => !prev)} className={cn("transition cursor-pointer relative outline-none flex items-center justify-center", light ? "text-slate-600 hover:text-slate-900" : "text-white hover:text-[#1D5F31]")}>
                 <Bell size={20} />
                 {unread > 0 && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-none text-white text-[9px] font-black flex items-center justify-center border border-[#061629]" style={{ backgroundColor: accent }}>
+                    <span className={cn(
+                        "absolute -top-1 -right-1 w-4 h-4 rounded-full text-white text-[9px] font-black flex items-center justify-center border-2",
+                        light ? "border-white" : "border-[#061629]"
+                    )} style={{ backgroundColor: accent }}>
                         {unread}
                     </span>
                 )}

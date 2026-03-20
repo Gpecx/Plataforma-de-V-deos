@@ -1,15 +1,13 @@
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { PlayCircle, CreditCard, BookOpen, Sparkles, Trophy, Users } from 'lucide-react'
+import { PlayCircle, BookOpen, Sparkles, Trophy, Users } from 'lucide-react'
 import Link from 'next/link'
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { StudentCarousel } from '@/components/dashboard/StudentCarousel'
-import { MyLearningSidebar } from '@/components/dashboard/MyLearningSidebar'
 import { StoreInitializer } from '@/components/dashboard/StoreInitializer'
 import { parseFirebaseDate } from '@/lib/date-utils'
 import { getBanners } from '@/app/admin/settings/actions'
-
 
 export default async function StudentDashboard() {
     const cookieStore = cookies()
@@ -24,7 +22,6 @@ export default async function StudentDashboard() {
         redirect('/login')
     }
 
-    // 2. Busca perfil, cursos totais e matrículas em paralelo no Firestore
     const [profileDoc, coursesSnapshot, enrollmentsSnapshot, banners] = await Promise.all([
         adminDb.collection('profiles').doc(user.uid).get(),
         adminDb.collection('courses').get(),
@@ -48,154 +45,152 @@ export default async function StudentDashboard() {
     const cursosDisponiveis = allCourses.filter(c => !purchasedCourseIds.includes(c.id))
 
     return (
-        <div className="min-h-screen bg-transparent text-[#e2e8f0] font-exo relative pb-16">
-            {/* Lógica para sincronizar cursos comprados com o Zustand no Client Side se necessário */}
+        <div className="min-h-screen bg-white font-exo relative pb-16">
             <StoreInitializer purchasedCourseIds={purchasedCourseIds} />
 
-            {/* Main Content (Constrained Width) */}
-            <div className="max-w-none space-y-8">
-                {/* Header de Boas-vindas - Compacto no Topo */}
-                <header className="pt-8 px-6 md:px-12 lg:px-16">
-                    <div className="flex items-center gap-2 mb-0.5">
-                        <span className="text-[8px] font-bold uppercase tracking-[4px] text-white">WORKSPACE STUDENT</span>
-                    </div>
-                    <div className="flex flex-col md:flex-row md:items-baseline gap-2 md:gap-4">
-                        <h1 className="text-2xl md:text-3xl font-black tracking-tighter text-white">
-                            BEM-VINDO, <span className="text-white uppercase">{profile?.full_name?.split(' ')[0] || 'ALUNO'}!</span>
-                        </h1>
-                        <p className="text-white font-bold text-[9px] tracking-widest uppercase opacity-80">Eleve sua carreira hoje.</p>
-                    </div>
-                </header>
+            {/* 1. BANNER FULL WIDTH + TEXTO SOBREPOSTO (ESTRUTURA EXTERNA) */}
+            <section className="relative w-full overflow-hidden border-b border-black">
 
-                {/* Banner de Inspiração (Carrossel Dinâmico) - 100% da Largura Total */}
-                <div className="w-full overflow-hidden">
-                    <StudentCarousel heroBanners={banners.hero_dashboard} />
+                {/* Texto de Boas-Vindas flutuando sobre o banner */}
+                <div className="absolute top-10 left-6 md:left-12 lg:left-16 z-20 pointer-events-none">
+                    <div className="flex items-center gap-2 mb-1">
+                        <div className="w-2 h-2 rounded-full bg-white animate-pulse shadow-[0_0_10px_#fff]"></div>
+                        <span className="text-[10px] font-black uppercase tracking-[3px] text-white">Plataforma PowerPlay</span>
+                    </div>
+                    <h1 className="text-3xl md:text-4xl font-black tracking-tighter text-white uppercase shadow-lg">
+                        Olá, <span className="text-[#1D5F31] bg-white px-2 py-0.5 rounded-md">{profile?.full_name?.split(' ')[0] || 'Daniel'}!</span>
+                    </h1>
                 </div>
 
-                {/* Seções com Padding Lateral */}
-                <div className="px-6 md:px-12 lg:px-16 space-y-12">
-                    {/* Seção: Meus Cursos */}
+                {/* O carrossel agora toca as bordas naturally */}
+                <StudentCarousel heroBanners={banners.hero_dashboard} />
+            </section>
+
+            {/* 2. CONTEÚDO COM PADDING LATERAL E GRID FORTE */}
+            <div className="px-6 md:px-12 lg:px-16 mt-16 space-y-16">
+
+                {/* Seção: Meus Cursos (Seu Aprendizado) */}
+                {meusCursos.length > 0 && (
                     <section>
-                        <div className="flex items-center justify-between mb-6 pb-3 border-b border-[#1D5F31]/30">
-                            <h2 className="text-lg font-black uppercase tracking-tighter flex items-center gap-3 text-white/70">
-                                <BookOpen size={18} className="text-[#1D5F31]" />
+                        <div className="flex items-center justify-between mb-10 pb-4 border-b-2 border-slate-900/5">
+                            <h2 className="text-xl font-black uppercase tracking-tighter flex items-center gap-3 !text-black">
+                                <BookOpen size={22} className="text-[#1D5F31]" />
                                 Seu Aprendizado
                             </h2>
-                            <span className="text-[8px] font-black uppercase tracking-[2px] text-white/60">{meusCursos.length} TREINAMENTOS</span>
+                            <span className="text-[10px] font-black uppercase tracking-[2px] !text-black bg-white border border-black px-4 py-2 rounded-xl shadow-sm">
+                                {meusCursos.length} TREINAMENTOS
+                            </span>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                            {meusCursos.length > 0 ? (
-                                meusCursos.map((curso) => (
-                                    <div key={curso.id} className="bg-[#05111f]/40 backdrop-blur-md rounded-xl overflow-hidden border border-[#1D5F31]/20 hover:border-[#1D5F31] transition-all group shadow-lg">
-                                        <div className="relative h-40 bg-slate-100">
-                                            <img
-                                                src={curso.image_url || "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400"}
-                                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                                                alt={curso.title}
-                                            />
-                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 backdrop-blur-[2px]">
-                                                <PlayCircle size={40} className="text-white drop-shadow-lg" />
-                                            </div>
-                                        </div>
-                                        <div className="p-6">
-                                            <h3 className="font-bold text-base mb-3 tracking-tight text-white line-clamp-1 group-hover:text-white/90 transition">{curso.title}</h3>
-
-                                            <div className="relative group/progress mb-2">
-                                                <div className="w-full bg-slate-100 h-1 rounded-full overflow-hidden">
-                                                    <div className="bg-[#1D5F31] h-full" style={{ width: `45%` }}></div>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-widest text-white/90">
-                                                <span>45% COMPLETADO</span>
-                                            </div>
-                                            <Link href={`/classroom/${curso.id}`}>
-                                                <button className="w-full mt-6 bg-[#061629]/80 text-white font-bold uppercase text-[10px] tracking-widest py-3 rounded-xl hover:bg-[#1D5F31] transition shadow-sm border border-[#1D5F31]/30">
-                                                    Continuar
-                                                </button>
-                                            </Link>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="col-span-full py-16 border border-dashed border-[#1D5F31]/30 rounded-xl text-center bg-[#05111f]/50">
-                                    <p className="text-white/60 text-[10px] font-semibold uppercase tracking-widest">Sua estante está vazia.</p>
-                                </div>
-                            )}
-                        </div>
-                    </section>
-
-                    {/* Seção Founders */}
-                    <section className="bg-[#05111f]/40 backdrop-blur-md rounded-xl border border-[#1D5F31]/20 p-8 overflow-hidden relative shadow-lg">
-                        <div className="absolute top-0 right-0 w-1/4 h-full opacity-5 pointer-events-none">
-                            <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=600" alt="Tech" className="w-full h-full object-cover grayscale" />
-                        </div>
-                        <div className="relative z-10 flex flex-col md:flex-row gap-8 items-center">
-                            <div className="flex-1 text-center md:text-left">
-                                <h2 className="text-lg font-black uppercase tracking-tighter text-white mb-2 flex items-center justify-center md:justify-start gap-3">
-                                    <Trophy size={18} className="text-[#1D5F31]" />
-                                    Conteúdo Inovador
-                                </h2>
-                                <p className="text-white/90 font-medium italic text-xs leading-relaxed max-w-xl">
-                                    "Unimos a precisão técnica da engenharia com a agilidade estratégica que o mercado exige."
-                                </p>
-                            </div>
-                        </div>
-                    </section>
-
-                    {/* Seção: Vitrine de Cursos */}
-                    <section className="pb-16">
-                        <div className="flex items-center justify-between mb-6 pb-3 border-b border-[#1D5F31]/30">
-                            <h2 className="text-lg font-black uppercase tracking-tighter flex items-center gap-3 text-white">
-                                <CreditCard size={18} className="text-[#1D5F31]" />
-                                Recomendados
-                            </h2>
-                            <span className="text-[8px] font-black uppercase tracking-[2px] text-white/60">VITRINE POWERPLAY</span>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                            {cursosDisponiveis.map((curso) => (
-                                <div key={curso.id} className="bg-[#05111f]/40 backdrop-blur-md rounded-xl overflow-hidden border border-[#1D5F31]/20 hover:border-[#1D5F31] transition-all flex flex-col group shadow-lg">
-                                    <div className="relative h-40 overflow-hidden">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                            {meusCursos.map((curso) => (
+                                <div key={curso.id} className="group bg-white rounded-[24px] overflow-hidden border border-black transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 flex flex-col">
+                                    <div className="relative h-48 bg-slate-100 overflow-hidden">
                                         <img
-                                            src={curso.image_url || "https://images.unsplash.com/photo-1558655146-d09347e92766?w=400"}
-                                            className="w-full h-full object-cover group-hover:scale-105 transition-all duration-700"
+                                            src={curso.image_url || "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400"}
+                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                                             alt={curso.title}
                                         />
-                                    </div>
-                                    <div className="p-5 flex-grow flex flex-col justify-between">
-                                        <div className="mb-4">
-                                            <h3 className="font-bold text-sm mb-1.5 tracking-tight text-white line-clamp-1 group-hover:text-white transition">{curso.title}</h3>
-                                            <p className="text-white/70 text-[9px] font-medium leading-relaxed line-clamp-2">{curso.description || 'Domine esta habilidade com o método PowerPlay.'}</p>
+                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
+                                            <PlayCircle size={48} className="text-white" />
                                         </div>
-                                        <div>
-                                            <div className="flex items-center justify-between mb-4">
-                                                <span className="text-white font-black text-lg tracking-tighter">
-                                                    R$ {Number(curso.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                                </span>
-                                                <Link href={`/course/${curso.id}`} className="text-[7px] font-bold uppercase tracking-widest text-white/80 hover:text-white transition underline underline-offset-4">
-                                                    Detalhes
-                                                </Link>
+                                    </div>
+                                    <div className="p-8 flex-1 flex flex-col">
+                                        {/* TÍTULO DO CURSO - Garanti que está PRETO e VISÍVEL */}
+                                        <h3 className="font-black text-lg mb-4 !text-black line-clamp-2 leading-tight uppercase group-hover:text-[#1D5F31] transition-colors">{curso.title}</h3>
+                                        <div className="mt-auto space-y-4">
+                                            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                                                <div className="bg-[#1D5F31] h-full shadow-[0_0_10px_rgba(29,95,49,0.3)]" style={{ width: `45%` }}></div>
                                             </div>
-
-                                            <AddToCartButton
-                                                course={{
-                                                    id: curso.id,
-                                                    title: curso.title,
-                                                    price: Number(curso.price || 0),
-                                                    image_url: curso.image_url
-                                                }}
-                                                purchasedCourseIds={purchasedCourseIds}
-                                            />
+                                            <Link href={`/classroom/${curso.id}`}>
+                                                <button className="w-full bg-black text-white font-black uppercase text-[11px] tracking-widest py-4 rounded-xl hover:bg-[#1D5F31] transition-all shadow-md active:scale-95">
+                                                    Continuar Aula
+                                                </button>
+                                            </Link>
                                         </div>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     </section>
+                )}
 
-                </div>
+                {/* Seção Founders (Banner Centralizado) */}
+                <section className="bg-[#1D5F31] rounded-[32px] p-10 md:p-14 overflow-hidden relative shadow-xl border border-black">
+                    <div className="relative z-10">
+                        <div className="inline-flex items-center gap-3 px-4 py-2 bg-white/10 rounded-xl mb-6 border border-white/10">
+                            <Trophy size={18} className="text-white" />
+                            <span className="text-[10px] font-black text-white uppercase tracking-widest">Excelência PowerPlay</span>
+                        </div>
+                        <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tighter text-white mb-4">
+                            Conteúdo <span className="opacity-60">Inovador</span>
+                        </h2>
+                        <p className="text-white font-medium italic text-sm md:text-base leading-relaxed max-w-2xl opacity-90">
+                            "Transformando a precisão técnica em resultados estratégicos para sua carreira."
+                        </p>
+                    </div>
+                </section>
+
+                {/* Seção: Vitrine (Recomendados) */}
+                <section className="pb-20">
+                    <div className="flex items-center justify-between mb-10 pb-4 border-b-2 border-slate-900/5">
+                        <h2 className="text-xl font-black uppercase tracking-tighter flex items-center gap-3 !text-black">
+                            <Sparkles size={22} className="text-[#1D5F31]" />
+                            Recomendados para você
+                        </h2>
+                        <span className="hidden md:block text-[9px] font-black uppercase tracking-[3px] text-slate-400">Vitrine Exclusiva</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                        {cursosDisponiveis.map((curso) => (
+                            <div key={curso.id} className="group bg-white rounded-[24px] overflow-hidden border border-black shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col">
+                                <div className="relative h-48 overflow-hidden bg-slate-100">
+                                    <img
+                                        src={curso.image_url || "https://images.unsplash.com/photo-1558655146-d09347e92766?w=400"}
+                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                        alt={curso.title}
+                                    />
+                                    <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-black shadow-sm">
+                                        <span className="text-[8px] font-black text-[#1D5F31] tracking-widest uppercase">Lançamento</span>
+                                    </div>
+                                </div>
+
+                                <div className="p-6 flex-grow flex flex-col">
+                                    {/* TÍTULO DO CURSO - Garanti que está PRETO e VISÍVEL */}
+                                    <h3 className="font-black text-base mb-2 !text-black uppercase leading-tight line-clamp-2 group-hover:text-[#1D5F31] transition-colors">{curso.title}</h3>
+                                    <p className="!text-slate-800 text-[10px] font-bold uppercase italic line-clamp-2 mb-6">
+                                        {curso.description || 'Domine esta habilidade com o método PowerPlay.'}
+                                    </p>
+
+                                    <div className="mt-auto pt-4 border-t border-black flex items-center justify-between mb-4">
+                                        <div className="flex flex-col">
+                                            <span className="text-[8px] font-bold !text-black uppercase tracking-tighter">Investimento</span>
+                                            <span className="!text-black font-black text-xl italic tracking-tight">
+                                                R$ {Number(curso.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                            </span>
+                                        </div>
+                                        <Link href={`/course/${curso.id}`} className="p-2.5 bg-slate-50 border border-black rounded-xl !text-black hover:text-[#1D5F31] transition-colors">
+                                            <Users size={18} />
+                                        </Link>
+                                    </div>
+                                </div>
+
+                                {/* Botão Carrinho - Encostado na borda inferior do card */}
+                                <div className="w-full">
+                                    <AddToCartButton
+                                        course={{
+                                            id: curso.id,
+                                            title: curso.title,
+                                            price: Number(curso.price || 0),
+                                            image_url: curso.image_url
+                                        }}
+                                        purchasedCourseIds={purchasedCourseIds}
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </section>
             </div>
         </div>
     )

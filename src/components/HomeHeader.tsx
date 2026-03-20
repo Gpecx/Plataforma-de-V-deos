@@ -5,8 +5,10 @@ import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import Logo from '@/components/Logo'
 import { usePathname } from 'next/navigation'
+import { useAuth } from '@/context/AuthProvider'
 
 export default function HomeHeader() {
+    const { user } = useAuth()
     const pathname = usePathname()
     const [mounted, setMounted] = useState(false)
 
@@ -33,58 +35,60 @@ export default function HomeHeader() {
                 pointerEvents: 'auto',
             }}
         >
-            <Logo className="h-8 md:h-10" />
+            <Logo className="h-8 md:h-10" href={user ? '/course' : '/'} />
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <Link href="/login">
-                    <button
-                        style={{
-                            fontSize: '0.65rem',
-                            fontWeight: 900,
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.15em',
-                            border: '1px solid rgba(255,255,255,0.25)',
-                            color: '#fff',
-                            background: 'transparent',
-                            padding: '0.5rem 1.25rem',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            transition: 'background 0.2s',
-                        }}
-                        onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
-                        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-                    >
-                        Login
-                    </button>
-                </Link>
-                <Link href="/register">
-                    <button
-                        style={{
-                            fontSize: '0.65rem',
-                            fontWeight: 900,
-                            textTransform: 'uppercase',
-                            letterSpacing: '0.15em',
-                            background: '#1D5F31',
-                            color: '#fff',
-                            border: '2px solid #1D5F31',
-                            padding: '0.5rem 1.25rem',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            transition: 'background 0.2s, transform 0.2s',
-                        }}
-                        onMouseEnter={e => {
-                            e.currentTarget.style.background = '#28b828'
-                            e.currentTarget.style.transform = 'scale(1.03)'
-                        }}
-                        onMouseLeave={e => {
-                            e.currentTarget.style.background = '#1D5F31'
-                            e.currentTarget.style.transform = 'scale(1)'
-                        }}
-                    >
-                        Inscreva-se
-                    </button>
-                </Link>
-            </div>
+            {!user && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <Link href="/login">
+                        <button
+                            style={{
+                                fontSize: '0.65rem',
+                                fontWeight: 900,
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.15em',
+                                border: '1px solid rgba(255,255,255,0.25)',
+                                color: '#fff',
+                                background: 'transparent',
+                                padding: '0.5rem 1.25rem',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                transition: 'background 0.2s',
+                            }}
+                            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
+                            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                        >
+                            Login
+                        </button>
+                    </Link>
+                    <Link href="/register">
+                        <button
+                            style={{
+                                fontSize: '0.65rem',
+                                fontWeight: 900,
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.15em',
+                                background: '#1D5F31',
+                                color: '#fff',
+                                border: '2px solid #1D5F31',
+                                padding: '0.5rem 1.25rem',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                transition: 'background 0.2s, transform 0.2s',
+                            }}
+                            onMouseEnter={e => {
+                                e.currentTarget.style.background = '#28b828'
+                                e.currentTarget.style.transform = 'scale(1.03)'
+                            }}
+                            onMouseLeave={e => {
+                                e.currentTarget.style.background = '#1D5F31'
+                                e.currentTarget.style.transform = 'scale(1)'
+                            }}
+                        >
+                            Inscreva-se
+                        </button>
+                    </Link>
+                </div>
+            )}
         </header>,
         document.body
     )

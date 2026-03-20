@@ -21,12 +21,12 @@ export default async function StudentLayout({
     }
 
     return (
-        <div className="min-h-screen bg-transparent text-[var(--foreground)] font-exo flex flex-col">
+        <div className="min-h-screen bg-slate-50 text-slate-900 font-exo flex flex-col">
             <ScrollToTop />
-            <Navbar />
+            <Navbar light={true} />
 
             {/* Main Content Area - Full Width optimized */}
-            <main className="flex-1 pt-24 transition-all duration-300 w-full">
+            <main className="flex-1 pt-24 transition-all duration-300 w-full px-4 md:px-8 lg:px-12">
                 {children}
             </main>
 

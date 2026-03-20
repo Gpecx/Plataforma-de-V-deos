@@ -76,26 +76,28 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
 
     if (courses.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-20 border border-white/5 bg-white/[0.02] animate-in fade-in duration-700">
-                <LayoutGrid size={48} className="text-slate-800 mb-6" />
-                <p className="text-slate-500 font-black uppercase tracking-[4px] text-[10px]">Portal Limpo: Nenhum curso aguardando revisão</p>
+            <div className="flex flex-col items-center justify-center py-32 bg-white border border-slate-200 rounded-[40px] animate-in fade-in duration-700 shadow-sm">
+                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-8 border border-slate-100 shadow-inner">
+                    <LayoutGrid size={40} className="text-slate-200" />
+                </div>
+                <p className="text-slate-600 font-black uppercase tracking-[4px] text-[10px] italic">Portal Limpo: Nenhum curso aguardando revisão</p>
             </div>
         )
     }
 
     return (
-        <div className="space-y-8 animate-in fade-in duration-700">
+        <div className="space-y-10 animate-in fade-in duration-700 font-exo">
             {/* Grid de Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {courses.map((course) => (
                     <div
                         key={course.id}
-                        className="group bg-black/40 border border-white/5 hover:border-[#00FF00]/30 transition-all duration-500 relative flex flex-col"
+                        className="group bg-white border border-slate-200 hover:border-[#1D5F31]/30 transition-all duration-500 relative flex flex-col rounded-[32px] overflow-hidden shadow-sm hover:shadow-2xl"
                     >
-                        <div className="absolute top-4 left-4 z-20">
-                            <div className="flex items-center gap-2 bg-black/80 border border-white/10 px-3 py-1 scale-90 origin-left">
-                                <div className="w-1.5 h-1.5 bg-amber-500 animate-pulse" />
-                                <span className="text-[9px] font-black uppercase tracking-widest text-amber-500">Aguardando Auditoria</span>
+                        <div className="absolute top-6 left-6 z-20">
+                            <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md border border-slate-100 px-4 py-1.5 rounded-full shadow-lg">
+                                <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
+                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-900">PENDENTE</span>
                             </div>
                         </div>
 
@@ -103,27 +105,27 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
                             <img
                                 src={course.image_url}
                                 alt=""
-                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-40 group-hover:opacity-60"
+                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-90 group-hover:opacity-100"
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent" />
                         </div>
 
-                        <div className="p-6 flex flex-col flex-1">
+                        <div className="p-10 flex flex-col flex-1">
                             <div className="flex-1">
-                                <h3 className="text-lg font-black uppercase italic tracking-tighter leading-tight mb-2 group-hover:text-[#00FF00] transition-colors">
+                                <h3 className="text-xl font-black uppercase tracking-tighter leading-tight mb-3 text-slate-900 group-hover:text-[#1D5F31] transition-colors">
                                     {course.title}
                                 </h3>
-                                <div className="flex items-center gap-2 mb-4">
-                                    <div className="w-4 h-[1px] bg-[#00FF00]" />
-                                    <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">
-                                        By {teachersMap[course.teacher_id] || 'Instrutor Desconhecido'}
+                                <div className="flex items-center gap-3 mb-8">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-[#1D5F31]" />
+                                    <p className="text-[10px] text-slate-600 font-black uppercase tracking-widest">
+                                        Por <span className="text-slate-900 font-black">{teachersMap[course.teacher_id] || 'Instrutor Desconhecido'}</span>
                                     </p>
                                 </div>
                             </div>
 
                             <button
                                 onClick={() => setReviewingCourse(course)}
-                                className="w-full py-4 bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-[3px] hover:bg-[#00FF00] hover:text-black hover:border-transparent hover:shadow-[0_0_20px_rgba(0,255,0,0.3)] transition-all duration-300"
+                                className="w-full py-5 bg-slate-900 text-white text-[10px] font-black uppercase tracking-[3px] hover:bg-[#1D5F31] transition-all duration-300 rounded-2xl shadow-lg shadow-slate-900/10 hover:shadow-[#1D5F31]/20 active:scale-95"
                             >
                                 Revisar Conteúdo
                             </button>
@@ -134,31 +136,33 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
 
             {/* Modal de Revisão */}
             {reviewingCourse && (
-                <div className="fixed inset-0 z-[60] lg:pl-72 flex items-center justify-center p-2 sm:p-6 bg-black/95 backdrop-blur-xl animate-in fade-in duration-300">
-                    <div className="w-[95%] max-w-[1200px] max-h-[92vh] bg-[#061629] border border-white/10 flex flex-col overflow-y-auto shadow-2xl custom-scrollbar">
-
-                        <div className="flex flex-col lg:flex-row">
+                <div className="fixed inset-0 z-[60] lg:pl-72 flex items-center justify-center p-4 sm:p-10 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="w-full max-w-[1200px] max-h-[90vh] bg-white rounded-[40px] border border-slate-200 flex flex-col overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.1)]">
+                        
+                        <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
                             {/* Player Column */}
-                            <div className="flex-1 bg-black border-b lg:border-b-0 lg:border-r border-white/5 flex flex-col sticky top-0 z-10 lg:static">
-                                <header className="p-4 lg:p-6 flex justify-between items-center bg-white/[0.02] border-b border-white/5">
-                                    <div className="flex items-center gap-3">
-                                        <Play size={16} className="text-[#00FF00]" />
-                                        <h2 className="text-[10px] lg:text-xs font-black uppercase tracking-widest text-[#00FF00]">Vídeo de Introdução</h2>
+                            <div className="flex-1 bg-slate-50 border-b lg:border-b-0 lg:border-r border-slate-100 flex flex-col min-h-0">
+                                <header className="p-8 flex justify-between items-center bg-white border-b border-slate-50">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100">
+                                            <Play size={18} className="text-[#1D5F31]" strokeWidth={2.5} />
+                                        </div>
+                                        <h2 className="text-xs font-black uppercase tracking-[3px] text-slate-900">VÍDEO DE INTRODUÇÃO</h2>
                                     </div>
                                     <button
                                         onClick={() => setReviewingCourse(null)}
-                                        className="p-2 hover:bg-white/5 transition-colors"
+                                        className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all active:scale-90"
                                     >
-                                        <X size={20} className="text-slate-500 hover:text-white" />
+                                        <X size={20} />
                                     </button>
                                 </header>
 
-                                <div className="flex-1 flex items-center justify-center bg-black p-0" key={reviewingCourse.id}>
+                                <div className="flex-1 flex items-center justify-center bg-slate-900 p-0 relative group" key={reviewingCourse.id}>
                                     {reviewingCourse.intro_video_url ? (
                                         isExternalVideo(reviewingCourse.intro_video_url) ? (
                                             <iframe
                                                 src={getEmbedUrl(reviewingCourse.intro_video_url)}
-                                                className="w-full aspect-video border-0 shadow-2xl"
+                                                className="w-full h-full aspect-video border-0"
                                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                                                 allowFullScreen
                                             ></iframe>
@@ -169,53 +173,59 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
                                                 autoPlay
                                                 muted
                                                 playsInline
-                                                className="w-full aspect-video object-contain bg-black shadow-2xl"
+                                                className="w-full h-full aspect-video object-contain"
                                             />
                                         )
                                     ) : (
-                                        <div className="flex flex-col items-center gap-4 text-slate-600 py-20 lg:py-0">
-                                            <AlertCircle size={48} />
-                                            <p className="text-[10px] font-black uppercase tracking-widest">Sem vídeo de introdução</p>
+                                        <div className="flex flex-col items-center gap-6 text-slate-600 text-center px-10">
+                                            <AlertCircle size={64} strokeWidth={1.5} className="text-slate-700" />
+                                            <p className="text-[10px] font-black uppercase tracking-[5px] text-slate-500">NENHUM VÍDEO DISPONÍVEL</p>
                                         </div>
                                     )}
                                 </div>
                             </div>
 
                             {/* Moderation Column */}
-                            <div className="w-full lg:w-[400px] p-6 lg:p-8 flex flex-col bg-white/[0.01]">
-                                <div className="mb-8">
-                                    <span className="text-[10px] font-black uppercase tracking-[4px] text-[#00FF00] block mb-2">Detalhes do Curso</span>
-                                    <h3 className="text-xl lg:text-2xl font-black uppercase italic tracking-tighter leading-tight break-words">{reviewingCourse.title}</h3>
-                                    <p className="text-[11px] text-slate-400 mt-4 leading-relaxed line-clamp-4 font-bold border-l border-white/10 pl-4 uppercase tracking-tighter italic">
-                                        {reviewingCourse.subtitle || 'Sem subtítulo disponível.'}
+                            <div className="w-full lg:w-[450px] p-10 lg:p-14 flex flex-col bg-white overflow-y-auto custom-scrollbar">
+                                <div className="mb-12">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <div className="w-1 h-1 rounded-full bg-[#1D5F31]"></div>
+                                        <span className="text-[10px] font-black uppercase tracking-[4px] text-[#1D5F31]">DETALHES DA AUDITORIA</span>
+                                    </div>
+                                    <h3 className="text-3xl font-black uppercase tracking-tighter leading-none text-slate-900">{reviewingCourse.title}</h3>
+                                    <p className="text-[12px] text-slate-600 mt-6 leading-relaxed font-bold border-l-4 border-slate-50 pl-6 uppercase tracking-tight italic">
+                                        {reviewingCourse.subtitle || 'Nenhum subtítulo fornecido pelo instrutor.'}
                                     </p>
                                 </div>
 
-                                <div className="space-y-6 lg:mt-auto">
-                                    <div>
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 block mb-3">Feedback para o Instrutor</label>
+                                <div className="space-y-10">
+                                    <div className="space-y-5">
+                                        <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-900 flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 bg-[#1D5F31] rounded-full"></div>
+                                            Feedback para o Criador
+                                        </label>
                                         <textarea
                                             value={rejectionReason}
                                             onChange={(e) => setRejectionReason(e.target.value)}
-                                            placeholder="Detalhe os motivos técnicos ou pedagógicos..."
-                                            className="w-full h-32 bg-black border border-white/5 p-4 text-xs text-white focus:border-[#00FF00] outline-none transition-colors resize-none placeholder:text-slate-700"
+                                            placeholder="Detalhamento técnico ou pedagógico para correções..."
+                                            className="w-full h-44 bg-slate-50 border border-slate-100 rounded-[24px] p-8 text-sm text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all resize-none placeholder:text-slate-400 font-bold shadow-inner"
                                         />
                                     </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        <button
-                                            onClick={() => handleReject(reviewingCourse.id)}
-                                            disabled={loadingId === reviewingCourse.id}
-                                            className="h-14 border border-rose-600/30 bg-rose-950/20 text-rose-500 text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all disabled:opacity-50"
-                                        >
-                                            Reprovar
-                                        </button>
+                                    <div className="grid grid-cols-1 gap-4">
                                         <button
                                             onClick={() => handleApprove(reviewingCourse.id)}
                                             disabled={loadingId === reviewingCourse.id}
-                                            className="h-14 bg-[#00FF00] text-black text-[10px] font-black uppercase tracking-widest hover:brightness-110 hover:shadow-[0_0_20px_#00FF00] transition-all disabled:opacity-50 flex items-center justify-center"
+                                            className="h-20 bg-[#1D5F31] text-white text-[11px] font-black uppercase tracking-[4px] hover:opacity-90 hover:shadow-2xl hover:shadow-[#1D5F31]/30 transition-all disabled:opacity-50 flex items-center justify-center rounded-[24px] active:scale-95"
                                         >
-                                            {loadingId === reviewingCourse.id ? <Loader2 size={20} className="animate-spin" /> : "Aprovar Conteúdo"}
+                                            {loadingId === reviewingCourse.id ? <Loader2 size={24} className="animate-spin" /> : "APROVAR CONTEÚDO"}
+                                        </button>
+                                        <button
+                                            onClick={() => handleReject(reviewingCourse.id)}
+                                            disabled={loadingId === reviewingCourse.id}
+                                            className="h-16 border-2 border-slate-50 text-rose-500 text-[10px] font-black uppercase tracking-[4px] hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all disabled:opacity-50 rounded-[20px] active:scale-95"
+                                        >
+                                            Reprovar Acesso
                                         </button>
                                     </div>
                                 </div>

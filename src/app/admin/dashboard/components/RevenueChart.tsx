@@ -35,10 +35,13 @@ export default function RevenueChart({ platform, teacher }: RevenueChartProps) {
                     </Pie>
                     <Tooltip 
                         contentStyle={{ 
-                            backgroundColor: '#061629', 
-                            border: '1px solid #1D5F31',
-                            borderRadius: '0px',
-                            color: '#fff'
+                            backgroundColor: '#fff', 
+                            border: '1px solid #e2e8f0',
+                            borderRadius: '12px',
+                            color: '#0f172a',
+                            fontSize: '12px',
+                            fontWeight: 'bold',
+                            textTransform: 'uppercase'
                         }}
                     />
                     <Legend verticalAlign="bottom" height={36}/>

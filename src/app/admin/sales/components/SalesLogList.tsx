@@ -38,108 +38,116 @@ export default function SalesLogList({ initialSales, teachers }: SalesLogListPro
     }
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-10 animate-in fade-in duration-700">
             {/* Filtros */}
-            <div className="bg-slate-900/50 border border-white/5 p-8 flex flex-wrap gap-6 items-end">
-                <div className="flex-grow space-y-2 min-w-[200px]">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 flex items-center gap-2">
-                        <UserIcon size={12} /> Professor
+            <div className="bg-white border border-slate-200 p-10 flex flex-wrap gap-8 items-end rounded-[40px] shadow-sm">
+                <div className="flex-grow space-y-3 min-w-[250px]">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-900 flex items-center gap-2">
+                        <UserIcon size={12} className="text-[#1D5F31]" /> Professor Responsável
                     </label>
                     <select 
                         value={professorId}
                         onChange={(e) => setProfessorId(e.target.value)}
-                        className="w-full bg-black border border-white/10 p-3 text-xs text-white focus:border-[#1D5F31] outline-none transition-all uppercase font-bold"
+                        className="w-full bg-slate-50 border border-slate-100 p-4 rounded-2xl text-[11px] text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all uppercase font-black tracking-widest"
                     >
-                        <option value="">Todos os Professores</option>
+                        <option value="">TODOS OS INSTRUTORES</option>
                         {teachers.map(t => (
                             <option key={t.id} value={t.id}>{t.full_name || t.email}</option>
                         ))}
                     </select>
                 </div>
 
-                <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 flex items-center gap-2">
-                        <Calendar size={12} /> Data Início
+                <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-900 flex items-center gap-2">
+                        <Calendar size={12} className="text-[#1D5F31]" /> Período Inicial
                     </label>
                     <input 
                         type="date" 
                         value={startDate}
                         onChange={(e) => setStartDate(e.target.value)}
-                        className="bg-black border border-white/10 p-3 text-xs text-white focus:border-[#1D5F31] outline-none transition-all"
+                        className="bg-slate-50 border border-slate-100 p-4 rounded-2xl text-[11px] text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all font-black"
                     />
                 </div>
 
-                <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 flex items-center gap-2">
-                        <Calendar size={12} /> Data Fim
+                <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-900 flex items-center gap-2">
+                        <Calendar size={12} className="text-[#1D5F31]" /> Período Final
                     </label>
                     <input 
                         type="date" 
                         value={endDate}
                         onChange={(e) => setEndDate(e.target.value)}
-                        className="bg-black border border-white/10 p-3 text-xs text-white focus:border-[#1D5F31] outline-none transition-all"
+                        className="bg-slate-50 border border-slate-100 p-4 rounded-2xl text-[11px] text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all font-black"
                     />
                 </div>
 
                 <button 
                     onClick={handleFilter}
                     disabled={loading}
-                    className="bg-[#1D5F31] text-black px-8 py-3.5 font-black uppercase text-[10px] tracking-[2px] hover:bg-white transition-all flex items-center gap-2 disabled:opacity-50"
+                    className="bg-slate-900 text-white px-10 h-[52px] font-black uppercase text-[10px] tracking-[3px] hover:bg-[#1D5F31] transition-all flex items-center gap-3 disabled:opacity-50 rounded-2xl shadow-lg shadow-slate-900/10 active:scale-95"
                 >
-                    {loading ? <Loader2 size={16} className="animate-spin" /> : <Filter size={14} />}
-                    <span>Filtrar</span>
+                    {loading ? <Loader2 size={18} className="animate-spin" /> : <Filter size={16} />}
+                    <span>FILTRAR DADOS</span>
                 </button>
             </div>
 
             {/* Tabela de Resultados */}
-            <div className="overflow-x-auto border-x border-white/5">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="border-y border-white/10 bg-black/40">
-                            <th className="p-6 text-[10px] font-black uppercase tracking-widest text-[#1D5F31]">ID Transação</th>
-                            <th className="p-6 text-[10px] font-black uppercase tracking-widest text-slate-500">Data</th>
-                            <th className="p-6 text-[10px] font-black uppercase tracking-widest text-slate-500">Valor Bruto</th>
-                            <th className="p-6 text-[10px] font-black uppercase tracking-widest text-slate-500">Taxa Plataforma</th>
-                            <th className="p-6 text-[10px] font-black uppercase tracking-widest text-slate-500">Repasse Instrutor</th>
-                            <th className="p-6 text-[10px] font-black uppercase tracking-widest text-slate-500">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {sales.map((sale) => (
-                            <tr key={sale.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors group">
-                                <td className="p-6 font-mono text-[10px] text-white tracking-widest">
-                                    {sale.idTransacao}
-                                </td>
-                                <td className="p-6 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                                    {formatDate(sale.dataCriacao)}
-                                </td>
-                                <td className="p-6 text-[10px] text-white font-black">
-                                    {formatCurrency(sale.valorBruto)}
-                                </td>
-                                <td className="p-6 text-[10px] text-rose-500/80 font-bold italic">
-                                    - {formatCurrency(sale.taxaPlataforma)}
-                                </td>
-                                <td className="p-6 text-[10px] text-[#1D5F31] font-black">
-                                    + {formatCurrency(sale.repasseProfessor)}
-                                </td>
-                                <td className="p-6">
-                                    <span className={`px-3 py-1 text-[8px] font-black uppercase tracking-widest ${
-                                        sale.statusPagamento === 'pago' ? 'bg-[#1D5F31]/20 text-[#1D5F31]' : 'bg-slate-800 text-slate-500'
-                                    }`}>
-                                        {sale.statusPagamento}
-                                    </span>
-                                </td>
+            <div className="bg-white border border-slate-200 rounded-[40px] overflow-hidden shadow-sm">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="border-b border-slate-100 bg-slate-50/50">
+                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-slate-600">Rastreio / Hash</th>
+                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-slate-600">Timeline</th>
+                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-slate-600">Montante Bruto</th>
+                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-slate-600">Dedução Plataforma</th>
+                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-slate-600">Net Instrutor</th>
+                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-slate-600">Status</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {sales.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-20 bg-slate-900/10 border-2 border-dashed border-slate-800">
-                    <p className="text-slate-500 font-black uppercase tracking-widest text-xs italic">Nenhum registro encontrado para este filtro</p>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                            {sales.map((sale) => (
+                                <tr key={sale.id} className="hover:bg-slate-50/50 transition-colors group">
+                                    <td className="p-8 font-mono text-[10px] text-slate-600 tracking-tighter group-hover:text-slate-900 transition-colors">
+                                        {sale.idTransacao}
+                                    </td>
+                                    <td className="p-8 text-[10px] text-slate-600 font-bold uppercase tracking-widest">
+                                        {formatDate(sale.dataCriacao)}
+                                    </td>
+                                    <td className="p-8 text-[11px] text-slate-900 font-black">
+                                        {formatCurrency(sale.valorBruto)}
+                                    </td>
+                                    <td className="p-8 text-[11px] text-rose-500 font-black italic">
+                                        - {formatCurrency(sale.taxaPlataforma)}
+                                    </td>
+                                    <td className="p-8 text-[11px] text-[#1D5F31] font-black">
+                                        + {formatCurrency(sale.repasseProfessor)}
+                                    </td>
+                                    <td className="p-8">
+                                        <div className={`inline-flex items-center px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest ${
+                                            sale.statusPagamento === 'pago' 
+                                            ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
+                                            : 'bg-slate-100 text-slate-600 border border-slate-200'
+                                        }`}>
+                                            <div className={`w-1.5 h-1.5 rounded-full mr-2 ${sale.statusPagamento === 'pago' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
+                                            {sale.statusPagamento}
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
-            )}
+
+                {sales.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-24 bg-white">
+                        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-6">
+                            <Search size={32} className="text-slate-400" />
+                        </div>
+                        <p className="text-slate-600 font-black uppercase tracking-[4px] text-[10px] italic">Base de Dados Vazia: Nenhum registro encontrado</p>
+                    </div>
+                )}
+            </div>
         </div>
     )
 }

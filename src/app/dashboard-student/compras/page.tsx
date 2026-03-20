@@ -193,14 +193,14 @@ export default function ComprasPage() {
                                 </table>
                             </div>
                         ) : (
-                            <div className="flex-1 flex flex-col items-center justify-center py-12 text-center text-slate-400">
-                                <Rocket size={48} className="mb-4 text-slate-200" />
-                                <h3 className="text-sm font-black uppercase tracking-widest mb-2 text-slate-500">Nenhuma compra encontrada</h3>
-                                <p className="text-xs font-medium max-w-xs mb-6">Você ainda não adquiriu nenhum treinamento PowerPlay.</p>
-                                <Link href="/course">
-                                    <button className="px-6 py-3 bg-slate-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-colors shadow-sm">
-                                        Explorar Cursos
-                                    </button>
+                            <div className="flex-1 flex flex-col items-center justify-center py-12 text-center">
+                                <div className="w-24 h-24 bg-slate-50 flex items-center justify-center mx-auto mb-10 border border-slate-100 rounded-full shadow-inner">
+                                    <Rocket size={40} className="text-slate-300" />
+                                </div>
+                                <h2 className="text-2xl font-black uppercase tracking-tighter text-slate-900 mb-4">Sua biblioteca está em branco</h2>
+                                <p className="text-slate-500 max-w-md mx-auto mb-10 text-xs font-bold uppercase tracking-widest leading-relaxed">Cada curso é um degrau em sua evolução. Escolha seu próximo desafio hoje.</p>
+                                <Link href="/course" className="inline-block bg-[#1D5F31] text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-[#1D5F31]/10 hover:opacity-90 transition">
+                                    Explorar Treinamentos
                                 </Link>
                             </div>
                         )}

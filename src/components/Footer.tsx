@@ -3,8 +3,10 @@
 import Link from 'next/link'
 import Logo from '@/components/Logo'
 import { useBranding } from '@/context/BrandingContext'
+import { useAuth } from '@/context/AuthProvider'
 
 export default function Footer() {
+    const { user } = useAuth()
     const { siteName } = useBranding()
     const year = new Date().getFullYear()
 
@@ -12,7 +14,7 @@ export default function Footer() {
         <footer className="relative pt-12 pb-10 overflow-hidden font-exo z-[10] bg-transparent">
             <div className="max-w-7xl mx-auto px-8 md:px-12 flex flex-col items-center space-y-8">
                 {/* Logo Principal (Aumentada) */}
-                <Logo className="h-24 py-2" />
+                <Logo className="h-24 py-2" href={user ? '/course' : '/'} />
 
                 {/* Navegação Minimalista */}
                 <div className="flex flex-wrap justify-center gap-x-16 gap-y-6 text-[12px] font-black uppercase tracking-widest text-white/80">

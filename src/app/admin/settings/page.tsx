@@ -96,85 +96,96 @@ export default function AdminSettingsPage() {
     })
 
     if (loading) return (
-        <div className="p-8 text-center text-slate-500 font-bold uppercase tracking-widest text-sm">
-            Carregando Configurações...
+        <div className="max-w-6xl mx-auto p-8 md:p-16 font-exo">
+            <header className="mb-16 animate-pulse">
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="h-[1px] w-10 bg-slate-200" />
+                    <div className="h-2 w-24 bg-slate-100 rounded" />
+                </div>
+                <div className="h-10 w-64 bg-slate-100 rounded mb-6" />
+                <div className="h-4 w-96 bg-slate-100 rounded" />
+            </header>
+            <div className="space-y-12 opacity-50">
+                <div className="h-[400px] bg-white border border-slate-100 rounded-[40px] animate-pulse" />
+                <div className="h-[600px] bg-white border border-slate-100 rounded-[40px] animate-pulse" />
+            </div>
         </div>
     )
 
     const BannerField = ({ id, label, description, items }: { id: keyof BannersData; label: string; description: string; items: BannerItem[] }) => (
-        <Card className="mb-10 rounded-none border border-[#1D5F31]/30 shadow-lg bg-[#061629] overflow-hidden">
-            <CardHeader className="bg-[#0b1f36] border-b border-[#1D5F31]/30 flex flex-row items-center justify-between py-6 px-8">
+        <Card className="mb-12 rounded-[40px] border border-slate-200 shadow-xl bg-white overflow-hidden group/card hover:border-[#1D5F31]/30 transition-all duration-700">
+            <CardHeader className="bg-slate-50/50 border-b border-slate-50 flex flex-col sm:flex-row items-start sm:items-center justify-between p-10 gap-6">
                 <div>
-                    <CardTitle className="text-xl italic uppercase tracking-tighter text-white font-black">{label}</CardTitle>
-                    <CardDescription className="uppercase tracking-[3px] text-[10px] font-bold text-[#1D5F31] mt-1">{description}</CardDescription>
+                    <CardTitle className="text-2xl font-black uppercase tracking-tighter text-slate-900">{label}</CardTitle>
+                    <CardDescription className="uppercase tracking-[3px] text-[10px] font-black text-[#1D5F31] mt-2 italic">{description}</CardDescription>
                 </div>
-                <Button onClick={() => addBanner(id)} className="bg-[#1D5F31] hover:bg-[#00A802] text-white text-[10px] font-black uppercase tracking-widest h-10 px-6 rounded-none shadow-lg transition-all hover:scale-105">
+                <Button onClick={() => addBanner(id)} className="bg-slate-900 text-white hover:bg-[#1D5F31] text-[10px] font-black uppercase tracking-[3px] h-14 px-8 rounded-2xl transition-all shadow-lg active:scale-95">
                     + Adicionar Slide
                 </Button>
             </CardHeader>
-            <CardContent className="p-8 space-y-6">
+            <CardContent className="p-10 space-y-10">
                 {items.length === 0 && (
-                    <div className="text-center py-12 border-2 border-dashed border-[#1D5F31]/20 rounded-none bg-[#050505]/50">
-                        <ImageIcon className="mx-auto text-slate-700 mb-3" size={40} />
-                        <p className="text-slate-500 text-[11px] font-bold uppercase tracking-[4px]">Galeria de Banners Vazia</p>
+                    <div className="text-center py-20 border-2 border-dashed border-slate-100 rounded-[32px] bg-slate-50/50">
+                        <ImageIcon className="mx-auto text-slate-200 mb-6" size={48} strokeWidth={1} />
+                        <p className="text-slate-600 font-black uppercase tracking-[4px] text-[11px] italic">Galeria de Banners Vazia</p>
                     </div>
                 )}
-                <div className="grid grid-cols-1 gap-6">
+                <div className="grid grid-cols-1 gap-8">
                     {items.sort((a, b) => a.order - b.order).map((item, index) => (
-                        <div key={index} className="group relative p-6 border border-[#1D5F31]/20 rounded-none bg-[#0a0a0a] transition-all hover:border-[#1D5F31]/50 hover:bg-[#0d0d0d]">
-                            <div className="flex flex-col lg:flex-row gap-8 items-start">
-                                <div className="flex flex-col gap-2">
-                                    <Label className="text-[10px] font-black uppercase tracking-widest text-[#1D5F31]">Posição</Label>
-                                    <div className="flex flex-col gap-2 items-center">
+                        <div key={index} className="group/item relative p-8 border border-slate-50 rounded-[32px] bg-slate-50/30 transition-all hover:bg-white hover:border-[#1D5F31]/20 hover:shadow-2xl">
+                            <div className="flex flex-col lg:flex-row gap-10 items-start">
+                                <div className="flex flex-col gap-4">
+                                    <Label className="text-[10px] font-black uppercase tracking-widest text-[#1D5F31]">Ordenação</Label>
+                                    <div className="flex flex-col gap-3">
                                         <Input
                                             type="number"
                                             value={item.order}
                                             onChange={(e) => updateBanner(id, index, 'order', e.target.value)}
-                                            className="w-16 bg-[#061629] border-[#1D5F31]/40 rounded-none h-12 text-sm font-black text-center text-white focus:border-[#1D5F31]"
+                                            className="w-20 bg-white border border-slate-100 rounded-xl h-14 text-base font-black text-center text-slate-900 focus:border-[#1D5F31]/30 shadow-inner"
                                         />
-                                        <div className="flex gap-1 w-full">
+                                        <div className="flex gap-2">
                                             <Button
                                                 variant="outline"
                                                 size="icon"
                                                 onClick={() => moveBanner(id, index, 'up')}
                                                 disabled={index === 0}
-                                                className="flex-1 h-10 rounded-none border-[#1D5F31]/30 text-slate-400 bg-[#061629] hover:bg-[#1D5F31] hover:text-white disabled:opacity-20"
+                                                className="w-9 h-9 rounded-lg border-slate-100 text-slate-600 hover:text-[#1D5F31] hover:bg-[#1D5F31]/10 disabled:opacity-20 transition-all"
                                             >
-                                                <ArrowUp size={14} />
+                                                <ArrowUp size={16} strokeWidth={3} />
                                             </Button>
                                             <Button
                                                 variant="outline"
                                                 size="icon"
                                                 onClick={() => moveBanner(id, index, 'down')}
                                                 disabled={index === items.length - 1}
-                                                className="flex-1 h-10 rounded-none border-[#1D5F31]/30 text-slate-400 bg-[#061629] hover:bg-[#1D5F31] hover:text-white disabled:opacity-20"
+                                                className="w-9 h-9 rounded-lg border-slate-100 text-slate-600 hover:text-[#1D5F31] hover:bg-[#1D5F31]/10 disabled:opacity-20 transition-all"
                                             >
-                                                <ArrowDown size={14} />
+                                                <ArrowDown size={16} strokeWidth={3} />
                                             </Button>
                                         </div>
                                     </div>
                                 </div>
                                 
-                                <div className="flex-1 space-y-4 w-full">
-                                    <div className="space-y-2">
+                                <div className="flex-1 space-y-6 w-full">
+                                    <div className="space-y-4">
                                         <div className="flex justify-between items-end">
-                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Link da Imagem (URL)</Label>
-                                            <button onClick={() => removeBanner(id, index)} className="text-red-900 hover:text-red-500 text-[10px] font-black uppercase tracking-widest transition-colors mb-1">
-                                                Remover Item ✕
+                                            <Label className="text-[10px] font-black uppercase tracking-widest text-slate-900">Endpoint da Imagem (CDN URL)</Label>
+                                            <button onClick={() => removeBanner(id, index)} className="text-slate-600 hover:text-rose-500 text-[9px] font-black uppercase tracking-widest transition-all mb-1 active:scale-90">
+                                                REMOVER ITEM ✕
                                             </button>
                                         </div>
                                         <Input 
                                             value={item.url} 
                                             onChange={(e) => updateBanner(id, index, 'url', e.target.value)} 
-                                            placeholder="https://images.unsplash.com/..." 
-                                            className="bg-[#061629] border-[#1D5F31]/40 rounded-none h-12 text-xs text-white placeholder:text-slate-700 w-full" 
+                                            placeholder="https://images.unsplash.com/photo-..." 
+                                            className="bg-white border border-slate-100 rounded-2xl h-14 text-[11px] text-slate-900 font-bold placeholder:text-slate-400 w-full focus:border-[#1D5F31]/30 shadow-inner" 
                                         />
                                     </div>
 
                                     {item.url && (
-                                        <div className="relative rounded-none overflow-hidden bg-black aspect-[21/9] w-full border border-[#1D5F31]/20 shadow-2xl group-hover:border-[#1D5F31]/40 transition-all">
-                                            <img src={item.url} alt={label} className="object-cover w-full h-full opacity-80 group-hover:opacity-100 transition-opacity duration-500" />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+                                        <div className="relative rounded-[24px] overflow-hidden bg-slate-50 aspect-[21/9] w-full border border-slate-100 shadow-2xl group-hover/item:border-[#1D5F31]/20 transition-all group/preview">
+                                            <img src={item.url} alt={label} className="object-cover w-full h-full opacity-90 group-hover/preview:scale-105 transition-transform duration-1000" />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent pointer-events-none" />
                                         </div>
                                     )}
                                 </div>
@@ -187,113 +198,117 @@ export default function AdminSettingsPage() {
     )
 
     return (
-        <div className="min-h-screen bg-transparent text-white">
-            <div className="max-w-6xl mx-auto p-4 md:p-12 font-exo pb-32">
+        <div className="min-h-screen bg-transparent text-slate-900 font-exo">
+            <div className="max-w-6xl mx-auto p-8 md:p-16 pb-64 animate-in fade-in duration-1000">
                 {/* Header */}
-                <div className="mb-10">
-                    <h1 className="text-3xl font-black uppercase tracking-tighter text-white flex items-center gap-3">
-                        <Settings className="text-[#1D5F31]" size={30} />
-                        Configurações Globais
+                <div className="mb-16">
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className="h-[1px] w-12 bg-[#1D5F31]" />
+                        <span className="text-[10px] font-black uppercase tracking-[5px] text-[#1D5F31]">Global Architecture</span>
+                    </div>
+                    <h1 className="text-5xl font-black uppercase tracking-tighter text-slate-900 flex items-center gap-6 leading-none">
+                        Branding & <span className="text-[#1D5F31]">Banners</span>
                     </h1>
-                    <p className="text-slate-400 uppercase tracking-widest text-[10px] font-bold mt-1">
-                        Gerencie o branding e os banners de toda a plataforma
+                    <p className="text-slate-600 uppercase tracking-widest text-[11px] font-bold mt-8 max-w-2xl leading-relaxed italic">
+                        Controle total sobre a identidade visual e estratégias de marketing imersivo da plataforma.
                     </p>
                 </div>
 
                 {/* ─── BRANDING ─────────────────────────────── */}
-                <div className="mb-12">
-                    <div className="flex items-center gap-3 mb-5">
-                        <Palette size={20} className="text-[#1D5F31]" />
-                        <h2 className="text-lg font-black uppercase tracking-tighter text-white">Branding</h2>
-                        <div className="flex-1 h-px bg-white/5" />
+                <div className="mb-20">
+                    <div className="flex items-center gap-4 mb-10">
+                        <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100">
+                            <Palette size={20} className="text-[#1D5F31]" />
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-black uppercase tracking-widest text-slate-900">Identidade Visual</h2>
+                            <p className="text-[10px] text-slate-600 font-bold uppercase tracking-[2px]">Logística de Marca e Paleta Core</p>
+                        </div>
+                        <div className="flex-1 h-px bg-slate-50 ml-6" />
                     </div>
 
-                    <Card className="rounded-none border border-[#1D5F31] shadow-sm bg-[#061629] mb-6">
-                        <CardContent className="pt-8 px-8 space-y-10">
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                    <Card className="rounded-[40px] border border-slate-200 shadow-xl bg-white overflow-hidden">
+                        <CardContent className="p-12 space-y-16">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
                                 {/* Left Column: Site Name & Color */}
-                                <div className="space-y-8">
+                                <div className="space-y-12">
                                     {/* Site Name */}
-                                    <div className="space-y-3">
-                                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
-                                            <Globe size={12} /> Nome do Site
+                                    <div className="space-y-5">
+                                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-900 flex items-center gap-2">
+                                            <Globe size={14} className="text-[#1D5F31]" /> Título da Instância
                                         </Label>
                                         <Input
                                             value={settings.branding.siteName}
                                             onChange={(e) => setBranding('siteName', e.target.value)}
-                                            placeholder="Ex: PowerPlay"
-                                            className="rounded-none h-12 font-semibold text-white bg-[#061629] border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]"
+                                            placeholder="Ex: PowerPlay Academy"
+                                            className="rounded-2xl h-16 font-bold text-slate-900 text-lg bg-slate-50 border border-slate-100 focus:border-[#1D5F31]/30 focus:bg-white transition-all shadow-inner px-8 placeholder:text-slate-400"
                                         />
                                     </div>
 
                                     {/* Primary Color */}
-                                    <div className="space-y-3">
-                                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Cor Primária</Label>
-                                        <div className="flex items-center gap-4">
+                                    <div className="space-y-5">
+                                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-900">Paleta Primária (Action Color)</Label>
+                                        <div className="flex items-center gap-6">
                                             <div className="relative group">
                                                 <input
                                                     type="color"
                                                     value={settings.branding.primaryColor}
                                                     onChange={(e) => setBranding('primaryColor', e.target.value)}
-                                                    className="w-14 h-14 rounded-none cursor-pointer border border-[#1D5F31] p-1 bg-[#061629]"
+                                                    className="w-20 h-20 rounded-[24px] cursor-pointer border border-slate-100 p-2 bg-white shadow-xl group-hover:scale-110 transition-transform duration-500"
                                                 />
                                             </div>
-                                            <div className="flex-1 space-y-1">
+                                            <div className="flex-1 space-y-3">
                                                 <Input
                                                     value={settings.branding.primaryColor}
                                                     onChange={(e) => setBranding('primaryColor', e.target.value)}
                                                     placeholder="#1D5F31"
-                                                    className="rounded-none h-12 font-mono text-sm bg-[#061629] border-[#1D5F31] text-white"
+                                                    className="rounded-2xl h-16 font-mono font-black text-slate-900 bg-slate-50 border border-slate-100 px-8 placeholder:text-slate-400"
                                                 />
                                             </div>
-                                        </div>
-                                        <div className="h-12 w-full flex items-center justify-center rounded-none text-white text-[10px] font-black uppercase tracking-widest border border-white/5 shadow-inner" style={{ backgroundColor: settings.branding.primaryColor }}>
-                                            Preview de Identidade
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Right Column: Logo Upload */}
-                                <div className="space-y-3">
-                                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-2">
-                                        <ImageIcon size={12} /> Logotipo da Plataforma
+                                <div className="space-y-5">
+                                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-900 flex items-center gap-2">
+                                        <ImageIcon size={14} className="text-[#1D5F31]" /> Assets de Logotipo
                                     </Label>
 
-                                    <div className="flex flex-col gap-4">
+                                    <div className="grid grid-cols-1 gap-6">
                                         <div
                                             {...getRootProps()}
                                             className={`
-                                                border-2 border-dashed rounded-none p-10 transition-all cursor-pointer flex flex-col items-center justify-center gap-3 text-center min-h-[160px]
-                                                ${isDragActive ? 'border-[#1D5F31] bg-[#1D5F31]/10' : 'border-[#1D5F31]/40 hover:border-[#1D5F31] bg-[#061629]/50'}
+                                                border-2 border-dashed rounded-[32px] p-12 transition-all cursor-pointer flex flex-col items-center justify-center gap-4 text-center min-h-[180px]
+                                                ${isDragActive ? 'border-[#1D5F31] bg-[#1D5F31]/5' : 'border-slate-100 hover:border-[#1D5F31]/30 bg-slate-50/50 hover:bg-white shadow-inner hover:shadow-2xl'}
                                             `}
                                         >
                                             <input {...getInputProps()} />
                                             {uploadingLogo ? (
-                                                <Loader2 className="animate-spin text-[#1D5F31]" size={30} />
+                                                <Loader2 className="animate-spin text-[#1D5F31]" size={36} />
                                             ) : (
-                                                <UploadCloud size={30} className="text-slate-500" />
+                                                <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                                    <UploadCloud size={24} className="text-slate-300" />
+                                                </div>
                                             )}
                                             <div>
-                                                <p className="text-[11px] font-black uppercase tracking-tight text-white">Carregar nova Logo</p>
-                                                <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1">PNG ou SVG preferencialmente</p>
+                                                <p className="text-[11px] font-black uppercase tracking-tight text-slate-900">Upload de Marca</p>
+                                                <p className="text-[9px] text-slate-600 font-bold uppercase tracking-widest mt-1">PNG, SVG (Max 5MB)</p>
                                             </div>
                                         </div>
 
-                                        <div className="bg-[#050505] border border-[#1D5F31]/30 rounded-none p-8 flex flex-col items-center justify-center min-h-[160px] relative overflow-hidden group">
-                                            <div className="absolute top-2 left-2 flex items-center gap-1 opacity-50">
+                                        <div className="bg-slate-50 border border-slate-100 rounded-[32px] p-10 flex flex-col items-center justify-center min-h-[180px] relative overflow-hidden group/logo shadow-inner">
+                                            <div className="absolute top-4 left-6 flex items-center gap-2">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-[#1D5F31]"></div>
-                                                <span className="text-[8px] font-black uppercase tracking-widest text-white">Preview</span>
+                                                <span className="text-[8px] font-black uppercase tracking-[3px] text-slate-600">Visualização de UI</span>
                                             </div>
-                                            <div className="h-20 w-full flex items-center justify-center">
+                                            <div className="h-24 w-full flex items-center justify-center">
                                                 <img
                                                     src={settings.branding.logoUrl || '/images/SPCSacademy2.png'}
                                                     alt="Logo Preview"
-                                                    className="h-full w-auto object-contain transition-transform group-hover:scale-110 duration-500"
+                                                    className="h-full w-auto object-contain transition-all group-hover/logo:scale-110 duration-700 drop-shadow-2xl"
                                                 />
                                             </div>
-                                            {!settings.branding.logoUrl && (
-                                                <p className="text-[8px] text-slate-600 font-bold mt-4 uppercase tracking-[2px] italic">Usando recurso padrão</p>
-                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -304,30 +319,49 @@ export default function AdminSettingsPage() {
 
                 {/* ─── BANNERS ─────────────────────────────── */}
                 <div className="mb-8">
-                    <div className="flex items-center gap-3 mb-5">
-                        <ImageIcon size={20} className="text-[#1D5F31]" />
-                        <h2 className="text-lg font-black uppercase tracking-tighter text-white">Banners & Carrosséis</h2>
-                        <div className="flex-1 h-px bg-white/5" />
+                    <div className="flex items-center gap-4 mb-12">
+                        <div className="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100">
+                            <ImageIcon size={20} className="text-[#1D5F31]" />
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-black uppercase tracking-widest text-slate-900">Curadoria de Banners</h2>
+                            <p className="text-[10px] text-slate-600 font-bold uppercase tracking-[2px]">Experiências Imersivas por Seção</p>
+                        </div>
+                        <div className="flex-1 h-px bg-slate-50 ml-6" />
                     </div>
 
-                    <BannerField id="hero_home" label="Carrossel da Home" description="Seção imersiva da página inicial" items={settings.banners.hero_home} />
-                    <BannerField id="hero_dashboard" label="Carrossel do Dashboard" description="Banner no painel do aluno" items={settings.banners.hero_dashboard} />
-                    <BannerField id="hero_course" label="Carrossel de Cursos" description="Topo da página de catálogo" items={settings.banners.hero_course} />
+                    <BannerField id="hero_home" label="Landing Hero" description="Primeira impressão na home pública" items={settings.banners.hero_home} />
+                    <BannerField id="hero_dashboard" label="User Welcome" description="Cabeçalho do painel do aluno" items={settings.banners.hero_dashboard} />
+                    <BannerField id="hero_course" label="Catalog Header" description="Topo da listagem de cursos" items={settings.banners.hero_course} />
                 </div>
             </div>
 
             {/* Sticky Save Bar */}
-            <div className="fixed bottom-0 left-0 right-0 bg-[#061629]/80 backdrop-blur-md border-t border-[#1D5F31] p-4 flex justify-end z-50">
+            <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] w-full max-w-xl px-4 animate-in slide-in-from-bottom-10 duration-1000">
                 <Button
                     onClick={handleSave}
                     disabled={saving}
-                    className="font-black uppercase tracking-[2px] px-10 h-12 text-[11px] rounded-none transition-all shadow-xl text-white"
-                    style={{ backgroundColor: saving ? '#1D5F31' : saved ? '#22c55e' : '#1D5F31' }}
+                    className="w-full text-white font-black uppercase tracking-[6px] h-20 text-[12px] rounded-full transition-all shadow-[0_30px_60px_rgba(0,0,0,0.2)] border-2 border-white/20 flex items-center justify-center gap-6 group overflow-hidden active:scale-95"
+                    style={{ backgroundColor: saved ? '#22c55e' : '#1D5F31' }}
                 >
-                    {saving ? 'SALVANDO...' : saved ? '✓ SALVO!' : 'SALVAR ALTERAÇÕES'}
+                    {saving ? (
+                        <div className="flex items-center gap-4">
+                            <Loader2 size={24} className="animate-spin" />
+                            <span>PROCESSANDO...</span>
+                        </div>
+                    ) : saved ? (
+                        <div className="flex items-center gap-4">
+                            <span>MUTAÇÃO CONCLUÍDA ✓</span>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-4">
+                            <Settings size={22} className="group-hover:rotate-180 transition-transform duration-700" />
+                            <span>APLICAR BRANDING</span>
+                        </div>
+                    )}
+                    <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
                 </Button>
             </div>
         </div>
     )
 }
-

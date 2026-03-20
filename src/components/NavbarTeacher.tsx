@@ -89,7 +89,7 @@ export default function NavbarTeacher() {
                                     <Menu size={20} />
                                 </button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="start" sideOffset={8} className="w-56 bg-white p-2 rounded-none border-none shadow-2xl z-[200]">
+                            <DropdownMenuContent align="start" sideOffset={8} className="w-56 bg-white p-2 rounded-none border border-slate-200 shadow-sm z-[200]">
                                 <div className="px-3 py-2 text-[10px] font-medium text-slate-500 mb-1">
                                     Painel do Professor
                                 </div>
@@ -103,7 +103,7 @@ export default function NavbarTeacher() {
                         </DropdownMenu>
                     </div>
 
-                    <Link href="/dashboard-teacher" className="flex items-center outline-none hover:opacity-80 transition-opacity">
+                    <Link href="/dashboard-teacher/courses" className="flex items-center outline-none hover:opacity-80 transition-opacity">
                         <img
                             src="/images/SPCS academy 2.png"
                             alt="PowerPlay"
@@ -151,8 +151,9 @@ export default function NavbarTeacher() {
                     {/* Notifications */}
                     {isLoggedIn && (
                         <NotificationBell
-                            accent="#0f172a"
+                            accent="#1D5F31"
                             isTeacher={true}
+                            light={true}
                         />
                     )}
 
@@ -160,7 +161,7 @@ export default function NavbarTeacher() {
                     {isLoggedIn && (
                         <DropdownMenu modal={false}>
                             <DropdownMenuTrigger asChild>
-                                <button className="w-10 h-10 rounded-none flex items-center justify-center text-white font-bold transition-all outline-none hover:scale-105 bg-slate-900 shadow-sm overflow-hidden border-2 border-transparent hover:border-slate-200 relative">
+                                <button className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold transition-all outline-none hover:scale-105 bg-slate-900 shadow-sm overflow-hidden border-2 border-transparent hover:border-slate-200 relative">
                                     {userProfile?.avatar_url ? (
                                         <img src={userProfile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
                                     ) : (
@@ -172,7 +173,7 @@ export default function NavbarTeacher() {
                             <DropdownMenuContent
                                 align="end"
                                 sideOffset={8}
-                                className="bg-white text-slate-900 w-[calc(100vw-32px)] sm:w-72 shadow-2xl rounded-none overflow-hidden p-3 border-none z-[200] animate-in slide-in-from-top-2"
+                                className="bg-white text-slate-900 w-[calc(100vw-32px)] sm:w-72 shadow-sm border border-slate-200 rounded-none overflow-hidden p-3 z-[200] animate-in slide-in-from-top-2"
                             >
                                 <div className="px-5 py-6 bg-slate-50/50 mb-2 rounded-none">
                                     <p className="font-black uppercase tracking-tighter text-sm text-slate-800 line-clamp-1">

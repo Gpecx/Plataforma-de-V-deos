@@ -77,17 +77,21 @@ export default function TeacherCoursesPage() {
     }
 
     return (
-        <div className="pb-16 md:pb-24 bg-transparent min-h-screen text-white font-exo">
+        <div className="pb-16 md:pb-24 bg-transparent min-h-screen font-exo animate-in fade-in duration-500">
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center pt-8 px-4 md:px-8 mb-12 gap-8">
                 <div>
-                    <h1 className="text-3xl font-black tracking-tighter uppercase leading-none">
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#1D5F31]"></div>
+                        <span className="text-[10px] font-black uppercase tracking-[4px] text-slate-500">STUDIO ARCHIVE</span>
+                    </div>
+                    <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase leading-none text-slate-900">
                         Meus <span className="text-[#1D5F31]">Cursos</span>
                     </h1>
-                    <p className="text-slate-400 mt-2 text-[10px] font-bold uppercase tracking-[3px]">Gerencie e acompanhe o desempenho de suas aulas.</p>
+                    <p className="text-slate-600 mt-3 text-[10px] font-bold uppercase tracking-[3px] italic">Gerencie e acompanhe o desempenho de suas aulas.</p>
                 </div>
                 <Link href="/dashboard-teacher/courses/new">
-                    <Button className="bg-[#1D5F31] text-white font-black uppercase text-[10px] tracking-widest px-8 h-14 rounded-none hover:bg-[#28b828] shadow-none border border-[#1D5F31]/20">
-                        <Plus size={18} className="mr-2" />
+                    <Button className="bg-[#1D5F31] text-white font-black uppercase text-[10px] tracking-widest px-10 h-16 rounded-2xl hover:opacity-90 shadow-xl shadow-[#1D5F31]/10 border-none active:scale-95 transition-all">
+                        <Plus size={20} className="mr-2" strokeWidth={3} />
                         Lançar Novo Curso
                     </Button>
                 </Link>
@@ -95,49 +99,62 @@ export default function TeacherCoursesPage() {
 
             <div className="px-4 md:px-8 mb-12">
                 <div className="flex flex-col md:flex-row gap-6">
-                    <div className="relative flex-grow">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <div className="relative flex-grow group">
+                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-[#1D5F31]" size={20} />
                         <Input
                             placeholder="Buscar por nome do curso..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="bg-[#061629] border-[#1D5F31] pl-12 h-14 rounded-none focus:border-[#1D5F31] focus:ring-[#1D5F31] text-sm font-medium text-white"
+                            className="bg-white border-slate-200 pl-14 h-16 rounded-2xl focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31] text-sm font-bold text-slate-900 placeholder:text-slate-400 shadow-sm transition-all"
                         />
                     </div>
-                    <div className="bg-[#061629] border border-[#1D5F31] text-slate-400 h-14 px-8 rounded-none flex items-center gap-3 shadow-none">
-                        <Filter size={16} className="text-[#1D5F31]" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">{filteredCourses.length} Encontrados</span>
+                    <div className="bg-white border border-slate-200 text-slate-500 h-16 px-10 rounded-2xl flex items-center gap-4 shadow-sm">
+                        <Filter size={18} className="text-[#1D5F31]" />
+                        <span className="text-[10px] font-black uppercase tracking-[3px] whitespace-nowrap">{filteredCourses.length} Encontrados</span>
                     </div>
                 </div>
             </div>
 
             <div className="px-4 md:px-8">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8">
                     {filteredCourses.map((curso) => (
-                        <div key={curso.id} className="bg-[#061629] border border-[#1D5F31] rounded-none overflow-hidden group shadow-sm hover:border-[#1D5F31]/30 transition-all flex flex-col">
-                            <div className="relative h-32 bg-[#061629] overflow-hidden">
+                        <div key={curso.id} className="group bg-white rounded-[32px] border border-slate-200 flex flex-col hover:border-[#1D5F31]/30 transition-all duration-500 shadow-sm hover:shadow-xl overflow-hidden">
+                            <div className="relative h-44 bg-slate-100 overflow-hidden">
                                 <img
                                     src={curso.image_url || "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400"}
                                     alt={curso.title}
-                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                                 />
+                                <div className="absolute top-4 right-4">
+                                    <div className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/20 shadow-sm">
+                                        <span className="text-[8px] font-black text-slate-900 tracking-widest uppercase">{curso.category || 'GERAL'}</span>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="p-3 flex-grow flex flex-col">
-                                <h3 className="text-base font-black tracking-tighter text-white mb-2 truncate">{curso.title}</h3>
-                                <div className="flex justify-between items-center mb-4">
-                                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-[2px]">{curso.category || 'Sem categoria'}</p>
-                                    <div className="flex flex-col items-end">
-                                        <span className="text-[7px] font-black uppercase text-slate-400 tracking-[1px]">Valor</span>
-                                        <span className="text-[#1D5F31] font-black text-sm tracking-tighter leading-none">
+                            <div className="p-8 flex-grow flex flex-col">
+                                <h3 className="text-lg font-black tracking-tight text-slate-900 mb-6 line-clamp-2 uppercase leading-tight group-hover:text-[#1D5F31] transition-colors">{curso.title}</h3>
+                                
+                                <div className="flex justify-between items-end mb-8 pt-6 border-t border-slate-50">
+                                    <div className="flex flex-col">
+                                        <span className="text-[8px] font-black uppercase text-slate-600 tracking-[1px] mb-1">Preço de Venda</span>
+                                        <span className="text-slate-900 font-black text-xl tracking-tighter leading-none">
                                             {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(curso.price || 0)}
                                         </span>
+                                    </div>
+                                    <div className="flex -space-x-3">
+                                        <div className="w-8 h-8 rounded-full bg-slate-100 border-2 border-white flex items-center justify-center">
+                                            <Users size={12} className="text-slate-600" />
+                                        </div>
+                                        <div className="w-8 h-8 rounded-full bg-[#1D5F31] border-2 border-white flex items-center justify-center">
+                                            <span className="text-[8px] font-black text-white">24</span>
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div className="mt-auto flex gap-4">
                                     <Link href={`/dashboard-teacher/courses/${curso.id}/edit`} className="flex-grow">
-                                        <Button className="w-full bg-[#061629] hover:bg-[#1D5F31] text-white border border-[#1D5F31] font-black uppercase tracking-widest py-2 h-auto rounded-none transition-all duration-300 text-[10px]">
+                                        <Button className="w-full bg-slate-900 hover:bg-[#1D5F31] text-white font-black uppercase tracking-widest py-4 h-auto rounded-xl transition-all duration-300 text-[10px] shadow-md">
                                             <Edit size={14} className="mr-2" /> Editar
                                         </Button>
                                     </Link>
@@ -145,9 +162,9 @@ export default function TeacherCoursesPage() {
                                     <Button
                                         variant="outline"
                                         onClick={() => handleDelete(curso.id)}
-                                        className="border-[#1D5F31] text-slate-500 hover:text-red-500 hover:border-red-900 hover:bg-red-950/30 p-3 rounded-none transition-colors"
+                                        className="border-slate-200 text-slate-600 hover:text-red-600 hover:border-red-200 hover:bg-red-50 p-4 w-14 h-14 rounded-xl transition-all shadow-sm"
                                     >
-                                        <Trash2 size={16} />
+                                        <Trash2 size={18} />
                                     </Button>
                                 </div>
                             </div>

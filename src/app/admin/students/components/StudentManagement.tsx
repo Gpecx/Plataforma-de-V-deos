@@ -44,75 +44,79 @@ export default function StudentManagement({ initialStudents }: StudentManagement
     )
 
     return (
-        <div className="space-y-8">
-            {/* Search Bar */}
-            <div className="bg-slate-900/50 border border-white/5 p-8">
-                <div className="relative max-w-md">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+        <div className="space-y-10 font-exo mb-12">
+            {/* Search Bar Container */}
+            <div className="bg-white p-10 rounded-[32px] border border-slate-200 shadow-sm">
+                <div className="relative max-w-xl group">
+                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1D5F31] transition-colors" size={18} />
                     <input
-                        placeholder="Buscar aluno por nome ou email..."
+                        placeholder="Buscar aluno por nome ou email corporativo..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full bg-black border border-white/10 p-4 pl-12 text-xs text-white focus:border-[#1D5F31] outline-none transition-all uppercase font-bold tracking-widest placeholder:text-slate-700"
+                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-14 py-5 text-[10px] text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all font-black uppercase tracking-[2px] placeholder:text-slate-400 shadow-inner"
                     />
                 </div>
             </div>
 
-            {/* List */}
-            <div className="overflow-x-auto border-x border-white/5">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="border-y border-white/10 bg-black/40">
-                            <th className="p-6 text-[10px] font-black uppercase tracking-widest text-[#1D5F31]">Aluno</th>
-                            <th className="p-6 text-[10px] font-black uppercase tracking-widest text-slate-500">Email</th>
-                            <th className="p-6 text-[10px] font-black uppercase tracking-widest text-slate-500">Status</th>
-                            <th className="p-6 text-[10px] font-black uppercase tracking-widest text-slate-500 text-right">Ação</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredStudents.map((student) => (
-                            <tr key={student.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors group">
-                                <td className="p-6">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 bg-[#1D5F31]/10 rounded-full flex items-center justify-center text-[#1D5F31]">
-                                            <UserIcon size={18} />
-                                        </div>
-                                        <span className="font-bold text-white uppercase italic tracking-tighter">{student.full_name || 'N/A'}</span>
-                                    </div>
-                                </td>
-                                <td className="p-6 text-xs text-slate-400 font-bold">
-                                    {student.email}
-                                </td>
-                                <td className="p-6">
-                                    <div className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-widest ${student.ativo !== false ? 'text-[#1D5F31]' : 'text-rose-500'}`}>
-                                        {student.ativo !== false ? <ShieldCheck size={14} /> : <ShieldAlert size={14} />}
-                                        {student.ativo !== false ? 'Ativo' : 'Suspenso'}
-                                    </div>
-                                </td>
-                                <td className="p-6 text-right">
-                                    <button 
-                                        onClick={() => handleToggleStatus(student.id, student.ativo ?? true)}
-                                        disabled={loadingId === student.id}
-                                        className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${
-                                            student.ativo !== false 
-                                            ? 'bg-rose-950/20 text-rose-500 hover:bg-rose-600 hover:text-white' 
-                                            : 'bg-[#1D5F31]/20 text-[#1D5F31] hover:bg-[#1D5F31] hover:text-black'
-                                        }`}
-                                    >
-                                        {loadingId === student.id ? <Loader2 size={14} className="animate-spin" /> : (student.ativo !== false ? 'Suspender' : 'Reativar')}
-                                    </button>
-                                </td>
+            {/* List Container */}
+            <div className="bg-white rounded-[40px] border border-slate-200 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                        <thead>
+                            <tr className="border-b border-slate-50 bg-slate-50/30">
+                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-slate-600">Identificação</th>
+                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-slate-600">Status Firewall</th>
+                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-slate-600 text-right">Diretrizes</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            {filteredStudents.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-24 bg-slate-900/10 border-2 border-dashed border-slate-800">
-                    <p className="text-slate-500 font-black uppercase tracking-widest text-xs italic">Nenhum aluno encontrado</p>
+                        </thead>
+                        <tbody className="divide-y divide-slate-50">
+                            {filteredStudents.map((student) => (
+                                <tr key={student.id} className="group hover:bg-slate-50/50 transition-colors">
+                                    <td className="p-8">
+                                        <div className="flex items-center gap-6">
+                                            <div className="w-12 h-12 bg-slate-900 rounded-full flex items-center justify-center text-white border-2 border-white shadow-lg">
+                                                <UserIcon size={20} strokeWidth={2.5} />
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="font-black text-slate-900 uppercase tracking-tight text-[13px] group-hover:text-[#1D5F31] transition-colors">{student.full_name || 'N/A'}</span>
+                                                <span className="text-[10px] text-slate-600 font-bold tracking-widest uppercase italic mt-1">{student.email}</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="p-8">
+                                        <div className={`inline-flex items-center gap-2.5 px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest shadow-sm ${student.ativo !== false ? 'bg-[#1D5F31] text-white' : 'bg-rose-500 text-white'}`}>
+                                            {student.ativo !== false ? <ShieldCheck size={14} strokeWidth={3} /> : <ShieldAlert size={14} strokeWidth={3} />}
+                                            {student.ativo !== false ? 'ACESSO ATIVO' : 'SISTEMA SUSPENSO'}
+                                        </div>
+                                    </td>
+                                    <td className="p-8 text-right">
+                                        <button 
+                                            onClick={() => handleToggleStatus(student.id, student.ativo ?? true)}
+                                            disabled={loadingId === student.id}
+                                            className={`min-w-[120px] px-6 py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all shadow-sm border ${
+                                                student.ativo !== false 
+                                                ? 'bg-white text-rose-500 border-rose-100 hover:bg-rose-500 hover:text-white hover:border-rose-500' 
+                                                : 'bg-white text-[#1D5F31] border-[#1D5F31]/10 hover:bg-[#1D5F31] hover:text-white hover:border-[#1D5F31]'
+                                            }`}
+                                        >
+                                            {loadingId === student.id ? <Loader2 size={16} className="animate-spin mx-auto" /> : (student.ativo !== false ? 'SUSPENDER' : 'REATIVAR ABA')}
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
-            )}
+
+                {filteredStudents.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-32 bg-slate-50/50">
+                        <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-inner border border-slate-100 mb-6">
+                            <Search size={32} className="text-slate-400" />
+                        </div>
+                        <p className="text-slate-600 font-black uppercase tracking-[4px] text-[10px] italic">Protocolo de busca: Nenhum registro localizado</p>
+                    </div>
+                )}
+            </div>
         </div>
     )
 }

@@ -97,59 +97,59 @@ export default function TeacherSettingsPage() {
                 <div className="flex items-center gap-3 mb-2">
                     <span className="text-[10px] font-black uppercase tracking-[5px] text-[#1D5F31]">WORKSPACE SETTINGS</span>
                 </div>
-                <h1 className="text-4xl font-black tracking-tighter text-white">
+                <h1 className="text-4xl font-black tracking-tighter text-slate-900">
                     CONFIGURAÇÕES DO <span className="text-[#1D5F31] uppercase">TEACHER</span>
                 </h1>
-                <p className="text-slate-400 mt-2 font-semibold text-xs tracking-widest uppercase">Gerencie suas preferências de faturamento e alertas de sistema.</p>
+                <p className="text-slate-600 mt-2 font-semibold text-xs tracking-widest uppercase">Gerencie suas preferências de faturamento e alertas de sistema.</p>
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
                 {/* Configurações Financeiras - rounded-none */}
-                <section className="bg-[#061629] border border-[#1D5F31] rounded-none p-10 shadow-sm space-y-10">
+                <section className="bg-white border border-slate-200 rounded-none p-10 shadow-sm space-y-10">
                     <div className="flex items-center gap-4">
-                        <div className="p-4 bg-[#061629] rounded-none text-white border border-[#1D5F31]">
+                        <div className="p-4 bg-slate-50 rounded-none text-[#1D5F31] border border-slate-100">
                             <Wallet size={24} strokeWidth={2.5} />
                         </div>
                         <div>
-                            <h2 className="text-xl font-black uppercase tracking-tighter text-white leading-none">Dados de Saída</h2>
-                            <p className="text-[10px] font-bold uppercase tracking-[2px] text-slate-400 mt-2">Como você recebe seus lucros.</p>
+                            <h2 className="text-xl font-black uppercase tracking-tighter text-slate-900 leading-none">Dados de Saída</h2>
+                            <p className="text-[10px] font-bold uppercase tracking-[2px] text-slate-600 mt-2">Como você recebe seus lucros.</p>
                         </div>
                     </div>
 
                     <div className="space-y-8">
                         <div className="space-y-3">
-                            <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 px-1">Chave PIX Estratégica</label>
+                            <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-900 px-1">Chave PIX Estratégica</label>
                             <div className="relative group">
-                                <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-[#1D5F31] transition-colors" size={20} />
+                                <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1D5F31] transition-colors" size={20} />
                                 <Input
                                     value={pixKey}
                                     onChange={(e) => setPixKey(e.target.value)}
                                     placeholder="CPF, E-mail ou Chave Aleatória"
-                                    className="bg-[#061629] border-[#1D5F31] rounded-none pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-white"
+                                    className="bg-slate-50 border-slate-200 rounded-none pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
                                 />
                             </div>
-                            <p className="text-[9px] text-slate-400 font-medium italic px-1">As comissões de vendas serão auditadas e enviadas para esta chave.</p>
+                            <p className="text-[9px] text-slate-600 font-medium italic px-1">As comissões de vendas serão auditadas e enviadas para esta chave.</p>
                         </div>
                     </div>
                 </section>
 
                 {/* Notificações - rounded-none */}
-                <section className="bg-[#061629] border border-[#1D5F31] rounded-none p-10 shadow-sm space-y-10">
+                <section className="bg-white border border-slate-200 rounded-none p-10 shadow-sm space-y-10">
                     <div className="flex items-center gap-4">
-                        <div className="p-4 bg-[#061629] rounded-none text-white border border-[#1D5F31]">
+                        <div className="p-4 bg-slate-50 rounded-none text-[#1D5F31] border border-slate-100">
                             <Bell size={24} strokeWidth={2.5} />
                         </div>
                         <div>
-                            <h2 className="text-xl font-black uppercase tracking-tighter text-white leading-none">Alertas Digitais</h2>
-                            <p className="text-[10px] font-bold uppercase tracking-[2px] text-slate-400 mt-2">Fique por dentro de cada nova venda.</p>
+                            <h2 className="text-xl font-black uppercase tracking-tighter text-slate-900 leading-none">Alertas Digitais</h2>
+                            <p className="text-[10px] font-bold uppercase tracking-[2px] text-slate-600 mt-2">Fique por dentro de cada nova venda.</p>
                         </div>
                     </div>
 
                     <div className="space-y-4">
-                        <div className="flex items-center justify-between p-6 bg-[#061629] rounded-none border border-[#1D5F31] hover:border-[#1D5F31]/60 transition-all">
+                        <div className="flex items-center justify-between p-6 bg-slate-50 rounded-none border border-slate-100 hover:border-[#1D5F31]/30 transition-all">
                             <div>
-                                <h3 className="text-xs font-black uppercase tracking-widest text-white">Relatórios de Performance</h3>
-                                <p className="text-[10px] text-slate-500 font-medium mt-1">Resumo semanal do ecossistema por e-mail.</p>
+                                <h3 className="text-xs font-black uppercase tracking-widest text-slate-900">Relatórios de Performance</h3>
+                                <p className="text-[10px] text-slate-600 font-medium mt-1">Resumo semanal do ecossistema por e-mail.</p>
                             </div>
                             <button
                                 onClick={() => setEmailEnabled(!emailEnabled)}
@@ -159,10 +159,10 @@ export default function TeacherSettingsPage() {
                             </button>
                         </div>
 
-                        <div className="flex items-center justify-between p-6 bg-[#061629] rounded-none border border-[#1D5F31] hover:border-[#1D5F31]/60 transition-all">
+                        <div className="flex items-center justify-between p-6 bg-slate-50 rounded-none border border-slate-100 hover:border-[#1D5F31]/30 transition-all">
                             <div>
-                                <h3 className="text-xs font-black uppercase tracking-widest text-white">Novos Leads e Alunos</h3>
-                                <p className="text-[10px] text-slate-500 font-medium mt-1">Push notifications em tempo real.</p>
+                                <h3 className="text-xs font-black uppercase tracking-widest text-slate-900">Novos Leads e Alunos</h3>
+                                <p className="text-[10px] text-slate-600 font-medium mt-1">Push notifications em tempo real.</p>
                             </div>
                             <button
                                 onClick={() => setBrowserEnabled(!browserEnabled)}
@@ -175,21 +175,21 @@ export default function TeacherSettingsPage() {
                 </section>
 
                 {/* Segurança - rounded-none */}
-                <section className="bg-[#061629] border border-[#1D5F31] rounded-none p-10 shadow-sm space-y-10 lg:col-span-2 relative overflow-hidden group">
+                <section className="bg-white border border-slate-200 rounded-none p-10 shadow-sm space-y-10 lg:col-span-2 relative overflow-hidden group">
                     <div className="flex items-center gap-4 relative z-10">
-                        <div className="p-4 bg-[#061629] rounded-none text-[#1D5F31] border border-[#1D5F31]">
+                        <div className="p-4 bg-slate-50 rounded-none text-[#1D5F31] border border-slate-100">
                             <Shield size={24} strokeWidth={2.5} />
                         </div>
                         <div>
-                            <h2 className="text-xl font-black uppercase tracking-tighter text-white leading-none">Protocolos de Acesso</h2>
-                            <p className="text-[10px] font-bold uppercase tracking-[2px] text-slate-400 mt-2">Proteção de dados e soberania da conta.</p>
+                            <h2 className="text-xl font-black uppercase tracking-tighter text-slate-900 leading-none">Protocolos de Acesso</h2>
+                            <p className="text-[10px] font-bold uppercase tracking-[2px] text-slate-600 mt-2">Proteção de dados e soberania da conta.</p>
                         </div>
                     </div>
 
                     <form onSubmit={handleUpdatePassword} className="space-y-8 relative z-10">
                         {needsReauth && (
                             <div className="max-w-md space-y-3 animate-in fade-in slide-in-from-top-2">
-                                <label className="text-[10px] font-black uppercase tracking-[3px] text-[#1D5F31] px-1 flex items-center gap-2">
+                                <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-900 px-1 flex items-center gap-2">
                                     <Key size={14} />
                                     Senha Atual Necessária
                                 </label>
@@ -198,7 +198,7 @@ export default function TeacherSettingsPage() {
                                     value={currentPassword}
                                     onChange={(e) => setCurrentPassword(e.target.value)}
                                     placeholder="Confirme sua senha atual"
-                                    className="bg-[#1D5F31]/5 border-[#1D5F31]/20 h-14 rounded-none text-white focus:border-[#1D5F31] font-bold text-sm"
+                                    className="bg-slate-50 border-slate-200 h-14 rounded-none text-slate-900 focus:border-[#1D5F31] font-bold text-sm placeholder:text-slate-400"
                                     required
                                 />
                             </div>
@@ -206,14 +206,14 @@ export default function TeacherSettingsPage() {
 
                         <div className="flex flex-col md:flex-row gap-8">
                             <div className="flex-grow space-y-6">
-                                <h3 className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 px-1">Redefinição de Credenciais</h3>
+                                <h3 className="text-[10px] font-black uppercase tracking-[3px] text-slate-900 px-1">Redefinição de Credenciais</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <Input
                                         type="password"
                                         value={newPassword}
                                         onChange={(e) => setNewPassword(e.target.value)}
                                         placeholder="Nova senha master"
-                                        className="bg-[#061629] border-[#1D5F31] h-14 rounded-none text-white focus:border-[#1D5F31] placeholder:text-slate-600 font-bold text-sm"
+                                        className="bg-slate-50 border-slate-200 h-14 rounded-none text-slate-900 focus:border-[#1D5F31] placeholder:text-slate-400 font-bold text-sm"
                                         required
                                         minLength={6}
                                     />
@@ -222,7 +222,7 @@ export default function TeacherSettingsPage() {
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
                                         placeholder="Confirmar nova senha"
-                                        className="bg-[#061629] border-[#1D5F31] h-14 rounded-none text-white focus:border-[#1D5F31] placeholder:text-slate-600 font-bold text-sm"
+                                        className="bg-slate-50 border-slate-200 h-14 rounded-none text-slate-900 focus:border-[#1D5F31] placeholder:text-slate-400 font-bold text-sm"
                                         required
                                         minLength={6}
                                     />
@@ -233,7 +233,7 @@ export default function TeacherSettingsPage() {
                                     type="submit"
                                     disabled={isUpdatingPassword}
                                     variant="outline"
-                                    className="border-slate-100 text-slate-400 hover:bg-slate-50 hover:text-slate-900 h-14 px-8 rounded-none font-black uppercase tracking-[2px] text-[10px] transition-all gap-2"
+                                    className="border-slate-200 text-slate-600 hover:bg-slate-50 hover:text-slate-900 h-14 px-8 rounded-none font-black uppercase tracking-[2px] text-[10px] transition-all gap-2"
                                 >
                                     {isUpdatingPassword ? (
                                         <div className="w-4 h-4 border-2 border-slate-200 border-t-[#1D5F31] rounded-none animate-spin" />
@@ -248,18 +248,18 @@ export default function TeacherSettingsPage() {
                 </section>
 
                 {/* Zona de Perigo - rounded-none */}
-                <section className="bg-red-950/20 border border-red-900/40 rounded-none p-10 shadow-sm space-y-8 lg:col-span-2">
+                <section className="bg-red-50 border border-red-100 rounded-none p-10 shadow-sm space-y-8 lg:col-span-2">
                     <div className="flex items-center gap-4">
-                        <div className="p-4 bg-[#061629] border border-red-900/40 rounded-none text-red-500 shadow-sm">
+                        <div className="p-4 bg-white border border-red-100 rounded-none text-red-500 shadow-sm">
                             <Trash2 size={24} strokeWidth={2.5} />
                         </div>
                         <div>
-                            <h2 className="text-xl font-black uppercase tracking-tighter text-red-500 leading-none">Zona de Perigo</h2>
-                            <p className="text-[10px] font-bold uppercase tracking-[2px] text-red-400/80 mt-2">Ações irreversíveis sobre sua conta e cursos criados.</p>
+                            <h2 className="text-xl font-black uppercase tracking-tighter text-red-600 leading-none">Zona de Perigo</h2>
+                            <p className="text-[10px] font-bold uppercase tracking-[2px] text-red-500/80 mt-2">Ações irreversíveis sobre sua conta e cursos criados.</p>
                         </div>
                     </div>
 
-                    <p className="text-[11px] text-red-400/70 max-w-2xl font-bold uppercase tracking-wider leading-relaxed bg-red-950/30 p-6 rounded-none border border-red-900/20">
+                    <p className="text-[11px] text-red-600/70 max-w-2xl font-bold uppercase tracking-wider leading-relaxed bg-white p-6 rounded-none border border-red-100">
                         AVISO: Ao excluir sua conta, todos os seus cursos, matrículas de alunos e dados financeiros serão removidos permanentemente. Esta ação não pode ser desfeita.
                     </p>
 

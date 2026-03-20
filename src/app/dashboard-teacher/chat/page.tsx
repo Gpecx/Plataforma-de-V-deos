@@ -80,92 +80,95 @@ export default function TeacherChatPage() {
     }
 
     return (
-        <div className="h-[calc(100vh-20px)] bg-transparent flex flex-col overflow-hidden font-exo">
-            <div className="max-w-full w-full mx-auto flex flex-col flex-1 pt-0 pb-1 px-2 gap-1 overflow-hidden">
+        <div className="h-[calc(100vh-40px)] bg-transparent flex flex-col overflow-hidden font-exo animate-in fade-in duration-500">
+            <div className="max-w-full w-full mx-auto flex flex-col flex-1 pt-4 pb-2 px-4 gap-6 overflow-hidden">
 
                 {/* Page Header */}
-                <div className="flex items-center justify-between mt-0 scale-90 origin-left">
-                    <div className="flex items-center gap-4">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-6">
                         <Link
                             href="/dashboard-teacher"
-                            className="p-3 bg-white/5 border border-white/20 rounded-none hover:border-white text-white transition shadow-none backdrop-blur-sm"
+                            className="p-4 bg-white border border-slate-200 rounded-2xl hover:border-[#1D5F31]/30 text-slate-600 hover:text-[#1D5F31] transition shadow-sm active:scale-95"
                         >
                             <ArrowLeft size={20} />
                         </Link>
                         <div>
-                            <h1 className="text-2xl font-black tracking-tighter uppercase text-white">
-                                CENTRAL DE <span className="text-[#1D5F31]">MENSAGENS</span>
+                            <div className="flex items-center gap-2 mb-1">
+                                <div className="w-1 h-1 rounded-full bg-[#1D5F31]"></div>
+                                <span className="text-[9px] font-black uppercase tracking-[3px] text-slate-500">CREATOR CHAT</span>
+                            </div>
+                            <h1 className="text-3xl font-black tracking-tighter uppercase text-slate-900 leading-none">
+                                Central de <span className="text-[#1D5F31]">Mensagens</span>
                             </h1>
-                            <p className="text-[9px] font-black uppercase tracking-[4px] text-white/80 mt-0.5">Gestão de suporte e dúvidas dos alunos em tempo real</p>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex flex-1 gap-4 overflow-hidden">
+                <div className="flex flex-1 gap-8 overflow-hidden">
                     {/* Student List Sidebar */}
-                    <aside className="w-64 shrink-0 hidden md:flex flex-col gap-3 overflow-y-auto pr-2 custom-scrollbar">
-                        <div className="text-[9px] font-black uppercase tracking-[3px] text-white/80 px-2 mb-1">CONVERSAS ATIVAS</div>
+                    <aside className="w-80 shrink-0 hidden lg:flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar">
+                        <div className="text-[10px] font-black uppercase tracking-[4px] text-slate-600 px-4 mb-2">CONVERSAS ATIVAS</div>
                         {STUDENTS.map(student => (
                             <button
                                 key={student.id}
                                 onClick={() => setSelectedStudent(student)}
-                                className={`flex items-center gap-4 p-5 rounded-none border border-[#1D5F31] text-left transition-all ${selectedStudent.id === student.id ? 'bg-[#1D5F31]/10 border-[#1D5F31] shadow-none' : 'bg-transparent border-white/5 hover:border-[#1D5F31]'}`}
+                                className={`flex items-center gap-5 p-6 rounded-[24px] border transition-all duration-300 group ${selectedStudent.id === student.id ? 'bg-[#1D5F31] border-[#1D5F31] shadow-xl shadow-[#1D5F31]/20' : 'bg-white border-slate-200 hover:border-[#1D5F31]/30 hover:shadow-md'}`}
                             >
-                                <div className={`w-11 h-11 rounded-none flex items-center justify-center font-black text-xs shrink-0 ${selectedStudent.id === student.id ? 'bg-[#1D5F31] text-black' : 'bg-[#061629] text-white border border-[#1D5F31]'}`}>
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center font-black text-xs shrink-0 transition-all ${selectedStudent.id === student.id ? 'bg-white text-[#1D5F31] shadow-inner' : 'bg-slate-900 text-white'}`}>
                                     {student.initials}
                                 </div>
-                                <div className="min-w-0">
-                                    <h4 className={`font-black uppercase text-[11px] tracking-tight truncate ${selectedStudent.id === student.id ? 'text-black' : 'text-white'}`}>
+                                <div className="min-w-0 text-left">
+                                    <h4 className={`font-black uppercase text-xs tracking-tight truncate mb-1 ${selectedStudent.id === student.id ? 'text-white' : 'text-slate-900'}`}>
                                         {student.name}
                                     </h4>
-                                    <p className="text-[9px] font-bold uppercase tracking-wide text-white/70 truncate mt-1 italic">{student.course}</p>
+                                    <p className={`text-[9px] font-bold uppercase tracking-widest truncate italic ${selectedStudent.id === student.id ? 'text-white/70' : 'text-slate-600'}`}>{student.course}</p>
                                 </div>
                             </button>
                         ))}
                     </aside>
 
                     {/* Chat Window */}
-                    <section className="flex-1 flex flex-col bg-white/5 backdrop-blur-md border border-white/10 rounded-none overflow-hidden shadow-none mb-2">
+                    <section className="flex-1 flex flex-col bg-white border border-slate-200 rounded-[40px] overflow-hidden shadow-2xl shadow-slate-200/50 mb-4 relative">
                         {/* Chat Header */}
-                        <div className="flex items-center gap-5 px-8 py-5 border-b border-white/10 bg-white/5">
-                            <div className="w-11 h-11 rounded-none bg-[#1D5F31] flex items-center justify-center text-black font-black text-sm shadow-none">
+                        <div className="flex items-center gap-6 px-10 py-6 border-b border-slate-50 bg-white/50 backdrop-blur-md">
+                            <div className="w-12 h-12 rounded-full bg-[#1D5F31] flex items-center justify-center text-white font-black text-sm shadow-lg shadow-[#1D5F31]/20">
                                 {selectedStudent.initials}
                             </div>
                             <div>
-                                <h3 className="font-black uppercase tracking-tighter text-base text-white">{selectedStudent.name}</h3>
-                                <div className="flex items-center gap-2 mt-0.5">
-                                    <div className={`w-1.5 h-1.5 rounded-none ${selectedStudent.status === 'online' ? 'bg-[#1D5F31]' : 'bg-slate-700'}`}></div>
-                                    <span className={`text-[9px] font-black uppercase tracking-[3px] ${selectedStudent.status === 'online' ? 'text-[#1D5F31]' : 'text-white/20'}`}>
-                                        {selectedStudent.status === 'online' ? 'Aluno Online' : 'Aluno Offline'}
+                                <h3 className="font-black uppercase tracking-tighter text-lg text-slate-900">{selectedStudent.name}</h3>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <div className={`w-1.5 h-1.5 rounded-full ${selectedStudent.status === 'online' ? 'bg-[#1D5F31] animate-pulse' : 'bg-slate-300'}`}></div>
+                                    <span className={`text-[10px] font-black uppercase tracking-[3px] ${selectedStudent.status === 'online' ? 'text-[#1D5F31]' : 'text-slate-600'}`}>
+                                        {selectedStudent.status === 'online' ? 'Conectado agora' : 'Desconectado'}
                                     </span>
                                 </div>
                             </div>
-                            <div className="ml-auto">
-                                <div className="hidden lg:flex items-center gap-2 text-[8px] font-black uppercase tracking-[2px] text-white border-2 border-white px-4 py-2 rounded-none bg-white/10">
-                                    <Users size={12} className="text-white" />
-                                    Matriculado em: {selectedStudent.course}
+                            <div className="ml-auto flex items-center gap-4">
+                                <div className="hidden xl:flex items-center gap-3 text-[9px] font-black uppercase tracking-[2px] text-slate-900 bg-slate-50 px-5 py-2.5 rounded-xl border border-slate-100">
+                                    <GraduationCap size={16} className="text-[#1D5F31]" />
+                                    {selectedStudent.course}
                                 </div>
                             </div>
                         </div>
 
                         {/* Messages */}
-                        <div className="flex-1 overflow-y-auto px-6 md:px-10 py-8 space-y-8 bg-transparent custom-scrollbar">
+                        <div className="flex-1 overflow-y-auto px-8 md:px-12 py-10 space-y-10 bg-transparent custom-scrollbar">
                             {messages.map(msg => (
                                 <div
                                     key={msg.id}
-                                    className={`flex gap-4 ${msg.role === 'teacher' ? 'flex-row-reverse' : 'flex-row'} animate-in fade-in slide-in-from-bottom-2 duration-300`}
+                                    className={`flex gap-5 ${msg.role === 'teacher' ? 'flex-row-reverse' : 'flex-row'} animate-in fade-in slide-in-from-bottom-4 duration-500`}
                                 >
                                     {/* Avatar */}
-                                    <div className={`w-8 h-8 rounded-none shrink-0 flex items-center justify-center font-black text-[9px] mt-1 ${msg.role === 'student' ? 'bg-[#061629] text-white border border-[#1D5F31]' : 'bg-white text-black border-2 border-white'}`}>
+                                    <div className={`w-10 h-10 rounded-full shrink-0 flex items-center justify-center font-black text-[10px] mt-1 shadow-sm ${msg.role === 'student' ? 'bg-slate-900 text-white' : 'bg-[#1D5F31] text-white border-2 border-white'}`}>
                                         {msg.role === 'student' ? selectedStudent.initials : 'EU'}
                                     </div>
 
                                     {/* Bubble */}
-                                    <div className={`max-w-[75%] ${msg.role === 'teacher' ? 'items-end' : 'items-start'} flex flex-col gap-1.5`}>
-                                        <div className={`px-6 py-4 rounded-none text-[13px] md:text-sm font-bold leading-relaxed shadow-none ${msg.role === 'student' ? 'bg-[#061629]/50 border border-[#1D5F31] text-white/90' : 'bg-white text-black border-2 border-white'}`}>
+                                    <div className={`max-w-[70%] ${msg.role === 'teacher' ? 'items-end' : 'items-start'} flex flex-col gap-2.5`}>
+                                        <div className={`px-8 py-5 rounded-[24px] text-sm font-medium leading-relaxed shadow-sm ${msg.role === 'student' ? 'bg-slate-50 border border-slate-100 text-slate-900 rounded-tl-none' : 'bg-slate-900 text-white rounded-tr-none'}`}>
                                             {msg.content}
                                         </div>
-                                        <span className="text-[8px] font-black uppercase tracking-widest text-white/40 px-2">{msg.time}</span>
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-500 px-3">{msg.time}</span>
                                     </div>
                                 </div>
                             ))}
@@ -173,31 +176,31 @@ export default function TeacherChatPage() {
                         </div>
 
                         {/* Input Bar */}
-                        <div className="px-6 md:px-8 py-6 border-t border-white/10 bg-white/5">
-                            <div className="flex items-end gap-3 md:gap-5">
-                                <button className="p-3 text-white/20 hover:text-[#1D5F31] transition shrink-0">
+                        <div className="px-10 py-8 border-t border-slate-50 bg-white/50 backdrop-blur-md">
+                            <div className="flex items-end gap-5">
+                                <button className="p-4 bg-slate-50 rounded-2xl text-slate-600 hover:text-[#1D5F31] transition-all active:scale-95 shadow-inner">
                                     <MessageSquare size={20} />
                                 </button>
-                                <div className="flex-1 bg-white/5 border border-white/20 rounded-none flex items-end px-6 py-4 focus-within:border-white transition shadow-none backdrop-blur-sm">
+                                <div className="flex-1 bg-white border border-slate-200 rounded-[28px] flex items-end px-8 py-5 focus-within:border-[#1D5F31]/30 transition-all shadow-xl shadow-slate-100/50">
                                     <textarea
                                         value={input}
                                         onChange={e => setInput(e.target.value)}
                                         onKeyDown={handleKey}
-                                        placeholder="Responda seu aluno aqui..."
-                                        rows={2}
-                                        className="flex-1 bg-transparent outline-none resize-none font-bold text-sm text-white placeholder:text-white/30 placeholder:font-black max-h-40"
+                                        placeholder="Digite sua resposta aqui..."
+                                        rows={1}
+                                        className="flex-1 bg-transparent outline-none resize-none font-bold text-sm text-slate-900 placeholder:text-slate-600 placeholder:font-black max-h-40"
                                         style={{ lineHeight: '1.6' }}
                                     />
                                 </div>
                                 <button
                                     onClick={handleSend}
                                     disabled={!input.trim()}
-                                    className="w-14 h-14 bg-white text-black rounded-none flex items-center justify-center hover:bg-white/90 disabled:opacity-20 active:scale-95 transition-all shadow-none group"
+                                    className="w-16 h-16 bg-[#1D5F31] text-white rounded-[24px] flex items-center justify-center hover:opacity-90 disabled:opacity-20 active:scale-95 transition-all shadow-xl shadow-[#1D5F31]/20 group shrink-0"
                                 >
-                                    <Send size={20} strokeWidth={2.5} className="group-hover:rotate-12 transition-transform" />
+                                    <Send size={22} strokeWidth={3} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                                 </button>
                             </div>
-                            <p className="text-[8px] font-black uppercase tracking-[3px] text-center text-white/10 mt-4">Sistema de Mentoria PowerPlay</p>
+                            <p className="text-[10px] font-black uppercase tracking-[4px] text-center text-slate-500 mt-6 italic">PowerPlay Creator Ecosystem • Secure Mentorship</p>
                         </div>
                     </section>
                 </div>
@@ -205,17 +208,17 @@ export default function TeacherChatPage() {
 
             <style jsx>{`
                 .custom-scrollbar::-webkit-scrollbar {
-                    width: 4px;
+                    width: 6px;
                 }
                 .custom-scrollbar::-webkit-scrollbar-track {
                     background: transparent;
                 }
                 .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: rgba(255,255,255,0.1);
+                    background: rgba(0,0,0,0.05);
                     border-radius: 10px;
                 }
                 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: rgba(255,255,255,0.2);
+                    background: rgba(0,0,0,0.1);
                 }
             `}</style>
         </div>

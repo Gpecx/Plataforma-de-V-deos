@@ -1,7 +1,7 @@
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { Search, MessageSquare, ArrowUpDown } from 'lucide-react'
+import { Search, MessageSquare, ArrowUpDown, Users } from 'lucide-react'
 import Link from 'next/link'
 import { parseFirebaseDate } from '@/lib/date-utils'
 
@@ -101,62 +101,69 @@ export default async function StudentsPage() {
     )
 
     return (
-        <div className="p-8 md:p-12 space-y-12 bg-transparent min-h-screen text-white/90 border-t border-white/5 font-exo">
-            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div className="p-8 md:p-12 space-y-12 bg-transparent min-h-screen font-exo animate-in fade-in duration-500">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
                 <div>
-                    <h1 className="text-2xl font-black tracking-tighter text-white">
-                        GESTÃO DE <span className="text-[#1D5F31]">ALUNOS</span>
+                    <div className="flex items-center gap-3 mb-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#1D5F31]"></div>
+                        <span className="text-[10px] font-black uppercase tracking-[4px] text-slate-500">STUDENT MANAGEMENT</span>
+                    </div>
+                    <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-slate-900 uppercase leading-none">
+                        Gestão de <span className="text-[#1D5F31]">Alunos</span>
                     </h1>
-                    <p className="text-white/80 mt-1 text-sm font-medium">Acompanhe o progresso de seus alunos e gerencie matrículas.</p>
+                    <p className="text-slate-600 mt-3 text-[10px] font-bold uppercase tracking-[3px] italic">Acompanhe o progresso de seus alunos e gerencie matrículas.</p>
                 </div>
-                <div className="flex gap-4">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" size={14} />
+                <div className="flex gap-4 w-full md:w-auto">
+                    <div className="relative flex-grow md:flex-initial group">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 transition-colors group-focus-within:text-[#1D5F31]" size={16} />
                         <input
-                            placeholder="Buscar aluno..."
-                            className="bg-white/5 border border-white/10 rounded-none px-10 py-2.5 text-xs text-white focus:border-[#1D5F31] placeholder:text-white/50 outline-none transition-all w-64 font-bold uppercase tracking-widest"
+                            placeholder="Buscar aluno por nome..."
+                            className="bg-white border border-slate-200 rounded-2xl px-12 py-4 text-xs text-slate-900 focus:border-[#1D5F31] placeholder:text-slate-600 outline-none transition-all w-full md:w-80 font-bold uppercase tracking-widest shadow-sm"
                         />
                     </div>
                 </div>
             </header>
 
-            <div className="bg-[#061629] border border-[#1D5F31] rounded-none p-6 space-y-6 shadow-sm overflow-hidden">
+            <div className="bg-white border border-slate-200 rounded-[32px] p-8 shadow-xl overflow-hidden relative">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
-                            <tr className="border-b border-white/10 text-[10px] font-black uppercase tracking-[0.2em] text-white">
-                                <th className="pb-5 px-4 font-black">Aluno <ArrowUpDown size={12} className="inline ml-1 opacity-50" /></th>
-                                <th className="pb-5 px-4 font-black">E-mail</th>
-                                <th className="pb-5 px-4 text-center font-black">Cursos</th>
-                                <th className="pb-5 px-4 font-black">Inscrição</th>
-                                <th className="pb-5 px-4 text-right font-black">Ação</th>
+                            <tr className="border-b border-slate-100 text-[10px] font-black uppercase tracking-[0.2em] text-slate-600">
+                                <th className="pb-6 px-4">Aluno <ArrowUpDown size={12} className="inline ml-2 opacity-30" /></th>
+                                <th className="pb-6 px-4">E-mail</th>
+                                <th className="pb-6 px-4 text-center">Cursos</th>
+                                <th className="pb-6 px-4">Inscrição</th>
+                                <th className="pb-6 px-4 text-right">Ação</th>
                             </tr>
                         </thead>
                         <tbody className="text-sm">
                             {studentsData.length > 0 ? (
                                 studentsData.map((student) => (
-                                    <tr key={student.id} className="border-b border-white/5 hover:bg-white/5 transition-all group">
-                                        <td className="py-5 px-4">
+                                    <tr key={student.id} className="border-b border-slate-50 hover:bg-slate-50 transition-all group">
+                                        <td className="py-6 px-4">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-9 h-9 rounded-none bg-white/10 flex items-center justify-center font-bold text-white border border-white/20 uppercase text-xs">
+                                                <div className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center font-black text-white border-2 border-white shadow-md uppercase text-xs">
                                                     {(student.profiles?.full_name || 'S').charAt(0)}
                                                 </div>
-                                                <span className="font-bold text-white text-sm tracking-tight">{student.profiles?.full_name}</span>
+                                                <div className="flex flex-col">
+                                                    <span className="font-black text-slate-900 text-sm tracking-tight uppercase group-hover:text-[#1D5F31] transition-colors">{student.profiles?.full_name}</span>
+                                                    <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">ID: {student.id.substring(0, 8)}</span>
+                                                </div>
                                             </div>
                                         </td>
-                                        <td className="py-5 px-4 text-white text-xs font-bold">{student.profiles?.email}</td>
-                                        <td className="py-5 px-4 text-center">
-                                            <span className="px-2.5 py-1 bg-[#1D5F31] rounded-none text-[9px] font-black border border-[#1D5F31] text-white tracking-[0.1em] uppercase shadow-sm">
-                                                {student.courseCount} {student.courseCount === 1 ? 'CURSO' : 'CURSOS'}
+                                        <td className="py-6 px-4 text-slate-500 text-xs font-bold">{student.profiles?.email}</td>
+                                        <td className="py-6 px-4 text-center">
+                                            <span className="px-3 py-1.5 bg-slate-50 rounded-lg text-[9px] font-black border border-slate-100 text-slate-900 tracking-[1px] uppercase shadow-sm">
+                                                {student.courseCount} {student.courseCount === 1 ? 'UNIDADE' : 'UNIDADES'}
                                             </span>
                                         </td>
-                                        <td className="py-5 px-4 text-[10px] text-white uppercase font-black tracking-tight">
+                                        <td className="py-6 px-4 text-[10px] text-slate-600 uppercase font-bold tracking-widest">
                                             {student.joinedAt ? new Date(student.joinedAt).toLocaleDateString('pt-BR') : '---'}
                                         </td>
-                                        <td className="py-5 px-4 text-right">
+                                        <td className="py-6 px-4 text-right">
                                             <Link href={`/dashboard-teacher/chat?userId=${student.id}`}>
-                                                <button className="p-2.5 rounded-none border-2 border-[#1D5F31] bg-[#1D5F31] text-white hover:bg-[#1D5F31]/90 transition-all shadow-md">
-                                                    <MessageSquare size={16} strokeWidth={3} />
+                                                <button className="p-3 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-[#1D5F31] hover:border-[#1D5F31]/30 hover:shadow-md transition-all active:scale-90">
+                                                    <MessageSquare size={18} strokeWidth={2.5} />
                                                 </button>
                                             </Link>
                                         </td>
@@ -164,8 +171,13 @@ export default async function StudentsPage() {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={5} className="py-20 text-center text-white/30 italic font-medium uppercase tracking-widest text-[10px]">
-                                        Nenhum aluno encontrado para os seus cursos.
+                                    <td colSpan={5} className="py-24 text-center">
+                                        <div className="flex flex-col items-center gap-4">
+                                            <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center">
+                                                <Users size={24} className="text-slate-300" />
+                                            </div>
+                                            <p className="text-slate-600 font-bold uppercase tracking-[3px] text-[10px]">Nenhum aluno identificado em sua base.</p>
+                                        </div>
                                     </td>
                                 </tr>
                             )}
@@ -176,20 +188,27 @@ export default async function StudentsPage() {
         </div>
     )
 }
-
 function NoStudents() {
     return (
-        <div className="p-8 md:p-12 space-y-12 bg-transparent min-h-screen text-white/90 border-t border-white/5 font-exo">
+        <div className="p-8 md:p-12 space-y-12 bg-transparent min-h-screen text-slate-900 font-exo animate-in fade-in duration-500">
             <header>
-                <h1 className="text-2xl font-black tracking-tighter text-white uppercase">
-                    GESTÃO DE <span className="text-[#1D5F31]">ALUNOS</span>
+                <div className="flex items-center gap-3 mb-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#1D5F31]"></div>
+                    <span className="text-[10px] font-black uppercase tracking-[4px] text-slate-500">VACANT STUDIO</span>
+                </div>
+                <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-slate-900 uppercase">
+                    Gestão de <span className="text-[#1D5F31]">Alunos</span>
                 </h1>
             </header>
-            <div className="bg-[#061629] border border-[#1D5F31] rounded-none p-20 text-center shadow-sm">
-                <p className="text-white/30 italic font-medium uppercase tracking-widest text-[10px]">
-                    Você ainda não possui cursos ou alunos cadastrados.
+            <div className="bg-white border border-slate-200 rounded-[40px] p-24 text-center shadow-xl">
+                <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner border border-slate-100">
+                    <Users size={32} className="text-slate-200" />
+                </div>
+                <h3 className="text-xl font-black uppercase tracking-tighter text-slate-900 mb-2">Sua base de alunos está vazia</h3>
+                <p className="text-slate-600 font-bold uppercase tracking-[3px] text-[10px] italic">
+                    Publique seu primeiro curso para começar a atrair talentos.
                 </p>
-                <Link href="/dashboard-teacher/courses" className="inline-block mt-6 text-[10px] font-black uppercase tracking-[3px] text-[#1D5F31] hover:underline">
+                <Link href="/dashboard-teacher/courses/new" className="inline-block mt-10 bg-[#1D5F31] text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-[#1D5F31]/10 hover:opacity-90 transition active:scale-95">
                     Criar meu Primeiro Curso
                 </Link>
             </div>
