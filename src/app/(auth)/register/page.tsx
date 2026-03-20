@@ -254,7 +254,7 @@ export default function RegisterPage() {
                                         type="text"
                                         placeholder="DIGITE SEU NOME PARA CERTIFICADOS"
                                         required
-                                        className={`${inputClass()} rounded-none`}
+                                        className={`${inputClass()} rounded-xl`}
                                         value={fullName}
                                         onChange={(e) => setFullName(e.target.value)}
                                     />
@@ -268,7 +268,7 @@ export default function RegisterPage() {
                                             type="email"
                                             placeholder="seu@email.com"
                                             required
-                                            className={`${inputClass()} rounded-none`}
+                                            className={`${inputClass()} rounded-xl`}
                                             value={email}
                                             onChange={(e) => setEmail(e.target.value)}
                                         />
@@ -279,7 +279,7 @@ export default function RegisterPage() {
                                             type="password"
                                             placeholder="••••••••"
                                             required
-                                            className={`${inputClass()} rounded-none`}
+                                            className={`${inputClass()} rounded-xl`}
                                             value={password}
                                             onChange={(e) => setPassword(e.target.value)}
                                         />
@@ -319,7 +319,7 @@ export default function RegisterPage() {
                                             placeholder={personType === 'CPF' ? '000.000.000-00' : '00.000.000/0000-00'}
                                             inputMode="numeric"
                                             required
-                                            className={`${inputClass(cpfCnpjTouched && !isCpfCnpjValid)} rounded-none`}
+                                            className={`${inputClass(cpfCnpjTouched && !isCpfCnpjValid)} rounded-xl`}
                                             value={cpfCnpj}
                                             onChange={handleCpfCnpjChange}
                                             onBlur={() => setCpfCnpjTouched(true)}
@@ -338,7 +338,7 @@ export default function RegisterPage() {
                                             inputMode="numeric"
                                             required
                                             maxLength={10}
-                                            className={`${inputClass()} rounded-none`}
+                                            className={`${inputClass()} rounded-xl`}
                                             value={birthDate}
                                             onChange={handleBirthDateChange}
                                         />

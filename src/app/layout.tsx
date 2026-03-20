@@ -27,7 +27,7 @@ export default async function RootLayout({
 
   return (
     <html lang="pt-br" className={exo.variable}>
-      <body className="font-exo bg-[#061629] text-white">
+      <body className="font-exo antialiased">
         <BrandingProvider value={branding}>
           <ToastNotification />
           {children}

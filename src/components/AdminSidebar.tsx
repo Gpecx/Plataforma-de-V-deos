@@ -73,7 +73,7 @@ export default function AdminSidebar() {
     }
 
     return (
-        <aside className="fixed left-0 top-0 h-screen w-72 bg-white border-r border-slate-200 flex flex-col z-50">
+        <aside className="fixed left-0 top-0 h-screen w-72 bg-[#F8F9FA] border-r border-[#D1D7DC] flex flex-col z-50">
             <div className="p-8 border-b border-slate-100">
                 <Logo light />
                 <div className="mt-4 flex items-center gap-2">
@@ -91,24 +91,26 @@ export default function AdminSidebar() {
                             href={item.href}
                             className={cn(
                                 "group flex items-center gap-4 p-4 transition-all duration-300 relative overflow-hidden rounded-xl",
-                                isActive ? "bg-slate-50 text-slate-900 shadow-sm" : "text-slate-900 hover:bg-slate-50 hover:text-black font-black"
+                                isActive 
+                                    ? "bg-white text-slate-900 shadow-sm border-l-4 border-[#1D5F31]" 
+                                    : "text-[#061629] hover:bg-white/50 hover:text-black font-medium"
                             )}
                         >
                             <item.icon 
                                 size={20} 
                                 className={cn(
                                     "transition-colors duration-300",
-                                    isActive ? "text-[#1D5F31]" : "text-slate-900 group-hover:text-[#1D5F31]"
+                                    isActive ? "text-[#1D5F31]" : "text-[#061629] group-hover:text-[#1D5F31]"
                                 )} 
                             />
                             <div className="flex flex-col">
                                 <span className={cn(
-                                    "text-xs font-black uppercase tracking-widest",
-                                    isActive ? "text-slate-900" : "text-slate-900 group-hover:text-black"
+                                    "text-xs font-bold uppercase tracking-widest",
+                                    isActive ? "text-slate-900" : "text-[#061629] group-hover:text-black"
                                 )}>
                                     {item.title}
                                 </span>
-                                <span className="text-[9px] text-slate-900 uppercase font-black tracking-tighter mt-0.5">
+                                <span className="text-[9px] text-slate-500 uppercase font-bold tracking-tighter mt-0.5">
                                     {item.description}
                                 </span>
                             </div>
@@ -116,7 +118,7 @@ export default function AdminSidebar() {
                                 size={14} 
                                 className={cn(
                                     "ml-auto transition-transform duration-300",
-                                    isActive ? "text-[#1D5F31] translate-x-0" : "text-slate-900 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0"
+                                    isActive ? "text-[#1D5F31] translate-x-0" : "text-[#061629] opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0"
                                 )} 
                             />
                         </Link>
@@ -128,7 +130,7 @@ export default function AdminSidebar() {
                 <button 
                     onClick={handleExitPanel}
                     disabled={isLoggingOut}
-                    className="flex items-center gap-3 text-slate-900 hover:text-red-500 transition-colors uppercase font-black text-[10px] tracking-widest group disabled:opacity-50"
+                    className="flex items-center gap-3 text-[#1D5F31] hover:text-red-500 transition-colors uppercase font-black text-[10px] tracking-widest group disabled:opacity-50"
                 >
                     {isLoggingOut ? (
                         <Loader2 className="animate-spin" size={16} />

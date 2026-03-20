@@ -37,7 +37,7 @@ export function ApprovalsContent({
     return (
         <div className="space-y-8">
             {/* Tabs Navigation */}
-            <div className="flex items-center gap-2 p-2 bg-white border border-slate-200 rounded-2xl w-fit shadow-sm">
+            <div className="flex items-center gap-2 p-2 bg-white border border-black rounded-2xl w-fit shadow-sm">
                 {tabs.map((tab) => {
                     const Icon = tab.icon
                     const isActive = activeTab === tab.id

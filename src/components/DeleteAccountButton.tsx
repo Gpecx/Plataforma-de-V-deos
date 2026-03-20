@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Trash2 } from 'lucide-react'
-import { deleteAccount } from '@/app/dashboard-student/settings/actions'
+import { deleteAccount } from '@/app/(app)/dashboard-student/settings/actions'
 import { ConfirmDeleteModal } from './ConfirmDeleteModal'
 import { useCartStore } from '@/store/useCartStore'
 

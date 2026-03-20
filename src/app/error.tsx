@@ -18,7 +18,7 @@ export default function Error({
 
   return (
     <div className="min-h-[500px] flex flex-col items-center justify-center p-6 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <div className="bg-[#0f172a] border border-red-500/20 p-10 rounded-none max-w-xl w-full shadow-2xl relative overflow-hidden">
+      <div className="bg-[#0f172a] border border-red-500/20 p-10 rounded-xl max-w-xl w-full shadow-2xl relative overflow-hidden">
         {/* Decorative background element */}
         <div className="absolute top-0 left-0 w-full h-1 bg-red-500/50" />
         

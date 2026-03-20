@@ -58,7 +58,7 @@ export function StudentCarousel({ heroBanners }: { heroBanners?: BannerItem[] })
     }, [next, displayItems.length])
 
     return (
-        <section className="mb-12 relative overflow-hidden rounded-none bg-slate-900 aspect-[21/9] md:aspect-[32/10] group">
+        <section className="mb-12 relative overflow-hidden rounded-xl bg-slate-900 aspect-[21/9] md:aspect-[32/10] group">
             {/* Imagens */}
             <div
                 className="flex w-full h-full transition-transform duration-700 ease-in-out"
@@ -78,16 +78,10 @@ export function StudentCarousel({ heroBanners }: { heroBanners?: BannerItem[] })
             {/* Overlay com Gradiente para alto contraste */}
             <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent flex items-center px-8 md:px-20">
                 <div className="max-w-2xl animate-in fade-in slide-in-from-left-4 duration-700">
-                    <div className="flex items-center gap-2 mb-4">
-                        <div className="w-8 h-px bg-white" />
-                        <span className="text-[10px] font-black uppercase tracking-[5px] text-white">
-                            {displayItems[currentIndex].accent}
-                        </span>
-                    </div>
-                    <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-[0.9] mb-6 uppercase drop-shadow-lg">
+                    <h2 className="text-4xl md:text-6xl font-black !text-white tracking-tighter leading-[0.9] mb-6 uppercase drop-shadow-lg">
                         {displayItems[currentIndex].title}
                     </h2>
-                    <p className="text-white text-sm md:text-base font-bold uppercase tracking-widest leading-relaxed max-w-xl drop-shadow-md">
+                    <p className="!text-white text-sm md:text-base font-bold uppercase tracking-widest leading-relaxed max-w-xl drop-shadow-md">
                         {displayItems[currentIndex].text}
                     </p>
                 </div>

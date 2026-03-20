@@ -35,7 +35,7 @@ export function ExpandableCard({ id, thumbnail, title, description, accent, rank
             <motion.div
                 layoutId={`card-${id}`}
                 onClick={() => setIsOpen(true)}
-                className="relative cursor-pointer aspect-[2/3] bg-white overflow-hidden group border border-white/10 hover:border-[#1D5F31] transition-all w-full max-w-[200px] flex items-end shadow-2xl"
+                className="relative cursor-pointer aspect-[2/3] bg-white rounded-xl overflow-hidden group border border-white/10 hover:border-[#1D5F31] transition-all w-full max-w-[200px] flex items-end shadow-2xl"
                 whileHover={{ scale: 1.05 }}
                 transition={{ duration: 0.3 }}
             >
@@ -103,7 +103,7 @@ export function ExpandableCard({ id, thumbnail, title, description, accent, rank
                         {/* Modal Content */}
                         <motion.div
                             layoutId={`card-${id}`}
-                            className="relative w-full max-w-5xl bg-[#061629]/90 backdrop-blur-xl border border-[#1D5F31]/30 overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)]"
+                            className="relative w-full max-w-5xl bg-[#061629]/90 backdrop-blur-xl border border-[#1D5F31]/30 rounded-2xl overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)]"
                         >
                             {/* Fechar */}
                             <button
@@ -148,7 +148,7 @@ export function ExpandableCard({ id, thumbnail, title, description, accent, rank
                                     
                                     <Link 
                                         href={`/course/${id}`}
-                                        className="group/btn relative inline-flex items-center justify-center bg-btn-gradient text-white font-black py-4 px-10 uppercase tracking-[3px] text-[11px] hover:brightness-110 transition-all overflow-hidden self-start border border-[#1D5F31]"
+                                        className="group/btn relative inline-flex items-center justify-center bg-btn-gradient text-white font-black py-4 px-10 uppercase tracking-[3px] text-[11px] hover:brightness-110 rounded-xl transition-all overflow-hidden self-start border border-[#1D5F31]"
                                     >
                                         <span className="relative z-10 flex items-center gap-2">
                                             Acessar Curso <ArrowRight size={16} />

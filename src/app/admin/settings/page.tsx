@@ -113,7 +113,7 @@ export default function AdminSettingsPage() {
     )
 
     const BannerField = ({ id, label, description, items }: { id: keyof BannersData; label: string; description: string; items: BannerItem[] }) => (
-        <Card className="mb-12 rounded-[40px] border border-slate-200 shadow-xl bg-white overflow-hidden group/card hover:border-[#1D5F31]/30 transition-all duration-700">
+        <Card className="mb-12 rounded-[40px] border border-black shadow-xl bg-white overflow-hidden group/card hover:border-[#1D5F31] transition-all duration-700">
             <CardHeader className="bg-slate-50/50 border-b border-slate-50 flex flex-col sm:flex-row items-start sm:items-center justify-between p-10 gap-6">
                 <div>
                     <CardTitle className="text-2xl font-black uppercase tracking-tighter text-slate-900">{label}</CardTitle>
@@ -125,14 +125,14 @@ export default function AdminSettingsPage() {
             </CardHeader>
             <CardContent className="p-10 space-y-10">
                 {items.length === 0 && (
-                    <div className="text-center py-20 border-2 border-dashed border-slate-100 rounded-[32px] bg-slate-50/50">
-                        <ImageIcon className="mx-auto text-slate-200 mb-6" size={48} strokeWidth={1} />
-                        <p className="text-slate-900 font-black uppercase tracking-[4px] text-[11px] italic">Galeria de Banners Vazia</p>
+                    <div className="text-center py-20 border-2 border-dashed border-black rounded-[32px] bg-slate-50/50">
+                        <ImageIcon className="mx-auto text-slate-400 mb-6" size={48} strokeWidth={1} />
+                        <p className="!text-black font-black uppercase tracking-[4px] text-[11px] italic">Galeria de Banners Vazia</p>
                     </div>
                 )}
                 <div className="grid grid-cols-1 gap-8">
                     {items.sort((a, b) => a.order - b.order).map((item, index) => (
-                        <div key={index} className="group/item relative p-8 border border-slate-50 rounded-[32px] bg-slate-50/30 transition-all hover:bg-white hover:border-[#1D5F31]/20 hover:shadow-2xl">
+                        <div key={index} className="group/item relative p-8 border border-black rounded-[32px] bg-slate-50/30 transition-all hover:bg-white hover:border-[#1D5F31] hover:shadow-2xl">
                             <div className="flex flex-col lg:flex-row gap-10 items-start">
                                 <div className="flex flex-col gap-4">
                                     <Label className="text-[10px] font-black uppercase tracking-widest text-[#1D5F31]">Ordenação</Label>
@@ -141,7 +141,7 @@ export default function AdminSettingsPage() {
                                             type="number"
                                             value={item.order}
                                             onChange={(e) => updateBanner(id, index, 'order', e.target.value)}
-                                            className="w-20 bg-white border border-slate-100 rounded-xl h-14 text-base font-black text-center text-slate-900 focus:border-[#1D5F31]/30 shadow-inner"
+                                            className="w-20 bg-white border border-black rounded-xl h-14 text-base font-black text-center !text-black focus:border-black shadow-inner"
                                         />
                                         <div className="flex gap-2">
                                             <Button
@@ -149,7 +149,7 @@ export default function AdminSettingsPage() {
                                                 size="icon"
                                                 onClick={() => moveBanner(id, index, 'up')}
                                                 disabled={index === 0}
-                                                className="w-9 h-9 rounded-lg border-slate-100 text-slate-600 hover:text-[#1D5F31] hover:bg-[#1D5F31]/10 disabled:opacity-20 transition-all"
+                                                className="w-9 h-9 rounded-lg border-black !text-black hover:text-[#1D5F31] hover:bg-[#1D5F31]/10 disabled:opacity-20 transition-all"
                                             >
                                                 <ArrowUp size={16} strokeWidth={3} />
                                             </Button>
@@ -158,7 +158,7 @@ export default function AdminSettingsPage() {
                                                 size="icon"
                                                 onClick={() => moveBanner(id, index, 'down')}
                                                 disabled={index === items.length - 1}
-                                                className="w-9 h-9 rounded-lg border-slate-100 text-slate-600 hover:text-[#1D5F31] hover:bg-[#1D5F31]/10 disabled:opacity-20 transition-all"
+                                                className="w-9 h-9 rounded-lg border-black !text-black hover:text-[#1D5F31] hover:bg-[#1D5F31]/10 disabled:opacity-20 transition-all"
                                             >
                                                 <ArrowDown size={16} strokeWidth={3} />
                                             </Button>
@@ -178,12 +178,12 @@ export default function AdminSettingsPage() {
                                             value={item.url} 
                                             onChange={(e) => updateBanner(id, index, 'url', e.target.value)} 
                                             placeholder="https://images.unsplash.com/photo-..." 
-                                            className="bg-white border border-slate-100 rounded-2xl h-14 text-[11px] text-slate-900 font-bold placeholder:text-slate-400 w-full focus:border-[#1D5F31]/30 shadow-inner" 
+                                            className="bg-white border border-black rounded-2xl h-14 text-[11px] !text-black font-bold placeholder:text-slate-400 w-full focus:border-black shadow-inner" 
                                         />
                                     </div>
 
                                     {item.url && (
-                                        <div className="relative rounded-[24px] overflow-hidden bg-slate-50 aspect-[21/9] w-full border border-slate-100 shadow-2xl group-hover/item:border-[#1D5F31]/20 transition-all group/preview">
+                                        <div className="relative rounded-[24px] overflow-hidden bg-slate-50 aspect-[21/9] w-full border border-black shadow-2xl group-hover/item:border-[#1D5F31] transition-all group/preview">
                                             <img src={item.url} alt={label} className="object-cover w-full h-full opacity-90 group-hover/preview:scale-105 transition-transform duration-1000" />
                                             <div className="absolute inset-0 bg-gradient-to-t from-slate-900/20 to-transparent pointer-events-none" />
                                         </div>
@@ -227,7 +227,7 @@ export default function AdminSettingsPage() {
                         <div className="flex-1 h-px bg-slate-50 ml-6" />
                     </div>
 
-                    <Card className="rounded-[40px] border border-slate-200 shadow-xl bg-white overflow-hidden">
+                    <Card className="rounded-[40px] border border-black shadow-xl bg-white overflow-hidden">
                         <CardContent className="p-12 space-y-16">
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-20">
                                 {/* Left Column: Site Name & Color */}
@@ -241,7 +241,7 @@ export default function AdminSettingsPage() {
                                             value={settings.branding.siteName}
                                             onChange={(e) => setBranding('siteName', e.target.value)}
                                             placeholder="Ex: PowerPlay Academy"
-                                            className="rounded-2xl h-16 font-black text-slate-900 text-lg bg-slate-50 border border-slate-200 focus:border-[#1D5F31]/30 focus:bg-white transition-all shadow-inner px-8 placeholder:text-slate-500"
+                                            className="rounded-2xl h-16 font-black !text-black text-lg bg-slate-50 border border-black focus:border-black focus:bg-white transition-all shadow-inner px-8 placeholder:text-slate-500"
                                         />
                                     </div>
 
@@ -254,7 +254,7 @@ export default function AdminSettingsPage() {
                                                     type="color"
                                                     value={settings.branding.primaryColor}
                                                     onChange={(e) => setBranding('primaryColor', e.target.value)}
-                                                    className="w-20 h-20 rounded-[24px] cursor-pointer border border-slate-100 p-2 bg-white shadow-xl group-hover:scale-110 transition-transform duration-500"
+                                                    className="w-20 h-20 rounded-[24px] cursor-pointer border border-black p-2 bg-white shadow-xl group-hover:scale-110 transition-transform duration-500"
                                                 />
                                             </div>
                                             <div className="flex-1 space-y-3">
@@ -262,7 +262,7 @@ export default function AdminSettingsPage() {
                                                     value={settings.branding.primaryColor}
                                                     onChange={(e) => setBranding('primaryColor', e.target.value)}
                                                     placeholder="#1D5F31"
-                                                    className="rounded-2xl h-16 font-mono font-black text-slate-900 bg-slate-50 border border-slate-200 px-8 placeholder:text-slate-500"
+                                                    className="rounded-2xl h-16 font-mono font-black !text-black bg-slate-50 border border-black px-8 placeholder:text-slate-500"
                                                 />
                                             </div>
                                         </div>
@@ -280,7 +280,7 @@ export default function AdminSettingsPage() {
                                             {...getRootProps()}
                                             className={`
                                                 border-2 border-dashed rounded-[32px] p-12 transition-all cursor-pointer flex flex-col items-center justify-center gap-4 text-center min-h-[180px]
-                                                ${isDragActive ? 'border-[#1D5F31] bg-[#1D5F31]/5' : 'border-slate-100 hover:border-[#1D5F31]/30 bg-slate-50/50 hover:bg-white shadow-inner hover:shadow-2xl'}
+                                                ${isDragActive ? 'border-[#1D5F31] bg-[#1D5F31]/5' : 'border-black hover:border-[#1D5F31] bg-slate-50/50 hover:bg-white shadow-inner hover:shadow-2xl'}
                                             `}
                                         >
                                             <input {...getInputProps()} />
@@ -297,7 +297,7 @@ export default function AdminSettingsPage() {
                                             </div>
                                         </div>
 
-                                        <div className="bg-slate-50 border border-slate-100 rounded-[32px] p-10 flex flex-col items-center justify-center min-h-[180px] relative overflow-hidden group/logo shadow-inner">
+                                        <div className="bg-slate-50 border border-black rounded-[32px] p-10 flex flex-col items-center justify-center min-h-[180px] relative overflow-hidden group/logo shadow-inner">
                                             <div className="absolute top-4 left-6 flex items-center gap-2">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-[#1D5F31]"></div>
                                                 <span className="text-[8px] font-black uppercase tracking-[3px] text-slate-900">Visualização de UI</span>

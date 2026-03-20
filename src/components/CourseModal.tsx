@@ -60,7 +60,7 @@ export default function CourseModal({ course, isOpen, onClose }: CourseModalProp
                         <div className="absolute inset-0 bg-gradient-to-t from-[#061629] via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-[#061629]" />
                         
                         <div className="absolute top-8 left-8 z-20">
-                            <span className="bg-[#1D5F31] text-white text-[10px] font-black px-3 py-1.5 rounded-none uppercase tracking-[3px] shadow-xl">
+                            <span className="bg-[#1D5F31] text-white text-[10px] font-black px-3 py-1.5 rounded-xl uppercase tracking-[3px] shadow-xl">
                                 {course.tag || "PREMIUM"}
                             </span>
                         </div>

@@ -14,44 +14,29 @@ export default function TeacherFooter() {
                 {/* Navegação de Gestão */}
                 <div className="flex flex-wrap justify-center gap-x-12 gap-y-8">
                     <Link href="/dashboard-teacher" className="flex flex-col items-center gap-2 group">
-                        <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-white/70 group-hover:border-[#1D5F31] group-hover:text-[#1D5F31] group-hover:bg-white/10 transition-all shadow-sm">
-                            <LayoutDashboard size={18} />
-                        </div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-white/70 group-hover:text-[#1D5F31]">Dashboard</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-[#061629] group-hover:text-[#1D5F31]">Dashboard</span>
                     </Link>
 
                     <Link href="/dashboard-teacher/courses" className="flex flex-col items-center gap-2 group">
-                        <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-white/70 group-hover:border-[#1D5F31] group-hover:text-[#1D5F31] group-hover:bg-white/10 transition-all shadow-sm">
-                            <BookOpen size={18} />
-                        </div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-white/70 group-hover:text-[#1D5F31]">Meus Cursos</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-[#061629] group-hover:text-[#1D5F31]">Meus Cursos</span>
                     </Link>
 
                     <Link href="/dashboard-teacher/students" className="flex flex-col items-center gap-2 group">
-                        <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-white/70 group-hover:border-[#1D5F31] group-hover:text-[#1D5F31] group-hover:bg-white/10 transition-all shadow-sm">
-                            <Users size={18} />
-                        </div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-white/70 group-hover:text-[#1D5F31]">Alunos</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-[#061629] group-hover:text-[#1D5F31]">Alunos</span>
                     </Link>
 
                     <Link href="/dashboard-teacher/chat" className="flex flex-col items-center gap-2 group">
-                        <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-white/70 group-hover:border-[#1D5F31] group-hover:text-[#1D5F31] group-hover:bg-white/10 transition-all shadow-sm">
-                            <MessageSquare size={18} />
-                        </div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-white/70 group-hover:text-[#1D5F31]">Mensagens</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-[#061629] group-hover:text-[#1D5F31]">Mensagens</span>
                     </Link>
 
                     <Link href="/dashboard-teacher/analytics" className="flex flex-col items-center gap-2 group">
-                        <div className="p-3 rounded-xl bg-white/5 border border-white/10 text-white/70 group-hover:border-[#1D5F31] group-hover:text-[#1D5F31] group-hover:bg-white/10 transition-all shadow-sm">
-                            <DollarSign size={18} />
-                        </div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-white/70 group-hover:text-[#1D5F31]">Financeiro</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-[#061629] group-hover:text-[#1D5F31]">Financeiro</span>
                     </Link>
                 </div>
 
                 {/* Copyright Sutil */}
                 <div className="pt-8 w-full text-center">
-                    <p className="text-white/40 text-[9px] font-black uppercase tracking-[0.4em]">
+                    <p className="text-[#061629]/50 text-[9px] font-black uppercase tracking-[0.4em]">
                         © 2026 PowerPlay - Área do Instrutor
                     </p>
                 </div>

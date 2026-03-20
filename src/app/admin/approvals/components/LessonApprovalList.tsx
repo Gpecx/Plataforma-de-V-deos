@@ -85,7 +85,7 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
 
     if (lessonList.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-32 bg-white border border-slate-200 rounded-[40px] animate-in fade-in duration-700 shadow-sm">
+            <div className="flex flex-col items-center justify-center py-32 bg-white border border-black rounded-[40px] animate-in fade-in duration-700 shadow-sm">
                 <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-8 border border-slate-100 shadow-inner">
                     <PlaySquare size={40} className="text-slate-200" />
                 </div>
@@ -107,7 +107,7 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
                     </thead>
                     <tbody>
                         {lessonList.map((lesson) => (
-                            <tr key={lesson.id} className="group bg-white border border-slate-200 hover:border-[#1D5F31]/30 transition-all duration-300 shadow-sm hover:shadow-xl">
+                            <tr key={lesson.id} className="group bg-white border border-black hover:border-[#1D5F31] transition-all duration-300 shadow-sm hover:shadow-xl">
                                 <td className="px-10 py-8 rounded-l-[32px]">
                                     <div className="flex flex-col">
                                         <h3 className="font-black text-slate-900 uppercase tracking-tight text-base group-hover:text-[#1D5F31] transition-colors">{lesson.title}</h3>
@@ -141,7 +141,7 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
 
             {reviewingLesson && (
                 <div className="fixed inset-0 z-[60] lg:pl-72 flex items-center justify-center p-4 sm:p-10 bg-slate-900/40 backdrop-blur-md animate-in fade-in duration-300">
-                    <div className="w-full max-w-[1200px] max-h-[90vh] bg-white rounded-[40px] border border-slate-200 flex flex-col overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.1)]">
+                    <div className="w-full max-w-[1200px] max-h-[90vh] bg-white rounded-[40px] border border-black flex flex-col overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.1)]">
                         <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
 
                             {/* Player Column */}
@@ -206,7 +206,7 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
                                             value={rejectionReason}
                                             onChange={(e) => setRejectionReason(e.target.value)}
                                             placeholder="Detalhamento das correções técnicas necessárias..."
-                                            className="w-full h-44 bg-slate-50 border border-slate-200 rounded-[24px] p-8 text-sm text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all resize-none placeholder:text-slate-500 font-bold shadow-inner"
+                                            className="w-full h-44 bg-slate-50 border border-black rounded-[24px] p-8 text-sm !text-black focus:border-black focus:bg-white outline-none transition-all resize-none placeholder:text-slate-500 font-bold shadow-inner"
                                         />
                                     </div>
 
@@ -221,7 +221,7 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
                                         <button
                                             onClick={() => handleReject(reviewingLesson.id)}
                                             disabled={loadingId === reviewingLesson.id}
-                                            className="h-16 border-2 border-slate-50 text-rose-500 text-[10px] font-black uppercase tracking-[4px] hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all disabled:opacity-50 rounded-[20px] active:scale-95"
+                                            className="h-16 border-2 border-black !text-rose-500 text-[10px] font-black uppercase tracking-[4px] hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all disabled:opacity-50 rounded-[20px] active:scale-95"
                                         >
                                             Reprovar Unidade
                                         </button>

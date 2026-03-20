@@ -40,7 +40,7 @@ export default function SalesLogList({ initialSales, teachers }: SalesLogListPro
     return (
         <div className="space-y-10 animate-in fade-in duration-700">
             {/* Filtros */}
-            <div className="bg-white border border-slate-200 p-10 flex flex-wrap gap-8 items-end rounded-[40px] shadow-sm">
+            <div className="bg-white border border-black p-10 flex flex-wrap gap-8 items-end rounded-[40px] shadow-sm">
                 <div className="flex-grow space-y-3 min-w-[250px]">
                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-900 flex items-center gap-2">
                         <UserIcon size={12} className="text-[#1D5F31]" /> Professor Responsável
@@ -48,7 +48,7 @@ export default function SalesLogList({ initialSales, teachers }: SalesLogListPro
                     <select 
                         value={professorId}
                         onChange={(e) => setProfessorId(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-100 p-4 rounded-2xl text-[11px] text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all uppercase font-black tracking-widest"
+                        className="w-full bg-slate-50 border border-black p-4 rounded-2xl text-[11px] !text-black focus:border-black focus:bg-white outline-none transition-all uppercase font-black tracking-widest"
                     >
                         <option value="">TODOS OS INSTRUTORES</option>
                         {teachers.map(t => (
@@ -65,7 +65,7 @@ export default function SalesLogList({ initialSales, teachers }: SalesLogListPro
                         type="date" 
                         value={startDate}
                         onChange={(e) => setStartDate(e.target.value)}
-                        className="bg-slate-50 border border-slate-100 p-4 rounded-2xl text-[11px] text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all font-black"
+                        className="bg-slate-50 border border-black p-4 rounded-2xl text-[11px] !text-black focus:border-black focus:bg-white outline-none transition-all font-black"
                     />
                 </div>
 
@@ -77,7 +77,7 @@ export default function SalesLogList({ initialSales, teachers }: SalesLogListPro
                         type="date" 
                         value={endDate}
                         onChange={(e) => setEndDate(e.target.value)}
-                        className="bg-slate-50 border border-slate-100 p-4 rounded-2xl text-[11px] text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all font-black"
+                        className="bg-slate-50 border border-black p-4 rounded-2xl text-[11px] !text-black focus:border-black focus:bg-white outline-none transition-all font-black"
                     />
                 </div>
 
@@ -92,7 +92,7 @@ export default function SalesLogList({ initialSales, teachers }: SalesLogListPro
             </div>
 
             {/* Tabela de Resultados */}
-            <div className="bg-white border border-slate-200 rounded-[40px] overflow-hidden shadow-sm">
+            <div className="bg-white border border-black rounded-[40px] overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>

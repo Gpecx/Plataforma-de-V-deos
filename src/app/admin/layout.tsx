@@ -14,7 +14,7 @@ export default async function AdminLayout({
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 text-slate-900 font-exo relative overflow-hidden">
+        <div className="min-h-screen relative overflow-hidden">
             <AdminSidebar />
             
             <main className="relative z-10 pl-72 min-h-screen">

@@ -26,15 +26,21 @@ export default function TaxSettings({ currentTax }: TaxSettingsProps) {
     }
 
     return (
-        <div className="bg-white p-8 border border-slate-200 shadow-sm rounded-none">
+        <div className="bg-white p-8 border border-[#D1D7DC] shadow-sm rounded-xl">
             <div className="flex items-center gap-3 mb-6">
                 <Settings className="text-[#1D5F31]" size={20} />
-                <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Configurações Globais</h3>
+                <h3
+                    className="text-sm font-black uppercase tracking-widest"
+                    style={{ color: '#000000' }}
+                >Configurações Globais</h3>
             </div>
             
             <div className="space-y-6">
                 <div>
-                    <label className="text-[10px] font-black uppercase tracking-[2px] text-slate-900 block mb-3">
+                    <label
+                        className="text-[10px] font-black uppercase tracking-[2px] block mb-3"
+                        style={{ color: '#000000' }}
+                    >
                         Taxa da Plataforma (%)
                     </label>
                     <div className="flex gap-4">
@@ -42,7 +48,8 @@ export default function TaxSettings({ currentTax }: TaxSettingsProps) {
                             type="number" 
                             value={tax} 
                             onChange={(e) => setTax(Number(e.target.value))}
-                            className="bg-slate-50 border border-slate-200 px-4 py-3 text-slate-900 outline-none focus:border-[#1D5F31] transition-all flex-grow font-black placeholder:text-slate-500"
+                            className="bg-white border-2 border-[#D1D7DC] px-4 py-3 outline-none focus:border-[#1D5F31] transition-all flex-grow font-black"
+                            style={{ color: '#000000', backgroundColor: '#ffffff' }}
                         />
                         <button 
                             onClick={handleSave}
@@ -53,7 +60,10 @@ export default function TaxSettings({ currentTax }: TaxSettingsProps) {
                         </button>
                     </div>
                 </div>
-                <p className="text-[9px] text-slate-900 font-black uppercase tracking-wider italic">
+                <p
+                    className="text-[9px] font-black uppercase tracking-wider italic"
+                    style={{ color: '#000000' }}
+                >
                     * Esta taxa será aplicada em todos os novos cálculos de repasse.
                 </p>
             </div>

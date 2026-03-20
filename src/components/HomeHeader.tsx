@@ -27,7 +27,8 @@ export default function HomeHeader() {
                 left: 0,
                 right: 0,
                 zIndex: 99999,
-                background: 'linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, transparent 100%)',
+                background: '#FFFFFF',
+                borderBottom: '1px solid #D1D7DC',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -46,16 +47,22 @@ export default function HomeHeader() {
                                 fontWeight: 900,
                                 textTransform: 'uppercase',
                                 letterSpacing: '0.15em',
-                                border: '1px solid rgba(255,255,255,0.25)',
-                                color: '#fff',
+                                border: '1px solid #D1D7DC',
+                                color: '#000000',
                                 background: 'transparent',
                                 padding: '0.5rem 1.25rem',
-                                borderRadius: '8px',
+                                borderRadius: '12px',
                                 cursor: 'pointer',
-                                transition: 'background 0.2s',
+                                transition: 'all 0.2s',
                             }}
-                            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
-                            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                            onMouseEnter={e => {
+                                e.currentTarget.style.background = '#f9fafb'
+                                e.currentTarget.style.borderColor = '#000000'
+                            }}
+                            onMouseLeave={e => {
+                                e.currentTarget.style.background = 'transparent'
+                                e.currentTarget.style.borderColor = '#D1D7DC'
+                            }}
                         >
                             Login
                         </button>
@@ -71,7 +78,7 @@ export default function HomeHeader() {
                                 color: '#fff',
                                 border: '2px solid #1D5F31',
                                 padding: '0.5rem 1.25rem',
-                                borderRadius: '8px',
+                                borderRadius: '12px',
                                 cursor: 'pointer',
                                 transition: 'background 0.2s, transform 0.2s',
                             }}

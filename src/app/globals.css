@@ -16,7 +16,7 @@
   --foreground: #f8fafc;
   --border: rgba(29, 95, 49, 0.3);
   --input: rgba(29, 95, 49, 0.2);
-  --radius: 0rem;
+  --radius: 0.75rem;
   --global-bg-gradient: linear-gradient(135deg, #061629 0%, #061629 25%, #1D5F31 100%) fixed;
 
   --primary: var(--accent-green);
@@ -34,13 +34,40 @@
 
 html,
 body {
-  background: var(--global-bg-gradient) !important;
-  color: var(--foreground);
   font-family: var(--font-exo);
   font-size: 0.875rem;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
   margin: 0;
+  background: var(--global-bg-gradient);
+  color: var(--foreground);
+}
+
+/* White Clean Theme Utility */
+.theme-clean-white {
+  background: #FFFFFF !important;
+  color: #000000 !important;
+  position: relative;
+  z-index: 10;
+}
+
+.theme-clean-white h1, 
+.theme-clean-white h2, 
+.theme-clean-white h3, 
+.theme-clean-white h4, 
+.theme-clean-white h5, 
+.theme-clean-white h6 {
+  color: #000000 !important;
+}
+
+.theme-clean-white p, 
+.theme-clean-white span:not(.no-theme-override), 
+.theme-clean-white div:not(.no-theme-override) {
+  color: #000000 !important;
+}
+
+.theme-clean-white a {
+  color: inherit;
 }
 
 /* Gradients Utilities */
@@ -124,7 +151,7 @@ p {
 .benefit-card {
   background: rgba(29, 95, 49, 0.05);
   border: 1px solid rgba(29, 95, 49, 0.2);
-  border-radius: 0;
+  border-radius: 0.75rem;
   padding: 2rem;
   transition: all 0.3s ease;
   cursor: default;
@@ -141,7 +168,7 @@ p {
 .course-card-dark {
   background: #040d18;
   border: 1px solid rgba(29, 95, 49, 0.3);
-  border-radius: 0;
+  border-radius: 0.75rem;
   overflow: hidden;
   transition: all 0.3s ease;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
@@ -162,6 +189,7 @@ p {
   text-transform: uppercase;
   padding: 0.9rem 2.5rem;
   border: 1px solid var(--accent-green);
+  border-radius: 0.75rem;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   font-size: 1rem;
@@ -184,7 +212,7 @@ p {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(29, 95, 49, 0.4);
   color: #fff;
-  border-radius: 0;
+  border-radius: 0.75rem;
   padding: 0.9rem 1.5rem;
   font-size: 1rem;
   width: 100%;

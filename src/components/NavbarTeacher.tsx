@@ -85,20 +85,20 @@ export default function NavbarTeacher() {
                     <div className="md:hidden flex items-center">
                         <DropdownMenu modal={false}>
                             <DropdownMenuTrigger asChild>
-                                <button className="p-2 border border-slate-200 rounded-none bg-slate-50 text-slate-700 hover:bg-slate-100 transition-colors outline-none cursor-pointer">
+                                <button className="p-2 border border-slate-200 rounded-xl bg-slate-50 text-slate-700 hover:bg-slate-100 transition-colors outline-none cursor-pointer">
                                     <Menu size={20} />
                                 </button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="start" sideOffset={8} className="w-56 bg-white p-2 rounded-none border border-slate-200 shadow-sm z-[200]">
+                            <DropdownMenuContent align="start" sideOffset={8} className="w-56 bg-white p-2 rounded-xl border border-slate-200 shadow-sm z-[200]">
                                 <div className="px-3 py-2 text-[10px] font-medium text-slate-500 mb-1">
                                     Painel do Professor
                                 </div>
-                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-slate-50 rounded-none cursor-pointer hover:text-black">Dashboard</DropdownMenuItem>
-                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/courses")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-slate-50 rounded-none cursor-pointer hover:text-black">Meus Cursos</DropdownMenuItem>
-                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/analytics")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-slate-50 rounded-none cursor-pointer hover:text-black">Vendas</DropdownMenuItem>
-                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/settings")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-slate-50 rounded-none cursor-pointer hover:text-black">Configurações</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-slate-50 rounded-xl cursor-pointer hover:text-black">Dashboard</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/courses")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-slate-50 rounded-xl cursor-pointer hover:text-black">Meus Cursos</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/analytics")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-slate-50 rounded-xl cursor-pointer hover:text-black">Vendas</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/settings")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-slate-50 rounded-xl cursor-pointer hover:text-black">Configurações</DropdownMenuItem>
                                 <DropdownMenuSeparator className="my-1 bg-slate-100" />
-                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student")} className="px-3 py-3 text-sm font-bold text-[#1D5F31] focus:bg-slate-50 rounded-none cursor-pointer hover:text-[#00a302] bg-green-50/50">Modo Aluno (Testes)</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student")} className="px-3 py-3 text-sm font-bold text-[#1D5F31] focus:bg-slate-50 rounded-xl cursor-pointer hover:text-[#00a302] bg-green-50/50">Modo Aluno (Testes)</DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
@@ -130,7 +130,7 @@ export default function NavbarTeacher() {
 
                     {/* Search Component */}
                     <div className="flex items-center gap-2 relative">
-                        <div className={`flex items-center bg-slate-50 border border-slate-100 rounded-none px-3 py-1.5 transition-all duration-300 ${isSearchOpen ? 'w-36 sm:w-48 md:w-64 opacity-100' : 'w-0 opacity-0 pointer-events-none border-none'}`}>
+                        <div className={`flex items-center bg-slate-50 border border-slate-100 rounded-xl px-3 py-1.5 transition-all duration-300 ${isSearchOpen ? 'w-36 sm:w-48 md:w-64 opacity-100' : 'w-0 opacity-0 pointer-events-none border-none'}`}>
                             <Search size={16} className="text-slate-400 mr-2" />
                             <input
                                 type="text"
@@ -173,9 +173,9 @@ export default function NavbarTeacher() {
                             <DropdownMenuContent
                                 align="end"
                                 sideOffset={8}
-                                className="bg-white text-slate-900 w-[calc(100vw-32px)] sm:w-72 shadow-sm border border-slate-200 rounded-none overflow-hidden p-3 z-[200] animate-in slide-in-from-top-2"
+                                className="bg-white text-slate-900 w-[calc(100vw-32px)] sm:w-72 shadow-sm border border-slate-200 rounded-xl overflow-hidden p-3 z-[200] animate-in slide-in-from-top-2"
                             >
-                                <div className="px-5 py-6 bg-slate-50/50 mb-2 rounded-none">
+                                <div className="px-5 py-6 bg-slate-50/50 mb-2 rounded-xl">
                                     <p className="font-black uppercase tracking-tighter text-sm text-slate-800 line-clamp-1">
                                         PROFESSOR POWERPLAY
                                     </p>
@@ -189,20 +189,20 @@ export default function NavbarTeacher() {
 
                                 <div className="p-1 space-y-1">
                                     {userProfile?.role === 'admin' && (
-                                        <DropdownMenuItem onSelect={() => router.push("/admin/dashboard")} className="flex items-center gap-4 px-4 py-3 rounded-none cursor-pointer hover:bg-green-50 text-[#1D5F31] transition-colors focus:bg-green-50 border border-green-100 mb-1">
+                                        <DropdownMenuItem onSelect={() => router.push("/admin/dashboard")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-green-50 text-[#1D5F31] transition-colors focus:bg-green-50 border border-green-100 mb-1">
                                             <ShieldAlert size={18} className="text-[#1D5F31]" />
                                             <span className="text-[11px] font-black uppercase tracking-widest leading-none">Acessar Painel Admin</span>
                                         </DropdownMenuItem>
                                     )}
-                                    <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/profile")} className="flex items-center gap-4 px-4 py-3 rounded-none cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors focus:bg-slate-50">
+                                    <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/profile")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors focus:bg-slate-50">
                                         <UserCog size={18} className="text-slate-400" />
                                         <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Editar Perfil</span>
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/settings")} className="flex items-center gap-4 px-4 py-3 rounded-none cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors focus:bg-slate-50">
+                                    <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/settings")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors focus:bg-slate-50">
                                         <Settings size={18} className="text-slate-400" />
                                         <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Configurações</span>
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/students")} className="flex items-center gap-4 px-4 py-3 rounded-none cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors focus:bg-slate-50">
+                                    <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/students")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors focus:bg-slate-50">
                                         <Users size={18} className="text-slate-400" />
                                         <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Alunos</span>
                                     </DropdownMenuItem>
@@ -212,11 +212,11 @@ export default function NavbarTeacher() {
                                     <div className="px-3 py-2">
                                         <p className="text-[9px] font-black uppercase tracking-[2px] text-slate-400 mb-2 px-2">Suporte & Ajuda</p>
                                         <div className="grid grid-cols-2 gap-2">
-                                            <DropdownMenuItem onSelect={() => router.push("/contact")} className="flex flex-col items-center justify-center p-3 rounded-none bg-slate-50 hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer focus:bg-slate-100">
+                                            <DropdownMenuItem onSelect={() => router.push("/contact")} className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer focus:bg-slate-100">
                                                 <HelpCircle size={20} className="mb-2 text-slate-400" />
                                                 <span className="text-[9px] font-bold uppercase tracking-widest">FAQ</span>
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/chat")} className="flex flex-col items-center justify-center p-3 rounded-none bg-slate-50 hover:bg-slate-100 text-[#1D5F31] transition-colors cursor-pointer focus:bg-slate-100">
+                                            <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/chat")} className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-[#1D5F31] transition-colors cursor-pointer focus:bg-slate-100">
                                                 <MessageSquare size={20} className="mb-2" />
                                                 <span className="text-[9px] font-bold uppercase tracking-widest text-slate-600">Chat</span>
                                             </DropdownMenuItem>
@@ -227,7 +227,7 @@ export default function NavbarTeacher() {
 
                                     <DropdownMenuItem
                                         onSelect={handleSignOut}
-                                        className="flex items-center justify-between px-4 py-3 rounded-none cursor-pointer bg-red-50/50 hover:bg-red-100 text-red-600 transition-colors mt-2 focus:bg-red-100"
+                                        className="flex items-center justify-between px-4 py-3 rounded-xl cursor-pointer bg-red-50/50 hover:bg-red-100 text-red-600 transition-colors mt-2 focus:bg-red-100"
                                     >
                                         <span className="text-[11px] font-black uppercase tracking-widest">Sair da Conta</span>
                                         <LogOut size={16} />

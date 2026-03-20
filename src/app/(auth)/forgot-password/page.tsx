@@ -61,14 +61,14 @@ export default function ForgotPasswordPage() {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     placeholder="EXEMPLO@POWERPLAY.COM"
-                                    className="bg-[#061629] border-2 border-[#1D5F31] text-white rounded-none h-16 font-black text-xs uppercase tracking-widest px-8 focus:border-[#1D5F31] focus:ring-0"
+                                    className="bg-[#061629] border-2 border-[#1D5F31] text-white rounded-xl h-16 font-black text-xs uppercase tracking-widest px-8 focus:border-[#1D5F31] focus:ring-0"
                                 />
                                 {error && <p className="text-red-500 text-[10px] font-black uppercase tracking-widest">{error}</p>}
                             </div>
 
                             <Button
                                 disabled={loading}
-                                className="w-full bg-[#1D5F31] hover:bg-[#00e602] text-white font-black uppercase italic tracking-[4px] h-16 rounded-none transition-all"
+                                className="w-full bg-[#1D5F31] hover:bg-[#00e602] text-white font-black uppercase italic tracking-[4px] h-16 rounded-xl transition-all"
                             >
                                 {loading ? <Loader2 className="animate-spin" /> : "ENVIAR LINK DE RECUPERAÇÃO"}
                             </Button>

@@ -20,7 +20,7 @@ export default function MarketingLayout({
                     {children}
                 </main>
 
-                <Footer />
+                <Footer variant="dark" />
             </div>
         </AuthProvider>
     )

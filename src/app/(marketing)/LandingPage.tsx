@@ -98,7 +98,7 @@ export default function LandingPageClient({ user: initialUser }: LandingPageProp
     return (
         <div style={{ minHeight: "100vh", color: "#e2e8f0", background: "transparent" }}>
             {/* ───────────────── HERO SECTION ───────────────── */}
-            <section 
+            <section
                 className="hero-section"
                 style={{
                     backgroundImage: "url('/images/hero-bg.png')",
@@ -189,8 +189,8 @@ export default function LandingPageClient({ user: initialUser }: LandingPageProp
                             />
                         </div>
                         {user || initialUser ? (
-                            <button 
-                                className="btn-cta" 
+                            <button
+                                className="btn-cta"
                                 style={{ whiteSpace: "nowrap", padding: "0.9rem 2rem" }}
                                 onClick={() => useCartStore.getState().showNotification("Você já está logado no sistema.", "info")}
                             >
@@ -298,6 +298,7 @@ export default function LandingPageClient({ user: initialUser }: LandingPageProp
                                 padding: "0.6rem 2rem",
                                 cursor: "pointer",
                                 transition: "all 0.2s",
+                                borderRadius: '0.75rem',
                             }}
                             onMouseEnter={e => {
                                 const t = e.currentTarget;
@@ -459,7 +460,7 @@ export default function LandingPageClient({ user: initialUser }: LandingPageProp
                                                             : 'Junte-se a milhares de alunos que já alcançaram cargos de destaque.'}
                                                 </p>
                                                 {user || initialUser ? (
-                                                    <button 
+                                                    <button
                                                         className="btn-cta"
                                                         onClick={() => useCartStore.getState().showNotification("Você já está logado no sistema.", "info")}
                                                     >
@@ -494,7 +495,7 @@ export default function LandingPageClient({ user: initialUser }: LandingPageProp
                                         Inicie sua jornada na PowerPlay e domine o mercado.
                                     </p>
                                     {user || initialUser ? (
-                                        <button 
+                                        <button
                                             className="btn-cta"
                                             onClick={() => useCartStore.getState().showNotification("Você já está logado no sistema.", "info")}
                                         >

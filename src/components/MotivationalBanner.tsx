@@ -39,9 +39,9 @@ export function MotivationalBanner() {
                 {/* Content */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-12 space-y-6">
                     <div className="w-12 h-[1px] bg-white/20 mb-2"></div>
-                    <h3 className="text-xl md:text-4xl font-black text-white/90 tracking-[0.2em] uppercase leading-tight max-w-3xl drop-shadow-2xl animate-in fade-in zoom-in duration-1000">
+                    <h3 className="text-xl md:text-4xl font-black !text-white tracking-[0.2em] uppercase leading-tight max-w-3xl drop-shadow-2xl animate-in fade-in zoom-in duration-1000">
                         Foco, Disciplina e Execução.<br />
-                        <span className="text-white">O seu futuro começa no conhecimento.</span>
+                        <span className="!text-white">O seu futuro começa no conhecimento.</span>
                     </h3>
                     <div className="flex items-center gap-4 mt-4">
                         <div className="h-[2px] w-8 bg-[#1D5F31]"></div>

@@ -39,7 +39,7 @@ export default function MigrationPage() {
                 </p>
             </header>
 
-            <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-none space-y-4">
+            <div className="bg-slate-900/50 border border-slate-800 p-6 rounded-xl space-y-4">
                 <div className="flex items-center gap-3 text-amber-500">
                     <AlertTriangle size={20} />
                     <span className="text-xs font-bold uppercase tracking-widest">Atenção</span>
