@@ -80,7 +80,7 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
                 <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-8 border border-slate-100 shadow-inner">
                     <LayoutGrid size={40} className="text-slate-200" />
                 </div>
-                <p className="text-slate-600 font-black uppercase tracking-[4px] text-[10px] italic">Portal Limpo: Nenhum curso aguardando revisão</p>
+                <p className="text-slate-900 font-black uppercase tracking-[4px] text-[10px] italic">Portal Limpo: Nenhum curso aguardando revisão</p>
             </div>
         )
     }
@@ -117,8 +117,8 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
                                 </h3>
                                 <div className="flex items-center gap-3 mb-8">
                                     <div className="w-1.5 h-1.5 rounded-full bg-[#1D5F31]" />
-                                    <p className="text-[10px] text-slate-600 font-black uppercase tracking-widest">
-                                        Por <span className="text-slate-900 font-black">{teachersMap[course.teacher_id] || 'Instrutor Desconhecido'}</span>
+                                    <p className="text-[10px] text-slate-900 font-black uppercase tracking-widest">
+                                        Por <span className="text-black font-black">{teachersMap[course.teacher_id] || 'Instrutor Desconhecido'}</span>
                                     </p>
                                 </div>
                             </div>
@@ -151,7 +151,7 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
                                     </div>
                                     <button
                                         onClick={() => setReviewingCourse(null)}
-                                        className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all active:scale-90"
+                                        className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-900 hover:text-black hover:bg-slate-100 transition-all active:scale-90"
                                     >
                                         <X size={20} />
                                     </button>
@@ -177,9 +177,9 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
                                             />
                                         )
                                     ) : (
-                                        <div className="flex flex-col items-center gap-6 text-slate-600 text-center px-10">
-                                            <AlertCircle size={64} strokeWidth={1.5} className="text-slate-700" />
-                                            <p className="text-[10px] font-black uppercase tracking-[5px] text-slate-500">NENHUM VÍDEO DISPONÍVEL</p>
+                                        <div className="flex flex-col items-center gap-6 text-slate-900 text-center px-10">
+                                            <AlertCircle size={64} strokeWidth={1.5} className="text-slate-900" />
+                                            <p className="text-[10px] font-black uppercase tracking-[5px] text-slate-900">NENHUM VÍDEO DISPONÍVEL</p>
                                         </div>
                                     )}
                                 </div>
@@ -193,7 +193,7 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
                                         <span className="text-[10px] font-black uppercase tracking-[4px] text-[#1D5F31]">DETALHES DA AUDITORIA</span>
                                     </div>
                                     <h3 className="text-3xl font-black uppercase tracking-tighter leading-none text-slate-900">{reviewingCourse.title}</h3>
-                                    <p className="text-[12px] text-slate-600 mt-6 leading-relaxed font-bold border-l-4 border-slate-50 pl-6 uppercase tracking-tight italic">
+                                    <p className="text-[12px] text-slate-900 mt-6 leading-relaxed font-black border-l-4 border-slate-200 pl-6 uppercase tracking-tight italic">
                                         {reviewingCourse.subtitle || 'Nenhum subtítulo fornecido pelo instrutor.'}
                                     </p>
                                 </div>
@@ -208,7 +208,7 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
                                             value={rejectionReason}
                                             onChange={(e) => setRejectionReason(e.target.value)}
                                             placeholder="Detalhamento técnico ou pedagógico para correções..."
-                                            className="w-full h-44 bg-slate-50 border border-slate-100 rounded-[24px] p-8 text-sm text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all resize-none placeholder:text-slate-400 font-bold shadow-inner"
+                                            className="w-full h-44 bg-slate-50 border border-slate-200 rounded-[24px] p-8 text-sm text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all resize-none placeholder:text-slate-500 font-bold shadow-inner"
                                         />
                                     </div>
 

@@ -97,21 +97,21 @@ export default function SalesLogList({ initialSales, teachers }: SalesLogListPro
                     <table className="w-full text-left">
                         <thead>
                             <tr className="border-b border-slate-100 bg-slate-50/50">
-                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-slate-600">Rastreio / Hash</th>
-                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-slate-600">Timeline</th>
-                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-slate-600">Montante Bruto</th>
-                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-slate-600">Dedução Plataforma</th>
-                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-slate-600">Net Instrutor</th>
-                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-slate-600">Status</th>
+                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-[#000000]">Rastreio / Hash</th>
+                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-[#000000]">Timeline</th>
+                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-[#000000]">Montante Bruto</th>
+                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-[#000000]">Dedução Plataforma</th>
+                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-[#000000]">Net Instrutor</th>
+                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-[#000000]">Status</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
                             {sales.map((sale) => (
                                 <tr key={sale.id} className="hover:bg-slate-50/50 transition-colors group">
-                                    <td className="p-8 font-mono text-[10px] text-slate-600 tracking-tighter group-hover:text-slate-900 transition-colors">
+                                    <td className="p-8 font-mono text-[10px] text-slate-900 font-bold tracking-tighter group-hover:text-black transition-colors">
                                         {sale.idTransacao}
                                     </td>
-                                    <td className="p-8 text-[10px] text-slate-600 font-bold uppercase tracking-widest">
+                                    <td className="p-8 text-[10px] text-slate-900 font-black uppercase tracking-widest">
                                         {formatDate(sale.dataCriacao)}
                                     </td>
                                     <td className="p-8 text-[11px] text-slate-900 font-black">
@@ -127,9 +127,9 @@ export default function SalesLogList({ initialSales, teachers }: SalesLogListPro
                                         <div className={`inline-flex items-center px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest ${
                                             sale.statusPagamento === 'pago' 
                                             ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
-                                            : 'bg-slate-100 text-slate-600 border border-slate-200'
+                                            : 'bg-slate-100 text-slate-900 border border-slate-400'
                                         }`}>
-                                            <div className={`w-1.5 h-1.5 rounded-full mr-2 ${sale.statusPagamento === 'pago' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
+                                            <div className={`w-1.5 h-1.5 rounded-full mr-2 ${sale.statusPagamento === 'pago' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-900'}`} />
                                             {sale.statusPagamento}
                                         </div>
                                     </td>
@@ -142,9 +142,9 @@ export default function SalesLogList({ initialSales, teachers }: SalesLogListPro
                 {sales.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-24 bg-white">
                         <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-6">
-                            <Search size={32} className="text-slate-400" />
+                            <Search size={32} className="text-slate-900" />
                         </div>
-                        <p className="text-slate-600 font-black uppercase tracking-[4px] text-[10px] italic">Base de Dados Vazia: Nenhum registro encontrado</p>
+                        <p className="text-slate-900 font-black uppercase tracking-[4px] text-[10px] italic">Base de Dados Vazia: Nenhum registro encontrado</p>
                     </div>
                 )}
             </div>

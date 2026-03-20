@@ -20,12 +20,12 @@ export default async function ApprovalsPage() {
             <header className="relative">
                 <div className="flex items-center gap-3 mb-2">
                     <div className="h-1.5 w-1.5 rounded-full bg-[#1D5F31]" />
-                    <span className="text-[10px] font-black uppercase tracking-[5px] text-slate-500">CURATORIAL BOARD</span>
+                    <span className="text-[10px] font-black uppercase tracking-[5px] text-slate-900">CURATORIAL BOARD</span>
                 </div>
                 <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase leading-none text-slate-900">
                     Moderação de <span className="text-[#1D5F31]">Conteúdo</span>
                 </h1>
-                <p className="text-slate-400 mt-4 text-[11px] font-bold uppercase tracking-[3px] max-w-2xl leading-relaxed italic border-l-4 border-slate-100 pl-6">
+                <p className="text-slate-900 mt-4 text-[11px] font-black uppercase tracking-[3px] max-w-2xl leading-relaxed italic border-l-4 border-slate-200 pl-6">
                     Módulo de auditoria técnica e pedagógica. Valide a qualidade dos treinamentos 
                     antes da exposição na vitrine principal.
                 </p>

@@ -15,7 +15,7 @@ export default async function SalesAuditPage() {
                 <h1 className="text-4xl font-black tracking-tighter uppercase leading-none text-slate-900">
                     Log de <span className="text-[#1D5F31]">Vendas</span>
                 </h1>
-                <p className="text-slate-500 mt-6 text-[11px] font-bold uppercase tracking-[2px] max-w-xl leading-relaxed italic">
+                <p className="text-slate-900 mt-6 text-[11px] font-black uppercase tracking-[2px] max-w-xl leading-relaxed italic">
                     Rastreie cada transação na plataforma. Audite o split entre PowerPlay e Instrutores com precisão industrial.
                 </p>
             </header>

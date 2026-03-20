@@ -88,12 +88,12 @@ export default async function TeacherDashboard() {
                 <div>
                     <div className="flex items-center gap-3 mb-2">
                         <div className="w-1.5 h-1.5 rounded-full bg-[#1D5F31]"></div>
-                        <span className="text-[10px] font-black uppercase tracking-[4px] text-slate-500">CREATOR STUDIO</span>
+                        <span className="text-[10px] font-black uppercase tracking-[4px] text-slate-900">CREATOR STUDIO</span>
                     </div>
                     <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-slate-900 uppercase leading-none">
                         Bem-vindo, <span className="text-[#1D5F31]">{profile?.full_name?.split(' ')[0] || 'Professor'}!</span>
                     </h1>
-                    <p className="text-slate-600 mt-3 font-bold uppercase text-[10px] tracking-[3px] italic">Gerencie seu império de conhecimento hoje.</p>
+                    <p className="text-slate-900 mt-3 font-black uppercase text-[10px] tracking-[3px] italic">Gerencie seu império de conhecimento hoje.</p>
                 </div>
                 <Link href="/dashboard-teacher/courses/new">
                     <button className="flex items-center gap-3 bg-[#1D5F31] text-white font-black uppercase tracking-widest px-10 py-5 rounded-2xl hover:opacity-90 transition shadow-xl shadow-[#1D5F31]/20 shrink-0 active:scale-95">
@@ -110,7 +110,7 @@ export default async function TeacherDashboard() {
                             <div className={`p-4 w-14 h-14 rounded-2xl bg-slate-50 border border-slate-100 mb-6 flex items-center justify-center transition-transform group-hover:scale-110 ${metric.color}`}>
                                 <metric.icon size={24} />
                             </div>
-                            <p className="text-slate-600 text-[10px] font-black uppercase tracking-[3px] mb-1">{metric.label}</p>
+                            <p className="text-slate-900 text-[10px] font-black uppercase tracking-[3px] mb-1">{metric.label}</p>
                             <h3 className="text-3xl font-black tracking-tighter text-slate-900">{metric.value}</h3>
                         </div>
                     ))}
@@ -125,7 +125,7 @@ export default async function TeacherDashboard() {
                             </div>
                             <div>
                                 <h2 className="text-2xl font-black uppercase tracking-tighter text-slate-900">Desempenho de Vendas</h2>
-                                <p className="text-slate-600 text-[9px] font-bold tracking-[3px] uppercase">Análise dos últimos 7 dias de operação</p>
+                                <p className="text-slate-900 text-[9px] font-black tracking-[3px] uppercase">Análise dos últimos 7 dias de operação</p>
                             </div>
                         </div>
                         <div className="bg-slate-50 px-6 py-3 rounded-xl border border-slate-100">
@@ -145,9 +145,9 @@ export default async function TeacherDashboard() {
                                 <Edit size={24} className="text-[#1D5F31]" />
                                 Meus Cursos
                             </h2>
-                            <p className="text-slate-600 text-[9px] font-bold tracking-[3px] uppercase mt-1 italic">Edite e publique seus treinamentos</p>
+                            <p className="text-slate-900 text-[9px] font-black tracking-[3px] uppercase mt-1 italic">Edite e publique seus treinamentos</p>
                         </div>
-                        <Link href="/dashboard-teacher/courses" className="text-[11px] text-slate-500 hover:text-[#1D5F31] font-black uppercase tracking-[3px] bg-white px-6 py-3 rounded-xl border border-slate-200 shadow-sm transition-all hover:shadow-md">
+                        <Link href="/dashboard-teacher/courses" className="text-[11px] text-slate-900 hover:text-[#1D5F31] font-black uppercase tracking-[3px] bg-white px-6 py-3 rounded-xl border border-slate-400 shadow-sm transition-all hover:shadow-md">
                             Ver todos os cursos
                         </Link>
                     </div>
@@ -167,7 +167,7 @@ export default async function TeacherDashboard() {
                                         <Link href={`/dashboard-teacher/courses/${curso.id}/edit`} className="flex-1">
                                             <button className="w-full bg-slate-900 text-white font-black uppercase text-[10px] tracking-widest py-4 rounded-xl hover:bg-[#1D5F31] transition-all shadow-md active:scale-95">Editar</button>
                                         </Link>
-                                        <Link href={`/dashboard-teacher/chat?course=${curso.id}`} className="p-4 bg-slate-50 text-slate-600 hover:text-[#1D5F31] hover:bg-white border border-slate-100 rounded-xl transition-all shadow-sm">
+                                        <Link href={`/dashboard-teacher/chat?course=${curso.id}`} className="p-4 bg-slate-50 text-slate-900 hover:text-[#1D5F31] hover:bg-white border border-slate-200 rounded-xl transition-all shadow-sm">
                                             <MessageSquare size={16} />
                                         </Link>
                                     </div>
@@ -179,7 +179,7 @@ export default async function TeacherDashboard() {
                                     <Plus size={32} className="text-slate-300" />
                                 </div>
                                 <h3 className="text-xl font-black uppercase tracking-tighter text-slate-900 mb-2">Seu catálogo está vazio</h3>
-                                <p className="text-slate-600 text-xs font-bold uppercase tracking-[3px]">Comece a criar seu primeiro curso agora mesmo.</p>
+                                <p className="text-slate-900 text-xs font-black uppercase tracking-[3px]">Comece a criar seu primeiro curso agora mesmo.</p>
                                 <Link href="/dashboard-teacher/courses/new" className="inline-block mt-8 bg-[#1D5F31] text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-[#1D5F31]/10 hover:opacity-90 transition">
                                     Criar Curso
                                 </Link>

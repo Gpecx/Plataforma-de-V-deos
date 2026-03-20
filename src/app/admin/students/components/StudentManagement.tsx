@@ -48,12 +48,12 @@ export default function StudentManagement({ initialStudents }: StudentManagement
             {/* Search Bar Container */}
             <div className="bg-white p-10 rounded-[32px] border border-slate-200 shadow-sm">
                 <div className="relative max-w-xl group">
-                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1D5F31] transition-colors" size={18} />
+                    <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-900 group-focus-within:text-[#1D5F31] transition-colors" size={18} />
                     <input
                         placeholder="Buscar aluno por nome ou email corporativo..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-14 py-5 text-[10px] text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all font-black uppercase tracking-[2px] placeholder:text-slate-400 shadow-inner"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-14 py-5 text-[10px] text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all font-black uppercase tracking-[2px] placeholder:text-slate-500 shadow-inner"
                     />
                 </div>
             </div>
@@ -64,9 +64,9 @@ export default function StudentManagement({ initialStudents }: StudentManagement
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="border-b border-slate-50 bg-slate-50/30">
-                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-slate-600">Identificação</th>
-                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-slate-600">Status Firewall</th>
-                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-slate-600 text-right">Diretrizes</th>
+                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-slate-900">Identificação</th>
+                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-slate-900">Status Firewall</th>
+                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-slate-900 text-right">Diretrizes</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
@@ -79,7 +79,7 @@ export default function StudentManagement({ initialStudents }: StudentManagement
                                             </div>
                                             <div className="flex flex-col">
                                                 <span className="font-black text-slate-900 uppercase tracking-tight text-[13px] group-hover:text-[#1D5F31] transition-colors">{student.full_name || 'N/A'}</span>
-                                                <span className="text-[10px] text-slate-600 font-bold tracking-widest uppercase italic mt-1">{student.email}</span>
+                                                <span className="text-[11px] text-slate-900 font-black tracking-widest uppercase italic mt-1">{student.email}</span>
                                             </div>
                                         </div>
                                     </td>
@@ -110,10 +110,10 @@ export default function StudentManagement({ initialStudents }: StudentManagement
 
                 {filteredStudents.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-32 bg-slate-50/50">
-                        <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-inner border border-slate-100 mb-6">
-                            <Search size={32} className="text-slate-400" />
+                        <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-inner border border-slate-200 mb-6">
+                            <Search size={32} className="text-slate-900" />
                         </div>
-                        <p className="text-slate-600 font-black uppercase tracking-[4px] text-[10px] italic">Protocolo de busca: Nenhum registro localizado</p>
+                        <p className="text-slate-900 font-black uppercase tracking-[4px] text-[10px] italic">Protocolo de busca: Nenhum registro localizado</p>
                     </div>
                 )}
             </div>

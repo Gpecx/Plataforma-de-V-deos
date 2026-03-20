@@ -34,7 +34,7 @@ export default function MigrationPage() {
                 <h1 className="text-4xl font-black tracking-tighter uppercase leading-none">
                     Migração de <span className="text-[#1D5F31]">Dados</span>
                 </h1>
-                <p className="text-slate-400 text-sm font-medium leading-relaxed">
+                <p className="text-slate-900 text-sm font-black leading-relaxed">
                     Este script percorre as coleções <code className="text-[#1D5F31]">courses</code> e <code className="text-[#1D5F31]">lessons</code> para adicionar o campo <code className="text-[#1D5F31]">status: "APROVADO"</code> aos documentos antigos.
                 </p>
             </header>

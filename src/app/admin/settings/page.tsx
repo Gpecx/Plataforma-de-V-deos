@@ -127,7 +127,7 @@ export default function AdminSettingsPage() {
                 {items.length === 0 && (
                     <div className="text-center py-20 border-2 border-dashed border-slate-100 rounded-[32px] bg-slate-50/50">
                         <ImageIcon className="mx-auto text-slate-200 mb-6" size={48} strokeWidth={1} />
-                        <p className="text-slate-600 font-black uppercase tracking-[4px] text-[11px] italic">Galeria de Banners Vazia</p>
+                        <p className="text-slate-900 font-black uppercase tracking-[4px] text-[11px] italic">Galeria de Banners Vazia</p>
                     </div>
                 )}
                 <div className="grid grid-cols-1 gap-8">
@@ -209,7 +209,7 @@ export default function AdminSettingsPage() {
                     <h1 className="text-5xl font-black uppercase tracking-tighter text-slate-900 flex items-center gap-6 leading-none">
                         Branding & <span className="text-[#1D5F31]">Banners</span>
                     </h1>
-                    <p className="text-slate-600 uppercase tracking-widest text-[11px] font-bold mt-8 max-w-2xl leading-relaxed italic">
+                    <p className="text-slate-900 uppercase tracking-widest text-[11px] font-black mt-8 max-w-2xl leading-relaxed italic">
                         Controle total sobre a identidade visual e estratégias de marketing imersivo da plataforma.
                     </p>
                 </div>
@@ -222,7 +222,7 @@ export default function AdminSettingsPage() {
                         </div>
                         <div>
                             <h2 className="text-lg font-black uppercase tracking-widest text-slate-900">Identidade Visual</h2>
-                            <p className="text-[10px] text-slate-600 font-bold uppercase tracking-[2px]">Logística de Marca e Paleta Core</p>
+                            <p className="text-[10px] text-slate-900 font-black uppercase tracking-[2px]">Logística de Marca e Paleta Core</p>
                         </div>
                         <div className="flex-1 h-px bg-slate-50 ml-6" />
                     </div>
@@ -241,7 +241,7 @@ export default function AdminSettingsPage() {
                                             value={settings.branding.siteName}
                                             onChange={(e) => setBranding('siteName', e.target.value)}
                                             placeholder="Ex: PowerPlay Academy"
-                                            className="rounded-2xl h-16 font-bold text-slate-900 text-lg bg-slate-50 border border-slate-100 focus:border-[#1D5F31]/30 focus:bg-white transition-all shadow-inner px-8 placeholder:text-slate-400"
+                                            className="rounded-2xl h-16 font-black text-slate-900 text-lg bg-slate-50 border border-slate-200 focus:border-[#1D5F31]/30 focus:bg-white transition-all shadow-inner px-8 placeholder:text-slate-500"
                                         />
                                     </div>
 
@@ -262,7 +262,7 @@ export default function AdminSettingsPage() {
                                                     value={settings.branding.primaryColor}
                                                     onChange={(e) => setBranding('primaryColor', e.target.value)}
                                                     placeholder="#1D5F31"
-                                                    className="rounded-2xl h-16 font-mono font-black text-slate-900 bg-slate-50 border border-slate-100 px-8 placeholder:text-slate-400"
+                                                    className="rounded-2xl h-16 font-mono font-black text-slate-900 bg-slate-50 border border-slate-200 px-8 placeholder:text-slate-500"
                                                 />
                                             </div>
                                         </div>
@@ -288,19 +288,19 @@ export default function AdminSettingsPage() {
                                                 <Loader2 className="animate-spin text-[#1D5F31]" size={36} />
                                             ) : (
                                                 <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                                                    <UploadCloud size={24} className="text-slate-300" />
+                                                    <UploadCloud size={24} className="text-slate-900" />
                                                 </div>
                                             )}
                                             <div>
                                                 <p className="text-[11px] font-black uppercase tracking-tight text-slate-900">Upload de Marca</p>
-                                                <p className="text-[9px] text-slate-600 font-bold uppercase tracking-widest mt-1">PNG, SVG (Max 5MB)</p>
+                                                <p className="text-[9px] text-slate-900 font-black uppercase tracking-widest mt-1">PNG, SVG (Max 5MB)</p>
                                             </div>
                                         </div>
 
                                         <div className="bg-slate-50 border border-slate-100 rounded-[32px] p-10 flex flex-col items-center justify-center min-h-[180px] relative overflow-hidden group/logo shadow-inner">
                                             <div className="absolute top-4 left-6 flex items-center gap-2">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-[#1D5F31]"></div>
-                                                <span className="text-[8px] font-black uppercase tracking-[3px] text-slate-600">Visualização de UI</span>
+                                                <span className="text-[8px] font-black uppercase tracking-[3px] text-slate-900">Visualização de UI</span>
                                             </div>
                                             <div className="h-24 w-full flex items-center justify-center">
                                                 <img
@@ -325,7 +325,7 @@ export default function AdminSettingsPage() {
                         </div>
                         <div>
                             <h2 className="text-lg font-black uppercase tracking-widest text-slate-900">Curadoria de Banners</h2>
-                            <p className="text-[10px] text-slate-600 font-bold uppercase tracking-[2px]">Experiências Imersivas por Seção</p>
+                            <p className="text-[10px] text-slate-900 font-black uppercase tracking-[2px]">Experiências Imersivas por Seção</p>
                         </div>
                         <div className="flex-1 h-px bg-slate-50 ml-6" />
                     </div>

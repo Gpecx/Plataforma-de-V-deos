@@ -138,7 +138,7 @@ export default async function StudentDashboard() {
                             <Sparkles size={22} className="text-[#1D5F31]" />
                             Recomendados para você
                         </h2>
-                        <span className="hidden md:block text-[9px] font-black uppercase tracking-[3px] text-slate-400">Vitrine Exclusiva</span>
+                        <span className="hidden md:block text-[9px] font-black uppercase tracking-[3px] text-slate-900">Vitrine Exclusiva</span>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -158,7 +158,7 @@ export default async function StudentDashboard() {
                                 <div className="p-6 flex-grow flex flex-col">
                                     {/* TÍTULO DO CURSO - Garanti que está PRETO e VISÍVEL */}
                                     <h3 className="font-black text-base mb-2 !text-black uppercase leading-tight line-clamp-2 group-hover:text-[#1D5F31] transition-colors">{curso.title}</h3>
-                                    <p className="!text-slate-800 text-[10px] font-bold uppercase italic line-clamp-2 mb-6">
+                                    <p className="!text-black text-[10px] font-black uppercase italic line-clamp-2 mb-6">
                                         {curso.description || 'Domine esta habilidade com o método PowerPlay.'}
                                     </p>
 

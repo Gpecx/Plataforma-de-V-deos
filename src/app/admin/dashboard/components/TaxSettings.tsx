@@ -42,7 +42,7 @@ export default function TaxSettings({ currentTax }: TaxSettingsProps) {
                             type="number" 
                             value={tax} 
                             onChange={(e) => setTax(Number(e.target.value))}
-                            className="bg-slate-50 border border-slate-200 px-4 py-3 text-slate-900 outline-none focus:border-[#1D5F31] transition-all flex-grow font-bold placeholder:text-slate-400"
+                            className="bg-slate-50 border border-slate-200 px-4 py-3 text-slate-900 outline-none focus:border-[#1D5F31] transition-all flex-grow font-black placeholder:text-slate-500"
                         />
                         <button 
                             onClick={handleSave}
@@ -53,7 +53,7 @@ export default function TaxSettings({ currentTax }: TaxSettingsProps) {
                         </button>
                     </div>
                 </div>
-                <p className="text-[9px] text-slate-600 font-bold uppercase tracking-wider italic">
+                <p className="text-[9px] text-slate-900 font-black uppercase tracking-wider italic">
                     * Esta taxa será aplicada em todos os novos cálculos de repasse.
                 </p>
             </div>

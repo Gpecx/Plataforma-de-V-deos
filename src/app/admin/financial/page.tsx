@@ -112,7 +112,7 @@ export default function AdminFinancialPage() {
                 <h1 className="text-5xl font-black tracking-tighter uppercase leading-none text-slate-900">
                     Configurações <span className="text-[#1D5F31]">Estratégicas</span>
                 </h1>
-                <p className="text-slate-600 font-bold text-[11px] tracking-[3px] uppercase mt-8 max-w-2xl leading-relaxed italic">
+                <p className="text-slate-900 font-bold text-[11px] tracking-[3px] uppercase mt-8 max-w-2xl leading-relaxed italic">
                     Gestão centralizada de taxas de intermediação e arquitetura de precificação recursiva.
                 </p>
             </header>
@@ -128,7 +128,7 @@ export default function AdminFinancialPage() {
                                 </div>
                                 Fee da Plataforma
                             </CardTitle>
-                            <CardDescription className="text-[10px] uppercase font-bold text-slate-600 mt-2">Dedução Automática por Transação</CardDescription>
+                            <CardDescription className="text-[10px] uppercase font-bold text-slate-900 mt-2">Dedução Automática por Transação</CardDescription>
                         </CardHeader>
                         <CardContent className="p-10 space-y-8">
                             <div className="space-y-4">
@@ -140,11 +140,11 @@ export default function AdminFinancialPage() {
                                         onChange={(e) => setSettings({ ...settings, platformTax: Number(e.target.value) })}
                                         className="bg-slate-50 border border-slate-100 rounded-3xl h-20 text-4xl font-black text-slate-900 px-10 focus:border-[#1D5F31]/30 focus:bg-white transition-all shadow-inner"
                                     />
-                                    <div className="absolute right-10 top-1/2 -translate-y-1/2 text-slate-400 font-black text-2xl group-hover:text-slate-500 transition-colors">%</div>
+                                    <div className="absolute right-10 top-1/2 -translate-y-1/2 text-slate-900 font-black text-2xl">%</div>
                                 </div>
                             </div>
-                            <div className="p-8 bg-slate-50 rounded-[32px] border border-slate-100 border-dashed">
-                                <p className="text-[10px] text-slate-600 font-bold uppercase tracking-tight leading-relaxed italic">
+                            <div className="p-8 bg-slate-50 rounded-[32px] border border-slate-200 border-dashed">
+                                <p className="text-[10px] text-slate-900 font-bold uppercase tracking-tight leading-relaxed italic">
                                     * Este parâmetro impacta o split em tempo real. Uma taxa de {settings.platformTax}% resulta em um repasse líquido de {100 - settings.platformTax}% para o produtor.
                                 </p>
                             </div>
@@ -160,8 +160,8 @@ export default function AdminFinancialPage() {
                                 <ShieldCheck className="text-[#1D5F31]" size={24} strokeWidth={2.5} />
                             </div>
                             <div>
-                                <h2 className="text-base font-black uppercase tracking-widest text-slate-900">Catálogo de Assinaturas</h2>
-                                <p className="text-[10px] text-slate-600 font-bold uppercase tracking-[2px]">Estruturas de Acesso Recorrente</p>
+                                <h2 className="text-base font-black uppercase tracking-widest text-[#000000]">Catálogo de Assinaturas</h2>
+                                <p className="text-[10px] text-slate-900 font-black uppercase tracking-[2px]">Estruturas de Acesso Recorrente</p>
                             </div>
                         </div>
                         <Button onClick={addPlan} className="bg-slate-900 text-white hover:bg-[#1D5F31] text-[10px] font-black uppercase tracking-[3px] h-14 px-8 rounded-2xl transition-all shadow-lg active:scale-95">
@@ -177,11 +177,11 @@ export default function AdminFinancialPage() {
                                         <Input 
                                             value={plan.name} 
                                             onChange={(e) => updatePlan(pIdx, 'name', e.target.value)}
-                                            className="bg-transparent border-none text-xl font-black uppercase tracking-tighter text-slate-900 p-0 h-auto focus-visible:ring-0 placeholder:text-slate-400"
+                                            className="bg-transparent border-none text-xl font-black uppercase tracking-tighter text-slate-900 p-0 h-auto focus-visible:ring-0 placeholder:text-slate-500"
                                             placeholder="NOME DO PLANO"
                                         />
                                     </div>
-                                    <Button variant="ghost" onClick={() => removePlan(pIdx)} className="w-12 h-12 p-0 text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-all rounded-full active:scale-75">
+                                    <Button variant="ghost" onClick={() => removePlan(pIdx)} className="w-12 h-12 p-0 text-slate-900 font-black hover:text-rose-600 hover:bg-rose-50 transition-all rounded-full active:scale-75">
                                         <Trash2 size={20} />
                                     </Button>
                                 </CardHeader>
@@ -190,7 +190,7 @@ export default function AdminFinancialPage() {
                                         <div className="space-y-4">
                                             <Label className="text-[10px] font-black uppercase tracking-widest text-slate-900">Mensalidade Nominal (BRL)</Label>
                                             <div className="relative group">
-                                                <DollarSign size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-200 group-hover:text-[#1D5F31] transition-colors" />
+                                                <DollarSign size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-900 group-hover:text-[#1D5F31] transition-colors" />
                                                 <Input 
                                                     type="number" 
                                                     value={plan.price} 
@@ -207,7 +207,7 @@ export default function AdminFinancialPage() {
                                                 : 'bg-slate-50 border-slate-100 text-slate-400'
                                             }`}
                                         >
-                                            <div className={`w-3 h-3 rounded-full ${plan.active ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
+                                            <div className={`w-3 h-3 rounded-full ${plan.active ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
                                             <span className="text-[10px] font-black uppercase tracking-[3px]">Status: {plan.active ? 'ATIVO NO MERCADO' : 'EM MODO RASCUNHO'}</span>
                                         </div>
                                     </div>
@@ -223,10 +223,10 @@ export default function AdminFinancialPage() {
                                                     <Input 
                                                         value={feat} 
                                                         onChange={(e) => updateFeature(pIdx, fIdx, e.target.value)}
-                                                        className="bg-slate-50 border border-slate-50 rounded-xl h-12 text-[11px] text-slate-600 font-bold focus:bg-white focus:border-[#1D5F31]/20 transition-all"
+                                                        className="bg-slate-50 border border-slate-200 rounded-xl h-12 text-[11px] text-slate-900 font-black focus:bg-white focus:border-[#1D5F31]/20 transition-all"
                                                         placeholder="Vantagem técnica..."
                                                     />
-                                                    <Button variant="ghost" size="icon" onClick={() => removeFeature(pIdx, fIdx)} className="h-12 w-12 text-slate-200 hover:text-rose-500 hover:bg-rose-50 transition-all rounded-xl active:scale-75">
+                                                    <Button variant="ghost" size="icon" onClick={() => removeFeature(pIdx, fIdx)} className="h-12 w-12 text-slate-900 font-black hover:text-rose-600 hover:bg-rose-50 transition-all rounded-xl active:scale-75">
                                                         <Trash2 size={14} />
                                                     </Button>
                                                 </div>
@@ -234,7 +234,7 @@ export default function AdminFinancialPage() {
                                             <Button 
                                                 variant="ghost" 
                                                 onClick={() => addFeature(pIdx)}
-                                                className="w-full border-2 border-dashed border-slate-200 text-slate-600 hover:text-[#1D5F31] hover:bg-[#1D5F31]/5 hover:border-[#1D5F31]/20 text-[10px] font-black uppercase tracking-widest h-12 rounded-xl transition-all"
+                                                className="w-full border-2 border-dashed border-slate-400 text-slate-900 hover:text-[#1D5F31] hover:bg-[#1D5F31]/5 hover:border-[#1D5F31]/20 text-[10px] font-black uppercase tracking-widest h-12 rounded-xl transition-all"
                                             >
                                                 + Adicionar Recurso
                                             </Button>

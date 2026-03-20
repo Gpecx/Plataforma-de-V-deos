@@ -49,7 +49,7 @@ export function ApprovalsContent({
                                 "flex items-center gap-4 px-10 py-4 text-[10px] font-black uppercase tracking-[3px] transition-all duration-300 rounded-xl relative",
                                 isActive 
                                     ? "text-white bg-[#1D5F31] shadow-xl shadow-[#1D5F31]/20" 
-                                    : "text-slate-400 hover:text-slate-900 hover:bg-slate-50"
+                                    : "text-slate-900 hover:text-black hover:bg-slate-50 font-black"
                             )}
                         >
                             <Icon size={16} strokeWidth={2.5} />
@@ -57,7 +57,7 @@ export function ApprovalsContent({
                             {tab.count > 0 && (
                                 <span className={cn(
                                     "ml-3 px-2 py-0.5 rounded-md text-[9px] font-black",
-                                    isActive ? "bg-white text-[#1D5F31]" : "bg-slate-100 text-slate-500"
+                                    isActive ? "bg-white text-[#1D5F31]" : "bg-slate-100 text-slate-900 font-black"
                                 )}>
                                     {tab.count}
                                 </span>

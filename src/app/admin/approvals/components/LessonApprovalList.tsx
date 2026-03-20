@@ -89,7 +89,7 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
                 <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-8 border border-slate-100 shadow-inner">
                     <PlaySquare size={40} className="text-slate-200" />
                 </div>
-                <p className="text-slate-600 font-black uppercase tracking-[4px] text-[10px] italic">Tudo em Dia: Nenhuma aula pendente</p>
+                <p className="text-slate-900 font-black uppercase tracking-[4px] text-[10px] italic">Tudo em Dia: Nenhuma aula pendente</p>
             </div>
         )
     }
@@ -99,7 +99,7 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
             <div className="overflow-x-auto">
                 <table className="w-full text-left border-separate border-spacing-y-4">
                     <thead>
-                        <tr className="text-[10px] font-black uppercase tracking-[3px] text-slate-600 text-left">
+                        <tr className="text-[10px] font-black uppercase tracking-[3px] text-slate-900 text-left">
                             <th className="px-10 py-4">Ficha Técnica</th>
                             <th className="px-10 py-4">Procedência</th>
                             <th className="px-10 py-4 text-center">Protocolo</th>
@@ -112,17 +112,17 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
                                     <div className="flex flex-col">
                                         <h3 className="font-black text-slate-900 uppercase tracking-tight text-base group-hover:text-[#1D5F31] transition-colors">{lesson.title}</h3>
                                         <div className="flex items-center gap-2 mt-2">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-slate-400"></div>
-                                            <p className="text-[10px] text-slate-600 font-bold uppercase tracking-widest italic">
-                                                CURSO: <span className="text-slate-900 font-black">{lesson.course_title}</span>
+                                            <div className="w-1.5 h-1.5 rounded-full bg-slate-900"></div>
+                                            <p className="text-[10px] text-slate-900 font-black uppercase tracking-widest italic">
+                                                CURSO: <span className="text-black font-black">{lesson.course_title}</span>
                                             </p>
                                         </div>
                                     </div>
                                 </td>
                                 <td className="px-10 py-8">
-                                    <div className="flex flex-col text-[10px] text-slate-600 font-bold uppercase tracking-widest">
-                                        <span className="text-[8px] text-slate-400 mb-1">CRIADOR</span>
-                                        <span className="text-slate-900 font-black">{teachersMap[lesson.teacher_id] || 'Instrutor Desconhecido'}</span>
+                                    <div className="flex flex-col text-[10px] text-slate-900 font-black uppercase tracking-widest">
+                                        <span className="text-[8px] text-slate-700 mb-1">CRIADOR</span>
+                                        <span className="text-black font-black">{teachersMap[lesson.teacher_id] || 'Instrutor Desconhecido'}</span>
                                     </div>
                                 </td>
                                 <td className="px-10 py-8 rounded-r-[32px] text-center">
@@ -155,7 +155,7 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
                                     </div>
                                     <button 
                                         onClick={() => setReviewingLesson(null)} 
-                                        className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-all active:scale-90"
+                                        className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-900 hover:text-black hover:bg-slate-100 transition-all active:scale-90"
                                     >
                                         <X size={20} />
                                     </button>
@@ -190,8 +190,8 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
                                         <span className="text-[10px] font-black uppercase tracking-[4px] text-[#1D5F31]">DETALHES DA UNIDADE</span>
                                     </div>
                                     <h3 className="text-3xl font-black uppercase tracking-tighter leading-none text-slate-900">{reviewingLesson.title}</h3>
-                                    <div className="mt-8 p-6 bg-slate-50 rounded-2xl border border-slate-100">
-                                        <p className="text-[9px] text-slate-600 font-black uppercase tracking-widest mb-1">VINCULADA AO CURSO</p>
+                                    <div className="mt-8 p-6 bg-slate-100 rounded-2xl border border-slate-200">
+                                        <p className="text-[9px] text-slate-900 font-black uppercase tracking-widest mb-1">VINCULADA AO CURSO</p>
                                         <p className="text-[12px] text-slate-900 font-black uppercase tracking-widest leading-tight">{reviewingLesson.course_title}</p>
                                     </div>
                                 </div>
@@ -206,7 +206,7 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
                                             value={rejectionReason}
                                             onChange={(e) => setRejectionReason(e.target.value)}
                                             placeholder="Detalhamento das correções técnicas necessárias..."
-                                            className="w-full h-44 bg-slate-50 border border-slate-100 rounded-[24px] p-8 text-sm text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all resize-none placeholder:text-slate-400 font-bold shadow-inner"
+                                            className="w-full h-44 bg-slate-50 border border-slate-200 rounded-[24px] p-8 text-sm text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all resize-none placeholder:text-slate-500 font-bold shadow-inner"
                                         />
                                     </div>
 
