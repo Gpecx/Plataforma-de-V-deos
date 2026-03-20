@@ -2,34 +2,28 @@ import * as admin from 'firebase-admin';
 
 if (!admin.apps.length) {
     try {
-        // Tentamos limpar a chave do .env se ela existir
-        const rawKey = process.env.FIREBASE_PRIVATE_KEY;
-        const privateKey = rawKey ? rawKey.replace(/\\n/g, '\n').replace(/"/g, '') : undefined;
+        const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n').replace(/"/g, '');
 
         if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_CLIENT_EMAIL && privateKey) {
-            console.log('Firebase Admin: Tentando inicializar via Variáveis de Ambiente...');
+            console.log('Firebase Admin: Inicializando via Variáveis de Ambiente...');
             admin.initializeApp({
                 credential: admin.credential.cert({
                     projectId: process.env.FIREBASE_PROJECT_ID,
                     clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
                     privateKey: privateKey,
                 }),
-                storageBucket: 'cursos-a5922.firebasestorage.app'
+                storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || `${process.env.FIREBASE_PROJECT_ID}.appspot.com`
             });
+            console.log('Firebase Admin: Inicializado com sucesso.');
         } else {
-            // Se as variáveis falharem, usamos o arquivo físico (Mais seguro para você agora)
-            console.log('Firebase Admin: Usando arquivo serviceAccountKey.json');
-            const serviceAccount = require('../../serviceAccountKey.json');
-            admin.initializeApp({
-                credential: admin.credential.cert(serviceAccount),
-                storageBucket: 'cursos-a5922.firebasestorage.app'
-            });
+            console.error('Firebase Admin: Erro - Variáveis de ambiente FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL ou FIREBASE_PRIVATE_KEY ausentes.');
         }
     } catch (error) {
-        console.error('Firebase admin initialization error:', error);
+        console.error('Firebase Admin: Erro durante a inicialização:', error);
     }
 }
 
+// Exportamos as instâncias garantindo que o app default existe
 export const adminDb = admin.firestore();
 export const adminAuth = admin.auth();
 export const adminStorage = admin.storage();
