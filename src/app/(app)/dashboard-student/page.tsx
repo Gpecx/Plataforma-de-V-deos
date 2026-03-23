@@ -8,6 +8,7 @@ import { StudentCarousel } from '@/components/dashboard/StudentCarousel'
 import { StoreInitializer } from '@/components/dashboard/StoreInitializer'
 import { parseFirebaseDate } from '@/lib/date-utils'
 import { getBanners } from '@/app/admin/settings/actions'
+import { ContinueLessonButton } from '@/components/dashboard/ContinueLessonButton'
 
 export default async function StudentDashboard() {
     const cookieStore = cookies()
@@ -49,7 +50,7 @@ export default async function StudentDashboard() {
             <StoreInitializer purchasedCourseIds={purchasedCourseIds} />
 
             {/* 1. BANNER FULL WIDTH + TEXTO SOBREPOSTO (ESTRUTURA EXTERNA) */}
-            <section className="relative w-full overflow-hidden border-b border-black">
+            <section className="relative w-full overflow-hidden">
 
                 {/* Texto de Boas-Vindas flutuando sobre o banner */}
                 <div className="absolute top-10 left-6 md:left-12 lg:left-16 z-20 pointer-events-none">
@@ -98,11 +99,7 @@ export default async function StudentDashboard() {
                                             <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
                                                 <div className="bg-[#1D5F31] h-full shadow-[0_0_10px_rgba(29,95,49,0.3)]" style={{ width: `45%` }}></div>
                                             </div>
-                                            <Link href={`/classroom/${curso.id}`}>
-                                                <button className="w-full bg-black text-white font-black uppercase text-[11px] tracking-widest py-4 rounded-xl hover:bg-[#1D5F31] transition-all shadow-md active:scale-95">
-                                                    Continuar Aula
-                                                </button>
-                                            </Link>
+                                            <ContinueLessonButton courseId={curso.id} />
                                         </div>
                                     </div>
                                 </div>

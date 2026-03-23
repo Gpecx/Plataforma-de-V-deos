@@ -5,16 +5,17 @@ export default async function TeachersPage() {
     const teachers = await getAllTeachers()
 
     return (
-        <div className="space-y-12 animate-in fadeIn duration-700 font-exo p-8 md:p-12">
-            <header>
-                <div className="flex items-center gap-3 mb-2">
-                    <div className="h-1.5 w-1.5 rounded-full bg-[#1D5F31]" />
-                    <span className="text-[10px] font-black uppercase tracking-[5px] text-slate-900">FACULTY GOVERNANCE</span>
+        <div className="flex flex-col gap-8 animate-in fadeIn duration-700 font-exo p-8 md:p-12">
+            <header className="flex flex-col items-center text-center mb-2">
+                <div className="flex items-center gap-3 mb-4">
+                    <div className="h-[1px] w-8 bg-black" />
+                    <span className="text-black[11px] font-medium uppercase tracking-widest text-black">ADMINISTRADOR</span>
+                    <div className="h-[1px] w-8 bg-black" />
                 </div>
-                <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase leading-none text-slate-900">
-                    Controle de <span className="text-[#1D5F31]">Professores</span>
+                <h1 className="text-5xl font-[900] tracking-tighter uppercase italic leading-none text-black text-center">
+                    <span className="text-black">Controle de Professores</span>
                 </h1>
-                <p className="text-slate-900 mt-4 text-[10px] font-black uppercase tracking-[3px] max-w-xl leading-relaxed italic">
+                <p className="text-black mt-4 text-[11px] font-medium uppercase tracking-widest max-w-xl leading-tight">
                     Visualize todos os instrutores da plataforma e audite seus respectivos alunos e turmas em tempo real.
                 </p>
             </header>

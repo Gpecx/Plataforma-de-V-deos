@@ -26,7 +26,7 @@ export default function TaxSettings({ currentTax }: TaxSettingsProps) {
     }
 
     return (
-        <div className="bg-white p-8 border border-[#D1D7DC] shadow-sm rounded-xl">
+        <div className="bg-white p-8 border border-black shadow-sm rounded-xl">
             <div className="flex items-center gap-3 mb-6">
                 <Settings className="text-[#1D5F31]" size={20} />
                 <h3
@@ -48,7 +48,7 @@ export default function TaxSettings({ currentTax }: TaxSettingsProps) {
                             type="number" 
                             value={tax} 
                             onChange={(e) => setTax(Number(e.target.value))}
-                            className="bg-white border-2 border-[#D1D7DC] px-4 py-3 outline-none focus:border-[#1D5F31] transition-all flex-grow font-black"
+                            className="bg-white border-2 border-black px-4 py-3 outline-none focus:border-black transition-all flex-grow font-black"
                             style={{ color: '#000000', backgroundColor: '#ffffff' }}
                         />
                         <button 

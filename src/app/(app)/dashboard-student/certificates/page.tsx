@@ -41,7 +41,7 @@ export default function CertificatesPage() {
                                 <Lock size={12} className="text-[#1D5F31]" /> ÁREA PROTEGIDA
                             </div>
 
-                            <Link href="/course" className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[3px] text-white bg-[#061629] px-8 py-4 hover:bg-[#1D5F31] transition-all shadow-md rounded-xl">
+                            <Link href="/course" className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[3px] text-white bg-[#1D5F31] px-8 py-4 hover:brightness-110 transition-all shadow-md rounded-xl">
                                 <BookOpen size={14} /> EXPLORAR TREINAMENTOS
                             </Link>
                         </div>

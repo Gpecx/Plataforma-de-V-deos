@@ -80,10 +80,6 @@ export default function TeacherCoursesPage() {
         <div className="pb-16 md:pb-24 bg-transparent min-h-screen font-exo animate-in fade-in duration-500">
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center pt-8 px-4 md:px-8 mb-12 gap-8">
                 <div>
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#1D5F31]"></div>
-                        <span className="text-[10px] font-black uppercase tracking-[4px] text-slate-500">STUDIO ARCHIVE</span>
-                    </div>
                     <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase leading-none text-slate-900">
                         Meus <span className="text-[#1D5F31]">Cursos</span>
                     </h1>

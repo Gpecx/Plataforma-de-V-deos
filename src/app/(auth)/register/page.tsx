@@ -261,9 +261,9 @@ function RegisterForm() {
     }
 
     const inputClass = (hasError: boolean = false) =>
-        `w-full p-4 bg-[#153b1b] text-white border transition-all outline-none text-sm font-medium placeholder:text-green-700/50 hover:bg-black/40 rounded-none shadow-none ${hasError
+        `w-full p-4 bg-gray-50 text-gray-900 border border-gray-300 shadow-sm transition-all outline-none text-sm font-medium placeholder:text-gray-400 focus:border-gray-500 focus:bg-white rounded-none ${hasError
             ? 'border-red-500 focus:border-red-600'
-            : 'border-[#266d35] focus:border-[#1D5F31]'
+            : ''
         }`
 
     const sectionTitleClass = 'text-gray-400 text-xs uppercase tracking-widest font-bold mb-4 block'

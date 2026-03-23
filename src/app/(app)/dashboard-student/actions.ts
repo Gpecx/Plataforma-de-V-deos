@@ -257,3 +257,32 @@ export async function signOut() {
         ; (await cookieStore).delete('firebase-token')
     redirect('/')
 }
+
+export async function getStudentTransactions() {
+    const user = await getAuthUser()
+    if (!user) return { success: false, error: 'Não autorizado' }
+
+    try {
+        const vendasSnapshot = await adminDb
+            .collection('vendas_logs')
+            .where('alunoId', '==', user.uid)
+            .get()
+
+        let transactions = vendasSnapshot.docs.map(doc => {
+            const data = doc.data()
+            return {
+                id: doc.id,
+                ...data,
+                dataCriacao: data.dataCriacao?.toDate?.().toISOString() || new Date().toISOString()
+            }
+        })
+
+        // Sort on server side to avoid missing index errors in Firebase
+        transactions.sort((a, b) => new Date(b.dataCriacao).getTime() - new Date(a.dataCriacao).getTime())
+
+        return { success: true, data: transactions }
+    } catch (error) {
+        console.error('Erro ao buscar transações:', error)
+        return { success: false, error: 'Erro ao buscar histórico de transações' }
+    }
+}

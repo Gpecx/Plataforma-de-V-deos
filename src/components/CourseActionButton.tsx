@@ -11,6 +11,7 @@ interface CourseActionButtonProps {
     coursePrice: number
     courseImageUrl?: string
     purchasedCourseIds?: string[]
+    isAdmin?: boolean
 }
 
 export function CourseActionButton({
@@ -19,27 +20,28 @@ export function CourseActionButton({
     coursePrice,
     courseImageUrl,
     purchasedCourseIds = [],
+    isAdmin = false,
 }: CourseActionButtonProps) {
     const { addItem, items, showNotification } = useCartStore()
     const router = useRouter()
-
+ 
     const isPurchased = purchasedCourseIds.includes(courseId)
+    const hasAccess = isAdmin || isPurchased
     const isInCart = items.some((item) => item.id === courseId)
-
-    // Aluno já comprou: botão "Acessar Treinamento"
-    if (isPurchased) {
+ 
+    // Aluno já comprou ou é Admin: botão "Acessar Treinamento"
+    if (hasAccess) {
         return (
-            <Link href={`/classroom/${courseId}`} className="block w-full">
-                <button
-                    style={{ borderRadius: '0px' }}
-                    className="btn-cta w-full flex items-center justify-center gap-3 group py-5 shadow-2xl shadow-[#1D5F31]/20 !text-white"
-                >
-                    <span className="relative z-10 flex items-center gap-3 text-[11px] tracking-[4px] !text-white">
-                        <PlayCircle size={18} className="!text-white" />
-                        ACESSAR TREINAMENTO
-                    </span>
-                </button>
-            </Link>
+            <button
+                onClick={() => router.push(`/classroom/${courseId}`)}
+                style={{ borderRadius: '0px' }}
+                className="btn-cta w-full flex items-center justify-center gap-3 group py-5 shadow-2xl shadow-[#1D5F31]/20 !text-white"
+            >
+                <span className="relative z-10 flex items-center gap-3 text-[11px] tracking-[4px] !text-white">
+                    <PlayCircle size={18} className="!text-white" />
+                    ACESSAR TREINAMENTO
+                </span>
+            </button>
         )
     }
 

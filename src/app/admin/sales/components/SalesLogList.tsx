@@ -40,15 +40,16 @@ export default function SalesLogList({ initialSales, teachers }: SalesLogListPro
     return (
         <div className="space-y-10 animate-in fade-in duration-700">
             {/* Filtros */}
-            <div className="bg-white border border-black p-10 flex flex-wrap gap-8 items-end rounded-[40px] shadow-sm">
+            {/* Filtros */}
+            <div className="bg-white border border-slate-100 p-8 flex flex-wrap gap-6 items-end rounded-xl shadow-sm">
                 <div className="flex-grow space-y-3 min-w-[250px]">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-900 flex items-center gap-2">
+                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
                         <UserIcon size={12} className="text-[#1D5F31]" /> Professor Responsável
                     </label>
                     <select 
                         value={professorId}
                         onChange={(e) => setProfessorId(e.target.value)}
-                        className="w-full bg-slate-50 border border-black p-4 rounded-2xl text-[11px] !text-black focus:border-black focus:bg-white outline-none transition-all uppercase font-black tracking-widest"
+                        className="w-full bg-slate-50 border border-slate-100 p-3 rounded-xl text-[11px] text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all uppercase font-bold tracking-wider"
                     >
                         <option value="">TODOS OS INSTRUTORES</option>
                         {teachers.map(t => (
@@ -58,78 +59,80 @@ export default function SalesLogList({ initialSales, teachers }: SalesLogListPro
                 </div>
 
                 <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-900 flex items-center gap-2">
+                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
                         <Calendar size={12} className="text-[#1D5F31]" /> Período Inicial
                     </label>
                     <input 
                         type="date" 
                         value={startDate}
                         onChange={(e) => setStartDate(e.target.value)}
-                        className="bg-slate-50 border border-black p-4 rounded-2xl text-[11px] !text-black focus:border-black focus:bg-white outline-none transition-all font-black"
+                        className="bg-slate-50 border border-slate-100 p-3 rounded-xl text-[11px] text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all font-bold"
                     />
                 </div>
 
                 <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-900 flex items-center gap-2">
+                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
                         <Calendar size={12} className="text-[#1D5F31]" /> Período Final
                     </label>
                     <input 
                         type="date" 
                         value={endDate}
                         onChange={(e) => setEndDate(e.target.value)}
-                        className="bg-slate-50 border border-black p-4 rounded-2xl text-[11px] !text-black focus:border-black focus:bg-white outline-none transition-all font-black"
+                        className="bg-slate-50 border border-slate-100 p-3 rounded-xl text-[11px] text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all font-bold"
                     />
                 </div>
 
-                <button 
-                    onClick={handleFilter}
-                    disabled={loading}
-                    className="bg-slate-900 text-white px-10 h-[52px] font-black uppercase text-[10px] tracking-[3px] hover:bg-[#1D5F31] transition-all flex items-center gap-3 disabled:opacity-50 rounded-2xl shadow-lg shadow-slate-900/10 active:scale-95"
-                >
-                    {loading ? <Loader2 size={18} className="animate-spin" /> : <Filter size={16} />}
-                    <span>FILTRAR DADOS</span>
-                </button>
+                <div className="ml-auto">
+                    <button 
+                        onClick={handleFilter}
+                        disabled={loading}
+                        className="bg-[#1D5F31] text-white px-8 h-12 font-bold uppercase text-xs tracking-wider hover:bg-slate-900 transition-all flex items-center gap-3 disabled:opacity-50 rounded-xl shadow-sm active:scale-95"
+                    >
+                        {loading ? <Loader2 size={18} className="animate-spin" /> : <Filter size={16} />}
+                        <span>FILTRAR DADOS</span>
+                    </button>
+                </div>
             </div>
 
             {/* Tabela de Resultados */}
-            <div className="bg-white border border-black rounded-[40px] overflow-hidden shadow-sm">
+            <div className="bg-white border border-slate-100 rounded-xl overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
-                            <tr className="border-b border-slate-100 bg-slate-50/50">
-                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-[#000000]">Rastreio / Hash</th>
-                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-[#000000]">Timeline</th>
-                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-[#000000]">Montante Bruto</th>
-                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-[#000000]">Dedução Plataforma</th>
-                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-[#000000]">Net Instrutor</th>
-                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-[#000000]">Status</th>
+                            <tr className="border-b border-slate-50 bg-slate-50/30">
+                                <th className="p-6 text-[10px] font-black uppercase tracking-wider text-slate-900">Rastreio / Hash</th>
+                                <th className="p-6 text-[10px] font-black uppercase tracking-wider text-slate-900">Timeline</th>
+                                <th className="p-6 text-[10px] font-black uppercase tracking-wider text-slate-900">Montante Bruto</th>
+                                <th className="p-6 text-[10px] font-black uppercase tracking-wider text-slate-900">Dedução Plataforma</th>
+                                <th className="p-6 text-[10px] font-black uppercase tracking-wider text-slate-900">Net Instrutor</th>
+                                <th className="p-6 text-[10px] font-black uppercase tracking-wider text-slate-900">Status</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
                             {sales.map((sale) => (
-                                <tr key={sale.id} className="hover:bg-slate-50/50 transition-colors group">
-                                    <td className="p-8 font-mono text-[10px] text-slate-900 font-bold tracking-tighter group-hover:text-black transition-colors">
+                                <tr key={sale.id} className="hover:bg-slate-50/30 transition-colors group border-b border-slate-50 last:border-0">
+                                    <td className="p-6 font-mono text-[10px] text-slate-700 group-hover:text-slate-900 transition-colors">
                                         {sale.idTransacao}
                                     </td>
-                                    <td className="p-8 text-[10px] text-slate-900 font-black uppercase tracking-widest">
+                                    <td className="p-6 text-[10px] text-slate-900 font-light uppercase tracking-wider">
                                         {formatDate(sale.dataCriacao)}
                                     </td>
-                                    <td className="p-8 text-[11px] text-slate-900 font-black">
+                                    <td className="p-6 text-[11px] text-slate-900 font-black">
                                         {formatCurrency(sale.valorBruto)}
                                     </td>
-                                    <td className="p-8 text-[11px] text-rose-500 font-black italic">
+                                    <td className="p-6 text-[11px] text-rose-500 font-black italic">
                                         - {formatCurrency(sale.taxaPlataforma)}
                                     </td>
-                                    <td className="p-8 text-[11px] text-[#1D5F31] font-black">
+                                    <td className="p-6 text-[11px] text-[#1D5F31] font-black">
                                         + {formatCurrency(sale.repasseProfessor)}
                                     </td>
-                                    <td className="p-8">
-                                        <div className={`inline-flex items-center px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest ${
+                                    <td className="p-6">
+                                        <div className={`inline-flex items-center px-4 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
                                             sale.statusPagamento === 'pago' 
                                             ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
-                                            : 'bg-slate-100 text-slate-900 border border-slate-400'
+                                            : 'bg-slate-50 text-slate-700 border border-slate-100'
                                         }`}>
-                                            <div className={`w-1.5 h-1.5 rounded-full mr-2 ${sale.statusPagamento === 'pago' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-900'}`} />
+                                            <div className={`w-1.5 h-1.5 rounded-full mr-2 ${sale.statusPagamento === 'pago' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
                                             {sale.statusPagamento}
                                         </div>
                                     </td>
@@ -141,10 +144,10 @@ export default function SalesLogList({ initialSales, teachers }: SalesLogListPro
 
                 {sales.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-24 bg-white">
-                        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-6">
-                            <Search size={32} className="text-slate-900" />
+                        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-6 border border-slate-100">
+                            <Search size={32} className="text-slate-200" />
                         </div>
-                        <p className="text-slate-900 font-black uppercase tracking-[4px] text-[10px] italic">Base de Dados Vazia: Nenhum registro encontrado</p>
+                        <p className="text-slate-900 font-light uppercase tracking-wider text-[10px] italic">Base de Dados Vazia: Nenhum registro encontrado</p>
                     </div>
                 )}
             </div>

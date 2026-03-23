@@ -101,7 +101,7 @@ export default function CourseModal({ course, isOpen, onClose }: CourseModalProp
                             {[
                                 { icon: <Clock size={14} />, label: "Duração", text: "12 horas" },
                                 { icon: <Globe size={14} />, label: "Idioma", text: "PT-BR" },
-                                { icon: <CheckCircle2 size={14} />, label: "Acesso", text: "Vitalício" },
+                                { icon: <CheckCircle2 size={14} />, label: "Acesso", text: "Total" },
                                 { icon: <ShieldCheck size={14} />, label: "Certificado", text: "Incluso" },
                             ].map((item, i) => (
                                 <div key={i} className="flex gap-2.5 items-start">

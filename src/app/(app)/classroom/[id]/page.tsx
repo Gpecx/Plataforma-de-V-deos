@@ -15,10 +15,10 @@ import {
 } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import { ClassroomTabs } from './ClassroomTabs'
-import { db, auth } from '@/lib/firebase'
+import { auth } from '@/lib/firebase'
 import Logo from '@/components/Logo'
 import { onAuthStateChanged } from 'firebase/auth'
-import { doc, getDoc, collection, query, where, orderBy, getDocs } from 'firebase/firestore'
+import { getClassroomData } from './actions'
 
 const scrollbarHideStyle = {
     msOverflowStyle: 'none',
@@ -35,85 +35,52 @@ export default function ClassroomPage() {
     const [currentLesson, setCurrentLesson] = useState<any>(null)
     const [completedLessons, setCompletedLessons] = useState<string[]>([])
     const [loading, setLoading] = useState(true)
+    const [isCheckingAccess, setIsCheckingAccess] = useState(true)
     const [error, setError] = useState<string | null>(null)
-    const [accessDenied, setAccessDenied] = useState(false)
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
             if (!user) {
                 router.push('/login')
                 return
             }
 
-            async function loadContent() {
-                setLoading(true)
-                const courseId = params.id as string
-                const authedUser = user! // non-null: guarded by if(!user) above
-
-                try {
-                    // 0. Verificação de acesso: checa se o aluno possui o curso
-                    const userDoc = await getDoc(doc(db, 'users', authedUser.uid))
-                    if (userDoc.exists()) {
-                        const userData = userDoc.data()
-                        const myCourses: string[] = userData.myCourses || []
-                        const purchases: string[] = userData.purchases || []
-                        const hasCourse = myCourses.includes(courseId) || purchases.includes(courseId)
-                        if (!hasCourse) {
-                            // Acesso negado: redireciona para a página de detalhes do curso
-                            setAccessDenied(true)
-                            setLoading(false)
-                            router.push(`/course/${courseId}`)
-                            return
-                        }
-                    } else {
-                        // Usuário sem documento no Firestore: bloqueia acesso
-                        setAccessDenied(true)
-                        setLoading(false)
+            const courseId = params.id as string
+            
+            try {
+                setIsCheckingAccess(true)
+                const result = await getClassroomData(courseId, user.uid)
+                
+                if (!result.success) {
+                    if (result.error === 'ACCESS_DENIED') {
                         router.push(`/course/${courseId}`)
-                        return
-                    }
-
-                    // 1. Busca curso
-                    const courseDoc = await getDoc(doc(db, 'courses', courseId))
-                    if (courseDoc.exists()) {
-                        setCourse({ id: courseDoc.id, ...courseDoc.data() })
-                    }
-
-                    // 2. Busca lições
-                    const lessonsRef = collection(db, 'lessons')
-                    const q = query(
-                        lessonsRef,
-                        where('course_id', '==', courseId),
-                        orderBy('position', 'asc')
-                    )
-                    const lessonsSnapshot = await getDocs(q)
-                    const lessonsData = lessonsSnapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    }))
-
-                    if (lessonsData.length > 0) {
-                        setLessons(lessonsData)
-                        setCurrentLesson(lessonsData[0])
+                    } else if (result.error === 'COURSE_NOT_FOUND') {
+                        setError("Treinamento não encontrado.")
                     } else {
-                        setError("Nenhuma aula encontrada para este curso.")
+                        setError("Erro ao carregar conteúdo. Tente novamente.")
                     }
-                } catch (err: any) {
-                    console.error("Erro ao carregar conteúdo:", err)
-                    if (err.message?.includes('index')) {
-                        setError("Erro de configuração no banco de dados (Índice ausente). Por favor, contate o suporte.")
-                    } else {
-                        setError("Ocorreu um erro ao carregar o conteúdo das aulas.")
-                    }
-                } finally {
-                    setLoading(false)
+                    return
                 }
+
+                setCourse(result.course)
+                setLessons(result.lessons || [])
+                
+                if (result.lessons && result.lessons.length > 0) {
+                    setCurrentLesson(result.lessons[0])
+                } else {
+                    setError("Nenhuma aula encontrada para este curso.")
+                }
+            } catch (err) {
+                console.error("Erro ao carregar classroom:", err)
+                setError("Ocorreu um erro inesperado.")
+            } finally {
+                setIsCheckingAccess(false)
+                setLoading(false)
             }
-            loadContent()
         })
 
         return () => unsubscribe()
-    }, [params.id])
+    }, [params.id, router])
 
     const goToNextLesson = () => {
         const index = lessons.findIndex(l => l.id === currentLesson?.id)
@@ -135,15 +102,20 @@ export default function ClassroomPage() {
         )
     }
 
-    if (loading) {
+    if (loading || isCheckingAccess) {
         return (
             <div className="h-screen bg-[#F4F7F9] flex items-center justify-center">
-                <Loader2 className="animate-spin text-[#1D5F31]" size={48} />
+                <div className="flex flex-col items-center gap-4">
+                    <Loader2 className="animate-spin text-[#1D5F31]" size={48} />
+                    <p className="text-xs font-black uppercase tracking-widest text-slate-400 animate-pulse">
+                        Verificando Acesso...
+                    </p>
+                </div>
             </div>
         )
     }
 
-    if (!course || error) {
+    if (error || !course) {
         return (
             <div className="h-screen bg-[#F4F7F9] flex flex-col items-center justify-center p-8 text-center font-exo">
                 <h1 className="text-2xl font-black uppercase italic tracking-tighter text-slate-800">

@@ -77,6 +77,12 @@ export async function POST(request: NextRequest) {
 
                 console.log(`Webhook Asaas: Enrollment criado para aluno ${alunoId} no curso ${cursoId}`)
             }
+
+            // Atualiza o perfil do usuário com o curso comprado (necessário para as Regras do Firestore)
+            await adminDb.collection('profiles').doc(alunoId).update({
+                cursos_comprados: FieldValue.arrayUnion(cursoId)
+            })
+            console.log(`Webhook Asaas: Perfil do aluno ${alunoId} atualizado com curso ${cursoId} em cursos_comprados`)
         } else {
             console.log(`Webhook Asaas: Evento ${event} ignorado`)
         }

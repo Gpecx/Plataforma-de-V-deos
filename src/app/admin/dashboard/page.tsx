@@ -46,14 +46,14 @@ export default async function AdminDashboardPage() {
             {/* Metrics Grid com Contornos Definidos */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {metrics.map((m, i) => (
-                    <div key={i} className="bg-white p-10 rounded-[24px] border border-[#D1D7DC] hover:border-black transition-all group">
+                    <div key={i} className="bg-white p-10 rounded-[24px] border border-black hover:border-black/70 transition-all group">
                         <div className="flex justify-between items-start mb-8">
-                            <div className={`p-5 bg-[#F8F9FA] rounded-2xl border border-[#D1D7DC] ${m.color} group-hover:scale-105 transition-transform`}>
+                            <div className={`p-5 bg-[#F8F9FA] rounded-2xl border border-black ${m.color} group-hover:scale-105 transition-transform`}>
                                 <m.icon size={28} strokeWidth={2.5} />
                             </div>
                             <span
                                 className="text-[8px] font-black uppercase tracking-widest px-2 py-1 rounded-md"
-                                style={{ backgroundColor: '#F1F3F4', color: '#000000', border: '1px solid #D1D7DC' }}
+                                style={{ backgroundColor: '#F1F3F4', color: '#000000', border: '1px solid #000000' }}
                             >REAL-TIME DATA</span>
                         </div>
                         <p className="text-black text-[10px] font-black uppercase tracking-[2px] mb-2">{m.label}</p>
@@ -67,10 +67,10 @@ export default async function AdminDashboardPage() {
             <div className="grid lg:grid-cols-3 gap-10">
                 {/* Main Content: Table com bordas pretas sutis */}
                 <div className="lg:col-span-2 space-y-8">
-                    <div className="bg-white p-10 rounded-[32px] border border-[#D1D7DC]">
+                    <div className="bg-white p-10 rounded-[32px] border border-black">
                         <div className="flex items-center justify-between mb-12">
                             <h2 className="text-xl font-black uppercase tracking-tighter text-black">Histórico de Pagamentos</h2>
-                            <div className="flex items-center gap-4 bg-[#F8F9FA] px-5 py-2 rounded-xl border border-[#D1D7DC]">
+                            <div className="flex items-center gap-4 bg-[#F8F9FA] px-5 py-2 rounded-xl border border-black">
                                 <Search size={16} className="text-black" />
                                 <span className="text-[10px] font-black text-black uppercase tracking-widest">{data.payments.length} Transações</span>
                             </div>
@@ -117,20 +117,20 @@ export default async function AdminDashboardPage() {
 
                 {/* Sidebar com Contornos e Textos Pretos */}
                 <div className="space-y-10">
-                    <div className="bg-white p-10 rounded-[32px] border border-[#D1D7DC]">
+                    <div className="bg-white p-10 rounded-[32px] border border-black">
                         <div className="flex items-center gap-4 mb-10">
-                            <div className="w-10 h-10 bg-[#F8F9FA] rounded-xl flex items-center justify-center border border-[#D1D7DC]">
+                            <div className="w-10 h-10 bg-[#F8F9FA] rounded-xl flex items-center justify-center border border-black">
                                 <TrendingUp className="text-[#1D5F31]" size={20} strokeWidth={2.5} />
                             </div>
                             <h3 className="text-xs font-black uppercase tracking-widest text-black">Divisão de Receita</h3>
                         </div>
                         <RevenueChart platform={data.totalPlatform} teacher={data.totalTeacher} />
                         <div className="mt-10 space-y-4">
-                            <div className="flex items-center justify-between text-[10px] font-black uppercase bg-[#F8F9FA] p-4 rounded-xl border border-[#D1D7DC]">
+                            <div className="flex items-center justify-between text-[10px] font-black uppercase bg-[#F8F9FA] p-4 rounded-xl border border-black">
                                 <span className="text-black">Taxa Plataforma</span>
                                 <span className="text-[#1D5F31] font-black">{data.platformTaxPercent}%</span>
                             </div>
-                            <div className="flex items-center justify-between text-[10px] font-black uppercase bg-[#F8F9FA] p-4 rounded-xl border border-[#D1D7DC]">
+                            <div className="flex items-center justify-between text-[10px] font-black uppercase bg-[#F8F9FA] p-4 rounded-xl border border-black">
                                 <span className="text-black">Repasse Professor</span>
                                 <span className="text-black">{100 - data.platformTaxPercent}%</span>
                             </div>

@@ -105,8 +105,8 @@ export default async function StudentsPage() {
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
                 <div>
                     <div className="flex items-center gap-3 mb-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#1D5F31]"></div>
-                        <span className="text-[10px] font-black uppercase tracking-[4px] text-slate-500">STUDENT MANAGEMENT</span>
+
+
                     </div>
                     <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-slate-900 uppercase leading-none">
                         Gestão de <span className="text-[#1D5F31]">Alunos</span>

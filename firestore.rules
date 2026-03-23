@@ -27,13 +27,13 @@ service cloud.firestore {
 
     // Courses: qualquer um lê se aprovado; teacher cria/edita os seus. Admin lê/escreve todos.
     match /courses/{courseId} {
-      allow read: if (resource.data.status == 'APROVADO') || (isSignedIn() && (isOwner(resource.data.teacher_id) || isAdmin()));
+      allow read: if (resource.data.status in ['APROVADO', 'published']) || (isSignedIn() && (isOwner(resource.data.teacher_id) || isAdmin()));
       allow write: if isSignedIn() && (isTeacherOrAdmin() || isAdmin());
     }
 
     // Lessons: análogo a courses
     match /lessons/{lessonId} {
-      allow read: if (resource.data.status == 'APROVADO') || (isSignedIn() && (isAdmin() || (exists(/databases/$(database)/documents/courses/$(resource.data.course_id)) && get(/databases/$(database)/documents/courses/$(resource.data.course_id)).data.teacher_id == request.auth.uid)));
+      allow read: if (resource.data.status in ['APROVADO', 'published']) || (isSignedIn() && (isAdmin() || (exists(/databases/$(database)/documents/courses/$(resource.data.course_id)) && get(/databases/$(database)/documents/courses/$(resource.data.course_id)).data.teacher_id == request.auth.uid)));
       allow write: if isSignedIn() && (isTeacherOrAdmin() || isAdmin());
     }
 

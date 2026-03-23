@@ -13,11 +13,11 @@ import {
     Info,
     FileText,
 } from "lucide-react"
-import { db } from "@/lib/firebase"
-import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore"
-import { parseFirebaseDate } from '@/lib/date-utils'
 import { CourseIntroPlayer } from "@/components/CourseIntroPlayer"
 import { CourseActionButton } from "@/components/CourseActionButton"
+import { adminDb } from "@/lib/firebase-admin"
+import { getProfile } from "@/app/(app)/dashboard-student/actions"
+import { getSessionUser } from "@/app/actions/auth"
 
 export default async function CourseDetailPage({ params }: { params: { slug: string } }) {
     const { slug } = await params
@@ -25,17 +25,16 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
     // 1. Busca o curso por ID
     let course: any = null
     try {
-        const courseRef = doc(db, 'courses', slug)
-        const courseSnap = await getDoc(courseRef)
+        const courseSnap = await adminDb.collection('courses').doc(slug).get()
 
-        if (courseSnap.exists()) {
-            const data = courseSnap.data()
+        if (courseSnap.exists) {
+            const data = courseSnap.data() as any
             course = {
                 id: courseSnap.id,
                 ...data,
                 teacher_name: data.teacher_name || 'Equipe PowerPlay',
-                created_at: parseFirebaseDate(data.created_at)?.toISOString() || data.created_at,
-                updated_at: parseFirebaseDate(data.updated_at)?.toISOString() || data.updated_at
+                created_at: data.created_at?.toDate?.()?.toISOString() || data.created_at,
+                updated_at: data.updated_at?.toDate?.()?.toISOString() || data.updated_at
             }
         }
     } catch (error) {
@@ -44,19 +43,37 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
 
     if (!course) return notFound()
 
-    // 2. Busca as lições
+    // 2. Verifica permissão de acesso
+    const sessionUser = await getSessionUser()
+    const profileRes = await getProfile()
+    const profile = profileRes.success ? profileRes.data : null
+    const isAdmin = profile?.role === 'admin'
+    
+    // Busca na coleção de enrollments (fonte de verdade)
+    let hasEnrollment = false
+    if (sessionUser?.uid) {
+        const enrollSnap = await adminDb.collection('enrollments')
+            .where('user_id', '==', sessionUser.uid)
+            .where('course_id', '==', course.id)
+            .get()
+        hasEnrollment = !enrollSnap.empty
+    }
+
+    const hasAccess = isAdmin || hasEnrollment || (profile?.cursos_comprados && profile.cursos_comprados.includes(course.id))
+
+    // 3. Busca as lições
     let lessons: any[] = []
     try {
-        const lessonsRef = collection(db, 'lessons')
-        const q = query(lessonsRef, where('course_id', '==', slug))
-        const lessonsSnap = await getDocs(q)
+        const lessonsSnap = await adminDb.collection('lessons')
+            .where('course_id', '==', slug)
+            .get()
 
         lessons = lessonsSnap.docs.map(d => {
             const lData = d.data()
             return {
                 id: d.id,
                 ...lData,
-                created_at: parseFirebaseDate(lData.created_at)?.toISOString() || lData.created_at
+                created_at: lData.created_at?.toDate?.()?.toISOString() || lData.created_at
             }
         }).sort((a: any, b: any) => (a.position || 0) - (b.position || 0))
     } catch (error) {
@@ -148,6 +165,8 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                                     courseTitle={course.title}
                                     coursePrice={course.price || 0}
                                     courseImageUrl={course.image_url}
+                                    isAdmin={isAdmin}
+                                    purchasedCourseIds={profile?.cursos_comprados || []}
                                 />
                             </div>
                         </div>

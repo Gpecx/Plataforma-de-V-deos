@@ -14,10 +14,12 @@ export default async function AdminLayout({
     }
 
     return (
-        <div className="min-h-screen relative overflow-hidden">
+        <div className="min-h-screen relative overflow-hidden text-slate-900" style={{ background: '#ffffffff' }}>
+            {/* Override global gradient background for admin area */}
+            <div className="fixed inset-0 bg-white -z-10" />
             <AdminSidebar />
-            
-            <main className="relative z-10 pl-72 min-h-screen">
+
+            <main className="relative z-10 pl-72 min-h-screen bg-white">
                 <div className="p-8 md:p-12">
                     {children}
                 </div>

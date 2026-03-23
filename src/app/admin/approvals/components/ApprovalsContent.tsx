@@ -37,7 +37,7 @@ export function ApprovalsContent({
     return (
         <div className="space-y-8">
             {/* Tabs Navigation */}
-            <div className="flex items-center gap-2 p-2 bg-white border border-black rounded-2xl w-fit shadow-sm">
+            <div className="flex items-center gap-2 p-1.5 bg-white border border-slate-100 rounded-xl w-fit shadow-sm overflow-hidden">
                 {tabs.map((tab) => {
                     const Icon = tab.icon
                     const isActive = activeTab === tab.id
@@ -46,18 +46,18 @@ export function ApprovalsContent({
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id as any)}
                             className={cn(
-                                "flex items-center gap-4 px-10 py-4 text-[10px] font-black uppercase tracking-[3px] transition-all duration-300 rounded-xl relative",
+                                "flex items-center gap-4 px-8 py-3.5 text-[10px] uppercase font-bold tracking-wider transition-all duration-300 rounded-lg relative",
                                 isActive 
-                                    ? "text-white bg-[#1D5F31] shadow-xl shadow-[#1D5F31]/20" 
-                                    : "text-slate-900 hover:text-black hover:bg-slate-50 font-black"
+                                    ? "text-white bg-[#1D5F31] shadow-sm" 
+                                    : "text-slate-700 hover:text-slate-900 hover:bg-slate-50"
                             )}
                         >
-                            <Icon size={16} strokeWidth={2.5} />
+                            <Icon size={16} strokeWidth={isActive ? 3 : 2} />
                             <span>{tab.label}</span>
                             {tab.count > 0 && (
                                 <span className={cn(
-                                    "ml-3 px-2 py-0.5 rounded-md text-[9px] font-black",
-                                    isActive ? "bg-white text-[#1D5F31]" : "bg-slate-100 text-slate-900 font-black"
+                                    "ml-3 px-2 py-0.5 rounded-md text-[9px] font-bold",
+                                    isActive ? "bg-white text-[#1D5F31]" : "bg-slate-100 text-slate-900"
                                 )}>
                                     {tab.count}
                                 </span>

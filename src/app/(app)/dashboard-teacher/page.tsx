@@ -86,10 +86,6 @@ export default async function TeacherDashboard() {
         <div className="min-h-screen bg-transparent font-exo pb-24 pt-12 relative animate-in fade-in duration-500">
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center px-8 mb-12 gap-6">
                 <div>
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#1D5F31]"></div>
-                        <span className="text-[10px] font-black uppercase tracking-[4px] text-slate-900">CREATOR STUDIO</span>
-                    </div>
                     <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-slate-900 uppercase leading-none">
                         Bem-vindo, <span className="text-[#1D5F31]">{profile?.full_name?.split(' ')[0] || 'Professor'}!</span>
                     </h1>
