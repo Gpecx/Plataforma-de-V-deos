@@ -41,7 +41,10 @@ export default async function ProfilePage() {
                 </div>
 
                 <div className="bg-[#061629] border border-[#1D5F31] rounded-xl p-8 md:p-12 shadow-sm">
-                    <ProfileForm initialFullName={profile?.full_name || ''} />
+                    <ProfileForm 
+                        initialFullName={profile?.full_name || ''} 
+                        initialCpf={profile?.cpf_cnpj || profile?.cpf || ''} 
+                    />
                 </div>
             </div>
         </div>

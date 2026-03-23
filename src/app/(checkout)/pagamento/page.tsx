@@ -13,17 +13,19 @@ import {
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { processCheckoutAction } from '@/app/(app)/dashboard-student/actions'
+import { processCheckoutAction, getProfile } from '@/app/(app)/dashboard-student/actions'
 import { cn } from '@/lib/utils'
 
 type PaymentMethod = 'credit_card' | 'pix' | 'boleto'
 
 export default function PagamentoPage() {
-    const { items, getTotal, clearCart } = useCartStore()
+    const { items, getTotal, clearCart, showNotification } = useCartStore()
     const router = useRouter()
     const [mounted, setMounted] = useState(false)
     const [isProcessing, setIsProcessing] = useState(false)
     const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('credit_card')
+    const [userProfile, setUserProfile] = useState<any>(null)
+    const [isLoadingProfile, setIsLoadingProfile] = useState(true)
 
     useEffect(() => {
         setMounted(true)
@@ -33,6 +35,17 @@ export default function PagamentoPage() {
         if (mounted && items.length === 0) {
             router.push('/course')
         }
+        
+        const fetchProfile = async () => {
+            if (mounted) {
+                const result = await getProfile()
+                if (result.success) {
+                    setUserProfile(result.data)
+                }
+                setIsLoadingProfile(false)
+            }
+        }
+        fetchProfile()
     }, [mounted, items, router])
 
     if (!mounted) return null
@@ -55,7 +68,7 @@ export default function PagamentoPage() {
             const result = await processCheckoutAction(courseIds, methodMap[selectedMethod])
 
             if (!result.success) {
-                alert("Erro ao processar pagamento: " + result.error)
+                showNotification(result.error || "Erro ao processar pagamento", 'error')
                 setIsProcessing(false)
                 return
             }
@@ -82,9 +95,9 @@ export default function PagamentoPage() {
             }
 
             router.push('/dashboard-student')
-        } catch (error) {
+        } catch (error: any) {
             console.error(error)
-            alert("Erro fatal no pagamento. Tente novamente.")
+            showNotification(error.message || "Erro fatal no pagamento. Tente novamente.", 'error')
             setIsProcessing(false)
         }
     }
@@ -111,6 +124,25 @@ export default function PagamentoPage() {
                             <h1 className="text-3xl font-bold text-[#1a1a1a] mb-2">Escolha sua forma de pagamento</h1>
                             <p className="text-slate-500 font-medium">Selecione o método de sua preferência para concluir a inscrição.</p>
                         </div>
+
+                        {mounted && !isLoadingProfile && (!userProfile?.cpf_cnpj && !userProfile?.cpf) && (
+                            <div className="bg-amber-50 border-l-4 border-amber-500 p-6 rounded-r-xl shadow-sm animate-in fade-in slide-in-from-left-4 duration-500">
+                                <div className="flex gap-4">
+                                    <div className="bg-amber-100 p-2 rounded-lg h-fit text-amber-600">
+                                        <ShieldCheck size={24} />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <h3 className="font-black uppercase text-sm text-amber-900 tracking-tight">Ação Necessária: Cadastro de CPF</h3>
+                                        <p className="text-xs text-amber-800 font-medium leading-relaxed">
+                                            Para sua segurança e conformidade com a emissão de notas fiscais, o Asaas exige um CPF ou CNPJ vinculado à sua conta.
+                                        </p>
+                                        <Link href="/dashboard-student/profile" className="inline-block text-[10px] font-black uppercase tracking-widest text-amber-600 hover:text-amber-700 underline underline-offset-4 pt-2">
+                                            Cadastrar agora no meu perfil →
+                                        </Link>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         <div className="space-y-4">
                             {/* Cartão de Crédito */}
@@ -240,27 +272,36 @@ export default function PagamentoPage() {
                                 </div>
                             </div>
 
-                            <button
-                                onClick={handlePayment}
-                                disabled={isProcessing}
-                                className={cn(
-                                    "w-full py-6 rounded-none font-black uppercase italic tracking-[3px] transition-all flex items-center justify-center gap-3",
-                                    isProcessing
-                                        ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                                        : 'bg-[#1D5F31] text-white hover:brightness-110 active:scale-[0.98]'
-                                )}
-                            >
-                                {isProcessing ? (
-                                    <>
-                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                        Processando...
-                                    </>
-                                ) : (
-                                    <>
-                                        CONFIRMAR PAGAMENTO →
-                                    </>
-                                )}
-                            </button>
+                            {(!isLoadingProfile && !userProfile?.cpf_cnpj && !userProfile?.cpf) ? (
+                                <button
+                                    onClick={() => router.push('/dashboard-student/profile')}
+                                    className="w-full py-6 bg-[#1D5F31] text-white hover:brightness-110 active:scale-[0.98] rounded-none font-black uppercase italic tracking-[3px] transition-all flex items-center justify-center gap-3 shadow-lg shadow-[#1D5F31]/20"
+                                >
+                                    CADASTRAR CPF PARA PAGAR →
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={handlePayment}
+                                    disabled={isProcessing || isLoadingProfile}
+                                    className={cn(
+                                        "w-full py-6 rounded-none font-black uppercase italic tracking-[3px] transition-all flex items-center justify-center gap-3",
+                                        (isProcessing || isLoadingProfile)
+                                            ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                            : 'bg-[#1D5F31] text-white hover:brightness-110 active:scale-[0.98]'
+                                    )}
+                                >
+                                    {isProcessing ? (
+                                        <>
+                                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            Processando...
+                                        </>
+                                    ) : (
+                                        <>
+                                            CONFIRMAR PAGAMENTO →
+                                        </>
+                                    )}
+                                </button>
+                            )}
 
                             <div className="mt-8 pt-8 border-t border-slate-100 grid grid-cols-2 gap-4">
                                 <div className="flex items-center gap-3">

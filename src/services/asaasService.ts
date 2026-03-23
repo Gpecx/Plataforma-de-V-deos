@@ -133,9 +133,13 @@ async function makeRequest<T>(
     const data = await response.json()
 
     if (!response.ok) {
-        const error = data as ApiError[]
-        const errorMessage = Array.isArray(error) 
-            ? error.map(e => e.description).join(', ') 
+        // Log detalhado para depuração conforme solicitado no requisito
+        console.error("ERRO ASAAS DATA:", data);
+        console.error("STATUS ASAAS:", response.status);
+
+        const errors = (data.errors || (Array.isArray(data) ? data : [])) as ApiError[]
+        const errorMessage = errors.length > 0
+            ? errors.map(e => e.description).join(', ') 
             : 'Erro desconhecido'
         throw new AsaasServiceError(errorMessage, undefined, response.status)
     }

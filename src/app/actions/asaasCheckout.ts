@@ -14,6 +14,7 @@ import {
     PaymentResponse,
     AsaasServiceError,
 } from '@/services/asaasService'
+import { sanitizeCpfCnpj } from '@/lib/utils'
 
 export interface CheckoutRequest {
     cursoId: string
@@ -98,11 +99,20 @@ export async function processAsaasCheckout(request: CheckoutRequest): Promise<Ch
         if (!customerId) {
             const profileDoc = await adminDb.collection('profiles').doc(user.uid).get()
             const profileData = profileDoc.data()
+            const rawCpf = profileData?.cpf_cnpj || profileData?.cpf
+            const sanitizedCpf = rawCpf ? sanitizeCpfCnpj(rawCpf) : undefined
+
+            if (!sanitizedCpf || sanitizedCpf.length < 11) {
+                return { 
+                    success: false, 
+                    error: "Você precisa cadastrar seu CPF/CNPJ em 'Perfil' antes de realizar o pagamento." 
+                }
+            }
 
             const newCustomer = await createCustomer({
-                name: profileData?.name || profileData?.displayName || 'Aluno',
+                name: profileData?.name || profileData?.displayName || profileData?.full_name || 'Aluno',
                 email: profileData?.email || user.email || '',
-                cpfCnpj: profileData?.cpf || undefined,
+                cpfCnpj: sanitizedCpf,
                 phone: profileData?.phone || undefined,
                 externalReference: user.uid,
             })

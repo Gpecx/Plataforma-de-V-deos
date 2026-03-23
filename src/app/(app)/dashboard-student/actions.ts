@@ -4,6 +4,7 @@ import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createPayment, BillingType, getStudentAsaasId, createCustomer } from '@/services/asaasService'
+import { sanitizeCpfCnpj } from '@/lib/utils'
 
 async function getAuthUser() {
     const cookieStore = cookies()
@@ -14,6 +15,31 @@ async function getAuthUser() {
         return await adminAuth.verifyIdToken(token)
     } catch (error) {
         return null
+    }
+}
+
+export async function getProfile() {
+    const user = await getAuthUser()
+    if (!user) return { success: false, error: 'Não autorizado' }
+
+    try {
+        const profileDoc = await adminDb.collection('profiles').doc(user.uid).get()
+        const data = profileDoc.data()
+        if (!data) return { success: true, data: null }
+
+        // Converte todos os Timestamp do Firestore em strings ISO serializáveis
+        const plainData = Object.fromEntries(
+            Object.entries(data).map(([key, value]) => {
+                if (value && typeof value === 'object' && typeof (value as any).toDate === 'function') {
+                    return [key, (value as any).toDate().toISOString()]
+                }
+                return [key, value]
+            })
+        )
+
+        return { success: true, data: plainData }
+    } catch (error) {
+        return { success: false, error: 'Erro ao buscar perfil' }
     }
 }
 
@@ -122,11 +148,20 @@ export async function processCheckoutAction(courseIds: string[], billingType: Bi
         if (!customerId) {
             const profileDoc = await adminDb.collection('profiles').doc(user.uid).get()
             const profileData = profileDoc.data() as any
+            const rawCpf = profileData?.cpf_cnpj || profileData?.cpf
+            const sanitizedCpf = rawCpf ? sanitizeCpfCnpj(rawCpf) : undefined
+
+            if (!sanitizedCpf || sanitizedCpf.length < 11) {
+                return { 
+                    success: false, 
+                    error: "Você precisa cadastrar seu CPF/CNPJ em 'Perfil' antes de realizar o pagamento." 
+                }
+            }
 
             const newCustomer = await createCustomer({
-                name: profileData?.name || profileData?.displayName || 'Aluno',
+                name: profileData?.name || profileData?.displayName || profileData?.full_name || 'Aluno',
                 email: profileData?.email || user.email || '',
-                cpfCnpj: profileData?.cpf || undefined,
+                cpfCnpj: sanitizedCpf,
                 phone: profileData?.phone || undefined,
                 externalReference: user.uid,
             })
@@ -165,11 +200,13 @@ export async function updateProfile(prevState: any, formData: FormData) {
     const user = await getAuthUser()
     if (!user) throw new Error('Não autorizado')
 
-    const fullName = formData.get('fullName') as string
+        const fullName = formData.get('fullName') as string
+        const cpf = formData.get('cpf') as string
 
     try {
         await adminDb.collection('profiles').doc(user.uid).update({
             full_name: fullName,
+            cpf_cnpj: cpf,
             updated_at: new Date()
         })
 

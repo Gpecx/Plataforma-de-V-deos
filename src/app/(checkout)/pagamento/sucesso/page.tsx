@@ -24,8 +24,9 @@ interface SuccessPageProps {
 }
 
 export default async function SucessoPagamentoPage({ searchParams }: SuccessPageProps) {
-    const paymentId = searchParams.id
-    const type = searchParams.type
+    const params = await searchParams
+    const paymentId = params.id
+    const type = params.type
 
     if (!paymentId) {
         redirect('/course')
