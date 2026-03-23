@@ -3,6 +3,7 @@
 import { useCartStore, CartItem } from '@/store/useCartStore'
 import { ShoppingCart, Check, PlayCircle } from 'lucide-react'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 interface AddToCartButtonProps {
@@ -11,16 +12,20 @@ interface AddToCartButtonProps {
 }
 
 export function AddToCartButton({ course, purchasedCourseIds = [] }: AddToCartButtonProps) {
-    const { addItem, items } = useCartStore()
+    const { addItem, items, showNotification } = useCartStore()
     const [isAdded, setIsAdded] = useState(false)
+    const router = useRouter()
 
     const isPurchased = purchasedCourseIds.includes(course.id)
     const isInCart = items.some(item => item.id === course.id)
 
     const handleAdd = () => {
         addItem(course)
+        showNotification('✓ Curso adicionado ao carrinho!', 'success')
         setIsAdded(true)
-        setTimeout(() => setIsAdded(false), 2000)
+        setTimeout(() => {
+            router.push('/pagamento')
+        }, 800)
     }
 
     if (isPurchased) {

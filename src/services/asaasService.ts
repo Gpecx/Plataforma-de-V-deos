@@ -150,6 +150,27 @@ export async function createPayment(paymentData: PaymentRequest): Promise<Paymen
     })
 }
 
+export interface PixQrCodeResponse {
+    success: boolean
+    encodedImage: string
+    payload: string
+    expirationDate: string
+}
+
+export async function getPaymentQrCode(paymentId: string): Promise<PixQrCodeResponse> {
+    return makeRequest<PixQrCodeResponse>(`/payments/${paymentId}/pixQrCode`)
+}
+
+export interface IdentificationFieldResponse {
+    identificationField: string
+    nossoNumero: string
+    barCode: string
+}
+
+export async function getPaymentIdentification(paymentId: string): Promise<IdentificationFieldResponse> {
+    return makeRequest<IdentificationFieldResponse>(`/payments/${paymentId}/identificationField`)
+}
+
 export async function getPayment(paymentId: string): Promise<PaymentResponse> {
     return makeRequest<PaymentResponse>(`/payments/${paymentId}`)
 }

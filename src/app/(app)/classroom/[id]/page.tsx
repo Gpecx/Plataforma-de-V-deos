@@ -36,19 +36,43 @@ export default function ClassroomPage() {
     const [completedLessons, setCompletedLessons] = useState<string[]>([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [accessDenied, setAccessDenied] = useState(false)
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (!user) {
-                setLoading(false)
+                router.push('/login')
                 return
             }
 
             async function loadContent() {
                 setLoading(true)
                 const courseId = params.id as string
+                const authedUser = user! // non-null: guarded by if(!user) above
 
                 try {
+                    // 0. Verificação de acesso: checa se o aluno possui o curso
+                    const userDoc = await getDoc(doc(db, 'users', authedUser.uid))
+                    if (userDoc.exists()) {
+                        const userData = userDoc.data()
+                        const myCourses: string[] = userData.myCourses || []
+                        const purchases: string[] = userData.purchases || []
+                        const hasCourse = myCourses.includes(courseId) || purchases.includes(courseId)
+                        if (!hasCourse) {
+                            // Acesso negado: redireciona para a página de detalhes do curso
+                            setAccessDenied(true)
+                            setLoading(false)
+                            router.push(`/course/${courseId}`)
+                            return
+                        }
+                    } else {
+                        // Usuário sem documento no Firestore: bloqueia acesso
+                        setAccessDenied(true)
+                        setLoading(false)
+                        router.push(`/course/${courseId}`)
+                        return
+                    }
+
                     // 1. Busca curso
                     const courseDoc = await getDoc(doc(db, 'courses', courseId))
                     if (courseDoc.exists()) {

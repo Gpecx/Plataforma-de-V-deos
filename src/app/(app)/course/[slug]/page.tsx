@@ -17,6 +17,7 @@ import { db } from "@/lib/firebase"
 import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore"
 import { parseFirebaseDate } from '@/lib/date-utils'
 import { CourseIntroPlayer } from "@/components/CourseIntroPlayer"
+import { CourseActionButton } from "@/components/CourseActionButton"
 
 export default async function CourseDetailPage({ params }: { params: { slug: string } }) {
     const { slug } = await params
@@ -142,13 +143,12 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                             </div>
 
                             <div className="pt-4">
-                                <Link href={`/classroom/${course.id}`} className="block w-full">
-                                    <button className="btn-cta w-full flex items-center justify-center gap-3 group py-5 shadow-2xl shadow-[#1D5F31]/20 !text-white">
-                                        <span className="relative z-10 flex items-center gap-3 text-[11px] tracking-[4px] !text-white">
-                                            INICIAR TREINAMENTO <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform !text-white" />
-                                        </span>
-                                    </button>
-                                </Link>
+                                <CourseActionButton
+                                    courseId={course.id}
+                                    courseTitle={course.title}
+                                    coursePrice={course.price || 0}
+                                    courseImageUrl={course.image_url}
+                                />
                             </div>
                         </div>
                     </div>

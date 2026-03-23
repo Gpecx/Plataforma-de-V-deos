@@ -120,7 +120,7 @@ export default function CartPage() {
                                 </div>
 
                                 <button
-                                    onClick={() => router.push('/checkout')}
+                                    onClick={() => router.push('/pagamento')}
                                     className="w-full py-6 bg-[#1D5F31] text-white font-black uppercase tracking-[3px] hover:opacity-95 active:scale-[0.98] transition-all shadow-xl shadow-[#1D5F31]/20 flex items-center justify-center gap-3 text-sm rounded-2xl"
                                 >
                                     <CreditCard size={20} strokeWidth={2.5} />

@@ -3,6 +3,7 @@ import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { createPayment, BillingType, getStudentAsaasId, createCustomer } from '@/services/asaasService'
 
 async function getAuthUser() {
     const cookieStore = cookies()
@@ -58,10 +59,10 @@ export async function buyCourse(courseId: string) {
     }
 }
 
-export async function processCheckoutAction(courseIds: string[]): Promise<
-    | { success: true; isFree: true; invoiceUrl?: undefined; error?: undefined }
-    | { success: true; isFree?: undefined; invoiceUrl: string; error?: undefined }
-    | { success: false; error: string; isFree?: undefined; invoiceUrl?: undefined }
+export async function processCheckoutAction(courseIds: string[], billingType: BillingType = 'PIX'): Promise<
+    | { success: true; isFree: true; data?: undefined; error?: undefined }
+    | { success: true; isFree?: undefined; data: { invoiceUrl: string; paymentId: string; billingType: string }; error?: undefined }
+    | { success: false; error: string; isFree?: undefined; data?: undefined }
 > {
     const user = await getAuthUser()
     if (!user) return { success: false, error: 'Não autorizado' }
@@ -115,41 +116,48 @@ export async function processCheckoutAction(courseIds: string[]): Promise<
             return { success: true, isFree: true }
         }
 
-        // Curso pago: gera cobrança no Asaas e retorna o invoiceUrl
-        const profileDoc = await adminDb.collection('profiles').doc(user.uid).get()
-        const profileData = profileDoc.data() as any
+        // Curso pago: gera cobrança no Asaas
+        let customerId = await getStudentAsaasId(user.uid)
+        
+        if (!customerId) {
+            const profileDoc = await adminDb.collection('profiles').doc(user.uid).get()
+            const profileData = profileDoc.data() as any
 
-        const asaasPayload = {
-            customer: profileData?.asaas_customer_id || user.uid,
-            billingType: 'UNDEFINED', // O Asaas exibirá a seleção de método na página deles
+            const newCustomer = await createCustomer({
+                name: profileData?.name || profileData?.displayName || 'Aluno',
+                email: profileData?.email || user.email || '',
+                cpfCnpj: profileData?.cpf || undefined,
+                phone: profileData?.phone || undefined,
+                externalReference: user.uid,
+            })
+
+            customerId = newCustomer.id
+
+            await adminDb.collection('profiles').doc(user.uid).set({
+                asaas_customer_id: customerId
+            }, { merge: true })
+        }
+
+        const asaasResponse = await createPayment({
+            customer: customerId,
+            billingType,
             value: totalAmount,
             dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
             description: `Compra de ${coursesData.length} curso(s) na plataforma`,
             externalReference: `checkout-${user.uid}-${Date.now()}`,
-        }
-
-        const asaasResponse = await fetch(`${process.env.ASAAS_API_URL}/payments`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'access_token': process.env.ASAAS_API_KEY || '',
-            },
-            body: JSON.stringify(asaasPayload),
         })
 
-        if (!asaasResponse.ok) {
-            const errorBody = await asaasResponse.text()
-            console.error('Erro Asaas:', errorBody)
-            return { success: false, error: 'Falha ao gerar cobrança no Asaas.' }
+        return { 
+            success: true, 
+            data: { 
+                invoiceUrl: asaasResponse.invoiceUrl, 
+                paymentId: asaasResponse.id,
+                billingType: asaasResponse.billingType
+            } 
         }
-
-        const asaasData = await asaasResponse.json()
-        const invoiceUrl: string = asaasData.invoiceUrl
-
-        return { success: true, invoiceUrl }
-    } catch (error) {
+    } catch (error: any) {
         console.error('Erro no checkout:', error)
-        return { success: false, error: 'Falha ao processar pagamento.' }
+        return { success: false, error: error.message || 'Falha ao processar pagamento.' }
     }
 }
 
