@@ -15,6 +15,7 @@ interface CourseFormData {
     duration: number
     image_url?: string
     intro_video_url?: string
+    curriculum: string[]
     lessons: Lesson[]
 }
 
@@ -34,6 +35,7 @@ export const useCourseFormStore = create<CourseFormStore>((set) => ({
         price: 0,
         duration: 0,
         intro_video_url: '',
+        curriculum: [],
         lessons: []
     },
     setStepData: (data) => set((state) => ({
@@ -51,6 +53,7 @@ export const useCourseFormStore = create<CourseFormStore>((set) => ({
             price: 0,
             duration: 0,
             intro_video_url: '',
+            curriculum: [],
             lessons: []
         }
     }),

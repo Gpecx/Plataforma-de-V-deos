@@ -11,6 +11,7 @@ import {
     ArrowRight,
     Globe,
     Info,
+    FileText,
 } from "lucide-react"
 import { db } from "@/lib/firebase"
 import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore"
@@ -69,10 +70,10 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
             <Navbar light={true} />
 
             {/* HERO & VIDEO SECTION - BORDAS QUADRADAS E ALINHAMENTO RIGOROSO */}
-            <section className="relative pt-24 pb-0 overflow-hidden">
+            <section className="relative pt-20 pb-0 overflow-hidden">
                 <div className="max-w-[1440px] mx-auto w-full px-6 md:px-12 lg:px-16">
                     {/* INFO E TÍTULO */}
-                    <div className="pb-10 space-y-4">
+                    <div className="pb-6 space-y-4">
                         <Link
                             href="/course"
                             className="inline-flex items-center gap-2 text-[#061629] hover:text-[#1D5F31] transition text-[10px] font-black uppercase tracking-[3px]"
@@ -82,7 +83,7 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                         </Link>
 
                         <div className="flex items-center gap-3">
-                            <span className="inline-block bg-[#1D5F31] text-white text-[9px] font-black px-3 py-1.5 uppercase tracking-[3px] rounded-xl">
+                            <span className="inline-block bg-[#1D5F31] text-white text-[9px] font-black px-3 py-1.5 uppercase tracking-[3px] rounded-xl no-theme-override">
                                 {course.tag || "PREMIUM"}
                             </span>
                         </div>
@@ -95,7 +96,7 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                     <div className="grid lg:grid-cols-12 gap-12 items-start pb-24">
                         {/* LADO ESQUERDO: VÍDEO */}
                         <div className="lg:col-span-8 flex flex-col">
-                            <div className="w-full bg-black/40 aspect-video shadow-2xl border border-[#1D5F31]/20 overflow-hidden relative group">
+                            <div className="w-full bg-black/40 aspect-video shadow-2xl border border-[#1D5F31]/20 overflow-hidden relative group rounded-xl">
                                 <CourseIntroPlayer
                                     videoUrl={course.intro_video_url}
                                     thumbnail={course.image_url}
@@ -104,7 +105,7 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                         </div>
 
                         {/* LADO DIREITO: INFORMAÇÕES DO CURSO */}
-                        <div className="lg:col-span-4 flex flex-col space-y-10">
+                        <div className="lg:col-span-4 flex flex-col space-y-6">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-px bg-[#1D5F31]" />
                                 <span className="text-[10px] font-black uppercase tracking-[4px] text-[#1D5F31]">
@@ -171,19 +172,29 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                     </div>
 
                     <div className="grid lg:grid-cols-12 gap-0">
-                        <div className="lg:col-span-8 space-y-1">
-                            {curriculum[0].lessons.map((lesson: any, index: number) => (
-                                <div key={index} className="flex items-center justify-between bg-white/[0.02] p-6 border border-white/5 hover:bg-[#1D5F31]/10 transition-all group cursor-default">
-                                    <div className="flex items-center gap-6">
-                                        <span className="text-[#1D5F31] font-black text-xs tabular-nums">{(index + 1).toString().padStart(2, '0')}</span>
-                                        <span className="font-bold uppercase tracking-widest text-[11px] text-[#061629]/70 group-hover:text-black transition-colors">{lesson.title}</span>
-                                    </div>
-                                    <div className="flex items-center gap-4 text-white/20 group-hover:text-[#1D5F31] transition-colors">
-                                        <span className="text-[9px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Visualizar</span>
-                                        <PlayCircle size={18} />
+                        <div className="lg:col-span-8 space-y-3">
+                            {(!course.curriculum || course.curriculum.length === 0) ? (
+                                <div className="bg-[#FFFFFF] rounded-none border-l-4 border-l-[#1D5F31] p-5 border-y border-r border-[#E2E8F0]">
+                                    <div className="flex items-center gap-4">
+                                        <FileText className="text-[#1D5F31] shrink-0" size={24} />
+                                        <span className="font-bold font-exo text-[#1a1a1a] text-base">
+                                            Conteúdo programático em atualização por nossa equipe técnica.
+                                        </span>
                                     </div>
                                 </div>
-                            ))}
+                            ) : (
+                                course.curriculum.map((topic: string, index: number) => (
+                                    <div key={index} className="bg-[#FFFFFF] rounded-none border-l-4 border-l-[#1D5F31] p-5 transition-all duration-300 hover:translate-x-1 hover:shadow-sm border-y border-r border-[#E2E8F0] flex items-center gap-4 group cursor-default">
+                                        <PlayCircle className="text-[#1D5F31] shrink-0 opacity-80 group-hover:opacity-100 transition-opacity" size={24} />
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] font-black uppercase text-[#1D5F31] tracking-widest mb-1">MÓDULO {(index + 1).toString().padStart(2, '0')}</span>
+                                            <span className="font-bold font-exo text-[#1a1a1a] text-base tracking-tight leading-snug">
+                                                {topic}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
                         </div>
                     </div>
                 </div>

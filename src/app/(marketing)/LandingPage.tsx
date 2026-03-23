@@ -185,7 +185,13 @@ export default function LandingPageClient({ user: initialUser }: LandingPageProp
                                 placeholder="Seu melhor e-mail"
                                 value={email}
                                 onChange={e => setEmail(e.target.value)}
-                                style={{ width: "100%" }}
+                                style={{
+                                    width: "100%",
+                                    background: "rgba(255, 255, 255, 0.85)",
+                                    color: "#1a1a1a",
+                                    borderRadius: "0.5rem",
+                                    border: "1px solid #1D5F31"
+                                }}
                             />
                         </div>
                         {user || initialUser ? (
@@ -197,14 +203,16 @@ export default function LandingPageClient({ user: initialUser }: LandingPageProp
                                 VAMOS LÁ
                             </button>
                         ) : (
-                            <Link href={`/register${email ? `?email=${encodeURIComponent(email)}` : ""}`} style={{ width: "auto" }}>
-                                <button className="btn-cta" style={{ whiteSpace: "nowrap", padding: "0.9rem 2rem" }}>
-                                    VAMOS LÁ
-                                </button>
-                            </Link>
+                            <button
+                                className="btn-cta"
+                                style={{ whiteSpace: "nowrap", padding: "0.9rem 2rem" }}
+                                onClick={() => router.push(`/register?email=${encodeURIComponent(email)}`)}
+                            >
+                                VAMOS LÁ
+                            </button>
                         )}
                     </div>
-                    <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.75rem", marginTop: "0.75rem" }}>
+                    <p style={{ color: "rgba(255,255,255,0.85)", fontSize: "0.99rem", marginTop: "0.99rem" }}>
                         Sem compromisso. Cancele quando quiser.
                     </p>
                 </div>

@@ -34,6 +34,7 @@ export async function createCourseAction(formData: any) {
             status: 'PENDENTE',
             image_url: formData.image_url || "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=2070",
             intro_video_url: formData.intro_video_url || '',
+            curriculum: formData.curriculum || [],
             created_at: new Date(),
             updated_at: new Date()
         }
@@ -126,6 +127,7 @@ export async function updateCourseAction(courseId: string, formData: any) {
         if (formData.duration !== undefined) updateData.duration = Number(formData.duration)
         if (formData.image_url !== undefined) updateData.image_url = formData.image_url
         if (formData.intro_video_url !== undefined) updateData.intro_video_url = formData.intro_video_url
+        if (formData.curriculum !== undefined) updateData.curriculum = formData.curriculum
 
         await courseRef.update(updateData)
 

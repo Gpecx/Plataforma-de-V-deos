@@ -309,6 +309,48 @@ export default function NewCoursePage() {
                                 onChange={(e) => setStepData({ description: e.target.value })}
                             />
                         </div>
+                        <div className="space-y-4 pt-4 border-t border-black/10">
+                            <div>
+                                <Label className="text-[10px] font-black uppercase tracking-widest text-black px-1">Conteúdo Programático (Grade)</Label>
+                                <p className="text-[9px] text-black/60 font-bold uppercase tracking-widest px-1 mt-1">
+                                    Adicione os tópicos que os alunos aprenderão neste treinamento.
+                                </p>
+                            </div>
+                            <div className="space-y-3">
+                                {formData.curriculum.map((topic, idx) => (
+                                    <div key={idx} className="flex gap-2">
+                                        <Input
+                                            value={topic}
+                                            onChange={(e) => {
+                                                const newCurriculum = [...formData.curriculum];
+                                                newCurriculum[idx] = e.target.value;
+                                                setStepData({ curriculum: newCurriculum });
+                                            }}
+                                            placeholder={`Ex: Módulo ${idx + 1} - Fundamentos`}
+                                            className="bg-white border-2 border-black hover:border-[#1D5F31] focus:border-[#1D5F31] focus:ring-[#1D5F31] h-12 rounded-none text-sm font-medium transition-all text-black placeholder:text-black/50"
+                                        />
+                                        <button 
+                                            type="button"
+                                            onClick={() => {
+                                                const newCurriculum = formData.curriculum.filter((_, i) => i !== idx);
+                                                setStepData({ curriculum: newCurriculum });
+                                            }}
+                                            className="px-4 text-slate-400 hover:text-red-500 hover:bg-red-50 border-2 border-transparent hover:border-red-200 rounded-none transition-all flex items-center justify-center shrink-0"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
+                                ))}
+                                <Button
+                                    type="button"
+                                    onClick={() => setStepData({ curriculum: [...formData.curriculum, ''] })}
+                                    className="w-full bg-slate-50 text-black border-2 border-dashed border-black/30 hover:border-black hover:bg-slate-100 font-black uppercase text-[10px] tracking-widest h-12 rounded-none shadow-none mt-2 transition-all"
+                                >
+                                    <Plus size={16} className="mr-2" />
+                                    Adicionar Tópico
+                                </Button>
+                            </div>
+                        </div>
 
                     </div>
                 )}

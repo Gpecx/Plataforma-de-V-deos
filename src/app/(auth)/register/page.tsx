@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useMemo, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { auth } from '@/lib/firebase'
 import { createUserWithEmailAndPassword, updateProfile as firebaseUpdateProfile } from 'firebase/auth'
@@ -93,7 +93,25 @@ function maskDate(value: string): string {
 }
 
 export default function RegisterPage() {
-    const [email, setEmail] = useState('')
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen w-full flex items-center justify-center bg-[var(--background-color)]">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#1D5F31]"></div>
+            </div>
+        }>
+            <RegisterForm />
+        </Suspense>
+    )
+}
+
+function RegisterForm() {
+    const router = useRouter()
+    const searchParams = useSearchParams()
+    
+    // Captura o email da URL se existir
+    const initialEmail = searchParams.get('email') || ''
+    
+    const [email, setEmail] = useState(initialEmail)
     const [password, setPassword] = useState('')
     const [fullName, setFullName] = useState('')
     const [personType, setPersonType] = useState<'CPF' | 'CNPJ'>('CPF')
@@ -102,7 +120,6 @@ export default function RegisterPage() {
     const [role, setRole] = useState<'student' | 'teacher'>('student')
     const [loading, setLoading] = useState(false)
     const [cpfCnpjTouched, setCpfCnpjTouched] = useState(false)
-    const router = useRouter()
 
     // Validação em tempo real
     const isCpfCnpjValid = useMemo(() => {
