@@ -89,7 +89,7 @@ export default async function TeacherDashboard() {
                     <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-slate-900 uppercase leading-none">
                         Bem-vindo, <span className="text-[#1D5F31]">{profile?.full_name?.split(' ')[0] || 'Professor'}!</span>
                     </h1>
-                    <p className="text-slate-900 mt-3 font-black uppercase text-[10px] tracking-[3px] italic">Gerencie seu império de conhecimento hoje.</p>
+                    <p className="text-slate-900 mt-3 font-black uppercase text-[10px] tracking-[3px]">Gerencie seu império de conhecimento hoje.</p>
                 </div>
                 <Link href="/dashboard-teacher/courses/new">
                     <button className="flex items-center gap-3 bg-[#1D5F31] text-white font-black uppercase tracking-widest px-10 py-5 rounded-2xl hover:opacity-90 transition shadow-xl shadow-[#1D5F31]/20 shrink-0 active:scale-95">
@@ -141,7 +141,7 @@ export default async function TeacherDashboard() {
                                 <Edit size={24} className="text-[#1D5F31]" />
                                 Meus Cursos
                             </h2>
-                            <p className="text-slate-900 text-[9px] font-black tracking-[3px] uppercase mt-1 italic">Edite e publique seus treinamentos</p>
+                            <p className="text-slate-900 text-[9px] font-black tracking-[3px] uppercase mt-1">Edite e publique seus treinamentos</p>
                         </div>
                         <Link href="/dashboard-teacher/courses" className="text-[11px] text-slate-900 hover:text-[#1D5F31] font-black uppercase tracking-[3px] bg-white px-6 py-3 rounded-xl border border-black/30 shadow-sm transition-all hover:shadow-md">
                             Ver todos os cursos

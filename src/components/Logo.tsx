@@ -41,7 +41,7 @@ export default function Logo({ className = '', variant = 'horizontal', href = '/
                 fontSize="32" 
                 fontWeight="900" 
                 fill={light ? primaryColor : 'white'} 
-                style={{ letterSpacing: '0.05em', fontStyle: 'italic' }}
+                style={{ letterSpacing: '0.05em' }}
             >
                 POWER
             </text>
@@ -54,7 +54,7 @@ export default function Logo({ className = '', variant = 'horizontal', href = '/
                 fontSize="32" 
                 fontWeight="900" 
                 fill={light ? primaryColor : 'white'} 
-                style={{ letterSpacing: '0.05em', fontStyle: 'italic' }}
+                style={{ letterSpacing: '0.05em' }}
             >
                 PLAY
             </text>

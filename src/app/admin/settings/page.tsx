@@ -128,8 +128,8 @@ export default function AdminSettingsPage() {
             <CardContent className="p-8 space-y-8">
                 {items.length === 0 && (
                     <div className="text-center py-16 border-2 border-dashed border-slate-100 rounded-xl bg-slate-50/50">
-                        <ImageIcon className="mx-auto text-slate-200 mb-6" size={48} strokeWidth={1} />
-                        <p className="text-slate-700 font-light uppercase tracking-wider text-[10px] italic">Galeria de Banners Vazia</p>
+                        <ImageIcon className="mx-auto text-slate-400 mb-6" size={48} strokeWidth={1} />
+                        <p className="text-slate-700 font-light uppercase tracking-wider text-[10px]">Galeria de Banners Vazia</p>
                     </div>
                 )}
                 <div className="grid grid-cols-1 gap-8">
@@ -180,7 +180,7 @@ export default function AdminSettingsPage() {
                                             value={item.url}
                                             onChange={(e) => updateBanner(id, index, 'url', e.target.value)}
                                             placeholder="https://images.unsplash.com/photo-..."
-                                            className="bg-white border border-black rounded-xl h-12 text-[11px] text-slate-900 font-bold placeholder:text-slate-300 w-full focus:border-black shadow-inner"
+                                            className="bg-white border border-black rounded-xl h-12 text-[11px] text-slate-900 font-bold placeholder:text-slate-500 w-full focus:border-black shadow-inner"
                                         />
                                     </div>
 
@@ -208,7 +208,7 @@ export default function AdminSettingsPage() {
                         <div className="h-[1px] w-8 bg-slate-200" />
                         <div className="h-[1px] w-8 bg-slate-200" />
                     </div>
-                    <h1 className="text-5xl font-[900] uppercase tracking-tighter italic text-slate-950 flex flex-wrap justify-center items-center gap-3 leading-none">
+                    <h1 className="text-5xl font-[900] uppercase tracking-tighter text-slate-950 flex flex-wrap justify-center items-center gap-3 leading-none">
                         &amp; <span className="text-[#1D5F31]">Configurações de Banners</span>
                     </h1>
                     <p className="text-slate-900 uppercase tracking-widest text-[11px] font-medium mt-4 max-w-2xl leading-tight">
@@ -243,7 +243,7 @@ export default function AdminSettingsPage() {
                                             value={settings.branding.siteName}
                                             onChange={(e) => setBranding('siteName', e.target.value)}
                                             placeholder="Ex: PowerPlay Academy"
-                                            className="rounded-xl h-14 font-bold text-slate-900 text-base bg-slate-50 border border-black focus:border-black focus:bg-white transition-all shadow-inner px-6 placeholder:text-slate-300"
+                                            className="rounded-xl h-14 font-bold text-slate-900 text-base bg-slate-50 border border-black focus:border-black focus:bg-white transition-all shadow-inner px-6 placeholder:text-slate-500"
                                         />
                                     </div>
 
@@ -264,7 +264,7 @@ export default function AdminSettingsPage() {
                                                     value={settings.branding.primaryColor}
                                                     onChange={(e) => setBranding('primaryColor', e.target.value)}
                                                     placeholder="#1D5F31"
-                                                    className="rounded-xl h-14 font-mono font-bold text-slate-900 bg-slate-50 border border-black px-6 placeholder:text-slate-300"
+                                                    className="rounded-xl h-14 font-mono font-bold text-slate-900 bg-slate-50 border border-black px-6 placeholder:text-slate-500"
                                                 />
                                             </div>
                                         </div>

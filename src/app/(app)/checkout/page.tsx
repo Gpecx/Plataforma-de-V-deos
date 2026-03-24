@@ -82,14 +82,14 @@ export default function CheckoutPage() {
                         <div className="w-8 h-8 bg-[#1D5F31]/10 rounded-lg flex items-center justify-center">
                             <Lock size={16} className="text-[#1D5F31]" />
                         </div>
-                        <span className="text-[10px] font-black uppercase tracking-[4px] text-slate-400 italic">Pagamento 100% Seguro</span>
+                        <span className="text-[10px] font-black uppercase tracking-[4px] text-slate-400">Pagamento 100% Seguro</span>
                     </div>
                 </div>
 
                 <div className="grid lg:grid-cols-3 gap-12">
                     {/* Lado Esquerdo: Resumo do Pedido */}
                     <div className="lg:col-span-2 space-y-6">
-                        <h2 className="text-3xl font-black italic uppercase tracking-tighter text-slate-900">
+                        <h2 className="text-3xl font-black uppercase tracking-tighter text-slate-900">
                             Confirme seu <span className="text-[#1D5F31]">Pedido</span>
                         </h2>
 
@@ -105,7 +105,7 @@ export default function CheckoutPage() {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <h4 className="text-sm font-black uppercase tracking-tight truncate text-slate-900">{item.title}</h4>
-                                        <span className="text-base font-black italic text-[#1D5F31]">
+                                        <span className="text-base font-black text-[#1D5F31]">
                                             {item.price === 0 ? 'Gratuito' : `R$ ${item.price.toFixed(2)}`}
                                         </span>
                                     </div>
@@ -125,7 +125,7 @@ export default function CheckoutPage() {
                     {/* Lado Direito: Total + Botão */}
                     <aside className="space-y-8">
                         <section className="bg-white border border-slate-200 rounded-[40px] p-8 shadow-xl">
-                            <h3 className="text-sm font-black uppercase tracking-[5px] text-[#1D5F31] mb-8 italic">Total</h3>
+                            <h3 className="text-sm font-black uppercase tracking-[5px] text-[#1D5F31] mb-8">Total</h3>
 
                             <div className="space-y-4 mb-8">
                                 <div className="flex justify-between font-bold uppercase text-[10px] tracking-widest text-slate-400">
@@ -135,7 +135,7 @@ export default function CheckoutPage() {
                                 <div className="h-px bg-slate-100 my-4" />
                                 <div className="flex flex-col gap-1">
                                     <span className="text-[10px] font-black uppercase tracking-[4px] text-slate-400">Total Final</span>
-                                    <div className="text-4xl font-black italic tracking-tighter text-slate-900">
+                                    <div className="text-4xl font-black tracking-tighter text-slate-900">
                                         {total === 0 ? 'Gratuito' : `R$ ${total.toFixed(2)}`}
                                     </div>
                                 </div>
@@ -144,7 +144,7 @@ export default function CheckoutPage() {
                             <button
                                 onClick={handlePayment}
                                 disabled={isProcessing}
-                                className={`w-full py-6 mt-4 rounded-[20px] font-black uppercase italic tracking-[3px] transition-all flex items-center justify-center gap-3 shadow-lg ${isProcessing
+                                className={`w-full py-6 mt-4 rounded-[20px] font-black uppercase tracking-[3px] transition-all flex items-center justify-center gap-3 shadow-lg ${isProcessing
                                     ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
                                     : 'bg-[#1D5F31] text-white hover:scale-[1.02] shadow-[0_10px_30px_rgba(0,196,2,0.3)]'
                                     }`}

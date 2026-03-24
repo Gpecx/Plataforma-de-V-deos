@@ -77,8 +77,8 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
 
     if (courses.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-32 bg-white border border-slate-100 rounded-xl animate-in fade-in duration-700 shadow-sm">
-                <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-8 border border-slate-50 shadow-inner">
+            <div className="flex flex-col items-center justify-center py-32 bg-white border border-black/10 rounded-xl animate-in fade-in duration-700 shadow-sm">
+                <div className="w-20 h-20 bg-black/5 rounded-full flex items-center justify-center mb-8 border border-black/5 shadow-inner">
                     <LayoutGrid size={40} className="text-slate-200" />
                 </div>
                 <p className="text-slate-700 font-light uppercase tracking-wider text-[10px] italic">Portal Limpo: Nenhum curso aguardando revisão</p>
@@ -93,10 +93,10 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
                 {courses.map((course) => (
                     <div
                         key={course.id}
-                        className="group bg-white border border-slate-100 hover:border-[#1D5F31]/30 transition-all duration-500 relative flex flex-col rounded-xl overflow-hidden shadow-sm hover:shadow-lg"
+                        className="group bg-white border border-black/10 hover:border-[#1D5F31]/30 transition-all duration-500 relative flex flex-col rounded-xl overflow-hidden shadow-sm hover:shadow-lg"
                     >
                         <div className="absolute top-4 left-4 z-20">
-                            <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md border border-slate-100 px-3 py-1 rounded-full shadow-sm">
+                            <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md border border-black/10 px-3 py-1 rounded-full shadow-sm">
                                 <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
                                 <span className="text-[8px] font-black uppercase tracking-wider text-slate-900">PENDENTE</span>
                             </div>
@@ -144,21 +144,21 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
             {/* Modal de Revisão */}
             {reviewingCourse && (
                 <div className="fixed inset-0 z-[60] lg:pl-72 flex items-center justify-center p-4 sm:p-10 bg-slate-950/40 backdrop-blur-md animate-in fade-in duration-300">
-                    <div className="w-full max-w-[1200px] max-h-[90vh] bg-white rounded-xl border border-slate-100 flex flex-col overflow-hidden shadow-2xl">
+                    <div className="w-full max-w-[1200px] max-h-[90vh] bg-white rounded-xl border border-black/10 flex flex-col overflow-hidden shadow-2xl">
                         
                         <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
                             {/* Player Column */}
-                            <div className="flex-1 bg-slate-50 border-b lg:border-b-0 lg:border-r border-slate-100 flex flex-col min-h-0">
-                                <header className="p-6 flex justify-between items-center bg-white border-b border-slate-50">
+                            <div className="flex-1 bg-black/5 border-b lg:border-b-0 lg:border-r border-black/10 flex flex-col min-h-0">
+                                <header className="p-6 flex justify-between items-center bg-white border-b border-black/5">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100">
+                                        <div className="w-10 h-10 rounded-lg bg-black/5 flex items-center justify-center border border-black/10">
                                             <Play size={18} className="text-[#1D5F31]" strokeWidth={2.5} />
                                         </div>
                                         <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-900">VÍDEO DE INTRODUÇÃO</h2>
                                     </div>
                                     <button
                                         onClick={() => setReviewingCourse(null)}
-                                        className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-all active:scale-90"
+                                        className="w-10 h-10 rounded-full bg-black/5 flex items-center justify-center text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-all active:scale-90"
                                     >
                                         <X size={20} />
                                     </button>
@@ -217,7 +217,7 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
                                             value={rejectionReason}
                                             onChange={(e) => setRejectionReason(e.target.value)}
                                             placeholder="Detalhamento técnico ou pedagógico para correções..."
-                                            className="w-full h-44 bg-slate-50 border border-slate-100 rounded-xl p-6 text-sm text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all resize-none placeholder:text-slate-300 font-bold shadow-inner"
+                                            className="w-full h-44 bg-black/5 border border-black/10 rounded-xl p-6 text-sm text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all resize-none placeholder:text-black/30 font-bold shadow-inner"
                                         />
                                     </div>
 
@@ -232,7 +232,7 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
                                         <button
                                             onClick={() => handleReject(reviewingCourse.id)}
                                             disabled={loadingId === reviewingCourse.id}
-                                            className="h-14 border border-slate-100 text-rose-500 text-[10px] font-bold uppercase tracking-wider hover:bg-rose-500 hover:text-white transition-all disabled:opacity-50 rounded-xl active:scale-95"
+                                            className="h-14 border border-black/10 text-rose-500 text-[10px] font-bold uppercase tracking-wider hover:bg-rose-500 hover:text-white transition-all disabled:opacity-50 rounded-xl active:scale-95"
                                         >
                                             Reprovar Acesso
                                         </button>

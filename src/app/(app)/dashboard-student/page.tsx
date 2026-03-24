@@ -114,7 +114,7 @@ export default async function StudentDashboard() {
                         <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tighter !text-black mb-4">
                             Conteúdo <span className="opacity-60">Inovador</span>
                         </h2>
-                        <p className="!text-black font-medium italic text-sm md:text-base leading-relaxed max-w-2xl opacity-90">
+                        <p className="!text-black font-medium text-sm md:text-base leading-relaxed max-w-2xl opacity-90">
                             "Transformando a precisão técnica em resultados estratégicos para sua carreira."
                         </p>
                     </div>
@@ -147,14 +147,14 @@ export default async function StudentDashboard() {
                                 <div className="p-6 flex-grow flex flex-col">
                                     {/* TÍTULO DO CURSO - Garanti que está PRETO e VISÍVEL */}
                                     <h3 className="font-black text-base mb-2 !text-black uppercase leading-tight line-clamp-2 group-hover:text-[#1D5F31] transition-colors">{curso.title}</h3>
-                                    <p className="!text-black text-[10px] font-black uppercase italic line-clamp-2 mb-6">
+                                    <p className="!text-black text-[10px] font-black uppercase line-clamp-2 mb-6">
                                         {curso.description || 'Domine esta habilidade com o método PowerPlay.'}
                                     </p>
 
                                     <div className="mt-auto pt-4 border-t border-black flex items-center justify-between mb-4">
                                         <div className="flex flex-col">
                                             <span className="text-[8px] font-bold !text-black uppercase tracking-tighter">Investimento</span>
-                                            <span className="!text-black font-black text-xl italic tracking-tight">
+                                            <span className="!text-black font-black text-xl tracking-tight">
                                                 R$ {Number(curso.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                             </span>
                                         </div>

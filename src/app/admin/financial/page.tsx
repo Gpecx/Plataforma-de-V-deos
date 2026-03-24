@@ -93,10 +93,10 @@ export default function AdminFinancialPage() {
 
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start opacity-50">
                 <div className="xl:col-span-4 lg:col-span-12">
-                    <div className="h-[400px] bg-white border border-slate-200 rounded-md animate-pulse shadow-sm" />
+                    <div className="h-[400px] bg-white border border-black/20 rounded-md animate-pulse shadow-sm" />
                 </div>
                 <div className="xl:col-span-8 lg:col-span-12 space-y-8">
-                    <div className="h-[500px] bg-white border border-slate-200 rounded-md animate-pulse shadow-sm" />
+                    <div className="h-[500px] bg-white border border-black/20 rounded-md animate-pulse shadow-sm" />
                 </div>
             </div>
         </div>
@@ -110,7 +110,7 @@ export default function AdminFinancialPage() {
                     <span className="text-[11px] font-medium uppercase tracking-widest text-slate-900">Financeiro &amp; Planos</span>
                     <div className="h-[1px] w-8 bg-slate-200" />
                 </div>
-                <h1 className="text-5xl font-[900] tracking-tighter uppercase italic leading-none text-slate-950 text-center">
+                <h1 className="text-5xl font-[900] tracking-tighter uppercase leading-none text-slate-950 text-center">
                     <span className="text-[#1D5F31]">Configurações Estratégicas</span>
                 </h1>
                 <p className="text-slate-900 font-medium text-[11px] tracking-widest uppercase mt-4 max-w-2xl leading-tight">
@@ -121,10 +121,10 @@ export default function AdminFinancialPage() {
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
                 {/* ─── TAXA DA PLATAFORMA ─────────────────────────── */}
                 <div className="xl:col-span-4 lg:col-span-12">
-                    <Card className="rounded-md border border-slate-200 shadow-sm bg-white overflow-hidden sticky top-32">
-                        <CardHeader className="p-8 border-b border-slate-50">
+                    <Card className="rounded-md border border-black/20 shadow-sm bg-white overflow-hidden sticky top-32">
+                        <CardHeader className="p-8 border-b border-black/5">
                             <CardTitle className="text-xs font-black uppercase tracking-wider text-slate-900 flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100">
+                                <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-black/10">
                                     <Percent size={14} className="text-[#000000]" strokeWidth={3} />
                                 </div>
                                 Fee da Plataforma
@@ -139,12 +139,12 @@ export default function AdminFinancialPage() {
                                         type="number"
                                         value={settings.platformTax}
                                         onChange={(e) => setSettings({ ...settings, platformTax: Number(e.target.value) })}
-                                        className="bg-slate-50 border border-slate-100 rounded-xl h-16 text-3xl font-black text-slate-900 px-8 focus:border-[#000000]/30 focus:bg-white transition-all shadow-inner"
+                                        className="bg-slate-50 border border-black/10 rounded-xl h-16 text-3xl font-black text-slate-900 px-8 focus:border-[#000000]/30 focus:bg-white transition-all shadow-inner"
                                     />
                                     <div className="absolute right-8 top-1/2 -translate-y-1/2 text-slate-900 font-black text-xl">%</div>
                                 </div>
                             </div>
-                            <div className="p-6 bg-slate-50 rounded-xl border border-slate-100 border-dashed">
+                            <div className="p-6 bg-slate-50 rounded-xl border border-black/10 border-dashed">
                                 <p className="text-[10px] text-slate-950 font-medium uppercase tracking-wider leading-tight italic">
 
                                 </p>
@@ -155,9 +155,9 @@ export default function AdminFinancialPage() {
 
                 {/* ─── PLANOS DE ASSINATURA ────────────────────────── */}
                 <div className="xl:col-span-8 lg:col-span-12 space-y-8 min-h-[600px]">
-                    <div className="flex items-center justify-between mb-6 bg-white p-8 rounded-md border border-slate-200 shadow-sm">
+                    <div className="flex items-center justify-between mb-6 bg-white p-8 rounded-md border border-black/20 shadow-sm">
                         <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-slate-100">
+                            <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-black/10">
                                 <ShieldCheck className="text-[#000000]" size={24} strokeWidth={2.5} />
                             </div>
                             <div>
@@ -172,8 +172,8 @@ export default function AdminFinancialPage() {
 
                     <div className="space-y-8">
                         {settings.plans.map((plan, pIdx) => (
-                            <Card key={plan.id} className="rounded-md border border-slate-200 bg-white hover:border-[#000000]/30 transition-all duration-500 group overflow-hidden shadow-sm hover:shadow-md">
-                                <CardHeader className="flex flex-row items-center justify-between bg-slate-50/50 border-b border-slate-50 py-6 px-8">
+                            <Card key={plan.id} className="rounded-md border border-black/20 bg-white hover:border-[#000000]/30 transition-all duration-500 group overflow-hidden shadow-sm hover:shadow-md">
+                                <CardHeader className="flex flex-row items-center justify-between bg-slate-50/50 border-b border-black/5 py-6 px-8">
                                     <div className="flex-1">
                                         <Input
                                             value={plan.name}
@@ -196,7 +196,7 @@ export default function AdminFinancialPage() {
                                                     type="number"
                                                     value={plan.price}
                                                     onChange={(e) => updatePlan(pIdx, 'price', e.target.value)}
-                                                    className="bg-slate-50 border border-slate-100 rounded-2xl h-16 pl-14 text-lg text-black font-mono font-black focus:border-[#1D5F31]/30 focus:bg-white transition-all shadow-inner"
+                                                    className="bg-slate-50 border border-black/10 rounded-2xl h-16 pl-14 text-lg text-black font-mono font-black focus:border-[#1D5F31]/30 focus:bg-white transition-all shadow-inner"
                                                 />
                                             </div>
                                         </div>
@@ -204,7 +204,7 @@ export default function AdminFinancialPage() {
                                             onClick={() => updatePlan(pIdx, 'active', !plan.active)}
                                             className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer border transition-all ${plan.active
                                                 ? 'bg-emerald-50 border-emerald-100 text-emerald-700'
-                                                : 'bg-slate-50 border-slate-100 text-slate-700'
+                                                : 'bg-slate-50 border-black/10 text-slate-700'
                                                 }`}
                                         >
                                             <div className={`w-3 h-3 rounded-full ${plan.active ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
@@ -223,7 +223,7 @@ export default function AdminFinancialPage() {
                                                     <Input
                                                         value={feat}
                                                         onChange={(e) => updateFeature(pIdx, fIdx, e.target.value)}
-                                                        className="bg-slate-50 border border-slate-200 rounded-xl h-12 text-[11px] text-black font-black focus:bg-white focus:border-[#000000]/20 transition-all"
+                                                        className="bg-slate-50 border border-black/20 rounded-xl h-12 text-[11px] text-black font-black focus:bg-white focus:border-[#000000]/20 transition-all"
                                                         placeholder="Vantagem técnica..."
                                                     />
                                                     <Button variant="ghost" size="icon" onClick={() => removeFeature(pIdx, fIdx)} className="h-12 w-12 text-black font-black hover:text-rose-600 hover:bg-rose-50 transition-all rounded-xl active:scale-75">
@@ -234,7 +234,7 @@ export default function AdminFinancialPage() {
                                             <Button
                                                 variant="ghost"
                                                 onClick={() => addFeature(pIdx)}
-                                                className="w-full border-2 border-dashed border-slate-200 text-slate-700 hover:text-[#000000] hover:bg-[#000000]/5 hover:border-[#000000]/20 text-[10px] font-bold uppercase tracking-wider h-12 rounded-xl transition-all"
+                                                className="w-full border-2 border-dashed border-black/20 text-slate-700 hover:text-[#000000] hover:bg-[#000000]/5 hover:border-[#000000]/20 text-[10px] font-bold uppercase tracking-wider h-12 rounded-xl transition-all"
                                             >
                                                 + Adicionar Recurso
                                             </Button>

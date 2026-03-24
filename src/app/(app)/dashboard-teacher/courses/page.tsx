@@ -83,7 +83,7 @@ export default function TeacherCoursesPage() {
                     <h1 className="text-4xl md:text-5xl font-black tracking-tighter uppercase leading-none text-slate-900">
                         Meus <span className="text-[#1D5F31]">Cursos</span>
                     </h1>
-                    <p className="text-slate-600 mt-3 text-[10px] font-bold uppercase tracking-[3px] italic">Gerencie e acompanhe o desempenho de suas aulas.</p>
+                    <p className="text-slate-600 mt-3 text-[10px] font-bold uppercase tracking-[3px]">Gerencie e acompanhe o desempenho de suas aulas.</p>
                 </div>
                 <Link href="/dashboard-teacher/courses/new">
                     <Button className="bg-[#1D5F31] text-white font-black uppercase text-[10px] tracking-widest px-10 h-16 rounded-2xl hover:opacity-90 shadow-xl shadow-[#1D5F31]/10 active:scale-95 transition-all">

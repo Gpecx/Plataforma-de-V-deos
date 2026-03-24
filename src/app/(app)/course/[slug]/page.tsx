@@ -106,7 +106,7 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                             </span>
                         </div>
 
-                        <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-[#061629] leading-[0.85] uppercase max-w-5xl italic">
+                        <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-[#061629] leading-[0.85] uppercase max-w-5xl">
                             {course.title}
                         </h1>
                     </div>
@@ -183,7 +183,7 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                                 <div className="w-12 h-px bg-[#1D5F31]" />
                                 <span className="text-[10px] font-black uppercase tracking-[4px] text-[#1D5F31]">Cronograma</span>
                             </div>
-                            <h2 className="text-3xl md:text-5xl font-black text-[#061629] uppercase tracking-tighter italic">Grade <br className="hidden md:block"/> Curricular</h2>
+                            <h2 className="text-3xl md:text-5xl font-black text-[#061629] uppercase tracking-tighter">Grade <br className="hidden md:block"/> Curricular</h2>
                         </div>
                         <p className="text-slate-500 text-sm max-w-md font-medium uppercase tracking-widest leading-loose">
                             Explore os módulos desenhados para levar seu conhecimento ao nível máximo de performance técnica.

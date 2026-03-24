@@ -12,7 +12,7 @@ export default async function TeachersPage() {
                     <span className="text-black[11px] font-medium uppercase tracking-widest text-black">ADMINISTRADOR</span>
                     <div className="h-[1px] w-8 bg-black" />
                 </div>
-                <h1 className="text-5xl font-[900] tracking-tighter uppercase italic leading-none text-black text-center">
+                <h1 className="text-5xl font-[900] tracking-tighter uppercase leading-none text-[#1D5F31] text-center">
                     <span className="text-black">Controle de Professores</span>
                 </h1>
                 <p className="text-black mt-4 text-[11px] font-medium uppercase tracking-widest max-w-xl leading-tight">

@@ -41,7 +41,7 @@ export default function SalesLogList({ initialSales, teachers }: SalesLogListPro
         <div className="space-y-10 animate-in fade-in duration-700">
             {/* Filtros */}
             {/* Filtros */}
-            <div className="bg-white border border-slate-100 p-8 flex flex-wrap gap-6 items-end rounded-xl shadow-sm">
+            <div className="bg-white border border-black/10 p-8 flex flex-wrap gap-6 items-end rounded-xl shadow-sm">
                 <div className="flex-grow space-y-3 min-w-[250px]">
                     <label className="text-[10px] font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
                         <UserIcon size={12} className="text-[#1D5F31]" /> Professor Responsável
@@ -49,7 +49,7 @@ export default function SalesLogList({ initialSales, teachers }: SalesLogListPro
                     <select 
                         value={professorId}
                         onChange={(e) => setProfessorId(e.target.value)}
-                        className="w-full bg-slate-50 border border-slate-100 p-3 rounded-xl text-[11px] text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all uppercase font-bold tracking-wider"
+                        className="w-full bg-black/5 border border-black/10 p-3 rounded-xl text-[11px] text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all uppercase font-bold tracking-wider"
                     >
                         <option value="">TODOS OS INSTRUTORES</option>
                         {teachers.map(t => (
@@ -66,7 +66,7 @@ export default function SalesLogList({ initialSales, teachers }: SalesLogListPro
                         type="date" 
                         value={startDate}
                         onChange={(e) => setStartDate(e.target.value)}
-                        className="bg-slate-50 border border-slate-100 p-3 rounded-xl text-[11px] text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all font-bold"
+                        className="bg-black/5 border border-black/10 p-3 rounded-xl text-[11px] text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all font-bold"
                     />
                 </div>
 
@@ -78,7 +78,7 @@ export default function SalesLogList({ initialSales, teachers }: SalesLogListPro
                         type="date" 
                         value={endDate}
                         onChange={(e) => setEndDate(e.target.value)}
-                        className="bg-slate-50 border border-slate-100 p-3 rounded-xl text-[11px] text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all font-bold"
+                        className="bg-black/5 border border-black/10 p-3 rounded-xl text-[11px] text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all font-bold"
                     />
                 </div>
 
@@ -95,11 +95,11 @@ export default function SalesLogList({ initialSales, teachers }: SalesLogListPro
             </div>
 
             {/* Tabela de Resultados */}
-            <div className="bg-white border border-slate-100 rounded-xl overflow-hidden shadow-sm">
+            <div className="bg-white border border-black/10 rounded-xl overflow-hidden shadow-sm">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left">
                         <thead>
-                            <tr className="border-b border-slate-50 bg-slate-50/30">
+                            <tr className="border-b border-black/5 bg-black/5/30">
                                 <th className="p-6 text-[10px] font-black uppercase tracking-wider text-slate-900">Rastreio / Hash</th>
                                 <th className="p-6 text-[10px] font-black uppercase tracking-wider text-slate-900">Timeline</th>
                                 <th className="p-6 text-[10px] font-black uppercase tracking-wider text-slate-900">Montante Bruto</th>
@@ -110,7 +110,7 @@ export default function SalesLogList({ initialSales, teachers }: SalesLogListPro
                         </thead>
                         <tbody className="divide-y divide-slate-50">
                             {sales.map((sale) => (
-                                <tr key={sale.id} className="hover:bg-slate-50/30 transition-colors group border-b border-slate-50 last:border-0">
+                                <tr key={sale.id} className="hover:bg-black/5/30 transition-colors group border-b border-black/5 last:border-0">
                                     <td className="p-6 font-mono text-[10px] text-slate-700 group-hover:text-slate-900 transition-colors">
                                         {sale.idTransacao}
                                     </td>
@@ -130,7 +130,7 @@ export default function SalesLogList({ initialSales, teachers }: SalesLogListPro
                                         <div className={`inline-flex items-center px-4 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-wider ${
                                             sale.statusPagamento === 'pago' 
                                             ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' 
-                                            : 'bg-slate-50 text-slate-700 border border-slate-100'
+                                            : 'bg-black/5 text-slate-700 border border-black/10'
                                         }`}>
                                             <div className={`w-1.5 h-1.5 rounded-full mr-2 ${sale.statusPagamento === 'pago' ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
                                             {sale.statusPagamento}
@@ -144,7 +144,7 @@ export default function SalesLogList({ initialSales, teachers }: SalesLogListPro
 
                 {sales.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-24 bg-white">
-                        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-6 border border-slate-100">
+                        <div className="w-16 h-16 bg-black/5 rounded-full flex items-center justify-center mb-6 border border-black/10">
                             <Search size={32} className="text-slate-200" />
                         </div>
                         <p className="text-slate-900 font-light uppercase tracking-wider text-[10px] italic">Base de Dados Vazia: Nenhum registro encontrado</p>

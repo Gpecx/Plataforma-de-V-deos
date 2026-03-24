@@ -88,7 +88,7 @@ export default function LandingPageClient({ user: initialUser }: LandingPageProp
         return (
             <div className="fixed inset-0 z-[999] bg-[#061629] flex flex-col items-center justify-center gap-4">
                 <Loader2 className="animate-spin text-[#1D5F31]" size={48} />
-                <p className="text-white font-exo font-black uppercase tracking-[0.2em] text-sm italic">
+                <p className="text-white font-exo font-black uppercase tracking-[0.2em] text-sm">
                     PowerPlay — Carregando sua experiência...
                 </p>
             </div>
@@ -138,7 +138,7 @@ export default function LandingPageClient({ user: initialUser }: LandingPageProp
                         style={{
                             fontSize: "clamp(2.2rem, 6vw, 5rem)",
                             fontWeight: 900,
-                            fontStyle: "italic",
+                            fontStyle: "normal",
                             color: "#fff",
                             lineHeight: 1.05,
                             letterSpacing: "-0.02em",
@@ -254,7 +254,7 @@ export default function LandingPageClient({ user: initialUser }: LandingPageProp
                         style={{
                             fontSize: "clamp(1.3rem, 2.5vw, 2rem)",
                             fontWeight: 900,
-                            fontStyle: "italic",
+                            fontStyle: "normal",
                             color: "#fff",
                             textTransform: "uppercase",
                             letterSpacing: "-0.02em",
@@ -330,7 +330,7 @@ export default function LandingPageClient({ user: initialUser }: LandingPageProp
                         style={{
                             fontSize: "clamp(1.5rem, 3vw, 2.5rem)",
                             fontWeight: 900,
-                            fontStyle: "italic",
+                            fontStyle: "normal",
                             color: "#fff",
                             textTransform: "uppercase",
                             letterSpacing: "-0.02em",
@@ -451,7 +451,7 @@ export default function LandingPageClient({ user: initialUser }: LandingPageProp
                                                     style={{
                                                         fontSize: "clamp(2rem, 4vw, 3.5rem)",
                                                         fontWeight: 900,
-                                                        fontStyle: "italic",
+                                                        fontStyle: "normal",
                                                         color: "#fff",
                                                         lineHeight: 1.1,
                                                         textTransform: "uppercase",
@@ -496,7 +496,7 @@ export default function LandingPageClient({ user: initialUser }: LandingPageProp
                         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(0,0,0,0.9), transparent)", display: "flex", alignItems: "center" }}>
                             <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem" }}>
                                 <div style={{ maxWidth: "520px", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-                                    <h2 style={{ fontSize: "clamp(2rem, 4vw, 3.2rem)", fontWeight: 900, fontStyle: "italic", color: "#fff", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+                                    <h2 style={{ fontSize: "clamp(2rem, 4vw, 3.2rem)", fontWeight: 900, fontStyle: "normal", color: "#fff", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
                                         Potencialize <br />seu Futuro
                                     </h2>
                                     <p style={{ color: "#ffffff", fontSize: "1.05rem", fontWeight: 500 }}>
@@ -535,7 +535,7 @@ export default function LandingPageClient({ user: initialUser }: LandingPageProp
                             textAlign: "center",
                             fontSize: "clamp(1.3rem, 2.5vw, 2rem)",
                             fontWeight: 900,
-                            fontStyle: "italic",
+                            fontStyle: "normal",
                             color: "#fff",
                             textTransform: "uppercase",
                             letterSpacing: "-0.02em",

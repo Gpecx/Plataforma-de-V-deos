@@ -82,7 +82,7 @@ export function ClassroomTabs({ lessonTitle, description }: ClassroomTabsProps) 
                 {activeTab === 'overview' ? (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
                         <div className="lg:col-span-2 space-y-6">
-                            <h3 className="text-xl font-black uppercase italic tracking-tighter text-slate-900">Sobre esta aula</h3>
+                            <h3 className="text-xl font-black uppercase tracking-tighter text-slate-900">Sobre esta aula</h3>
                             <p className="leading-relaxed text-slate-600">
                                 {description || "Nesta aula vamos explorar os conceitos fundamentais para o desenvolvimento de alta performance. Preste atenção em cada detalhe da implementação e utilize o código fonte disponível nos materiais."}
                             </p>
@@ -100,7 +100,7 @@ export function ClassroomTabs({ lessonTitle, description }: ClassroomTabsProps) 
                         </div>
 
                         <div className="space-y-6">
-                            <h3 className="text-xl font-black uppercase italic tracking-tighter text-slate-900">Materiais</h3>
+                            <h3 className="text-xl font-black uppercase tracking-tighter text-slate-900">Materiais</h3>
                             <div className="space-y-3">
                                 <a href="#" className="flex items-center justify-between p-4 border border-slate-100 bg-slate-50/50 rounded-xl hover:border-[#1D5F31]/30 transition-all group">
                                     <div className="flex items-center gap-3">
@@ -141,7 +141,7 @@ export function ClassroomTabs({ lessonTitle, description }: ClassroomTabsProps) 
                                     className="w-full bg-transparent border-none focus:ring-0 text-sm resize-none min-h-[60px] placeholder-slate-400 text-slate-900 font-exo"
                                 />
                                 <div className="flex justify-end">
-                                    <button className="px-6 py-2 bg-[#1D5F31] text-white text-xs font-black uppercase italic rounded-xl hover:scale-105 transition-all font-exo">
+                                    <button className="px-6 py-2 bg-[#1D5F31] text-white text-xs font-black uppercase rounded-xl hover:scale-105 transition-all font-exo">
                                         Enviar Pergunta
                                     </button>
                                 </div>
