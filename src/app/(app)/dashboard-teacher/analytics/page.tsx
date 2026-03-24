@@ -128,7 +128,7 @@ export default async function FinancialDashboardPage() {
                 </div>
 
                 <div className="flex gap-4">
-                    <Button variant="outline" className="border-slate-200 text-slate-600 font-bold uppercase text-[10px] tracking-widest px-6 hover:bg-slate-50 transition-colors bg-white rounded-xl shadow-none">
+                    <Button variant="outline" className="border border-black/20 text-slate-600 font-bold uppercase text-[10px] tracking-widest px-6 hover:bg-slate-50 transition-colors bg-white rounded-xl shadow-none">
                         <Download size={14} className="mr-2" /> Relatório CSV
                     </Button>
                     <Button className="bg-[#1D5F31] text-white font-black uppercase text-xs tracking-widest px-8 shadow-none border-2 border-[#1D5F31] hover:bg-[#1D5F31]/90 transition-all rounded-xl">
@@ -140,7 +140,7 @@ export default async function FinancialDashboardPage() {
             {/* Cards de Saldo */}
             <div className="px-4 md:px-8 mb-16">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
-                    <div className="bg-white border-2 border-slate-200 p-8 rounded-xl relative overflow-hidden group transition-all hover:border-slate-300 shadow-none">
+                    <div className="bg-white border border-black/20 p-8 rounded-xl relative overflow-hidden group transition-all hover:border-black/40 shadow-none">
                         <div className="absolute top-0 right-0 p-6 opacity-5 text-[#1D5F31] group-hover:scale-110 transition-transform">
                             <Wallet size={80} />
                         </div>
@@ -156,7 +156,7 @@ export default async function FinancialDashboardPage() {
                         </div>
                     </div>
 
-                    <div className="bg-white border-2 border-slate-200 p-8 rounded-xl relative overflow-hidden group shadow-none transition-all hover:border-slate-300">
+                    <div className="bg-white border border-black/20 p-8 rounded-xl relative overflow-hidden group shadow-none transition-all hover:border-black/40">
                         <div className="relative z-10">
                             <div className="flex items-center gap-2 text-slate-500 mb-4">
                                 <Calendar size={14} />
@@ -167,7 +167,7 @@ export default async function FinancialDashboardPage() {
                         </div>
                     </div>
 
-                    <div className="bg-white border-2 border-slate-200 p-8 rounded-xl flex flex-col justify-between group shadow-none transition-all hover:border-slate-300">
+                    <div className="bg-white border border-black/20 p-8 rounded-xl flex flex-col justify-between group shadow-none transition-all hover:border-black/40">
                         <div className="space-y-4">
                             <div className="flex items-center gap-2 text-slate-500">
                                 <Info size={14} />
@@ -187,14 +187,14 @@ export default async function FinancialDashboardPage() {
 
             {/* Tabela de Vendas Recentes */}
             <div className="px-4 md:px-8">
-                <div className="bg-white border-2 border-slate-200 rounded-xl p-8 space-y-8 shadow-none overflow-hidden hover:border-slate-300 transition-all">
+                <div className="bg-white border border-black/20 rounded-xl p-8 space-y-8 shadow-none overflow-hidden hover:border-black/40 transition-all">
                     <div className="flex flex-col md:flex-row justify-between items-center gap-6">
                         <h2 className="text-lg font-black uppercase tracking-tighter text-black">Histórico de <span className="text-[#1D5F31]">Vendas</span></h2>
                         <div className="relative w-full md:w-64">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
                             <input
                                 placeholder="Pesquisar venda..."
-                                className="w-full bg-white border-2 border-slate-200 rounded-xl px-10 py-2.5 text-xs text-black focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31] outline-none transition-all font-bold uppercase tracking-widest placeholder:text-slate-400"
+                                className="w-full bg-white border border-black/20 rounded-xl px-10 py-2.5 text-xs text-black focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31] outline-none transition-all font-bold uppercase tracking-widest placeholder:text-slate-400"
                             />
                         </div>
                     </div>
@@ -202,7 +202,7 @@ export default async function FinancialDashboardPage() {
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
-                                <tr className="border-b-2 border-slate-100 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+                                <tr className="border-b-2 border-black/20 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
                                     <th className="pb-6 px-4">Pedido</th>
                                     <th className="pb-6 px-4">Aluno</th>
                                     <th className="pb-6 px-4">Curso</th>
@@ -215,7 +215,7 @@ export default async function FinancialDashboardPage() {
                             <tbody className="text-sm">
                                 {salesHistory.length > 0 ? (
                                     salesHistory.map((sale: any) => (
-                                        <tr key={sale.id} className="border-b border-slate-100 hover:bg-slate-50 transition-all group">
+                                        <tr key={sale.id} className="border-b border-black/20 hover:bg-slate-50 transition-all group">
                                             <td className="py-6 px-4 font-mono text-xs text-slate-500 font-bold">{sale.id}</td>
                                             <td className="py-6 px-4">
                                                 <div className="font-bold text-black">{sale.student}</div>
@@ -257,7 +257,7 @@ function NoSales() {
                 </h1>
             </header>
             <div className="px-4 md:px-8">
-                <div className="bg-white border-2 border-slate-200 rounded-xl p-20 text-center shadow-none">
+                <div className="bg-white border border-black/20 rounded-xl p-20 text-center shadow-none">
                     <p className="text-slate-500 italic font-medium uppercase tracking-widest text-[10px]">
                         Você ainda não possui vendas registradas.
                     </p>

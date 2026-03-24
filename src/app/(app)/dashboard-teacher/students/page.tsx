@@ -118,13 +118,13 @@ export default async function StudentsPage() {
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 transition-colors group-focus-within:text-[#1D5F31]" size={16} />
                         <input
                             placeholder="Buscar aluno por nome..."
-                            className="bg-white border border-slate-200 rounded-2xl px-12 py-4 text-xs text-slate-900 focus:border-[#1D5F31] placeholder:text-slate-600 outline-none transition-all w-full md:w-80 font-bold uppercase tracking-widest shadow-sm"
+                            className="bg-white border border-black rounded-2xl px-12 py-4 text-xs text-slate-900 focus:border-black placeholder:text-slate-600 outline-none transition-all w-full md:w-80 font-bold uppercase tracking-widest shadow-sm"
                         />
                     </div>
                 </div>
             </header>
 
-            <div className="bg-white border border-slate-200 rounded-[32px] p-8 shadow-xl overflow-hidden relative">
+            <div className="bg-white border border-black/20 rounded-[32px] p-8 shadow-xl overflow-hidden relative">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
@@ -142,7 +142,7 @@ export default async function StudentsPage() {
                                     <tr key={student.id} className="border-b border-slate-50 hover:bg-slate-50 transition-all group">
                                         <td className="py-6 px-4">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center font-black text-white border-2 border-white shadow-md uppercase text-xs">
+                                                <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center font-black text-black border border-black shadow-md uppercase text-xs">
                                                     {(student.profiles?.full_name || 'S').charAt(0)}
                                                 </div>
                                                 <div className="flex flex-col">
@@ -153,7 +153,7 @@ export default async function StudentsPage() {
                                         </td>
                                         <td className="py-6 px-4 text-slate-500 text-xs font-bold">{student.profiles?.email}</td>
                                         <td className="py-6 px-4 text-center">
-                                            <span className="px-3 py-1.5 bg-slate-50 rounded-lg text-[9px] font-black border border-slate-100 text-slate-900 tracking-[1px] uppercase shadow-sm">
+                                            <span className="px-3 py-1.5 bg-white rounded-lg text-[9px] font-black border border-black text-slate-900 tracking-[1px] uppercase shadow-sm">
                                                 {student.courseCount} {student.courseCount === 1 ? 'UNIDADE' : 'UNIDADES'}
                                             </span>
                                         </td>
@@ -162,7 +162,7 @@ export default async function StudentsPage() {
                                         </td>
                                         <td className="py-6 px-4 text-right">
                                             <Link href={`/dashboard-teacher/chat?userId=${student.id}`}>
-                                                <button className="p-3 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-[#1D5F31] hover:border-[#1D5F31]/30 hover:shadow-md transition-all active:scale-90">
+                                                <button className="p-3 rounded-xl border border-black bg-white text-slate-600 hover:text-[#1D5F31] hover:border-black hover:shadow-md transition-all active:scale-90">
                                                     <MessageSquare size={18} strokeWidth={2.5} />
                                                 </button>
                                             </Link>

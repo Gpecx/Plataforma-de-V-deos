@@ -102,8 +102,8 @@ export default async function TeacherDashboard() {
                 {/* Métricas Principais */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                     {metrics.map((metric, idx) => (
-                        <div key={idx} className="bg-white p-8 rounded-[32px] border border-slate-200 hover:border-[#1D5F31]/30 transition-all shadow-sm hover:shadow-xl group">
-                            <div className={`p-4 w-14 h-14 rounded-2xl bg-slate-50 border border-slate-100 mb-6 flex items-center justify-center transition-transform group-hover:scale-110 ${metric.color}`}>
+                        <div key={idx} className="bg-white p-8 rounded-[32px] border border-black/20 hover:border-black transition-all shadow-sm hover:shadow-xl group">
+                            <div className={`p-4 w-14 h-14 rounded-2xl bg-slate-50 border border-black/20 mb-6 flex items-center justify-center transition-transform group-hover:scale-110 ${metric.color}`}>
                                 <metric.icon size={24} />
                             </div>
                             <p className="text-slate-900 text-[10px] font-black uppercase tracking-[3px] mb-1">{metric.label}</p>
@@ -113,7 +113,7 @@ export default async function TeacherDashboard() {
                 </div>
 
                 {/* Gráfico de Desempenho */}
-                <section className="bg-white p-10 rounded-[40px] border border-slate-200 shadow-xl overflow-hidden relative">
+                <section className="bg-white p-10 rounded-[40px] border border-black/20 shadow-xl overflow-hidden relative">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
                         <div className="flex items-center gap-4">
                             <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
@@ -135,7 +135,7 @@ export default async function TeacherDashboard() {
 
                 {/* Lista de Cursos Recentes */}
                 <section className="space-y-10">
-                    <div className="flex justify-between items-end border-b border-slate-200 pb-6">
+                    <div className="flex justify-between items-end border-b border-black/20 pb-6">
                         <div>
                             <h2 className="text-2xl font-black uppercase tracking-tighter text-slate-900 flex items-center gap-3">
                                 <Edit size={24} className="text-[#1D5F31]" />
@@ -143,14 +143,14 @@ export default async function TeacherDashboard() {
                             </h2>
                             <p className="text-slate-900 text-[9px] font-black tracking-[3px] uppercase mt-1 italic">Edite e publique seus treinamentos</p>
                         </div>
-                        <Link href="/dashboard-teacher/courses" className="text-[11px] text-slate-900 hover:text-[#1D5F31] font-black uppercase tracking-[3px] bg-white px-6 py-3 rounded-xl border border-slate-400 shadow-sm transition-all hover:shadow-md">
+                        <Link href="/dashboard-teacher/courses" className="text-[11px] text-slate-900 hover:text-[#1D5F31] font-black uppercase tracking-[3px] bg-white px-6 py-3 rounded-xl border border-black/30 shadow-sm transition-all hover:shadow-md">
                             Ver todos os cursos
                         </Link>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8">
                         {courses.length > 0 ? courses.map((curso) => (
-                            <div key={curso.id} className="group bg-white rounded-[28px] border border-slate-200 flex flex-col hover:border-[#1D5F31]/30 transition-all duration-500 shadow-sm hover:shadow-xl overflow-hidden">
+                            <div key={curso.id} className="group bg-white rounded-[28px] border border-black/20 flex flex-col hover:border-black transition-all duration-500 shadow-sm hover:shadow-xl overflow-hidden">
                                 <div className="h-44 bg-slate-100 overflow-hidden relative">
                                     <img src={curso.image_url} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={curso.title} />
                                     <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/20 shadow-sm">
@@ -163,14 +163,14 @@ export default async function TeacherDashboard() {
                                         <Link href={`/dashboard-teacher/courses/${curso.id}/edit`} className="flex-1">
                                             <button className="w-full bg-slate-900 text-white font-black uppercase text-[10px] tracking-widest py-4 rounded-xl hover:bg-[#1D5F31] transition-all shadow-md active:scale-95">Editar</button>
                                         </Link>
-                                        <Link href={`/dashboard-teacher/chat?course=${curso.id}`} className="p-4 bg-slate-50 text-slate-900 hover:text-[#1D5F31] hover:bg-white border border-slate-200 rounded-xl transition-all shadow-sm">
+                                        <Link href={`/dashboard-teacher/chat?course=${curso.id}`} className="p-4 bg-slate-50 text-slate-900 hover:text-[#1D5F31] hover:bg-white border border-black/20 rounded-xl transition-all shadow-sm">
                                             <MessageSquare size={16} />
                                         </Link>
                                     </div>
                                 </div>
                             </div>
                         )) : (
-                            <div className="col-span-full py-24 border-2 border-dashed border-slate-200 rounded-[40px] text-center bg-white shadow-sm">
+                            <div className="col-span-full py-24 border-2 border-dashed border-black/20 rounded-[40px] text-center bg-white shadow-sm">
                                 <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
                                     <Plus size={32} className="text-slate-300" />
                                 </div>
