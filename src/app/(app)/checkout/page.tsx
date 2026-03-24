@@ -56,8 +56,8 @@ export default function CheckoutPage() {
             }
 
             // Pago: redireciona para a página de checkout do Asaas
-            if (result.invoiceUrl) {
-                window.location.href = result.invoiceUrl
+            if (result.data?.invoiceUrl) {
+                window.location.href = result.data.invoiceUrl
                 return
             }
 

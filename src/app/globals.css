@@ -150,7 +150,7 @@ p {
 /* Benefits cards */
 .benefit-card {
   background: rgba(29, 95, 49, 0.05);
-  border: 1px solid rgba(29, 95, 49, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 0.75rem;
   padding: 2rem;
   transition: all 0.3s ease;
@@ -161,7 +161,7 @@ p {
   transform: translateY(-6px);
   background: rgba(29, 95, 49, 0.1);
   box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.5);
-  border-color: var(--accent-green);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 /* Course cards dark */
