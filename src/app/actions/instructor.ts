@@ -94,7 +94,7 @@ export async function getInstructorCourses(instructorId: string, limitCount: num
     try {
         let query = adminDb.collection('courses')
             .where('teacher_id', '==', instructorId)
-            .where('status', '==', 'published')
+            .where('status', '==', 'APROVADO')
             .orderBy('created_at', 'desc')
             .limit(limitCount)
 

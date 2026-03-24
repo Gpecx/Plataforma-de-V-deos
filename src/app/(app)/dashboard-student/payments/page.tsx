@@ -48,10 +48,10 @@ export default function PaymentsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
                 {/* Tabela de Transações */}
                 <div className="lg:col-span-2 space-y-8">
-                    <div className="bg-white border border-slate-200 rounded-none shadow-sm p-8 md:p-10 relative overflow-hidden">
+                    <div className="bg-white border border-black rounded-xl shadow-sm p-8 md:p-10 relative overflow-hidden">
                         <div className="flex items-center justify-between mb-10">
                             <h2 className="text-lg font-black uppercase tracking-tighter text-[#1a1a1a]">Histórico de Transações</h2>
-                            <button className="text-[10px] font-black uppercase tracking-widest text-gray-700 hover:text-gray-900 border border-gray-400 hover:border-gray-500 hover:bg-gray-50 px-4 py-2 rounded-md transition-all shadow-sm">
+                            <button className="text-[10px] font-black uppercase tracking-widest text-gray-700 hover:text-gray-900 border border-black hover:border-black hover:bg-gray-50 px-4 py-2 rounded-xl transition-all shadow-sm">
                                 Exportar PDF
                             </button>
                         </div>
@@ -132,7 +132,7 @@ export default function PaymentsPage() {
 
                 {/* Métodos de Pagamento Sidebar */}
                 <div className="space-y-8">
-                    <div className="bg-white border border-slate-200 shadow-sm rounded-none p-10 text-[#1a1a1a] relative overflow-hidden group">
+                    <div className="bg-white border border-black shadow-sm rounded-xl p-10 text-[#1a1a1a] relative overflow-hidden group">
                         <div className="relative z-10">
                             <h3 className="text-sm font-black uppercase tracking-[3px] text-slate-500 mb-8">Cartão Principal</h3>
                             {hasSavedCard ? (
@@ -143,14 +143,14 @@ export default function PaymentsPage() {
                                             <p className="text-[8px] font-black uppercase tracking-widest text-slate-500">Expiração</p>
                                             <p className="text-xs font-bold tracking-widest text-[#1a1a1a]">12/28</p>
                                         </div>
-                                        <div className="w-12 h-8 bg-slate-50 border border-slate-200 rounded-md flex items-center justify-center shadow-sm">
+                                        <div className="w-12 h-8 bg-slate-50 border border-black rounded-xl flex items-center justify-center shadow-sm">
                                             <CreditCard size={16} className="text-[#1D5F31]" />
                                         </div>
                                     </div>
                                 </div>
                             ) : (
                                 <div className="mb-12 flex flex-col items-center justify-center text-center py-4">
-                                    <div className="w-16 h-16 bg-gray-50 border border-gray-200 rounded-full flex items-center justify-center mb-4 shadow-sm">
+                                    <div className="w-16 h-16 bg-gray-50 border border-black rounded-full flex items-center justify-center mb-4 shadow-sm">
                                         <CreditCard size={28} className="text-gray-400" />
                                     </div>
                                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-relaxed">
@@ -160,7 +160,7 @@ export default function PaymentsPage() {
                             )}
                             <button
                                 onClick={() => setIsModalOpen(true)}
-                                className="w-full h-14 border border-gray-400 rounded-md flex items-center justify-center gap-3 text-[10px] bg-gray-50 font-black uppercase tracking-widest text-gray-800 hover:border-gray-600 hover:text-gray-900 hover:bg-white transition-all shadow-sm"
+                                className="w-full h-14 border border-black rounded-xl flex items-center justify-center gap-3 text-[10px] bg-gray-50 font-black uppercase tracking-widest text-gray-800 hover:border-black hover:text-gray-900 hover:bg-white transition-all shadow-sm"
                             >
                                 <Plus size={16} /> Adicionar Novo Cartão
                             </button>
@@ -174,10 +174,10 @@ export default function PaymentsPage() {
             {/* Modal de Adicionar Cartão */}
             {isModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white border border-slate-200 shadow-2xl rounded-xl w-full max-w-lg p-10 relative">
+                    <div className="bg-white border border-black shadow-2xl rounded-xl w-full max-w-lg p-10 relative">
                         <button
                             onClick={() => setIsModalOpen(false)}
-                            className="absolute top-8 right-8 p-2 text-slate-400 hover:text-[#1a1a1a] hover:bg-slate-100 rounded-md transition-all"
+                            className="absolute top-8 right-8 p-2 text-slate-400 hover:text-[#1a1a1a] hover:bg-slate-100 rounded-xl transition-all"
                         >
                             <X size={20} />
                         </button>
@@ -193,22 +193,22 @@ export default function PaymentsPage() {
                         <form onSubmit={handleSaveCard} className="space-y-6">
                             <div className="space-y-2">
                                 <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 pl-1">Número do Cartão</label>
-                                <input type="text" placeholder="0000 0000 0000 0000" className="w-full h-14 bg-gray-50 border border-gray-400 rounded-md px-5 text-sm font-bold tracking-[2px] text-[#1a1a1a] outline-none focus:border-gray-600 focus:bg-white shadow-sm transition-all placeholder:text-gray-400 placeholder:font-medium placeholder:tracking-normal" required />
+                                <input type="text" placeholder="0000 0000 0000 0000" className="w-full h-14 bg-gray-50 border border-black rounded-xl px-5 text-sm font-bold tracking-[2px] text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:bg-white shadow-sm transition-all placeholder:text-gray-400 placeholder:font-medium placeholder:tracking-normal" required />
                             </div>
                             
                             <div className="grid grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 pl-1">Validade</label>
-                                    <input type="text" placeholder="MM/AA" className="w-full h-14 bg-gray-50 border border-gray-400 rounded-md px-5 text-sm font-bold tracking-[2px] text-[#1a1a1a] outline-none focus:border-gray-600 focus:bg-white shadow-sm transition-all placeholder:text-gray-400 placeholder:font-medium placeholder:tracking-normal" required />
+                                    <input type="text" placeholder="MM/AA" className="w-full h-14 bg-gray-50 border border-black rounded-xl px-5 text-sm font-bold tracking-[2px] text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:bg-white shadow-sm transition-all placeholder:text-gray-400 placeholder:font-medium placeholder:tracking-normal" required />
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 pl-1">CVC</label>
-                                    <input type="text" placeholder="123" className="w-full h-14 bg-gray-50 border border-gray-400 rounded-md px-5 text-sm font-bold tracking-[2px] text-[#1a1a1a] outline-none focus:border-gray-600 focus:bg-white shadow-sm transition-all placeholder:text-gray-400 placeholder:font-medium placeholder:tracking-normal" required />
+                                    <input type="text" placeholder="123" className="w-full h-14 bg-gray-50 border border-black rounded-xl px-5 text-sm font-bold tracking-[2px] text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:bg-white shadow-sm transition-all placeholder:text-gray-400 placeholder:font-medium placeholder:tracking-normal" required />
                                 </div>
                             </div>
                             
                             <div className="pt-4">
-                                <button type="submit" disabled={isSaving} className="w-full h-14 bg-[#1D5F31] hover:brightness-110 text-white rounded-md font-black uppercase tracking-[2px] text-[10px] transition-all shadow-md flex items-center justify-center disabled:opacity-50">
+                                <button type="submit" disabled={isSaving} className="w-full h-14 bg-[#1D5F31] border border-black hover:brightness-110 text-white rounded-xl font-black uppercase tracking-[2px] text-[10px] transition-all shadow-md flex items-center justify-center disabled:opacity-50">
                                     {isSaving ? 'SALVANDO...' : 'SALVAR CARTÃO'}
                                 </button>
                             </div>

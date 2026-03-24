@@ -21,7 +21,7 @@ export function ProfileForm({ initialFullName, initialCpf }: ProfileFormProps) {
         <form action={formAction} className="space-y-10">
             <div className="space-y-8">
                 <div className="flex items-center gap-6 mb-10">
-                    <div className="w-20 h-20 bg-slate-50 border border-slate-200 rounded-none flex items-center justify-center text-[#1a1a1a] shadow-sm relative overflow-hidden group/avatar">
+                    <div className="w-20 h-20 bg-slate-50 border border-black rounded-xl flex items-center justify-center text-[#1a1a1a] shadow-sm relative overflow-hidden group/avatar">
                         <User size={40} className="group-hover/avatar:scale-110 transition-transform duration-500 text-slate-400" />
                         <div className="absolute inset-0 bg-black/5 opacity-0 group-hover/avatar:opacity-100 transition-opacity" />
                     </div>
@@ -40,7 +40,7 @@ export function ProfileForm({ initialFullName, initialCpf }: ProfileFormProps) {
                             type="text"
                             name="fullName"
                             defaultValue={initialFullName}
-                            className="w-full bg-gray-50 border border-gray-300 shadow-sm rounded-none px-5 py-4 focus:outline-none focus:border-gray-500 focus:bg-white transition-all text-[#1a1a1a] font-medium placeholder-slate-400"
+                            className="w-full bg-gray-50 border border-black shadow-sm rounded-xl px-5 py-4 focus:outline-none focus:border-[#1D5F31] focus:bg-white transition-all text-[#1a1a1a] font-medium placeholder-slate-400"
                             placeholder="Seu nome"
                             required
                         />
@@ -54,7 +54,7 @@ export function ProfileForm({ initialFullName, initialCpf }: ProfileFormProps) {
                             type="text"
                             name="cpf"
                             defaultValue={initialCpf}
-                            className="w-full bg-gray-50 border border-gray-300 shadow-sm rounded-none px-5 py-4 focus:outline-none focus:border-gray-500 focus:bg-white transition-all text-[#1a1a1a] font-medium placeholder-slate-400"
+                            className="w-full bg-gray-50 border border-black shadow-sm rounded-xl px-5 py-4 focus:outline-none focus:border-[#1D5F31] focus:bg-white transition-all text-[#1a1a1a] font-medium placeholder-slate-400"
                             placeholder="000.000.000-00"
                             required
                         />
@@ -63,14 +63,14 @@ export function ProfileForm({ initialFullName, initialCpf }: ProfileFormProps) {
                 </div>
 
                 {state?.success && (
-                    <div className="flex items-center gap-2 p-4 bg-green-50 border border-green-200/40 rounded-none text-green-700 text-[10px] font-bold uppercase tracking-widest animate-in fade-in slide-in-from-top-2">
+                    <div className="flex items-center gap-2 p-4 bg-green-50 border border-green-200/40 rounded-xl text-green-700 text-[10px] font-bold uppercase tracking-widest animate-in fade-in slide-in-from-top-2">
                         <CheckCircle2 size={16} />
                         Perfil atualizado com sucesso!
                     </div>
                 )}
 
                 {state?.error && (
-                    <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200/40 rounded-none text-red-700 text-[10px] font-bold uppercase tracking-widest animate-in fade-in slide-in-from-top-2">
+                    <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200/40 rounded-xl text-red-700 text-[10px] font-bold uppercase tracking-widest animate-in fade-in slide-in-from-top-2">
                         <AlertCircle size={16} />
                         {state.error}
                     </div>
@@ -81,7 +81,7 @@ export function ProfileForm({ initialFullName, initialCpf }: ProfileFormProps) {
                 <button
                     type="submit"
                     disabled={isPending}
-                    className="flex items-center justify-center gap-3 w-full md:w-auto px-12 h-14 bg-[#1D5F31] text-white font-black uppercase tracking-[2px] rounded-none hover:bg-[#154724] transition-all active:scale-[0.98] disabled:opacity-50 group"
+                    className="flex items-center justify-center gap-3 w-full md:w-auto px-12 h-14 bg-[#1D5F31] border border-black text-white font-black uppercase tracking-[2px] rounded-xl hover:bg-[#154724] transition-all active:scale-[0.98] disabled:opacity-50 group"
                 >
                     <Save size={20} className={`${isPending ? 'animate-pulse' : ''} group-hover:scale-110 transition-transform`} />
                     {isPending ? 'Salvando...' : 'Salvar Alterações'}

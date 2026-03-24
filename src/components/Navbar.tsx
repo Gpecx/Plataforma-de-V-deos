@@ -224,7 +224,7 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                                 onClick={() => setIsSearchOpen(!isSearchOpen)}
                                 className={cn(
                                     "transition cursor-pointer outline-none flex items-center justify-center",
-                                    light ? "text-slate-600 hover:text-slate-900" : "text-white hover:opacity-70"
+                                    light ? "text-slate-900 hover:text-[#1D5F31]" : "text-white hover:opacity-70"
                                 )}
                             >
                                 {isSearchOpen ? <X size={20} /> : <Search size={20} />}
@@ -246,7 +246,7 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                         {isLoggedIn && !isTeacherMode && (
                             <Link href="/cart" className={cn(
                                 "transition cursor-pointer relative flex items-center justify-center",
-                                light ? "text-slate-600 hover:text-slate-900" : "text-white hover:opacity-70"
+                                light ? "text-slate-900 hover:text-[#1D5F31]" : "text-white hover:opacity-70"
                             )}>
                                 <ShoppingCart size={20} />
                                 {mounted && items.length > 0 && (

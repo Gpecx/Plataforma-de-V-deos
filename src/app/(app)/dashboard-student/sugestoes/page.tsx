@@ -30,7 +30,7 @@ export default function SugestoesPage() {
                 </Link>
 
                 {/* Removido rounded e adicionado borda mais forte */}
-                <div className="bg-white border border-gray-200 shadow-sm rounded-xl overflow-hidden">
+                <div className="bg-white border border-black shadow-sm rounded-xl overflow-hidden">
                     <div className="p-8 md:p-16">
                         <div className="mb-12">
                             <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-[#1a1a1a] mb-6">
@@ -54,14 +54,14 @@ export default function SugestoesPage() {
                                         value={message}
                                         onChange={(e) => setMessage(e.target.value)}
                                         placeholder="DESCREVA AQUI SUA IDEIA, SUGESTÃO OU FEEDBACK..."
-                                        className="w-full bg-slate-50 border border-gray-200 text-slate-900 placeholder:text-slate-400 rounded-xl p-10 text-sm font-bold uppercase tracking-widest focus:outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31] transition-all resize-none min-h-[300px]"
+                                        className="w-full bg-slate-50 border border-black text-slate-900 placeholder:text-slate-400 rounded-xl p-10 text-sm font-bold uppercase tracking-widest focus:outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31] transition-all resize-none min-h-[300px]"
                                     />
                                 </div>
 
                                 {/* Botão Retangular com efeito de brilho PowerPlay */}
                                 <button
                                     type="submit"
-                                    className="w-full h-20 bg-[#1D5F31] hover:bg-[#00e602] text-white font-black uppercase tracking-[4px] rounded-xl transition-all flex items-center justify-center gap-4 active:scale-[0.99] py-6 shadow-lg shadow-[#1D5F31]/10"
+                                    className="w-full h-20 bg-[#1D5F31] hover:bg-[#00e602] border border-black text-white font-black uppercase tracking-[4px] rounded-xl transition-all flex items-center justify-center gap-4 active:scale-[0.99] py-6 shadow-lg shadow-[#1D5F31]/10"
                                 >
                                     <Send size={20} strokeWidth={3} />
                                     ENVIAR AGORA

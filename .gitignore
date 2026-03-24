@@ -46,3 +46,4 @@ serviceAccountKey.json
 # Agentes e Skills
 .agents/
 .skills/
+.agent/

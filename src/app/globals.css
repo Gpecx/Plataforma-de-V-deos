@@ -232,3 +232,10 @@ p {
   background: rgba(255, 255, 255, 0.06);
   box-shadow: 0 0 0 4px rgba(29, 95, 49, 0.1);
 }
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}

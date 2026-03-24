@@ -256,7 +256,7 @@ export async function approveCourse(courseId: string) {
         // 1. Atualiza apenas o curso
         const courseRef = adminDb.collection('courses').doc(courseId)
         await courseRef.update({ 
-            status: 'published',
+            status: 'APROVADO',
             updated_at: new Date()
         })
 
@@ -277,7 +277,7 @@ export async function approveCourse(courseId: string) {
 export async function approveLesson(lessonId: string) {
     try {
         await adminDb.collection('lessons').doc(lessonId).update({
-            status: 'published',
+            status: 'APROVADO',
             approved_at: new Date(),
             updated_at: new Date()
         })

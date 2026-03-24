@@ -103,7 +103,7 @@ export function NotificationBell({
 
     return (
         <div className="relative" ref={menuRef}>
-            <button onClick={() => setOpen(prev => !prev)} className={cn("transition cursor-pointer relative outline-none flex items-center justify-center", light ? "text-slate-600 hover:text-slate-900" : "text-white hover:text-[#1D5F31]")}>
+            <button onClick={() => setOpen(prev => !prev)} className={cn("transition cursor-pointer relative outline-none flex items-center justify-center", light ? "text-slate-900 hover:text-[#1D5F31]" : "text-white hover:text-[#1D5F31]")}>
                 <Bell size={20} />
                 {unread > 0 && (
                     <span className={cn(

@@ -12,7 +12,7 @@ export default async function CoursesPage() {
 
     try {
         const [snapshot, banners] = await Promise.all([
-            adminDb.collection('courses').where('status', '==', 'published').get(),
+            adminDb.collection('courses').where('status', '==', 'APROVADO').get(),
             getBanners()
         ]);
 
@@ -33,7 +33,7 @@ export default async function CoursesPage() {
                 tag: data.tag || 'TREINAMENTO',
                 image_url: data.image_url || null,
                 duration: data.duration || 0,
-                status: data.status || 'published',
+                status: data.status || 'APROVADO',
                 teacher_id: data.teacher_id || null,
                 teacher_name: data.teacher_name || 'Equipe PowerPlay',
                 created_at: parseFirebaseDate(data.created_at)?.toISOString() || null,

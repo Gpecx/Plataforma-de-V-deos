@@ -23,7 +23,7 @@ export default function ContactPage() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
 
                         {/* Lado Esquerdo: Texto e Informações */}
-                        <div className="flex flex-col justify-between space-y-12 bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-slate-100">
+                        <div className="flex flex-col justify-between space-y-12 bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-black">
                             <div>
                                 <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none mb-6 text-slate-900">
                                     VAMOS <span className="text-[#1D5F31]">CONVERSAR?</span>
@@ -46,7 +46,7 @@ export default function ContactPage() {
                                 </div>
 
                                 <div className="flex items-center gap-6 group">
-                                    <div className="w-14 h-14 bg-slate-50 flex items-center justify-center rounded-xl border border-slate-200 group-hover:border-[#1D5F31] transition-all duration-300">
+                                    <div className="w-14 h-14 bg-slate-50 flex items-center justify-center rounded-xl border border-black group-hover:border-[#1D5F31] transition-all duration-300">
                                         <Phone className="text-[#1D5F31]" size={24} />
                                     </div>
                                     <div>
@@ -56,7 +56,7 @@ export default function ContactPage() {
                                 </div>
 
                                 <div className="flex items-center gap-6 group">
-                                    <div className="w-14 h-14 bg-slate-50 flex items-center justify-center rounded-xl border border-slate-200 group-hover:border-[#1D5F31] transition-all duration-300">
+                                    <div className="w-14 h-14 bg-slate-50 flex items-center justify-center rounded-xl border border-black group-hover:border-[#1D5F31] transition-all duration-300">
                                         <MapPin className="text-[#1D5F31]" size={24} />
                                     </div>
                                     <div>
@@ -68,7 +68,7 @@ export default function ContactPage() {
                         </div>
 
                         {/* Lado Direito: Formulário */}
-                        <div className="bg-white p-8 md:p-12 rounded-2xl shadow-xl border border-slate-100 relative overflow-hidden flex flex-col justify-center">
+                        <div className="bg-white p-8 md:p-12 rounded-2xl shadow-xl border border-black relative overflow-hidden flex flex-col justify-center">
                             <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
                                 <div className="space-y-2">
                                     <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-slate-900">Nome Completo</Label>
@@ -76,7 +76,7 @@ export default function ContactPage() {
                                         id="name"
                                         placeholder="COMO PODEMOS TE CHAMAR?"
                                         required
-                                        className="bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 rounded-lg h-14 text-xs font-bold uppercase tracking-widest px-6 focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31] transition-all"
+                                        className="bg-slate-50 border-black text-slate-900 placeholder:text-slate-400 rounded-lg h-14 text-xs font-bold uppercase tracking-widest px-6 focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31] transition-all"
                                     />
                                 </div>
 
@@ -88,7 +88,7 @@ export default function ContactPage() {
                                             type="email"
                                             placeholder="SEU MELHOR E-MAIL"
                                             required
-                                            className="bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 rounded-lg h-14 text-xs font-bold uppercase tracking-widest px-6 focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]"
+                                            className="bg-slate-50 border-black text-slate-900 placeholder:text-slate-400 rounded-lg h-14 text-xs font-bold uppercase tracking-widest px-6 focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]"
                                         />
                                     </div>
                                     <div className="space-y-2">
@@ -96,7 +96,7 @@ export default function ContactPage() {
                                         <Input
                                             id="phone"
                                             placeholder="(00) 00000-0000"
-                                            className="bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 rounded-lg h-14 text-xs font-bold uppercase tracking-widest px-6 focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]"
+                                            className="bg-slate-50 border-black text-slate-900 placeholder:text-slate-400 rounded-lg h-14 text-xs font-bold uppercase tracking-widest px-6 focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]"
                                         />
                                     </div>
                                 </div>
@@ -108,13 +108,13 @@ export default function ContactPage() {
                                         placeholder="EM QUE PODEMOS AJUDAR?"
                                         required
                                         rows={5}
-                                        className="w-full bg-slate-50 border border-slate-200 text-slate-900 placeholder:text-slate-400 rounded-lg p-6 text-xs font-bold uppercase tracking-widest focus:outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31] transition-all"
+                                        className="w-full bg-slate-50 border border-black text-slate-900 placeholder:text-slate-400 rounded-lg p-6 text-xs font-bold uppercase tracking-widest focus:outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31] transition-all"
                                     />
                                 </div>
 
                                 <button
                                     type="submit"
-                                    className="w-full h-16 bg-[#1D5F31] hover:bg-[#164a26] text-white font-black uppercase italic tracking-[3px] rounded-lg transition-all shadow-lg shadow-green-900/10 flex items-center justify-center gap-3 disabled:opacity-50"
+                                    className="w-full h-16 bg-[#1D5F31] border border-black hover:bg-[#164a26] text-white font-black uppercase italic tracking-[3px] rounded-lg transition-all shadow-lg shadow-green-900/10 flex items-center justify-center gap-3 disabled:opacity-50"
                                     disabled={isSubmitted}
                                 >
                                     {isSubmitted ? (

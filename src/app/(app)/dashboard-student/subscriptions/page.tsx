@@ -29,10 +29,10 @@ export default function SubscriptionsPage() {
             {/* Layout em grid para preencher a largura */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
                 {/* Card do Plano Ativo */}
-                <div className="bg-white border border-slate-200 shadow-sm p-12 md:p-16 relative overflow-hidden rounded-xl group transition-all duration-300 hover:shadow-md hover:border-slate-300">
+                <div className="bg-white border border-black shadow-sm p-12 md:p-16 relative overflow-hidden rounded-xl group transition-all duration-300 hover:shadow-md hover:border-black">
                     <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
                         <div className="space-y-8">
-                            <div className="inline-flex items-center gap-3 bg-white text-slate-900 px-5 py-2.5 border border-slate-200 rounded-md shadow-sm">
+                            <div className="inline-flex items-center gap-3 bg-white text-slate-900 px-5 py-2.5 border border-black rounded-md shadow-sm">
                                 <Star size={14} className="text-[#1D5F31] fill-[#1D5F31]" />
                                 <span className="text-[10px] font-black uppercase tracking-[3px]">STATUS: ATIVA</span>
                             </div>
@@ -62,7 +62,7 @@ export default function SubscriptionsPage() {
                         </div>
 
                         <div className="space-y-6">
-                            <div className="bg-slate-50 p-8 border border-slate-200 rounded-lg">
+                            <div className="bg-slate-50 p-8 border border-black rounded-lg">
                                 <div className="space-y-6">
                                     <div>
                                         <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">Próxima Renovação</p>
@@ -77,10 +77,10 @@ export default function SubscriptionsPage() {
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
-                                <button className="h-14 bg-slate-900 text-white rounded-md text-[10px] font-black uppercase tracking-widest hover:bg-[#1D5F31] transition-all shadow-sm">
+                                <button className="h-14 bg-slate-900 border border-black text-white rounded-md text-[10px] font-black uppercase tracking-widest hover:bg-[#1D5F31] hover:border-black transition-all shadow-sm">
                                     Fazer Upgrade
                                 </button>
-                                <button className="h-14 border border-slate-200 bg-white rounded-md text-slate-500 text-[10px] font-black uppercase tracking-widest hover:border-red-500 hover:text-red-500 transition-all shadow-sm">
+                                <button className="h-14 border border-black bg-white rounded-md text-slate-500 text-[10px] font-black uppercase tracking-widest hover:border-red-500 hover:text-red-500 transition-all shadow-sm">
                                     Cancelar Plano
                                 </button>
                             </div>
@@ -89,9 +89,9 @@ export default function SubscriptionsPage() {
                 </div>
 
                 {/* Banner de Segurança - Posicionado ao lado no XL */}
-                <div className="bg-white border border-slate-200 shadow-sm p-8 flex flex-col justify-center rounded-xl group transition-all duration-300 hover:shadow-md hover:border-slate-300">
+                <div className="bg-white border border-black shadow-sm p-8 flex flex-col justify-center rounded-xl group transition-all duration-300 hover:shadow-md hover:border-black">
                     <div className="flex items-center gap-6">
-                        <div className="w-16 h-16 bg-slate-50 border border-slate-200 flex items-center justify-center text-[#1D5F31] rounded-lg">
+                        <div className="w-16 h-16 bg-slate-50 border border-black flex items-center justify-center text-[#1D5F31] rounded-lg">
                             <ShieldCheck size={32} />
                         </div>
                         <div>

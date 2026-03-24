@@ -33,14 +33,14 @@ export default async function ProfilePage() {
                     </div>
                     <Link
                         href="/dashboard-student"
-                        className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-[#1a1a1a] transition group bg-slate-50 px-5 py-3 rounded-none border border-slate-200 hover:border-slate-400 shadow-sm"
+                        className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-[#1a1a1a] transition group bg-slate-50 px-5 py-3 rounded-xl border border-black hover:border-black shadow-sm"
                     >
                         <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
                         Voltar
                     </Link>
                 </div>
 
-                <div className="bg-white border border-slate-200 rounded-none p-8 md:p-12 shadow-sm">
+                <div className="bg-white border border-black rounded-xl p-8 md:p-12 shadow-sm">
                     <ProfileForm 
                         initialFullName={profile?.full_name || ''} 
                         initialCpf={profile?.cpf_cnpj || profile?.cpf || ''} 
