@@ -21,39 +21,50 @@ export function MotivationalBanner() {
 
     return (
         <BannerWrapper>
-            <div className="h-[400px] overflow-hidden relative group shadow-2xl bg-slate-900">
+            <div className="relative h-[400px] overflow-hidden group shadow-2xl rounded-3xl">
+
                 {/* Background Image Carousel */}
-                <div className="absolute inset-0 w-full h-full">
+                <div className="absolute inset-0 z-0">
                     {IMAGES.map((img, idx) => (
                         <div
                             key={img}
-                            className={`absolute inset-0 bg-cover bg-center transition-opacity duration-[2000ms] ease-in-out ${idx === currentIndex ? 'opacity-100' : 'opacity-0'
+                            className={`absolute inset-0 bg-cover bg-center transition-opacity duration-[1500ms] ease-in-out ${idx === currentIndex ? 'opacity-100' : 'opacity-0'
                                 }`}
                             style={{ backgroundImage: `url('${img}')` }}
                         />
                     ))}
                 </div>
 
-                {/* Overlay for "Discrete" look */}
-                <div className="absolute inset-0 bg-black/50 backdrop-blur-[1px] transition-colors group-hover:bg-black/40"></div>
+                {/* Gradient Overlay - Aumentei para 90% para garantir o contraste */}
+                <div className="absolute inset-0 z-10 bg-gradient-to-r from-black/90 via-black/50 to-transparent"></div>
 
-                {/* Content */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-12 space-y-6">
-
-                    <h3 className="text-xl md:text-4xl font-black !text-white tracking-[0.2em] uppercase leading-tight max-w-3xl drop-shadow-2xl animate-in fade-in zoom-in duration-1000">
-                        Foco, Disciplina e Execução.<br />
-                        <span className="!text-white">O seu futuro começa no conhecimento.</span>
+                {/* Content - Forçando o Branco */}
+                <div className="relative z-20 h-full flex flex-col justify-center p-8 md:p-16 space-y-4 items-start text-left">
+                    <h3 className="text-4xl md:text-6xl font-black tracking-tight !text-white uppercase leading-[0.95] max-w-2xl drop-shadow-2xl">
+                        Foco, Disciplina <br />
+                        e Execução.
                     </h3>
-                    <div className="flex items-center gap-4 mt-4">
+                    <p className="!text-white/90 text-lg md:text-xl font-medium max-w-lg drop-shadow-md">
+                        Grandes conquistas começam com pequenos hábitos diários.
+                    </p>
+
+                    {/* Detalhe da marca PowerPlay */}
+                    <div className="flex items-center gap-3 pt-4">
+
+                        <span className="!text-white/60 text-[10px] font-black uppercase tracking-[4px]">
+
+                        </span>
                     </div>
                 </div>
 
-                {/* Dots Indicator */}
-                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
+                {/* Progress Bars (Dots) */}
+                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 z-30">
                     {IMAGES.map((_, idx) => (
                         <div
                             key={idx}
-                            className={`h-1 rounded-full transition-all duration-500 ${idx === currentIndex ? 'w-8 bg-[#1D5F31]' : 'w-2 bg-white/20'
+                            className={`h-1.5 rounded-full transition-all duration-700 ${idx === currentIndex
+                                ? 'w-10 bg-[#22c55e]'
+                                : 'w-3 bg-white/40'
                                 }`}
                         />
                     ))}

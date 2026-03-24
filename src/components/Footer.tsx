@@ -14,7 +14,7 @@ export default function Footer({ variant = 'light' }: { variant?: 'light' | 'dar
 
     return (
         <footer className={`relative pt-12 pb-10 overflow-hidden font-exo z-[10] bg-transparent`}>
-            <div className="max-w-7xl mx-auto px-8 md:px-12 flex flex-col items-center space-y-8">
+            <div className="max-w-[1600px] mx-auto px-6 md:px-12 flex flex-col items-center space-y-8">
                 {/* Logo Principal (Aumentada) */}
                 <Logo className="h-24 py-2" href={user ? '/course' : '/'} light={!isDark} />
 
@@ -28,7 +28,7 @@ export default function Footer({ variant = 'light' }: { variant?: 'light' | 'dar
 
                 {/* Copyright Sutil */}
                 <div className={`pt-10 w-full text-center font-medium ${isDark ? 'text-white/40' : 'text-black'}`}>
-                        © {year} {siteName} - Excelência em Tecnologia
+                    © {year} {siteName} - Todos os direitos reservados. GPECx Tecnologia.
                 </div>
             </div>
         </footer>

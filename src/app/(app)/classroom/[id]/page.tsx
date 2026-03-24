@@ -193,7 +193,7 @@ export default function ClassroomPage() {
                     style={scrollbarHideStyle}
                 >
                     <div className="flex-1 flex items-center justify-center p-0 md:p-6 lg:p-8">
-                        <div className="w-full max-w-6xl aspect-video relative group animate-in zoom-in-95 duration-700">
+                        <div className="w-full max-w-[1440px] aspect-video relative group animate-in zoom-in-95 duration-700">
                             <div className="relative w-full h-full rounded-2xl overflow-hidden border border-slate-100 shadow-2xl transition-all duration-500 bg-black">
                                 <video
                                     src={currentLesson?.video_url}
@@ -234,7 +234,7 @@ export default function ClassroomPage() {
 
                     {/* Aula Info (Abaixo do Vídeo) */}
                     <div className="px-6 md:px-12 pb-16">
-                        <div className="max-w-6xl mx-auto">
+                        <div className="max-w-[1440px] mx-auto">
                             <ClassroomTabs
                                 lessonTitle={currentLesson?.title || ''}
                                 description={course?.description || "Esta aula aborda os fundamentos necessários para sua evolução técnica e estratégica."}

@@ -137,7 +137,7 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
             </BannerWrapper>
 
             {/* Título */}
-            <div className="relative z-30 px-4 md:px-8 lg:px-12 mt-16 mb-10">
+            <div className="relative z-30 px-6 md:px-12 mt-16 mb-10">
                 <div className="flex items-center gap-4 mb-2">
                     <div className="w-12 h-[2px] bg-[#1D5F31]"></div>
                     <span className="text-[10px] font-black uppercase tracking-[4px] text-[#1D5F31]">Explorar</span>
@@ -148,7 +148,7 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
             </div>
 
             {/* Lista de Cursos */}
-            <div className="px-4 md:px-8 lg:px-12 relative z-30 space-y-16 pb-32">
+            <div className="px-6 md:px-12 relative z-30 space-y-16 pb-32">
                 {filteredCourses.length === 0 ? (
                     <div className="text-center py-20 bg-white border border-slate-200 rounded-xl shadow-sm space-y-6">
                         <div className="w-20 h-20 bg-[#1D5F31]/20 flex items-center justify-center mx-auto">

@@ -60,7 +60,7 @@ export default async function StudentDashboard() {
             </BannerWrapper>
 
             {/* 2. CONTEÚDO COM PADDING LATERAL E GRID FORTE */}
-            <div className="px-4 md:px-8 mt-16 space-y-16 max-w-7xl mx-auto">
+            <div className="px-6 md:px-12 mt-16 space-y-16 max-w-[1600px] mx-auto">
 
                 {/* Seção: Meus Cursos (Seu Aprendizado) */}
                 {meusCursos.length > 0 && (

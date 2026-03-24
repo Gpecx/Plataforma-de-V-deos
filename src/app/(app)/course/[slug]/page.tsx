@@ -88,13 +88,13 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
             <Navbar light={true} />
 
             {/* HERO & VIDEO SECTION - BORDAS QUADRADAS E ALINHAMENTO RIGOROSO */}
-            <section className="relative pt-20 pb-0 overflow-hidden">
-                <div className="max-w-[1440px] mx-auto w-full px-6 md:px-12 lg:px-16">
+            <section className="relative pt-4 md:pt-6 pb-0 overflow-hidden">
+                <div className="max-w-[1600px] mx-auto w-full px-6 md:px-12">
                     {/* INFO E TÍTULO */}
                     <div className="pb-6 space-y-4">
                         <Link
                             href="/course"
-                            className="inline-flex items-center gap-2 text-[#061629] hover:text-[#1D5F31] transition text-[10px] font-black uppercase tracking-[3px]"
+                            className="inline-flex items-center gap-2 mt-4 text-[#061629] hover:text-[#1D5F31] transition text-[10px] font-black uppercase tracking-[3px]"
                         >
                             <ArrowLeft size={14} />
                             Voltar ao Catálogo
@@ -175,8 +175,8 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
             </section>
 
             {/* CURRÍCULO ESTILO INDUSTRIAL */}
-            <section className="py-24 px-6 md:px-12 lg:px-16 bg-transparent border-t border-white/5">
-                <div className="max-w-[1440px] mx-auto">
+            <section className="py-24 px-6 md:px-12 bg-transparent border-t border-white/5">
+                <div className="max-w-[1600px] mx-auto">
                     <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
                         <div className="space-y-4">
                             <div className="flex items-center gap-3">
