@@ -9,6 +9,7 @@ import { StoreInitializer } from '@/components/dashboard/StoreInitializer'
 import { parseFirebaseDate } from '@/lib/date-utils'
 import { getBanners } from '@/app/admin/settings/actions'
 import { ContinueLessonButton } from '@/components/dashboard/ContinueLessonButton'
+import { BannerWrapper } from '@/components/ui/BannerWrapper'
 
 export default async function StudentDashboard() {
     const cookieStore = cookies()
@@ -49,22 +50,17 @@ export default async function StudentDashboard() {
         <div className="min-h-screen bg-white font-exo relative pb-16">
             <StoreInitializer purchasedCourseIds={purchasedCourseIds} />
 
-            {/* 1. BANNER FULL WIDTH + TEXTO SOBREPOSTO (ESTRUTURA EXTERNA) */}
-            <section className="relative w-full overflow-hidden">
-
-                {/* Texto de Boas-Vindas flutuando sobre o banner */}
-                <div className="absolute top-10 left-6 md:left-12 lg:left-16 z-20 pointer-events-none">
-                    <h1 className="text-3xl md:text-4xl font-black tracking-tighter !text-white uppercase shadow-lg">
+            <BannerWrapper>
+                <div className="absolute top-10 left-8 md:left-20 z-20 pointer-events-none">
+                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter !text-white uppercase shadow-lg">
                         Olá, <span className="!text-white bg-[#1D5F31] px-2 py-0.5 rounded-md">{profile?.full_name?.split(' ')[0] || 'Daniel'}!</span>
                     </h1>
                 </div>
-
-                {/* O carrossel agora toca as bordas naturally */}
                 <StudentCarousel heroBanners={banners.hero_dashboard} />
-            </section>
+            </BannerWrapper>
 
             {/* 2. CONTEÚDO COM PADDING LATERAL E GRID FORTE */}
-            <div className="px-6 md:px-12 lg:px-16 mt-16 space-y-16">
+            <div className="px-4 md:px-8 mt-16 space-y-16 max-w-7xl mx-auto">
 
                 {/* Seção: Meus Cursos (Seu Aprendizado) */}
                 {meusCursos.length > 0 && (

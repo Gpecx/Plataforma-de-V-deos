@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 import { Play, Info, ChevronRight, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import CourseModal from "@/components/CourseModal";
+import { BannerWrapper } from "@/components/ui/BannerWrapper";
 
 const heroSlides = [
     {
@@ -86,57 +87,57 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
         <div className="min-h-screen bg-white text-black font-exo">
             <Navbar light={true} />
 
-            {/* Carrossel Hero */}
-            <section className="relative h-[65vh] w-full overflow-hidden">
-                {displaySlides.map((slide, index) => (
-                    <div key={index} className={`absolute inset-0 transition-opacity duration-1000 ${index === currentSlide ? "opacity-100" : "opacity-0"}`}>
-                        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent z-10" />
-                        <img src={slide.image} className="w-full h-full object-cover scale-105" alt={slide.title} />
+            <BannerWrapper>
+                <div className="relative aspect-[21/9] md:aspect-[32/10]">
+                    {displaySlides.map((slide, index) => (
+                        <div key={index} className={`absolute inset-0 transition-opacity duration-1000 ${index === currentSlide ? "opacity-100" : "opacity-0"}`}>
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent z-10" />
+                            <img src={slide.image} className="w-full h-full object-cover scale-105" alt={slide.title} />
 
-                        <div className="relative z-20 h-full flex flex-col justify-center px-8 md:px-20 space-y-6 max-w-4xl pt-24">
-                            <div className="flex items-center gap-3">
-                                <span className="bg-[#1D5F31] text-white text-[9px] font-black px-3 py-1 w-fit uppercase tracking-[2px] shadow-lg shadow-[#1D5F31]/20">
-                                    {slide.tag}
-                                </span>
-                                <div className="h-[1px] w-12 bg-white/20"></div>
-                            </div>
-                            <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-[0.9] text-white">
-                                {slide.title}
-                            </h1>
-                            <p className="text-xl text-slate-200/90 max-w-xl font-medium leading-relaxed">
-                                {slide.subtitle}
-                            </p>
-                            <div className="flex flex-wrap gap-4 pt-6">
-                                <Button
-                                    onClick={() => filteredCourses.length > 0 && handleCourseClick(filteredCourses[0])}
-                                    className="bg-[#1D5F31] text-white hover:bg-[#1D5F31]/90 h-14 px-8 text-sm font-black uppercase tracking-[2px] flex gap-3 shadow-2xl shadow-[#1D5F31]/30 active:scale-95 transition-all"
-                                >
-                                    <Play fill="currentColor" size={18} /> Iniciar Treinamento
-                                </Button>
-                                <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 h-14 px-8 text-sm font-black uppercase tracking-[2px] backdrop-blur-md shadow-xl active:scale-95 transition-all">
-                                    <Info size={18} /> Detalhes do Curso
-                                </Button>
+                            <div className="relative z-20 h-full flex flex-col justify-center px-8 md:px-12 lg:px-16 space-y-6 max-w-4xl pt-24">
+                                <div className="flex items-center gap-3">
+                                    <span className="bg-[#1D5F31] text-white text-[9px] font-black px-3 py-1 w-fit uppercase tracking-[2px] shadow-lg shadow-[#1D5F31]/20">
+                                        {slide.tag}
+                                    </span>
+                                    <div className="h-[1px] w-12 bg-white/20"></div>
+                                </div>
+                                <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-[0.9] text-white">
+                                    {slide.title}
+                                </h1>
+                                <p className="text-xl text-slate-200/90 max-w-xl font-medium leading-relaxed">
+                                    {slide.subtitle}
+                                </p>
+                                <div className="flex flex-wrap gap-4 pt-6">
+                                    <Button
+                                        onClick={() => filteredCourses.length > 0 && handleCourseClick(filteredCourses[0])}
+                                        className="bg-[#1D5F31] text-white hover:bg-[#1D5F31]/90 h-14 px-8 text-sm font-black uppercase tracking-[2px] flex gap-3 shadow-2xl shadow-[#1D5F31]/30 active:scale-95 transition-all"
+                                    >
+                                        <Play fill="currentColor" size={18} /> Iniciar Treinamento
+                                    </Button>
+                                    <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 h-14 px-8 text-sm font-black uppercase tracking-[2px] backdrop-blur-md shadow-xl active:scale-95 transition-all">
+                                        <Info size={18} /> Detalhes do Curso
+                                    </Button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                ))}
+                    ))}
 
-                {/* Slide Dots */}
-                {displaySlides.length > 1 && (
-                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex gap-2">
-                        {displaySlides.map((_, i) => (
-                            <button
-                                key={i}
-                                onClick={() => setCurrentSlide(i)}
-                                className={`w-2 h-2 transition-all ${i === currentSlide ? 'bg-[#1D5F31] w-6' : 'bg-white/40'}`}
-                            />
-                        ))}
-                    </div>
-                )}
-            </section>
+                    {displaySlides.length > 1 && (
+                        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex gap-2">
+                            {displaySlides.map((_, i) => (
+                                <button
+                                    key={i}
+                                    onClick={() => setCurrentSlide(i)}
+                                    className={`w-2 h-2 transition-all ${i === currentSlide ? 'bg-[#1D5F31] w-6' : 'bg-white/40'}`}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </BannerWrapper>
 
             {/* Título */}
-            <div className="relative z-30 px-8 md:px-12 mt-16 mb-10">
+            <div className="relative z-30 px-4 md:px-8 lg:px-12 mt-16 mb-10">
                 <div className="flex items-center gap-4 mb-2">
                     <div className="w-12 h-[2px] bg-[#1D5F31]"></div>
                     <span className="text-[10px] font-black uppercase tracking-[4px] text-[#1D5F31]">Explorar</span>
@@ -147,7 +148,7 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
             </div>
 
             {/* Lista de Cursos */}
-            <div className="px-8 md:px-12 relative z-30 space-y-16 pb-32">
+            <div className="px-4 md:px-8 lg:px-12 relative z-30 space-y-16 pb-32">
                 {filteredCourses.length === 0 ? (
                     <div className="text-center py-20 bg-white border border-slate-200 rounded-xl shadow-sm space-y-6">
                         <div className="w-20 h-20 bg-[#1D5F31]/20 flex items-center justify-center mx-auto">
