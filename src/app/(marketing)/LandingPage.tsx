@@ -40,7 +40,7 @@ export default function LandingPageClient({ user: initialUser }: LandingPageProp
             setLoading(true);
             try {
                 const coursesRef = collection(db, 'courses');
-                const q = query(coursesRef, where('status', '==', 'published'), limit(5));
+                const q = query(coursesRef, where('status', '==', 'APROVADO'), limit(5));
                 const querySnapshot = await getDocs(q);
                 const coursesData = querySnapshot.docs.map(doc => {
                     const data = doc.data();
