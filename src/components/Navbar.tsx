@@ -287,7 +287,7 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                                 <DropdownMenuTrigger asChild>
                                     <div className={cn(
                                         "w-9 h-9 md:w-10 md:h-10 flex items-center justify-center font-bold transition-all cursor-pointer border-2 outline-none hover:scale-105 shadow-sm overflow-hidden rounded-full",
-                                        light ? "bg-white text-slate-900 border-slate-200" : "bg-slate-900 text-white border-white/20"
+                                        light ? "bg-white text-slate-900 border-black/20" : "bg-slate-900 text-white border-black/20"
                                     )}>
                                         <User size={20} />
                                     </div>

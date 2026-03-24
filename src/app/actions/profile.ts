@@ -22,3 +22,18 @@ export async function getPublicProfile(userId: string) {
         return null
     }
 }
+
+export async function getPurchasedCourseIds(userId: string): Promise<string[]> {
+    if (!userId) return []
+
+    try {
+        const profileDoc = await adminDb.collection('profiles').doc(userId).get()
+        if (!profileDoc.exists) return []
+
+        const data = profileDoc.data()
+        return data?.cursos_comprados || []
+    } catch (error) {
+        console.error('Erro ao buscar cursos comprados:', error)
+        return []
+    }
+}

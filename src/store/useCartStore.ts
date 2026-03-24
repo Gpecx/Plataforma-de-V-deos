@@ -34,13 +34,14 @@ export const useCartStore = create<CartStore>()(
 
                 // 1. Impede a adição se o curso já foi comprado
                 if (purchasedIds.includes(item.id)) {
-                    get().showNotification('Você já possui este curso e não pode comprá-lo novamente.', 'info')
+                    get().showNotification('Você já possui este curso e não pode comprá-lo novamente.', 'error')
                     return
                 }
 
                 // 2. Evita duplicados no carrinho
                 if (!currentItems.find((i) => i.id === item.id)) {
                     set({ items: [...currentItems, item] })
+                    get().showNotification('✓ Curso adicionado ao carrinho!', 'success')
                 }
             },
             showNotification: (message, type = 'info', duration = 3000) => {

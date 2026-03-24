@@ -5,15 +5,33 @@ import { ShoppingCart, Trash2, CreditCard, ArrowLeft, BookOpen, ChevronRight, Sh
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { useAuth } from '@/context/AuthProvider'
 
 export default function CartPage() {
-    const { items, removeItem, getTotal } = useCartStore()
+    const { items, removeItem, getTotal, purchasedCourseIds } = useCartStore()
     const router = useRouter()
+    const { user, loading: authLoading } = useAuth()
     const [mounted, setMounted] = useState(false)
 
     useEffect(() => {
         setMounted(true)
     }, [])
+
+    const hasPurchasedItems = items.some(item => purchasedCourseIds.includes(item.id))
+    const isValidatingOwnership = authLoading && items.length > 0
+
+    const handleFinalizePurchase = () => {
+        if (!authLoading && !user) {
+            router.push('/login?redirect=/cart')
+            return
+        }
+        
+        if (hasPurchasedItems) {
+            return
+        }
+        
+        router.push('/pagamento')
+    }
 
     if (!mounted) return null
 
@@ -120,11 +138,12 @@ export default function CartPage() {
                                 </div>
 
                                 <button
-                                    onClick={() => router.push('/pagamento')}
-                                    className="w-full py-6 bg-[#1D5F31] text-white font-black uppercase tracking-[3px] hover:opacity-95 active:scale-[0.98] transition-all shadow-xl shadow-[#1D5F31]/20 flex items-center justify-center gap-3 text-sm rounded-2xl"
+                                    onClick={handleFinalizePurchase}
+                                    disabled={authLoading || isValidatingOwnership}
+                                    className="w-full py-6 bg-[#1D5F31] text-white font-black uppercase tracking-[3px] hover:opacity-95 active:scale-[0.98] transition-all shadow-xl shadow-[#1D5F31]/20 flex items-center justify-center gap-3 text-sm rounded-2xl disabled:opacity-50"
                                 >
                                     <CreditCard size={20} strokeWidth={2.5} />
-                                    Finalizar Pagamento
+                                    {authLoading || isValidatingOwnership ? 'Validando...' : 'Finalizar Pagamento'}
                                     <ChevronRight size={20} strokeWidth={2.5} />
                                 </button>
                             </div>

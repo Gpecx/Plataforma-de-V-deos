@@ -3,6 +3,7 @@ import "./globals.css"
 import { ToastNotification } from '@/components/ui/ToastNotification'
 import { BrandingProvider } from '@/context/BrandingContext'
 import { BrandingData, getSettings } from '@/app/admin/settings/actions'
+import { CartStoreSynchronizer } from '@/components/CartStoreSynchronizer'
 
 const exo = Exo({
   subsets: ['latin'],
@@ -29,6 +30,7 @@ export default async function RootLayout({
     <html lang="pt-br" className={exo.variable}>
       <body className="font-exo antialiased">
         <BrandingProvider value={branding}>
+          <CartStoreSynchronizer />
           <ToastNotification />
           {children}
         </BrandingProvider>

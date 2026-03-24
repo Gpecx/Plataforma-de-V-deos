@@ -22,7 +22,7 @@ export function CourseActionButton({
     purchasedCourseIds = [],
     isAdmin = false,
 }: CourseActionButtonProps) {
-    const { addItem, items, showNotification } = useCartStore()
+    const { addItem, items } = useCartStore()
     const router = useRouter()
  
     const isPurchased = purchasedCourseIds.includes(courseId)
@@ -49,7 +49,7 @@ export function CourseActionButton({
     if (isInCart) {
         return (
             <button
-                onClick={() => router.push('/pagamento')}
+                onClick={() => router.push('/cart')}
                 style={{ borderRadius: '0px' }}
                 className="w-full flex items-center justify-center gap-3 group py-5 bg-[#1D5F31]/10 border-2 border-[#1D5F31] text-[#1D5F31] font-black uppercase text-[11px] tracking-[4px] shadow-lg transition-all hover:bg-[#1D5F31] hover:text-white"
             >
@@ -69,10 +69,9 @@ export function CourseActionButton({
             image_url: courseImageUrl,
         }
         addItem(item)
-        showNotification('✓ Curso adicionado ao carrinho!', 'success')
         // Pequeno delay para o usuário ver o toast antes de navegar
         setTimeout(() => {
-            router.push('/pagamento')
+            router.push('/cart')
         }, 800)
     }
 

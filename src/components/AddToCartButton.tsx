@@ -12,7 +12,7 @@ interface AddToCartButtonProps {
 }
 
 export function AddToCartButton({ course, purchasedCourseIds = [] }: AddToCartButtonProps) {
-    const { addItem, items, showNotification } = useCartStore()
+    const { addItem, items } = useCartStore()
     const [isAdded, setIsAdded] = useState(false)
     const router = useRouter()
 
@@ -21,10 +21,9 @@ export function AddToCartButton({ course, purchasedCourseIds = [] }: AddToCartBu
 
     const handleAdd = () => {
         addItem(course)
-        showNotification('✓ Curso adicionado ao carrinho!', 'success')
         setIsAdded(true)
         setTimeout(() => {
-            router.push('/pagamento')
+            router.push('/cart')
         }, 800)
     }
 
