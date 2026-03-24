@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { BannerWrapper } from "@/components/ui/BannerWrapper"
 
 const IMAGES = [
     '/images/study_motivation_1.png',
@@ -19,8 +20,8 @@ export function MotivationalBanner() {
     }, [])
 
     return (
-        <section className="pb-32">
-            <div className="max-w-none mx-auto h-[400px] overflow-hidden relative group shadow-2xl bg-slate-900 border-y border-white/10">
+        <BannerWrapper>
+            <div className="h-[400px] overflow-hidden relative group shadow-2xl bg-slate-900">
                 {/* Background Image Carousel */}
                 <div className="absolute inset-0 w-full h-full">
                     {IMAGES.map((img, idx) => (
@@ -38,15 +39,12 @@ export function MotivationalBanner() {
 
                 {/* Content */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-12 space-y-6">
-                    <div className="w-12 h-[1px] bg-white/20 mb-2"></div>
+
                     <h3 className="text-xl md:text-4xl font-black !text-white tracking-[0.2em] uppercase leading-tight max-w-3xl drop-shadow-2xl animate-in fade-in zoom-in duration-1000">
                         Foco, Disciplina e Execução.<br />
                         <span className="!text-white">O seu futuro começa no conhecimento.</span>
                     </h3>
                     <div className="flex items-center gap-4 mt-4">
-                        <div className="h-[2px] w-8 bg-[#1D5F31]"></div>
-                        <p className="text-white/40 text-[9px] font-black uppercase tracking-[5px]">POWERPLAY · MENTALIDADE DE VALOR</p>
-                        <div className="h-[2px] w-8 bg-[#1D5F31]"></div>
                     </div>
                 </div>
 
@@ -61,6 +59,6 @@ export function MotivationalBanner() {
                     ))}
                 </div>
             </div>
-        </section>
+        </BannerWrapper>
     )
 }
