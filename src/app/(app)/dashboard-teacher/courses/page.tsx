@@ -86,7 +86,7 @@ export default function TeacherCoursesPage() {
                     <p className="text-slate-600 mt-3 text-[10px] font-bold uppercase tracking-[3px] italic">Gerencie e acompanhe o desempenho de suas aulas.</p>
                 </div>
                 <Link href="/dashboard-teacher/courses/new">
-                    <Button className="bg-[#1D5F31] text-white font-black uppercase text-[10px] tracking-widest px-10 h-16 rounded-2xl hover:opacity-90 shadow-xl shadow-[#1D5F31]/10 border-none active:scale-95 transition-all">
+                    <Button className="bg-[#1D5F31] text-white font-black uppercase text-[10px] tracking-widest px-10 h-16 rounded-2xl hover:opacity-90 shadow-xl shadow-[#1D5F31]/10 border-2 border-black active:scale-95 transition-all">
                         <Plus size={20} className="mr-2" strokeWidth={3} />
                         Lançar Novo Curso
                     </Button>
@@ -101,10 +101,10 @@ export default function TeacherCoursesPage() {
                             placeholder="Buscar por nome do curso..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="bg-white border-slate-200 pl-14 h-16 rounded-2xl focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31] text-sm font-bold text-slate-900 placeholder:text-slate-400 shadow-sm transition-all"
+                            className="bg-white border-2 border-black pl-14 h-16 rounded-2xl focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31] text-sm font-bold text-slate-900 placeholder:text-slate-400 shadow-sm transition-all"
                         />
                     </div>
-                    <div className="bg-white border border-slate-200 text-slate-500 h-16 px-10 rounded-2xl flex items-center gap-4 shadow-sm">
+                    <div className="bg-white border-2 border-black text-slate-500 h-16 px-10 rounded-2xl flex items-center gap-4 shadow-sm">
                         <Filter size={18} className="text-[#1D5F31]" />
                         <span className="text-[10px] font-black uppercase tracking-[3px] whitespace-nowrap">{filteredCourses.length} Encontrados</span>
                     </div>
@@ -114,7 +114,7 @@ export default function TeacherCoursesPage() {
             <div className="px-4 md:px-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8">
                     {filteredCourses.map((curso) => (
-                        <div key={curso.id} className="group bg-white rounded-[32px] border border-slate-200 flex flex-col hover:border-[#1D5F31]/30 transition-all duration-500 shadow-sm hover:shadow-xl overflow-hidden">
+                        <div key={curso.id} className="group bg-white rounded-[32px] border-2 border-black flex flex-col hover:border-[#1D5F31]/30 transition-all duration-500 shadow-sm hover:shadow-xl overflow-hidden">
                             <div className="relative h-44 bg-slate-100 overflow-hidden">
                                 <img
                                     src={curso.image_url || "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400"}
@@ -122,7 +122,7 @@ export default function TeacherCoursesPage() {
                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                                 />
                                 <div className="absolute top-4 right-4">
-                                    <div className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/20 shadow-sm">
+                                    <div className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg border-2 border-black shadow-sm">
                                         <span className="text-[8px] font-black text-slate-900 tracking-widest uppercase">{curso.category || 'GERAL'}</span>
                                     </div>
                                 </div>
@@ -143,7 +143,7 @@ export default function TeacherCoursesPage() {
 
                                 <div className="mt-auto flex gap-4">
                                     <Link href={`/dashboard-teacher/courses/${curso.id}/edit`} className="flex-grow">
-                                        <Button className="w-full bg-slate-900 hover:bg-[#1D5F31] text-white font-black uppercase tracking-widest py-4 h-auto rounded-xl transition-all duration-300 text-[10px] shadow-md">
+                                        <Button className="w-full bg-slate-900 hover:bg-[#1D5F31] text-white font-black uppercase tracking-widest py-4 h-auto rounded-xl transition-all duration-300 text-[10px] shadow-md border-2 border-black">
                                             <Edit size={14} className="mr-2" /> Editar
                                         </Button>
                                     </Link>
@@ -151,7 +151,7 @@ export default function TeacherCoursesPage() {
                                     <Button
                                         variant="outline"
                                         onClick={() => handleDelete(curso.id)}
-                                        className="border-slate-200 text-slate-600 hover:text-red-600 hover:border-red-200 hover:bg-red-50 p-4 w-14 h-14 rounded-xl transition-all shadow-sm"
+                                        className="border-2 border-black text-slate-600 hover:text-red-600 hover:border-red-600 hover:bg-red-50 p-4 w-14 h-14 rounded-xl transition-all shadow-sm"
                                     >
                                         <Trash2 size={18} />
                                     </Button>

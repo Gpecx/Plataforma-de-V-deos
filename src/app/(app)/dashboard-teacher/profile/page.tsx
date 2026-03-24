@@ -36,10 +36,10 @@ export default async function TeacherProfilePage() {
                 <div className="flex items-center gap-3 mb-2">
                     <span className="text-[10px] font-black uppercase tracking-[5px] text-[#1D5F31]">PROFILE MANAGEMENT</span>
                 </div>
-                <h1 className="text-4xl font-black tracking-tighter text-white">
+                <h1 className="text-4xl font-black tracking-tighter text-black">
                     IDENTIDADE DO <span className="text-[#1D5F31] uppercase">TEACHER</span>
                 </h1>
-                <p className="text-slate-400 mt-2 font-semibold text-xs tracking-widest uppercase">
+                <p className="text-slate-600 mt-2 font-semibold text-xs tracking-widest uppercase">
                     Gerencie como você se apresenta para o mercado e seus alunos.
                 </p>
             </header>

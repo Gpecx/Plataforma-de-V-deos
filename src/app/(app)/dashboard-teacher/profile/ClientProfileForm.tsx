@@ -66,14 +66,14 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
     }
 
     return (
-        <div className="max-w-4xl mx-auto bg-[#061629] border border-[#1D5F31] rounded-xl p-10 md:p-16 shadow-sm relative overflow-hidden">
+        <div className="max-w-4xl mx-auto bg-white border-2 border-black rounded-xl p-10 md:p-16 shadow-sm relative overflow-hidden">
             <div className="absolute top-0 right-0 w-64 h-64 bg-[#061629] rounded-xl blur-3xl -mr-32 -mt-32 -z-10 opacity-20"></div>
 
             <div className="flex flex-col md:flex-row gap-16 relative z-10">
                 {/* Foto de Perfil */}
                 <div className="flex flex-col items-center space-y-6 shrink-0">
                     <div className="relative group">
-                        <div className="w-40 h-40 rounded-xl bg-[#061629] border-2 border-dashed border-[#1D5F31] flex items-center justify-center text-slate-500 overflow-hidden transition-all group-hover:border-[#1D5F31]/30 group-hover:bg-[#1D5F31]/5">
+                        <div className="w-40 h-40 rounded-xl bg-white border-2 border-dashed border-black flex items-center justify-center text-slate-500 overflow-hidden transition-all group-hover:border-black/30 group-hover:bg-black/5">
                             {avatarUrl ? (
                                 <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
                             ) : (
@@ -87,7 +87,7 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                         </label>
                     </div>
                     <div className="text-center">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-[#1D5F31]">Foto Quadrada</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-black">Foto Quadrada</p>
                         <p className="text-[9px] font-bold text-slate-500 mt-1 uppercase">JPG/PNG Ideal 500x500px</p>
                     </div>
                 </div>
@@ -102,7 +102,7 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                                 <Input
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
-                                    className="bg-[#061629] border-[#1D5F31] rounded-xl pl-12 h-14 focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]/20 font-bold text-white placeholder:text-slate-600"
+                                    className="bg-white border-2 border-black rounded-xl pl-12 h-14 focus:border-black focus:ring-1 focus:ring-black/20 font-bold text-black placeholder:text-slate-400"
                                 />
                             </div>
                         </div>
@@ -113,7 +113,7 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                                 <Input
                                     value={email}
                                     readOnly
-                                    className="bg-black/20 border-[#1D5F31]/50 pl-12 h-14 text-slate-500 cursor-not-allowed rounded-xl font-medium"
+                                    className="bg-white border-2 border-black/50 pl-12 h-14 text-slate-500 cursor-not-allowed rounded-xl font-medium"
                                 />
                             </div>
                         </div>
@@ -126,7 +126,7 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                             <Input
                                 value={specialization}
                                 onChange={(e) => setSpecialization(e.target.value)}
-                                className="bg-[#061629] border-[#1D5F31] rounded-xl pl-12 h-14 focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]/20 font-bold text-white placeholder:text-slate-600"
+                                className="bg-white border-2 border-black rounded-xl pl-12 h-14 focus:border-black focus:ring-1 focus:ring-black/20 font-bold text-black placeholder:text-slate-400"
                                 placeholder="Ex: Estrategista Digital, Especialista em Performance..."
                             />
                         </div>
@@ -137,14 +137,14 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                         <textarea
                             value={bio}
                             onChange={(e) => setBio(e.target.value)}
-                            className="w-full min-h-[160px] bg-[#061629] border border-[#1D5F31] rounded-xl p-6 text-sm font-medium focus:outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]/20 transition-all resize-none text-slate-300 leading-relaxed placeholder:text-slate-600"
+                            className="w-full min-h-[160px] bg-white border-2 border-black rounded-xl p-6 text-sm font-medium focus:outline-none focus:border-black focus:ring-1 focus:ring-black/20 transition-all resize-none text-black leading-relaxed placeholder:text-slate-400"
                             placeholder="Descreva sua jornada e o valor que você entrega aos seus alunos..."
                         />
                     </div>
 
                     {/* Redes Sociais */}
                     <div className="space-y-6 pt-4 border-t border-white/5">
-                        <h3 className="text-sm font-black text-white uppercase tracking-tighter">Links Sociais e Contato</h3>
+                        <h3 className="text-sm font-black text-black uppercase tracking-tighter">Links Sociais e Contato</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-3">
                                 <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-500 px-1">Website</label>
@@ -153,7 +153,7 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                                     <Input
                                         value={website}
                                         onChange={(e) => setWebsite(e.target.value)}
-                                        className="bg-[#061629] border-[#1D5F31] rounded-xl pl-12 h-14 focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]/20 font-bold text-white text-sm placeholder:text-slate-600"
+                                        className="bg-white border-2 border-black rounded-xl pl-12 h-14 focus:border-black focus:ring-1 focus:ring-black/20 font-bold text-black text-sm placeholder:text-slate-400"
                                         placeholder="https://seu-site.com"
                                     />
                                 </div>
@@ -165,7 +165,7 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                                     <Input
                                         value={linkedin}
                                         onChange={(e) => setLinkedin(e.target.value)}
-                                        className="bg-[#061629] border-[#1D5F31] rounded-xl pl-12 h-14 focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 font-bold text-white text-sm placeholder:text-slate-600"
+                                        className="bg-white border-2 border-black rounded-xl pl-12 h-14 focus:border-black focus:ring-1 focus:ring-black/20 font-bold text-black text-sm placeholder:text-slate-400"
                                         placeholder="URL do Perfil"
                                     />
                                 </div>
@@ -177,7 +177,7 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                                     <Input
                                         value={twitter}
                                         onChange={(e) => setTwitter(e.target.value)}
-                                        className="bg-[#061629] border-[#1D5F31] rounded-xl pl-12 h-14 focus:border-sky-500 focus:ring-1 focus:ring-sky-500/20 font-bold text-white text-sm placeholder:text-slate-600"
+                                        className="bg-white border-2 border-black rounded-xl pl-12 h-14 focus:border-black focus:ring-1 focus:ring-black/20 font-bold text-black text-sm placeholder:text-slate-400"
                                         placeholder="URL do Perfil"
                                     />
                                 </div>
@@ -189,7 +189,7 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                                     <Input
                                         value={youtube}
                                         onChange={(e) => setYoutube(e.target.value)}
-                                        className="bg-[#061629] border-[#1D5F31] rounded-xl pl-12 h-14 focus:border-red-500 focus:ring-1 focus:ring-red-500/20 font-bold text-white text-sm placeholder:text-slate-600"
+                                        className="bg-white border-2 border-black rounded-xl pl-12 h-14 focus:border-black focus:ring-1 focus:ring-black/20 font-bold text-black text-sm placeholder:text-slate-400"
                                         placeholder="URL do Canal"
                                     />
                                 </div>
@@ -201,7 +201,7 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                         <Button 
                             onClick={handleSave}
                             disabled={isSaving || isUploading}
-                            className="bg-[#1D5F31] text-white font-black uppercase tracking-[4px] py-8 px-12 rounded-xl hover:bg-[#00A802] shadow-2xl transition-all gap-4 w-full md:w-auto h-auto"
+                            className="bg-[#1D5F31] text-white font-black uppercase tracking-[4px] py-8 px-12 rounded-xl hover:bg-[#00A802] shadow-2xl transition-all gap-4 w-full md:w-auto h-auto border-2 border-black"
                         >
                             {isSaving ? <Loader2 className="animate-spin" size={24} strokeWidth={3} /> : <Save size={24} strokeWidth={3} />}
                             {isSaving ? 'Sincronizando...' : 'Sincronizar Perfil'}
