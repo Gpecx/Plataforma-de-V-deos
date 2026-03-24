@@ -36,9 +36,17 @@ function LoginContent() {
             const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password)
             const user = userCredential.user
 
-            // Gerar ID Token e salvar no cookie via Server Action
+            // Gerar ID Token e criar sessão com lock (via route handler)
             const idToken = await user.getIdToken()
-            await setSessionCookie(idToken)
+            const sessionRes = await fetch("/api/auth/session", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ idToken }),
+            });
+
+            if (!sessionRes.ok) {
+                throw new Error("session_creation_failed");
+            }
 
             if (nextRedirect) {
                 router.push(nextRedirect)
@@ -56,7 +64,13 @@ function LoginContent() {
             router.refresh()
         } catch (error: any) {
             console.error("Erro ao entrar:", error)
-            alert("Erro ao entrar: " + (error.message || "Verifique suas credenciais."))
+            let errorMessage = "Erro ao fazer login. Tente novamente";
+            if (error.message === "session_creation_failed") {
+                errorMessage = "Erro ao iniciar sessão. Tente novamente.";
+            } else if (error.message) {
+                errorMessage = "Erro ao entrar: " + error.message;
+            }
+            alert(errorMessage)
         }
     }
 

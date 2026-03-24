@@ -35,48 +35,43 @@ export async function POST(request: NextRequest) {
         if (event === 'PAYMENT_RECEIVED' || event === 'PAYMENT_CONFIRMED') {
             console.log(`Webhook Asaas: Processando evento ${event} para payment ${payment.id}`)
 
+            // 1. Busca da Venda por paymentId
             const vendasLogsQuery = await adminDb.collection('vendas_logs')
-                .where('idTransacao', '==', payment.id)
+                .where('paymentId', '==', payment.id)
                 .limit(1)
                 .get()
 
             if (vendasLogsQuery.empty) {
-                console.warn(`Webhook Asaas: Venda não encontrada para transactionId ${payment.id}`)
-                return NextResponse.json({ success: true, message: 'Sale not found' }, { status: 200 })
+                console.error(`Webhook Asaas: Venda não encontrada para paymentId ${payment.id}`)
+                return NextResponse.json({ success: true, message: 'Venda não encontrada, ignorando.' }, { status: 200 })
             }
 
             const saleDoc = vendasLogsQuery.docs[0]
             const saleData = saleDoc.data()
-            const { alunoId, cursoId } = saleData
 
-            await saleDoc.ref.update({
-                statusPagamento: 'pago',
-                dataAtualizacao: FieldValue.serverTimestamp(),
-                paymentStatus: payment.status,
-                paymentReceivedAt: FieldValue.serverTimestamp()
-            })
-
-            console.log(`Webhook Asaas: Status atualizado para 'pago' na venda ${saleDoc.id}`)
-
-            const existingEnrollment = await adminDb.collection('enrollments')
-                .where('user_id', '==', alunoId)
-                .where('course_id', '==', cursoId)
-                .limit(1)
-                .get()
-
-            if (!existingEnrollment.empty) {
-                console.log(`Webhook Asaas: Enrollment já existe para aluno ${alunoId} no curso ${cursoId}`)
-            } else {
-                await adminDb.collection('enrollments').add({
-                    user_id: alunoId,
-                    course_id: cursoId,
-                    created_at: FieldValue.serverTimestamp(),
-                    source: 'asaas_webhook',
-                    transaction_id: payment.id
-                })
-
-                console.log(`Webhook Asaas: Enrollment criado para aluno ${alunoId} no curso ${cursoId}`)
+            // 2. Idempotência: já foi processado?
+            if (saleData.status === 'PAID') {
+                console.log(`Webhook Asaas: Pagamento ${payment.id} já foi processado anteriormente. Ignorando.`)
+                return NextResponse.json({ success: true, message: 'Já processado.' }, { status: 200 })
             }
+
+            const { userId, cursoId } = saleData
+
+            // 3. Liberação do Curso: adiciona cursoId ao perfil do usuário
+            const profileRef = adminDb.collection('profiles').doc(userId)
+            await profileRef.update({
+                cursos_comprados: FieldValue.arrayUnion(cursoId),
+                updated_at: FieldValue.serverTimestamp(),
+            })
+            console.log(`Webhook Asaas: Curso ${cursoId} liberado para o usuário ${userId}`)
+
+            // 4. Baixa no Pagamento: atualiza o status da venda para PAID
+            await saleDoc.ref.update({
+                status: 'PAID',
+                paymentDate: FieldValue.serverTimestamp(),
+            })
+            console.log(`Webhook Asaas: Venda ${saleDoc.id} marcada como PAID.`)
+
         } else {
             console.log(`Webhook Asaas: Evento ${event} ignorado`)
         }
