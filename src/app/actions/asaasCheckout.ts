@@ -38,21 +38,18 @@ export interface CheckoutResponse {
 }
 
 interface SaleLogData {
-    idTransacao: string
-    alunoId: string
-    cursoId: string
+    paymentId: string      // ID da transação no Asaas (lido pelo webhook)
+    userId: string         // ID do aluno no Firebase (lido pelo webhook)
+    cursoId: string        // ID do curso (lido pelo webhook)
     professorId: string
     valorBruto: number
     taxaPlataforma: number
     taxaPlataformaPercent: number
     repasseProfessor: number
-    statusPagamento: 'pendente' | 'pago' | 'cancelado'
+    status: 'PENDING' | 'PAID' | 'CANCELLED' // status canônico (lido pelo webhook)
+    billingType: BillingType
+    dueDate: string
     dataCriacao: Date
-    paymentData?: {
-        asaasPaymentId: string
-        billingType: BillingType
-        dueDate: string
-    }
 }
 
 export async function processAsaasCheckout(request: CheckoutRequest): Promise<CheckoutResponse> {
@@ -141,21 +138,18 @@ export async function processAsaasCheckout(request: CheckoutRequest): Promise<Ch
         const paymentResponse: PaymentResponse = await createPayment(paymentData)
 
         const saleLog: SaleLogData = {
-            idTransacao: paymentResponse.id,
-            alunoId: user.uid,
-            cursoId,
+            paymentId: paymentResponse.id,     // ✅ Chave lida pelo webhook
+            userId: user.uid,                  // ✅ Chave lida pelo webhook
+            cursoId,                           // ✅ Chave lida pelo webhook
             professorId: courseInfo.professorId,
             valorBruto: courseInfo.price,
             taxaPlataforma: platformAmount,
             taxaPlataformaPercent: platformTaxPercent,
             repasseProfessor: teacherAmount,
-            statusPagamento: 'pendente',
+            status: 'PENDING',                 // ✅ Status canônico lido pelo webhook
+            billingType,
+            dueDate: dueDateString,
             dataCriacao: new Date(),
-            paymentData: {
-                asaasPaymentId: paymentResponse.id,
-                billingType,
-                dueDate: dueDateString,
-            }
         }
 
         await adminDb.collection('vendas_logs').add(saleLog)
