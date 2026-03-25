@@ -48,7 +48,7 @@ export function BuyButton({ course, size = "default", label = "Comprar Agora", c
 
             if (!user) {
                 // Redireciona para o login e salva a intenção de ir para o cart
-                router.push("/login?next=/cart")
+                router.push("/login?redirectTo=/cart")
                 return
             }
 

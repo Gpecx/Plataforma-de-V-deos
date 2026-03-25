@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import * as z from "zod"
@@ -14,6 +14,7 @@ import { auth, db } from "@/lib/firebase"
 import { signInWithEmailAndPassword } from "firebase/auth"
 import { doc, getDoc } from "firebase/firestore"
 import Logo from "@/components/Logo"
+import { ConversionBridge } from "@/components/ConversionBridge"
 
 const loginSchema = z.object({
     email: z.string().email("E-mail inválido"),
@@ -23,7 +24,14 @@ const loginSchema = z.object({
 function LoginContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
-    const nextRedirect = searchParams.get("next")
+    const redirectTo = searchParams.get("redirectTo") || searchParams.get("next") || ""
+    const isCourseRedirect = redirectTo.startsWith('/course') || redirectTo.startsWith('/classroom') || redirectTo.startsWith('/cart')
+    const [showLogin, setShowLogin] = useState(!isCourseRedirect)
+    const [mounted, setMounted] = useState(false)
+
+    useEffect(() => {
+        setMounted(true)
+    }, [])
 
     const form = useForm<z.infer<typeof loginSchema>>({
         resolver: zodResolver(loginSchema),
@@ -49,8 +57,8 @@ function LoginContent() {
 
             router.refresh()
 
-            if (nextRedirect) {
-                router.push(nextRedirect)
+            if (redirectTo) {
+                router.push(redirectTo)
                 return
             }
 
@@ -74,6 +82,19 @@ function LoginContent() {
             }
             alert(errorMessage)
         }
+    }
+
+    if (!mounted) {
+        return null
+    }
+
+    if (isCourseRedirect && !showLogin) {
+        return (
+            <ConversionBridge 
+                redirectTo={redirectTo || undefined} 
+                onShowLogin={() => setShowLogin(true)} 
+            />
+        )
     }
 
     return (

@@ -41,8 +41,8 @@ export const config = {
         "/classroom/:path*",
         "/payouts/:path*",
         "/cart/:path*",
+        "/cart",
         "/admin/:path*",
-        "/course/:path*",
     ],
 }
 

@@ -22,7 +22,7 @@ export default function CartPage() {
 
     const handleFinalizePurchase = () => {
         if (!authLoading && !user) {
-            router.push('/login?redirect=/cart')
+            router.push('/login?redirectTo=/cart')
             return
         }
         
