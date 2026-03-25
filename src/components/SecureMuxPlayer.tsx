@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import MuxPlayer from "@mux/mux-player-react";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/context/AuthProvider";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AlertCircle } from "lucide-react";
 
