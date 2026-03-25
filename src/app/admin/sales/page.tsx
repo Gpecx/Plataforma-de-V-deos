@@ -9,15 +9,13 @@ export default async function SalesAuditPage() {
         <div className="flex flex-col gap-8 animate-in fade-in duration-700 font-exo">
             <header className="flex flex-col items-center text-center mb-2">
                 <div className="flex items-center gap-3 mb-4">
-                    <div className="h-[1px] w-8 bg-slate-200" />
 
-                    <div className="h-[1px] w-8 bg-slate-200" />
                 </div>
                 <h1 className="text-5xl font-[900] tracking-tighter uppercase leading-none text-slate-950 text-center">
                     <span className="text-[#1D5F31]">Vendas da Plataforma</span>
                 </h1>
                 <p className="text-slate-900 mt-4 text-[11px] font-medium uppercase tracking-widest max-w-xl leading-tight">
-                    Rastreie cada transação na plataforma.
+
                 </p>
             </header>
 

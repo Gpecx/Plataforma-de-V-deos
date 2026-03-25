@@ -118,8 +118,8 @@ export default function AdminSettingsPage() {
         <Card className="mb-8 rounded-md border border-black shadow-sm bg-white overflow-hidden group/card hover:border-black/50 transition-all duration-700">
             <CardHeader className="bg-slate-50/50 border-b border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between p-8 gap-6">
                 <div>
-                    <CardTitle className="text-xl font-black uppercase tracking-tighter text-slate-900">{label}</CardTitle>
-                    <CardDescription className="uppercase tracking-widest text-[10px] font-medium text-slate-900 mt-2">{description}</CardDescription>
+                    <CardTitle className="text-xl font-black uppercase tracking-tighter !text-[#000000]">{label}</CardTitle>
+                    <CardDescription className="uppercase tracking-widest text-[10px] font-medium !text-[#000000] mt-2">{description}</CardDescription>
                 </div>
                 <Button onClick={() => addBanner(id)} className="bg-[#1D5F31] text-white hover:bg-slate-900 text-xs font-bold uppercase h-12 px-8 rounded-md transition-all shadow-sm active:scale-95 ml-auto">
                     + Adicionar Slide
@@ -127,9 +127,9 @@ export default function AdminSettingsPage() {
             </CardHeader>
             <CardContent className="p-8 space-y-8">
                 {items.length === 0 && (
-                    <div className="text-center py-16 border-2 border-dashed border-slate-100 rounded-xl bg-slate-50/50">
-                        <ImageIcon className="mx-auto text-slate-400 mb-6" size={48} strokeWidth={1} />
-                        <p className="text-slate-700 font-light uppercase tracking-wider text-[10px]">Galeria de Banners Vazia</p>
+                    <div className="text-center py-16 border-2 border-dashed border-black/10 rounded-xl bg-slate-50/50">
+                        <ImageIcon className="mx-auto text-black/30 mb-6" size={48} strokeWidth={1} />
+                        <p className="!text-[#000000] font-bold uppercase tracking-wider text-[10px]">Galeria de Banners Vazia</p>
                     </div>
                 )}
                 <div className="grid grid-cols-1 gap-8">
@@ -137,7 +137,7 @@ export default function AdminSettingsPage() {
                         <div key={index} className="group/item relative p-6 border border-black/10 rounded-xl bg-slate-50/30 transition-all hover:bg-white hover:border-black/40 hover:shadow-lg">
                             <div className="flex flex-col lg:flex-row gap-8 items-start">
                                 <div className="flex flex-col gap-4">
-                                    <Label className="text-[10px] font-black uppercase tracking-wider text-[#1D5F31]">Ordenação</Label>
+                                    <Label className="text-[10px] font-black uppercase tracking-wider !text-[#000000]">Ordenação</Label>
                                     <div className="flex flex-col gap-3">
                                         <Input
                                             type="number"
@@ -171,8 +171,8 @@ export default function AdminSettingsPage() {
                                 <div className="flex-1 space-y-6 w-full">
                                     <div className="space-y-4">
                                         <div className="flex justify-between items-end">
-                                            <Label className="text-[10px] font-black uppercase tracking-wider text-slate-900">Endpoint da Imagem (CDN URL)</Label>
-                                            <button onClick={() => removeBanner(id, index)} className="text-slate-700 hover:text-rose-500 text-[9px] font-bold uppercase tracking-wider transition-all mb-1 active:scale-90">
+                                            <Label className="text-[10px] font-black uppercase tracking-wider !text-[#000000]">Endpoint da Imagem (CDN URL)</Label>
+                                            <button onClick={() => removeBanner(id, index)} className="!text-[#000000] hover:text-rose-500 text-[9px] font-bold uppercase tracking-wider transition-all mb-1 active:scale-90">
                                                 REMOVER ITEM ✕
                                             </button>
                                         </div>
@@ -205,13 +205,13 @@ export default function AdminSettingsPage() {
                 {/* Header */}
                 <div className="mb-8 flex flex-col items-center text-center">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="h-[1px] w-8 bg-slate-200" />
-                        <div className="h-[1px] w-8 bg-slate-200" />
+
+
                     </div>
-                    <h1 className="text-5xl font-[900] uppercase tracking-tighter text-slate-950 flex flex-wrap justify-center items-center gap-3 leading-none">
-                        &amp; <span className="text-[#1D5F31]">Configurações de Banners</span>
+                    <h1 className="text-5xl font-[900] uppercase tracking-tighter !text-[#000000] flex flex-wrap justify-center items-center gap-3 leading-none">
+                        <span className="text-[#1D5F31]">Configurações de Banners</span>
                     </h1>
-                    <p className="text-slate-900 uppercase tracking-widest text-[11px] font-medium mt-4 max-w-2xl leading-tight">
+                    <p className="!text-[#000000] uppercase tracking-widest text-[11px] font-medium mt-4 max-w-2xl leading-tight">
                         Controle total sobre a identidade visual e estratégias de marketing imersivo da plataforma.
                     </p>
                 </div>
@@ -223,8 +223,8 @@ export default function AdminSettingsPage() {
                             <Palette size={20} className="text-[#1D5F31]" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-black uppercase tracking-wider text-slate-900">Identidade Visual</h2>
-                            <p className="text-[10px] text-slate-900 font-medium uppercase tracking-widest">Logística de Marca e Paleta Core</p>
+                            <h2 className="text-lg font-black uppercase tracking-wider !text-[#000000]">Identidade Visual</h2>
+                            <p className="text-[10px] !text-[#000000] font-medium uppercase tracking-widest">Logística de Marca e Paleta Core</p>
                         </div>
                         <div className="flex-1 h-px bg-slate-50 ml-6" />
                     </div>
@@ -236,7 +236,7 @@ export default function AdminSettingsPage() {
                                 <div className="space-y-12">
                                     {/* Site Name */}
                                     <div className="space-y-4">
-                                        <Label className="text-[10px] font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                        <Label className="text-[10px] font-black uppercase tracking-wider !text-[#000000] flex items-center gap-2">
                                             <Globe size={14} className="text-[#1D5F31]" /> Título da Instância
                                         </Label>
                                         <Input
@@ -249,7 +249,7 @@ export default function AdminSettingsPage() {
 
                                     {/* Primary Color */}
                                     <div className="space-y-4">
-                                        <Label className="text-[10px] font-black uppercase tracking-wider text-slate-900">Paleta Primária (Action Color)</Label>
+                                        <Label className="text-[10px] font-black uppercase tracking-wider !text-[#000000]">Paleta Primária (Action Color)</Label>
                                         <div className="flex items-center gap-6">
                                             <div className="relative group">
                                                 <input
@@ -273,7 +273,7 @@ export default function AdminSettingsPage() {
 
                                 {/* Right Column: Logo Upload */}
                                 <div className="space-y-5">
-                                    <Label className="text-[10px] font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                    <Label className="text-[10px] font-black uppercase tracking-wider !text-[#000000] flex items-center gap-2">
                                         <ImageIcon size={14} className="text-[#1D5F31]" /> Assets de Logotipo
                                     </Label>
 
@@ -294,15 +294,15 @@ export default function AdminSettingsPage() {
                                                 </div>
                                             )}
                                             <div>
-                                                <p className="text-[11px] font-black uppercase tracking-tight text-slate-900">Upload de Marca</p>
-                                                <p className="text-[9px] text-slate-700 font-light uppercase tracking-wider mt-1">PNG, SVG (Max 5MB)</p>
+                                                <p className="text-[11px] font-black uppercase tracking-tight !text-[#000000]">Upload de Marca</p>
+                                                <p className="text-[9px] !text-[#000000] font-medium uppercase tracking-wider mt-1">PNG, SVG (Max 5MB)</p>
                                             </div>
                                         </div>
 
                                         <div className="bg-slate-50 border border-black rounded-xl p-8 flex flex-col items-center justify-center min-h-[160px] relative overflow-hidden group/logo shadow-inner">
                                             <div className="absolute top-4 left-6 flex items-center gap-2">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-[#1D5F31]"></div>
-                                                <span className="text-[8px] font-black uppercase tracking-wider text-slate-900">Visualização de UI</span>
+                                                <span className="text-[8px] font-black uppercase tracking-wider !text-[#000000]">Visualização de UI</span>
                                             </div>
                                             <div className="h-20 w-full flex items-center justify-center">
                                                 {settings.branding.logoUrl ? (
@@ -332,8 +332,8 @@ export default function AdminSettingsPage() {
                             <ImageIcon size={20} className="text-[#1D5F31]" />
                         </div>
                         <div>
-                            <h2 className="text-lg font-black uppercase tracking-wider text-slate-900">Curadoria de Banners</h2>
-                            <p className="text-[10px] text-slate-900 font-medium uppercase tracking-widest">Experiências Imersivas por Seção</p>
+                            <h2 className="text-lg font-black uppercase tracking-wider !text-[#000000]">Curadoria de Banners</h2>
+                            <p className="text-[10px] !text-[#000000] font-medium uppercase tracking-widest">Experiências Imersivas por Seção</p>
                         </div>
                         <div className="flex-1 h-px bg-slate-50 ml-6" />
                     </div>

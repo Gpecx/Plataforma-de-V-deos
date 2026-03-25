@@ -77,11 +77,11 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
 
     if (courses.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-32 bg-white border border-black/10 rounded-xl animate-in fade-in duration-700 shadow-sm">
-                <div className="w-20 h-20 bg-black/5 rounded-full flex items-center justify-center mb-8 border border-black/5 shadow-inner">
-                    <LayoutGrid size={40} className="text-slate-200" />
+            <div className="flex flex-col items-center justify-center py-32 bg-white border border-black/20 rounded-xl animate-in fade-in duration-700 shadow-sm">
+                <div className="w-20 h-20 bg-black/5 rounded-full flex items-center justify-center mb-8 border border-black/10 shadow-inner">
+                    <LayoutGrid size={40} className="text-black/20" />
                 </div>
-                <p className="text-slate-700 font-light uppercase tracking-wider text-[10px] italic">Portal Limpo: Nenhum curso aguardando revisão</p>
+                <p className="!text-[#000000] font-bold uppercase tracking-wider text-[10px]">Portal Limpo: Nenhum curso aguardando revisão</p>
             </div>
         )
     }
@@ -93,12 +93,12 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
                 {courses.map((course) => (
                     <div
                         key={course.id}
-                        className="group bg-white border border-black/10 hover:border-[#1D5F31]/30 transition-all duration-500 relative flex flex-col rounded-xl overflow-hidden shadow-sm hover:shadow-lg"
+                        className="group bg-white border border-black/20 hover:border-[#1D5F31]/30 transition-all duration-500 relative flex flex-col rounded-xl overflow-hidden shadow-sm hover:shadow-lg"
                     >
                         <div className="absolute top-4 left-4 z-20">
                             <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md border border-black/10 px-3 py-1 rounded-full shadow-sm">
                                 <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
-                                <span className="text-[8px] font-black uppercase tracking-wider text-slate-900">PENDENTE</span>
+                                <span className="text-[8px] font-black uppercase tracking-wider !text-[#000000]">PENDENTE</span>
                             </div>
                         </div>
 
@@ -119,13 +119,13 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
 
                         <div className="p-8 flex flex-col flex-1">
                             <div className="flex-1">
-                                <h3 className="text-lg font-black uppercase tracking-tighter leading-tight mb-2 text-slate-950 group-hover:text-[#1D5F31] transition-colors">
+                                <h3 className="text-lg font-black uppercase tracking-tighter leading-tight mb-2 !text-[#000000] group-hover:text-[#1D5F31] transition-colors">
                                     {course.title}
                                 </h3>
                                 <div className="flex items-center gap-2.5 mb-6">
-                                    <div className="w-1 h-1 rounded-full bg-slate-200" />
-                                    <p className="text-[10px] text-slate-900 font-light uppercase tracking-wider">
-                                        Por <span className="text-slate-900 font-bold">{teachersMap[course.teacher_id] || 'Instrutor Desconhecido'}</span>
+                                    <div className="w-1 h-1 rounded-full bg-black/30" />
+                                    <p className="text-[10px] !text-[#000000] font-bold uppercase tracking-wider">
+                                        Por <span className="!text-[#000000]">{teachersMap[course.teacher_id] || 'Instrutor Desconhecido'}</span>
                                     </p>
                                 </div>
                             </div>
@@ -154,7 +154,7 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
                                         <div className="w-10 h-10 rounded-lg bg-black/5 flex items-center justify-center border border-black/10">
                                             <Play size={18} className="text-[#1D5F31]" strokeWidth={2.5} />
                                         </div>
-                                        <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-900">VÍDEO DE INTRODUÇÃO</h2>
+                                        <h2 className="text-[11px] font-bold uppercase tracking-wider !text-[#000000]">VÍDEO DE INTRODUÇÃO</h2>
                                     </div>
                                     <button
                                         onClick={() => setReviewingCourse(null)}
@@ -188,7 +188,7 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
                                             <div className="scale-125 origin-center mb-4">
                                                 <Logo />
                                             </div>
-                                            <p className="text-[10px] font-light uppercase tracking-wider text-slate-700">NENHUM VÍDEO DISPONÍVEL PARA AUDITORIA</p>
+                                            <p className="text-[10px] font-bold uppercase tracking-wider text-white/60">NENHUM VÍDEO DISPONÍVEL PARA AUDITORIA</p>
                                         </div>
                                     )}
                                 </div>
@@ -201,15 +201,15 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
                                         <div className="w-1 h-1 rounded-full bg-[#1D5F31]"></div>
                                         <span className="text-[10px] font-bold uppercase tracking-wider text-[#1D5F31]">DETALHES DA AUDITORIA</span>
                                     </div>
-                                    <h3 className="text-3xl font-black uppercase tracking-tighter leading-tight text-slate-950">{reviewingCourse.title}</h3>
-                                    <p className="text-[12px] text-slate-900 mt-6 leading-tight font-light uppercase tracking-wider italic">
+                                    <h3 className="text-3xl font-black uppercase tracking-tighter leading-tight !text-[#000000]">{reviewingCourse.title}</h3>
+                                    <p className="text-[12px] !text-[#000000] mt-6 leading-tight font-bold uppercase tracking-wider">
                                         {reviewingCourse.subtitle || 'Nenhum subtítulo fornecido pelo instrutor.'}
                                     </p>
                                 </div>
 
                                 <div className="space-y-8">
                                     <div className="space-y-4">
-                                        <label className="text-[10px] font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                        <label className="text-[10px] font-bold uppercase tracking-wider !text-[#000000] flex items-center gap-2">
                                             <div className="w-1 h-1 bg-rose-500 rounded-full"></div>
                                             Feedback para o Criador
                                         </label>

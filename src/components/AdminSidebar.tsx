@@ -90,27 +90,30 @@ export default function AdminSidebar() {
                             key={item.href} 
                             href={item.href}
                             className={cn(
-                                "group flex items-center gap-4 p-4 transition-all duration-300 relative overflow-hidden rounded-xl",
+                                "group flex items-center gap-4 p-4 transition-all duration-300 relative",
                                 isActive 
-                                    ? "bg-white text-slate-900 shadow-sm border-l-4 border-[#1D5F31]" 
-                                    : "text-[#061629] hover:bg-white/50 hover:text-black font-medium"
+                                    ? "text-[#1D5F31]" 
+                                    : "text-slate-500 hover:!text-[#1D5F31] font-medium"
                             )}
                         >
                             <item.icon 
                                 size={20} 
                                 className={cn(
                                     "transition-colors duration-300",
-                                    isActive ? "text-[#1D5F31]" : "text-[#061629] group-hover:text-[#1D5F31]"
+                                    isActive ? "text-[#1D5F31]" : "text-slate-500 group-hover:text-[#1D5F31]"
                                 )} 
                             />
                             <div className="flex flex-col">
                                 <span className={cn(
-                                    "text-xs font-bold uppercase tracking-widest",
-                                    isActive ? "text-slate-900" : "text-[#061629] group-hover:text-black"
+                                    "text-xs font-black uppercase tracking-widest",
+                                    isActive ? "text-[#1D5F31]" : "text-slate-500 group-hover:text-[#1D5F31]"
                                 )}>
                                     {item.title}
                                 </span>
-                                <span className="text-[9px] text-slate-900 uppercase font-bold tracking-tighter mt-0.5">
+                                <span className={cn(
+                                    "text-[9px] uppercase font-bold tracking-tighter mt-0.5",
+                                    isActive ? "text-[#1D5F31]" : "text-slate-400 group-hover:text-[#1D5F31]"
+                                )}>
                                     {item.description}
                                 </span>
                             </div>
@@ -118,7 +121,7 @@ export default function AdminSidebar() {
                                 size={14} 
                                 className={cn(
                                     "ml-auto transition-transform duration-300",
-                                    isActive ? "text-[#1D5F31] translate-x-0" : "text-[#061629] opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0"
+                                    isActive ? "text-[#1D5F31] translate-x-0" : "text-slate-400 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0"
                                 )} 
                             />
                         </Link>

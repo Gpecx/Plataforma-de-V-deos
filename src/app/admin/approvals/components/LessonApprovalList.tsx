@@ -86,11 +86,11 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
 
     if (lessonList.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-32 bg-white border border-black/10 rounded-xl animate-in fade-in duration-700 shadow-sm">
-                <div className="w-20 h-20 bg-black/5 rounded-full flex items-center justify-center mb-8 border border-black/5 shadow-inner">
-                    <PlaySquare size={40} className="text-slate-200" />
+            <div className="flex flex-col items-center justify-center py-32 bg-white border border-black/20 rounded-xl animate-in fade-in duration-700 shadow-sm">
+                <div className="w-20 h-20 bg-black/5 rounded-full flex items-center justify-center mb-8 border border-black/10 shadow-inner">
+                    <PlaySquare size={40} className="text-black/20" />
                 </div>
-                <p className="text-slate-700 font-light uppercase tracking-wider text-[10px] italic">Tudo em Dia: Nenhuma aula pendente</p>
+                <p className="!text-[#000000] font-bold uppercase tracking-wider text-[10px]">Tudo em Dia: Nenhuma aula pendente</p>
             </div>
         )
     }
@@ -100,10 +100,10 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
             <div className="overflow-x-auto">
                 <table className="w-full text-left border-separate border-spacing-y-4">
                     <thead>
-                        <tr className="text-[10px] font-bold uppercase tracking-wider text-slate-900 text-left">
-                            <th className="px-8 py-4 font-bold">Ficha Técnica</th>
-                            <th className="px-8 py-4 font-bold">Procedência</th>
-                            <th className="px-8 py-4 text-right font-bold">Protocolo</th>
+                        <tr className="text-[10px] font-black uppercase tracking-wider !text-[#000000] text-left">
+                            <th className="px-8 py-4 font-black">Ficha Técnica</th>
+                            <th className="px-8 py-4 font-black">Procedência</th>
+                            <th className="px-8 py-4 text-right font-black">Protocolo</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -111,19 +111,19 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
                             <tr key={lesson.id} className="group bg-white border border-black/10 hover:border-[#1D5F31]/30 transition-all duration-300 shadow-sm hover:shadow-md">
                                 <td className="px-8 py-6 rounded-l-xl">
                                     <div className="flex flex-col">
-                                        <h3 className="font-bold text-slate-950 uppercase tracking-tight text-sm group-hover:text-[#1D5F31] transition-colors">{lesson.title}</h3>
+                                        <h3 className="font-black !text-[#000000] uppercase tracking-tight text-sm group-hover:text-[#1D5F31] transition-colors">{lesson.title}</h3>
                                         <div className="flex items-center gap-2 mt-1.5">
-                                            <div className="w-1 h-1 rounded-full bg-slate-200"></div>
-                                            <p className="text-[10px] text-slate-900 font-light uppercase tracking-wider italic">
-                                                CURSO: <span className="text-slate-900 font-bold">{lesson.course_title}</span>
+                                            <div className="w-1 h-1 rounded-full bg-black/30"></div>
+                                            <p className="text-[10px] !text-[#000000] font-bold uppercase tracking-wider">
+                                                CURSO: <span className="!text-[#000000]">{lesson.course_title}</span>
                                             </p>
                                         </div>
                                     </div>
                                 </td>
                                 <td className="px-8 py-6">
-                                    <div className="flex flex-col text-[10px] text-slate-900 font-light uppercase tracking-wider">
-                                        <span className="text-[8px] text-slate-700 mb-0.5">CRIADOR</span>
-                                        <span className="text-slate-900 font-bold">{teachersMap[lesson.teacher_id] || 'Instrutor Desconhecido'}</span>
+                                    <div className="flex flex-col text-[10px] !text-[#000000] font-bold uppercase tracking-wider">
+                                        <span className="text-[8px] !text-[#000000] mb-0.5">CRIADOR</span>
+                                        <span className="!text-[#000000]">{teachersMap[lesson.teacher_id] || 'Instrutor Desconhecido'}</span>
                                     </div>
                                 </td>
                                 <td className="px-8 py-6 rounded-r-xl text-right">
@@ -152,7 +152,7 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
                                         <div className="w-10 h-10 rounded-lg bg-black/5 flex items-center justify-center border border-black/10">
                                             <PlaySquare size={18} className="text-[#1D5F31]" strokeWidth={2.5} />
                                         </div>
-                                        <h2 className="text-[11px] font-bold uppercase tracking-wider text-slate-950">AUDITORIA DE VÍDEO-AULA</h2>
+                                        <h2 className="text-[11px] font-bold uppercase tracking-wider !text-[#000000]">AUDITORIA DE VÍDEO-AULA</h2>
                                     </div>
                                     <button 
                                         onClick={() => setReviewingLesson(null)} 
@@ -190,16 +190,16 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
                                         <div className="w-1 h-1 rounded-full bg-[#1D5F31]"></div>
                                         <span className="text-[10px] font-bold uppercase tracking-wider text-[#1D5F31]">DETALHES DA UNIDADE</span>
                                     </div>
-                                    <h3 className="text-3xl font-black uppercase tracking-tighter leading-tight text-slate-950">{reviewingLesson.title}</h3>
+                                    <h3 className="text-3xl font-black uppercase tracking-tighter leading-tight !text-[#000000]">{reviewingLesson.title}</h3>
                                     <div className="mt-8 p-6 bg-black/5 rounded-xl border border-black/10">
-                                        <p className="text-[9px] text-slate-700 font-light uppercase tracking-wider mb-1">VINCULADA AO CURSO</p>
-                                        <p className="text-[12px] text-slate-900 font-bold uppercase tracking-wider leading-tight">{reviewingLesson.course_title}</p>
+                                        <p className="text-[9px] !text-[#000000] font-bold uppercase tracking-wider mb-1">VINCULADA AO CURSO</p>
+                                        <p className="text-[12px] !text-[#000000] font-bold uppercase tracking-wider leading-tight">{reviewingLesson.course_title}</p>
                                     </div>
                                 </div>
 
                                 <div className="space-y-8">
                                     <div className="space-y-4">
-                                        <label className="text-[10px] font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                                        <label className="text-[10px] font-bold uppercase tracking-wider !text-[#000000] flex items-center gap-2">
                                             <div className="w-1 h-1 bg-rose-500 rounded-full"></div>
                                             Feedback Técnico
                                         </label>

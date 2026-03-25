@@ -37,7 +37,7 @@ export function ApprovalsContent({
     return (
         <div className="space-y-8">
             {/* Tabs Navigation */}
-            <div className="flex items-center gap-2 p-1.5 bg-white border border-black/10 rounded-xl w-fit shadow-sm overflow-hidden">
+            <div className="flex items-center gap-2 p-1.5 bg-white border border-black/20 rounded-xl w-fit shadow-sm overflow-hidden">
                 {tabs.map((tab) => {
                     const Icon = tab.icon
                     const isActive = activeTab === tab.id
@@ -49,7 +49,7 @@ export function ApprovalsContent({
                                 "flex items-center gap-4 px-8 py-3.5 text-[10px] uppercase font-bold tracking-wider transition-all duration-300 rounded-lg relative",
                                 isActive 
                                     ? "text-white bg-[#1D5F31] shadow-sm" 
-                                    : "text-slate-700 hover:text-slate-900 hover:bg-slate-50"
+                                    : "!text-[#000000] hover:!text-[#000000] hover:bg-slate-100"
                             )}
                         >
                             <Icon size={16} strokeWidth={isActive ? 3 : 2} />
@@ -57,7 +57,7 @@ export function ApprovalsContent({
                             {tab.count > 0 && (
                                 <span className={cn(
                                     "ml-3 px-2 py-0.5 rounded-md text-[9px] font-bold",
-                                    isActive ? "bg-white text-[#1D5F31]" : "bg-slate-100 text-slate-900"
+                                    isActive ? "bg-white text-[#1D5F31]" : "bg-slate-200 !text-[#000000]"
                                 )}>
                                     {tab.count}
                                 </span>
