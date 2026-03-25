@@ -8,7 +8,7 @@ const PROTECTED_ROUTES = [
     '/cart',
     '/payouts',
     '/admin',
-    '/course',
+
 ]
 
 export function middleware(request: NextRequest) {
