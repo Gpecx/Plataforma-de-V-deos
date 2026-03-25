@@ -23,11 +23,7 @@ export default async function AdminDashboardPage() {
             {/* Header com Textos em Preto Puro */}
             <header className="relative z-10">
                 <div className="flex items-center gap-3 mb-2">
-                    <div className="h-2 w-2 rounded-full bg-[#1D5F31]" />
-                    <span
-                        className="text-[10px] font-black uppercase tracking-[5px]"
-                        style={{ color: '#000000' }}
-                    >CONTROL CENTER</span>
+
                 </div>
                 <h1
                     className="text-4xl md:text-5xl font-black tracking-tighter uppercase leading-none"
@@ -39,7 +35,7 @@ export default async function AdminDashboardPage() {
                     className="mt-3 text-[10px] font-bold uppercase tracking-[3px] italic"
                     style={{ color: '#000000', opacity: 1 }}
                 >
-                    Monitoramento global de receitas e transações da plataforma.
+
                 </p>
             </header>
 

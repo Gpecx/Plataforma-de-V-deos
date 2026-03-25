@@ -10,6 +10,7 @@ import { parseFirebaseDate } from '@/lib/date-utils'
 import { getBanners } from '@/app/admin/settings/actions'
 import { ContinueLessonButton } from '@/components/dashboard/ContinueLessonButton'
 import { BannerWrapper } from '@/components/ui/BannerWrapper'
+import { CourseProgressBar } from '@/components/dashboard/CourseProgressBar'
 
 export default async function StudentDashboard() {
     const cookieStore = await cookies()
@@ -26,10 +27,11 @@ export default async function StudentDashboard() {
         redirect('/login')
     }
 
-    const [profileDoc, coursesSnapshot, enrollmentsSnapshot, banners] = await Promise.all([
+    const [profileDoc, coursesSnapshot, enrollmentsSnapshot, lessonsSnapshot, banners] = await Promise.all([
         adminDb.collection('profiles').doc(user.uid).get(),
         adminDb.collection('courses').get(),
         adminDb.collection('enrollments').where('user_id', '==', user.uid).get(),
+        adminDb.collection('lessons').get(),
         getBanners()
     ])
 
@@ -43,6 +45,7 @@ export default async function StudentDashboard() {
             updated_at: parseFirebaseDate(data.updated_at)?.toISOString() || data.updated_at
         };
     }) as any[]
+    const allLessons = lessonsSnapshot.docs.map(doc => doc.data()) as any[]
     const purchasedCourseIds = enrollmentsSnapshot.docs.map(doc => doc.data().course_id)
 
     const meusCursos = allCourses.filter(c => purchasedCourseIds.includes(c.id))
@@ -78,7 +81,12 @@ export default async function StudentDashboard() {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                            {meusCursos.map((curso) => (
+                            {meusCursos.map((curso) => {
+                                const courseLessons = allLessons.filter((l: any) => l.course_id === curso.id)
+                                const totalLessons = courseLessons.length
+                                const completedLessons = 0 // TODO: Implement progress tracking
+                                
+                                return (
                                 <div key={curso.id} className="group bg-white rounded-[24px] overflow-hidden border border-black transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 flex flex-col">
                                     <div className="relative h-48 bg-slate-100 overflow-hidden">
                                         <img
@@ -94,14 +102,16 @@ export default async function StudentDashboard() {
                                         {/* TÍTULO DO CURSO - Garanti que está PRETO e VISÍVEL */}
                                         <h3 className="font-black text-lg mb-4 !text-black line-clamp-2 leading-tight uppercase group-hover:text-[#1D5F31] transition-colors">{curso.title}</h3>
                                         <div className="mt-auto space-y-4">
-                                            <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                                                <div className="bg-[#1D5F31] h-full shadow-[0_0_10px_rgba(29,95,49,0.3)]" style={{ width: `45%` }}></div>
-                                            </div>
+                                            <CourseProgressBar 
+                                                completedLessons={completedLessons} 
+                                                totalLessons={totalLessons} 
+                                            />
                                             <ContinueLessonButton courseId={curso.id} />
                                         </div>
                                     </div>
                                 </div>
-                            ))}
+                                )
+                            })}
                         </div>
                     </section>
                 )}
