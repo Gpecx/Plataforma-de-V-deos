@@ -117,17 +117,20 @@ export default function LandingPageClient({ user: initialUser }: LandingPageProp
                     {/* Badge */}
                     <span
                         style={{
-                            background: "rgba(255, 255, 255, 0.1)",
-                            border: "1px solid rgba(255, 255, 255, 0.3)",
+                            background: "rgba(29, 95, 49, 0.8)",
+                            border: "1px solid rgba(255, 255, 255, 0.2)",
                             color: "#ffffff",
-                            fontSize: "0.7rem",
-                            fontWeight: 900,
-                            letterSpacing: "0.2em",
+                            fontSize: "0.75rem",
+                            fontWeight: 800,
+                            letterSpacing: "0.15em",
                             textTransform: "uppercase",
-                            padding: "0.3rem 1rem",
+                            padding: "0.6rem 1.5rem",
                             marginBottom: "1.5rem",
                             display: "inline-block",
                             borderRadius: "100px",
+                            backdropFilter: "blur(10px)",
+                            boxShadow: "0 4px 15px rgba(0, 0, 0, 0.2), 0 0 15px rgba(29, 95, 49, 0.4)",
+                            textShadow: "0 1px 2px rgba(0,0,0,0.5)"
                         }}
                     >
                         PowerPlay — Plataforma de Ensino Profissional
@@ -156,10 +159,17 @@ export default function LandingPageClient({ user: initialUser }: LandingPageProp
                         style={{
                             color: "#ffffff",
                             fontSize: "clamp(1rem, 2vw, 1.2rem)",
-                            fontWeight: 500,
+                            fontWeight: 600,
                             marginBottom: "2.5rem",
-                            maxWidth: "520px",
+                            maxWidth: "560px",
                             lineHeight: 1.6,
+                            background: "rgba(29, 95, 49, 0.6)",
+                            border: "1px solid rgba(255, 255, 255, 0.15)",
+                            borderRadius: "100px",
+                            padding: "0.5rem 1.5rem",
+                            backdropFilter: "blur(10px)",
+                            boxShadow: "0 4px 15px rgba(0, 0, 0, 0.2)",
+                            textShadow: "0 1px 2px rgba(0,0,0,0.5)"
                         }}
                     >
                         Cursos ilimitados em Engenharia Elétrica &amp; Computação
