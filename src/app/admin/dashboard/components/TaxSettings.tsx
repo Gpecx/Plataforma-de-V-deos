@@ -39,17 +39,19 @@ export default function TaxSettings({ currentTax }: TaxSettingsProps) {
                     <label className="text-[10px] font-black uppercase tracking-[2px] block mb-3 !text-[#000000]">
                         Taxa da Plataforma (%)
                     </label>
-                    <div className="flex gap-4">
-                        <input 
-                            type="number" 
-                            value={tax} 
-                            onChange={(e) => setTax(Number(e.target.value))}
-                            className="bg-white border-2 border-black/20 px-4 py-3 outline-none focus:border-black transition-all flex-grow font-black !text-[#000000]"
-                        />
+                    <div className="flex items-end gap-4">
+                        <div className="flex-1">
+                            <input 
+                                type="number" 
+                                value={tax} 
+                                onChange={(e) => setTax(Number(e.target.value))}
+                                className="w-full bg-white border-2 border-black/20 px-4 h-12 outline-none focus:border-[#1D5F31] transition-all font-black !text-[#000000] rounded-lg"
+                            />
+                        </div>
                         <button 
                             onClick={handleSave}
                             disabled={loading}
-                            className="bg-[#1D5F31] text-white px-8 py-3 font-black uppercase text-[10px] tracking-widest hover:bg-[#28b828] transition-all flex items-center gap-2 disabled:opacity-50"
+                            className="bg-[#1D5F31] text-white px-8 h-12 font-black uppercase text-[10px] tracking-widest hover:bg-[#28b828] transition-all flex items-center gap-2 disabled:opacity-50 rounded-lg"
                         >
                             {loading ? <Loader2 size={14} className="animate-spin" /> : <><Save size={14} /> Salvar</>}
                         </button>
