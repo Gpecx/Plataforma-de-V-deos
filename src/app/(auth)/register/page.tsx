@@ -270,7 +270,7 @@ function RegisterForm() {
     }
 
     const inputClass = (hasError: boolean = false) =>
-        `w-full p-4 bg-gray-50 text-gray-900 border border-gray-300 shadow-sm transition-all outline-none text-sm font-medium placeholder:text-gray-400 focus:border-gray-500 focus:bg-white rounded-none ${hasError
+        `w-full p-4 bg-gray-50 text-gray-900 border border-gray-300 shadow-sm transition-all outline-none text-sm font-medium placeholder:text-gray-400 focus:border-gray-500 focus:bg-white rounded-xl ${hasError
             ? 'border-red-500 focus:border-red-600'
             : ''
         }`
@@ -516,7 +516,7 @@ function RegisterForm() {
                             <button
                                 type="submit"
                                 disabled={loading || !isFormValid}
-                                className="group relative w-full overflow-hidden bg-[#1D5F31] hover:bg-[#28b828] text-white font-black uppercase tracking-[3px] py-5 transition-all disabled:opacity-30 disabled:cursor-not-allowed mt-4 rounded-none active:scale-[0.98]"
+                                className="group relative w-full overflow-hidden bg-[#1D5F31] hover:bg-[#28b828] text-white font-black uppercase tracking-[3px] py-5 transition-all disabled:opacity-30 disabled:cursor-not-allowed mt-4 rounded-xl active:scale-[0.98]"
                             >
                                 <span className="relative z-10 flex items-center justify-center gap-3 text-sm">
                                     {loading ? (
