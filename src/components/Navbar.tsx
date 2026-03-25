@@ -170,10 +170,10 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                                     key={link.href}
                                     href={link.href}
                                     className={cn(
-                                        "transition-all duration-300 text-[13px] font-black uppercase tracking-[0.2em] px-4 py-2 font-exo",
+                                        "transition-colors duration-200 text-[13px] font-black uppercase tracking-[0.2em] px-4 py-2 font-exo",
                                         pathname === link.href
-                                            ? 'text-[#22c55e]'
-                                            : light ? 'text-slate-600 hover:text-slate-900 hover:bg-slate-50' : 'text-white/80 hover:text-white hover:bg-white/5'
+                                            ? 'text-[#1D5F31] font-bold'
+                                            : light ? 'text-slate-400 hover:!text-[#1D5F31]' : 'text-white/70 hover:!text-[#1D5F31]'
                                     )}
                                 >
                                     {link.label}
@@ -329,47 +329,47 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                                                             <ShieldAlert size={18} className="text-[#22c55e]" /><span className="text-[11px] font-black uppercase tracking-widest leading-none">Acessar Painel Admin</span>
                                                         </DropdownMenuItem>
 
-                                                        <DropdownMenuItem onSelect={() => router.push("/dashboard-student")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none mb-1", light ? "hover:bg-slate-100 text-slate-600 focus:bg-slate-100" : "hover:bg-white/10 text-slate-400 focus:bg-white/10")}>
+                                                        <DropdownMenuItem onSelect={() => router.push("/dashboard-student")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none mb-1", light ? "text-slate-600 hover:!text-[#1D5F31] focus:!text-[#1D5F31]" : "text-slate-400 hover:!text-[#1D5F31] focus:!text-[#1D5F31]")}>
                                                             <GraduationCap size={18} className={light ? "text-slate-600" : "text-slate-400"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Modo Aluno (Testes)</span>
                                                         </DropdownMenuItem>
                                                     </>
                                                 )}
                                                 <DropdownMenuSeparator className={cn("my-2", light ? "bg-slate-100" : "bg-white/5")} />
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/profile")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "hover:bg-slate-100 text-slate-900 focus:bg-slate-100" : "hover:bg-white/10 text-white focus:bg-white/10")}>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/profile")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:!text-[#1D5F31] focus:!text-[#1D5F31]" : "text-white hover:!text-[#1D5F31] focus:!text-[#1D5F31]")}>
                                                     <UserCog size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Editar Perfil</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/students")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "hover:bg-slate-100 text-slate-900 focus:bg-slate-100" : "hover:bg-white/10 text-white focus:bg-white/10")}>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/students")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:!text-[#1D5F31] focus:!text-[#1D5F31]" : "text-white hover:!text-[#1D5F31] focus:!text-[#1D5F31]")}>
                                                     <Users size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Alunos</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/courses")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "hover:bg-slate-100 text-slate-900 focus:bg-slate-100" : "hover:bg-white/10 text-white focus:bg-white/10")}>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/courses")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:text-[#1D5F31] focus:!text-[#1D5F31]" : "text-white hover:!text-[#1D5F31] focus:!text-[#1D5F31]")}>
                                                     <BookOpen size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Cursos</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/analytics")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "hover:bg-slate-100 text-slate-900 focus:bg-slate-100" : "hover:bg-white/10 text-white focus:bg-white/10")}>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/analytics")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:!text-[#1D5F31] focus:!text-[#1D5F31]" : "text-white hover:!text-[#1D5F31] focus:!text-[#1D5F31]")}>
                                                     <TrendingUp size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Vendas</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/chat")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "hover:bg-slate-100 text-slate-900 focus:bg-slate-100" : "hover:bg-white/10 text-white focus:bg-white/10")}>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/chat")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:!text-[#1D5F31] focus:!text-[#1D5F31]" : "text-white hover:!text-[#1D5F31] focus:!text-[#1D5F31]")}>
                                                     <MessageSquare size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Mensagens</span>
                                                 </DropdownMenuItem>
                                             </>
                                         ) : (
                                             <>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/profile")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "hover:bg-slate-100 text-slate-900 focus:bg-slate-100" : "hover:bg-white/10 text-white focus:bg-white/10")}>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/profile")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:!text-[#1D5F31] focus:!text-[#1D5F31]" : "text-white hover:!text-[#1D5F31] focus:!text-[#1D5F31]")}>
                                                     <User size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Meu Perfil</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/certificates")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "hover:bg-slate-100 text-slate-900 focus:bg-slate-100" : "hover:bg-white/10 text-white focus:bg-white/10")}>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/certificates")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:!text-[#1D5F31] focus:!text-[#1D5F31]" : "text-white hover:!text-[#1D5F31] focus:!text-[#1D5F31]")}>
                                                     <Award size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Meus Certificados</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/payments")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "hover:bg-slate-100 text-slate-900 focus:bg-slate-100" : "hover:bg-white/10 text-white focus:bg-white/10")}>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/payments")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:!text-[#1D5F31] focus:!text-[#1D5F31]" : "text-white hover:!text-[#1D5F31] focus:!text-[#1D5F31]")}>
                                                     <CreditCard size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Pagamentos</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/subscriptions")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "hover:bg-slate-100 text-slate-900 focus:bg-slate-100" : "hover:bg-white/10 text-white focus:bg-white/10")}>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/subscriptions")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:!text-[#1D5F31] focus:!text-[#1D5F31]" : "text-white hover:!text-[#1D5F31] focus:!text-[#1D5F31]")}>
                                                     <Zap size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Assinaturas</span>
                                                 </DropdownMenuItem>
                                                 <DropdownMenuSeparator className={cn("my-2", light ? "bg-slate-100" : "bg-white/5")} />
-                                                <DropdownMenuItem onSelect={() => router.push("/contact")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "hover:bg-slate-100 text-slate-900 focus:bg-slate-100" : "hover:bg-white/10 text-white focus:bg-white/10")}>
+                                                <DropdownMenuItem onSelect={() => router.push("/contact")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:!text-[#1D5F31] focus:!text-[#1D5F31]" : "text-white hover:!text-[#1D5F31] focus:!text-[#1D5F31]")}>
                                                     <HelpCircle size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Central de Ajuda</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/sugestoes")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "hover:bg-slate-100 text-slate-900 focus:bg-slate-100" : "hover:bg-white/10 text-white focus:bg-white/10")}>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/sugestoes")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:!text-[#1D5F31] focus:!text-[#1D5F31]" : "text-white hover:!text-[#1D5F31] focus:!text-[#1D5F31]")}>
                                                     <MessageSquare size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Sugestões</span>
                                                 </DropdownMenuItem>
                                             </>
@@ -433,8 +433,8 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                                 className={cn(
                                     "flex items-center px-4 py-3 rounded-xl font-bold text-sm tracking-tight transition-colors",
                                     pathname === link.href
-                                        ? light ? 'bg-slate-100 text-[#1D5F31]' : 'bg-[#1D5F31]/20 text-[#1D5F31]'
-                                        : light ? 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' : 'text-white hover:bg-white/5 hover:text-[#1D5F31]'
+                                        ? 'text-[#1D5F31] font-bold'
+                                        : light ? 'text-slate-600 hover:!text-[#1D5F31]' : 'text-white hover:!text-[#1D5F31]'
                                 )}
                             >
                                 {link.label}
@@ -449,7 +449,7 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                                 {!isHomePage && (
                                     <Link href="/contact" onClick={() => setIsMobileMenuOpen(false)} className={cn(
                                         "flex items-center px-4 py-3 rounded-xl font-bold text-sm transition",
-                                        light ? "text-slate-500 hover:bg-slate-50" : "text-white/80 hover:bg-white/5"
+                                        light ? "text-slate-500 hover:!text-[#1D5F31]" : "text-white/80 hover:!text-[#1D5F31]"
                                     )}>
                                         Contato
                                     </Link>
@@ -471,7 +471,7 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                         {userProfile?.role === 'admin' && (
                             <div className={`pt-3 border-t mt-3 ${'border-white/10'}`}>
 
-                                <Link href="/dashboard-student" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-sm transition text-[#1D5F31] hover:bg-white/5`}>
+                                <Link href="/dashboard-student" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-sm transition text-[#1D5F31]`}>
                                     <GraduationCap size={16} /> Modo Aluno (Testes)
                                 </Link>
                             </div>

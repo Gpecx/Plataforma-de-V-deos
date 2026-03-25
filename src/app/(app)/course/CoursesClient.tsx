@@ -8,6 +8,8 @@ import { Play, Info, ChevronRight, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import CourseModal from "@/components/CourseModal";
 import { BannerWrapper } from "@/components/ui/BannerWrapper";
+import { useAuth } from "@/context/AuthProvider";
+import { motion, AnimatePresence } from "framer-motion";
 
 const heroSlides = [
     {
@@ -49,10 +51,14 @@ interface CoursesClientProps {
 function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
     const searchParams = useSearchParams();
     const searchQuery = searchParams.get('s')?.toLowerCase() || "";
+    const { user, profile, loading } = useAuth();
 
     const [currentSlide, setCurrentSlide] = useState(0);
     const [selectedCourse, setSelectedCourse] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+
+    const firstName = profile?.full_name?.split(' ')[0] || '';
+    const isLoggedIn = !loading && !!user;
 
     const displaySlides = heroBanners && heroBanners.length > 0
         ? heroBanners.map((url, idx) => ({
@@ -93,34 +99,83 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
                         <div key={index} className={`absolute inset-0 transition-opacity duration-1000 ${index === currentSlide ? "opacity-100" : "opacity-0"}`}>
                             <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent z-10" />
                             <img src={slide.image} className="w-full h-full object-cover scale-105" alt={slide.title} />
+                        </div>
+                    ))}
 
-                            <div className="relative z-20 h-full flex flex-col justify-center px-8 md:px-12 lg:px-16 space-y-6 max-w-4xl pt-24">
-                                <div className="flex items-center gap-3">
-                                    <span className="bg-[#1D5F31] text-white text-[9px] font-black px-3 py-1 w-fit uppercase tracking-[2px] shadow-lg shadow-[#1D5F31]/20">
-                                        {slide.tag}
+                    <div className="relative z-20 h-full flex flex-col justify-center px-8 md:px-12 lg:px-16 space-y-6 max-w-4xl pt-24">
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={isLoggedIn ? 'logged-in' : 'logged-out'}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.3 }}
+                                className="flex items-center gap-3"
+                            >
+                                {isLoggedIn ? (
+                                    <span className="bg-[#1D5F31] !text-white text-[9px] font-black px-3 py-1 w-fit uppercase tracking-[2px] shadow-lg shadow-[#1D5F31]/20">
+                                        OLÁ, {firstName.toUpperCase()}!
                                     </span>
-                                    <div className="h-[1px] w-12 bg-white/20"></div>
-                                </div>
-                                <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-[0.9] text-white">
-                                    {slide.title}
-                                </h1>
-                                <p className="text-xl text-slate-200/90 max-w-xl font-medium leading-relaxed">
-                                    {slide.subtitle}
-                                </p>
-                                <div className="flex flex-wrap gap-4 pt-6">
+                                ) : (
+                                    <span className="bg-[#1D5F31] !text-white text-[9px] font-black px-3 py-1 w-fit uppercase tracking-[2px] shadow-lg shadow-[#1D5F31]/20">
+                                        CURSOS EXCLUSIVOS
+                                    </span>
+                                )}
+                                <div className="h-[1px] w-12 bg-white/20"></div>
+                            </motion.div>
+                        </AnimatePresence>
+                        <AnimatePresence mode="wait">
+                            <motion.h1
+                                key={isLoggedIn ? 'title-logged-in' : 'title-logged-out'}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.3, delay: 0.1 }}
+                                className="text-5xl md:text-7xl font-black tracking-tighter leading-[0.9] !text-white"
+                            >
+                                {isLoggedIn ? "CONTINUE SUA EVOLUÇÃO" : displaySlides[currentSlide]?.title}
+                            </motion.h1>
+                        </AnimatePresence>
+                        <AnimatePresence mode="wait">
+                            <motion.p
+                                key={isLoggedIn ? 'subtitle-logged-in' : 'subtitle-logged-out'}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.3, delay: 0.2 }}
+                                className="text-xl !text-white max-w-xl font-medium leading-relaxed"
+                            >
+                                {isLoggedIn 
+                                    ? "Sua jornada não para aqui. Explore novos conteúdos exclusivos da nossa curadoria."
+                                    : displaySlides[currentSlide]?.subtitle
+                                }
+                            </motion.p>
+                        </AnimatePresence>
+                        <div className="flex flex-wrap gap-4 pt-6">
+                            {isLoggedIn ? (
+                                <Button
+                                    onClick={() => filteredCourses.length > 0 && handleCourseClick(filteredCourses[0])}
+                                    className="bg-[#1D5F31] text-white hover:bg-[#1D5F31]/90 h-14 px-8 text-sm font-black uppercase tracking-[2px] flex gap-3 shadow-2xl shadow-[#1D5F31]/30 active:scale-95 transition-all"
+                                >
+                                    <Play fill="currentColor" size={18} /> Continuar Treinando
+                                </Button>
+                            ) : (
+                                <>
                                     <Button
                                         onClick={() => filteredCourses.length > 0 && handleCourseClick(filteredCourses[0])}
                                         className="bg-[#1D5F31] text-white hover:bg-[#1D5F31]/90 h-14 px-8 text-sm font-black uppercase tracking-[2px] flex gap-3 shadow-2xl shadow-[#1D5F31]/30 active:scale-95 transition-all"
                                     >
                                         <Play fill="currentColor" size={18} /> Iniciar Treinamento
                                     </Button>
-                                    <Button variant="outline" className="border-white/20 text-white hover:bg-white/10 h-14 px-8 text-sm font-black uppercase tracking-[2px] backdrop-blur-md shadow-xl active:scale-95 transition-all">
-                                        <Info size={18} /> Detalhes do Curso
-                                    </Button>
-                                </div>
-                            </div>
+                                    <Link href="/register">
+                                        <Button variant="outline" className="border-white/20 text-white hover:bg-[#1D5F31] hover:text-white h-14 px-8 text-sm font-black uppercase tracking-[2px] backdrop-blur-md shadow-xl active:scale-95 transition-all">
+                                            Quero me Inscrever Agora
+                                        </Button>
+                                    </Link>
+                                </>
+                            )}
                         </div>
-                    ))}
+                    </div>
 
                     {displaySlides.length > 1 && (
                         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex gap-2">
