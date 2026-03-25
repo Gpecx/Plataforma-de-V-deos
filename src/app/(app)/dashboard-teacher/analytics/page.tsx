@@ -18,12 +18,12 @@ import { parseFirebaseDate } from '@/lib/date-utils'
 
 export default async function FinancialDashboardPage() {
     const cookieStore = cookies()
-    const token = (await cookieStore).get('firebase-token')?.value
+    const token = (await cookieStore).get('session')?.value
     if (!token) redirect('/login')
 
     let decodedToken
     try {
-        decodedToken = await adminAuth.verifyIdToken(token)
+        decodedToken = await adminAuth.verifySessionCookie(token, true)
     } catch (error) {
         redirect('/login')
     }

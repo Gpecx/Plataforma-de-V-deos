@@ -7,13 +7,13 @@ import Link from 'next/link'
 
 export default async function ProfilePage() {
     const cookieStore = cookies()
-    const token = (await cookieStore).get('firebase-token')?.value
+    const token = (await cookieStore).get('session')?.value
 
     if (!token) redirect('/login')
 
     let user;
     try {
-        user = await adminAuth.verifyIdToken(token)
+        user = await adminAuth.verifySessionCookie(token, true)
     } catch (error) {
         redirect('/login')
     }

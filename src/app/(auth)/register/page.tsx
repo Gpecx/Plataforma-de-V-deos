@@ -243,15 +243,24 @@ function RegisterForm() {
             }
 
             const idToken = await user.getIdToken()
-            const { setSessionCookie } = await import('@/app/actions/auth')
-            await setSessionCookie(idToken)
+            const sessionRes = await fetch('/api/auth/session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ idToken }),
+                credentials: 'include',
+            })
+
+            if (!sessionRes.ok) {
+                throw new Error('session_creation_failed')
+            }
+
+            router.refresh()
 
             if (role === 'teacher') {
                 router.push('/dashboard-teacher')
             } else {
                 router.push('/dashboard-student')
             }
-            router.refresh()
         } catch (error: any) {
             console.error('Erro no cadastro:', error)
             alert('Erro no cadastro: ' + (error.message || 'Verifique os dados e tente novamente.'))

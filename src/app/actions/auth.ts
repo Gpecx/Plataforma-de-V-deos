@@ -5,20 +5,18 @@ import { adminAuth, adminDb } from '@/lib/firebase-admin'
 
 export async function getSessionUser() {
     const cookieStore = await cookies()
-    const token = cookieStore.get('firebase-token')?.value
+    const token = cookieStore.get('session')?.value
 
     if (!token) return null
 
     try {
-        const decodedToken = await adminAuth.verifyIdToken(token)
+        const decodedToken = await adminAuth.verifySessionCookie(token, true)
         const uid = decodedToken.uid
         const tokenRole = decodedToken.role
 
-        // Buscar o papel (role) no Firestore (como fallback ou sincronização)
         const profileDoc = await adminDb.collection('profiles').doc(uid).get()
         const profileData = profileDoc.data()
 
-        // Prioridade: Reivindicação customizada (Claim) > Firestore > Default (student)
         const activeRole = tokenRole || profileData?.role || 'student'
 
         return {
@@ -32,23 +30,10 @@ export async function getSessionUser() {
     }
 }
 
-export async function setSessionCookie(idToken: string) {
-    const cookieStore = await cookies()
-
-    // Define o cookie com o ID Token do Firebase
-    // Nota: Em uma implementação de produção mais robusta, você usaria 'firebase-admin' para
-    // criar um Session Cookie (que pode durar até 2 semanas), mas o ID Token
-    // funciona para verificação se renovado ou se a sessão for curta.
-    cookieStore.set('firebase-token', idToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path: '/',
-        maxAge: 60 * 60 * 24 * 5, // 5 dias
-    })
-}
-
 export async function removeSessionCookie() {
     const cookieStore = await cookies()
+    cookieStore.delete('session')
+    cookieStore.delete('active_session_id')
+    // Also clean up any legacy firebase-token cookies
     cookieStore.delete('firebase-token')
 }

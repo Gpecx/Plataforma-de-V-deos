@@ -12,14 +12,16 @@ import { ContinueLessonButton } from '@/components/dashboard/ContinueLessonButto
 import { BannerWrapper } from '@/components/ui/BannerWrapper'
 
 export default async function StudentDashboard() {
-    const cookieStore = cookies()
-    const token = (await cookieStore).get('firebase-token')?.value
+    const cookieStore = await cookies()
+    const token = cookieStore.get('session')?.value
 
-    if (!token) redirect('/login')
+    if (!token) {
+        redirect('/login')
+    }
 
     let user;
     try {
-        user = await adminAuth.verifyIdToken(token)
+        user = await adminAuth.verifySessionCookie(token, true)
     } catch (error) {
         redirect('/login')
     }

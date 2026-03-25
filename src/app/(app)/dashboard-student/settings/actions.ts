@@ -6,7 +6,7 @@ import { redirect } from "next/navigation"
 
 export async function deleteAccount() {
     const cookieStore = cookies()
-    const token = (await cookieStore).get('firebase-token')?.value
+    const token = (await cookieStore).get('session')?.value
 
     if (!token) {
         return { success: false, error: "Não autorizado" }
@@ -14,7 +14,7 @@ export async function deleteAccount() {
 
     let decodedToken
     try {
-        decodedToken = await adminAuth.verifyIdToken(token)
+        decodedToken = await adminAuth.verifySessionCookie(token, true)
     } catch (error) {
         return { success: false, error: "Token inválido" }
     }
@@ -43,7 +43,8 @@ export async function deleteAccount() {
 
         // 5. Limpar cookies
         const responseCookies = await cookies()
-        responseCookies.delete('firebase-token')
+        responseCookies.delete('session')
+        responseCookies.delete('active_session_id')
 
     } catch (error: any) {
         console.error("Erro ao deletar conta:", error)

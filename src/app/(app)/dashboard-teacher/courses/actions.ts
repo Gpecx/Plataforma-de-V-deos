@@ -5,11 +5,11 @@ import { revalidatePath } from 'next/cache'
 
 async function getAuthUser() {
     const cookieStore = cookies()
-    const token = (await cookieStore).get('firebase-token')?.value
+    const token = (await cookieStore).get('session')?.value
     if (!token) return null
 
     try {
-        return await adminAuth.verifyIdToken(token)
+        return await adminAuth.verifySessionCookie(token, true)
     } catch (error) {
         return null
     }

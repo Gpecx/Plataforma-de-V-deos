@@ -11,19 +11,19 @@ export interface UserSession {
 
 /**
  * Gets the current user session on the server side.
- * Verifies the 'firebase-token' cookie and fetches user role from Firestore.
+ * Verifies the 'session' cookie (Firebase Session Cookie) and fetches user role from Firestore.
  */
 export async function getServerSession(): Promise<UserSession | null> {
     const cookieStore = await cookies();
-    const token = cookieStore.get('firebase-token')?.value;
+    const token = cookieStore.get('session')?.value;
 
     if (!token) {
         return null;
     }
 
     try {
-        // Verify the ID token
-        const decodedToken = await adminAuth.verifyIdToken(token);
+        // Verify the session cookie
+        const decodedToken = await adminAuth.verifySessionCookie(token, true);
         const uid = decodedToken.uid;
         const tokenRole = decodedToken.role as UserRole | undefined;
 
@@ -40,7 +40,7 @@ export async function getServerSession(): Promise<UserSession | null> {
             role,
         };
     } catch (error) {
-        console.error('getServerSession: Error verifying token:', error);
+        console.error('getServerSession: Error verifying session cookie:', error);
         return null;
     }
 }

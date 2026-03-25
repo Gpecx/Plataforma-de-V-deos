@@ -10,11 +10,11 @@ import { revalidatePath } from 'next/cache'
  */
 async function checkAdmin() {
     const cookieStore = cookies()
-    const token = (await cookieStore).get('firebase-token')?.value
+    const token = (await cookieStore).get('session')?.value
     if (!token) return false
 
     try {
-        const decodedToken = await adminAuth.verifyIdToken(token)
+        const decodedToken = await adminAuth.verifySessionCookie(token, true)
         // No PowerPlay, o admin geralmente tem um campo role no profile ou custom claim
         const profileDoc = await adminDb.collection('profiles').doc(decodedToken.uid).get()
         return profileDoc.data()?.role === 'admin'

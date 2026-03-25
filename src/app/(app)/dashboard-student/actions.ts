@@ -8,11 +8,11 @@ import { sanitizeCpfCnpj } from '@/lib/utils'
 
 async function getAuthUser() {
     const cookieStore = cookies()
-    const token = (await cookieStore).get('firebase-token')?.value
+    const token = (await cookieStore).get('session')?.value
     if (!token) return null
 
     try {
-        return await adminAuth.verifyIdToken(token)
+        return await adminAuth.verifySessionCookie(token, true)
     } catch (error) {
         return null
     }
@@ -248,13 +248,15 @@ export async function deleteAccount() {
         }
     }
     const cookieStore = cookies()
-        ; (await cookieStore).delete('firebase-token')
+        ; (await cookieStore).delete('session')
+        ; (await cookieStore).delete('active_session_id')
     redirect('/')
 }
 
 export async function signOut() {
     const cookieStore = cookies()
-        ; (await cookieStore).delete('firebase-token')
+        ; (await cookieStore).delete('session')
+        ; (await cookieStore).delete('active_session_id')
     redirect('/')
 }
 

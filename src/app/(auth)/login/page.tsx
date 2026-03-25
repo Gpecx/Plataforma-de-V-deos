@@ -13,7 +13,6 @@ import { ArrowRight } from "lucide-react"
 import { auth, db } from "@/lib/firebase"
 import { signInWithEmailAndPassword } from "firebase/auth"
 import { doc, getDoc } from "firebase/firestore"
-import { setSessionCookie } from "@/app/actions/auth"
 import Logo from "@/components/Logo"
 
 const loginSchema = z.object({
@@ -36,32 +35,35 @@ function LoginContent() {
             const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password)
             const user = userCredential.user
 
-            // Gerar ID Token e criar sessão com lock (via route handler)
             const idToken = await user.getIdToken()
             const sessionRes = await fetch("/api/auth/session", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ idToken }),
+                credentials: 'include',
             });
 
             if (!sessionRes.ok) {
                 throw new Error("session_creation_failed");
             }
 
+            router.refresh()
+
             if (nextRedirect) {
                 router.push(nextRedirect)
-            } else {
-                // Buscar papel no Firestore
-                const profileDoc = await getDoc(doc(db, 'profiles', user.uid))
-                const profileData = profileDoc.data()
-
-                if (profileData?.role === 'teacher' || profileData?.role === 'admin') {
-                    router.push('/dashboard-teacher/courses')
-                } else {
-                    router.push('/course')
-                }
+                return
             }
-            router.refresh()
+
+            const profileDoc = await getDoc(doc(db, 'profiles', user.uid))
+            const profileData = profileDoc.data()
+
+            if (profileData?.role === 'teacher' || profileData?.role === 'admin') {
+                router.push('/dashboard-teacher/courses')
+            } else if (profileData?.role === 'student') {
+                router.push('/course')
+            } else {
+                router.push('/course')
+            }
         } catch (error: any) {
             console.error("Erro ao entrar:", error)
             let errorMessage = "Erro ao fazer login. Tente novamente";

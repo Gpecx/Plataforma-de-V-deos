@@ -41,7 +41,8 @@ export default function ClassroomPage() {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             if (!user) {
-                router.push('/login')
+                setLoading(false)
+                setIsCheckingAccess(false)
                 return
             }
 
