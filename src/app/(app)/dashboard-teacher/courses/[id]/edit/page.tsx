@@ -102,7 +102,7 @@ function SortableLesson({ lesson, onDelete, onSelect, isSelected, onTitleChange 
             ref={setNodeRef}
             style={style}
             onClick={onSelect}
-            className={`group flex items-center justify-between p-4 cursor-pointer border-2 rounded-xl transition-all duration-300 mb-3 ${isSelected ? 'bg-white border-[#1D5F31] ring-4 ring-[#1D5F31]/5' : 'bg-white border-[#1D5F31] hover:border-[#1D5F31]/50'
+            className={`group flex items-center justify-between p-4 cursor-pointer border-2 rounded-xl transition-all duration-300 mb-3 ${isSelected ? 'bg-white border-[#1D5F31] ring-2 ring-[#1D5F31]/10' : 'bg-white border-[#1D5F31] hover:border-[#1D5F31]/50'
                 }`}
         >
             <div className="flex items-center gap-6">
@@ -123,7 +123,7 @@ function SortableLesson({ lesson, onDelete, onSelect, isSelected, onTitleChange 
                     <div className="flex items-center gap-2">
                         <div className={`w-1.5 h-1.5 rounded-xl ${lesson.video_url ? 'bg-[#1D5F31]' : 'bg-slate-700'}`}></div>
                         <span className="text-[9px] text-black/60 font-black uppercase tracking-[2px]">
-                            {lesson.video_url ? 'PÍXEL DE VÍDEO ATIVO' : 'AGUARDANDO CONTEÚDO'}
+                            {lesson.video_url ? 'VÍDEO ATIVO' : 'AGUARDANDO CONTEÚDO'}
                         </span>
                     </div>
                 </div>
@@ -168,7 +168,7 @@ function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons,
         <div
             ref={setNodeRef}
             style={style}
-            className="mb-8 bg-white border-2 border-[#1D5F31] rounded-xl overflow-hidden"
+            className="mb-8 bg-white border border-[#1D5F31]/20 rounded-xl overflow-hidden"
         >
             <div className="p-6 flex items-center justify-between bg-white border-b-2 border-[#1D5F31]">
                 <div className="flex items-center gap-6">
@@ -187,7 +187,7 @@ function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons,
                 <div className="flex items-center gap-2">
                     <button
                         onClick={onAddLesson}
-                        className="flex items-center gap-3 px-6 py-3 bg-white text-black rounded-xl text-[9px] font-black uppercase tracking-[3px] hover:bg-gray-100 transition-all border-2 border-black"
+                        className="flex items-center gap-3 px-6 py-3 bg-[#1D5F31] text-white rounded-xl text-[9px] font-black uppercase tracking-[3px] hover:bg-[#1D5F31]/90 transition-all border-none"
                     >
                         <Plus size={16} />
                         Adicionar Aula
@@ -218,7 +218,7 @@ function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons,
                 </DndContext>
 
                 {module.lessons.length === 0 && (
-                    <div className="py-16 border-2 border-dashed border-[#1D5F31] rounded-xl flex flex-col items-center justify-center text-slate-500 bg-white/50">
+                    <div className="py-16 border-2 border-dashed border-[#1D5F31]/30/30/30 rounded-xl flex flex-col items-center justify-center text-slate-500 bg-white/50">
                         <Video size={48} className="mb-4 opacity-20" />
                         <p className="text-[10px] font-black uppercase tracking-[3px]">Crie sua primeira entrega</p>
                         <p className="text-[9px] mt-2 font-medium italic">ESTE MÓDULO ESTÁ EM BRANCO</p>
@@ -273,7 +273,7 @@ function VideoUpload({ onUploadComplete }: { onUploadComplete: (url: string) => 
             </div>
 
             {isUploading && (
-                <div className="bg-white border-2 border-[#1D5F31] p-6 rounded-xl flex items-center gap-6 animate-pulse">
+                <div className="bg-white border border-[#1D5F31]/20 p-6 rounded-xl flex items-center gap-6 animate-pulse">
                     <Loader2 className="animate-spin text-[#1D5F31]" size={28} />
                     <div>
                         <span className="text-[10px] font-black uppercase text-[#1D5F31] tracking-[4px] block mb-1">Upload Estratégico em Curso</span>
@@ -321,14 +321,14 @@ function CourseImageUpload({ currentImageUrl, onUploadComplete }: { currentImage
                 {currentImageUrl ? (
                     <>
                         <img src={currentImageUrl} alt="Capa do Curso" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity" />
-                        <div className="relative z-10 flex flex-col items-center gap-3 bg-white/80 backdrop-blur-md px-6 py-3 rounded-xl border-2 border-[#1D5F31] opacity-0 group-hover:opacity-100 transition-all">
+                        <div className="relative z-10 flex flex-col items-center gap-3 bg-white/80 backdrop-blur-md px-6 py-3 rounded-xl border border-[#1D5F31]/20 opacity-0 group-hover:opacity-100 transition-all">
                             <UploadCloud size={20} className="text-[#1D5F31]" />
                             <span className="text-[9px] font-black uppercase tracking-widest text-[#1D5F31]">Trocar Capa</span>
                         </div>
                     </>
                 ) : (
                     <>
-                        <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center text-slate-500 border-2 border-[#1D5F31]">
+                        <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center text-slate-500 border border-[#1D5F31]/20">
                             <UploadCloud size={28} />
                         </div>
                         <span className="text-[9px] font-black uppercase tracking-[3px] text-black/60">Carregar Arte</span>
@@ -412,7 +412,7 @@ export default function CourseBuilder() {
                         const modulesData = [
                             {
                                 id: 'main-structure',
-                                title: 'ESTRUTURA DO TREINAMENTO',
+                                title: 'ESTRUTURA DO CURSO',
                                 lessons: lData as Lesson[]
                             }
                         ]
@@ -530,17 +530,17 @@ export default function CourseBuilder() {
                     />
                 </div>
 
-                <div className="flex items-center gap-4 bg-white p-3 rounded-xl border-2 border-[#1D5F31] shrink-0">
+                <div className="flex items-center gap-4 bg-white p-3 rounded-xl border border-[#1D5F31]/20 shrink-0">
                     <button
                         onClick={() => router.push('/dashboard-teacher/courses')}
-                        className="px-8 py-4 bg-transparent border-2 border-black rounded-xl text-[10px] font-black uppercase tracking-[4px] text-black hover:bg-black/10 transition-all font-exo"
+                        className="px-8 py-4 bg-[#061629] border-none rounded-xl text-[10px] font-black uppercase tracking-[4px] text-white hover:bg-[#061629]/90 transition-all font-exo"
                     >
                         Cancelar
                     </button>
                     <button
                         onClick={handleSave}
                         disabled={isSaving}
-                        className={`flex items-center gap-3 font-black uppercase text-[10px] tracking-[4px] px-8 py-4 rounded-xl transition-all border-2 disabled:opacity-50 ${showSuccess ? 'bg-white border-black text-black' : 'bg-white border-black text-black hover:bg-gray-100'}`}
+                        className={`flex items-center gap-3 font-black uppercase text-[10px] tracking-[4px] px-8 py-4 rounded-xl transition-all border-2 disabled:opacity-50 ${showSuccess ? 'bg-[#1D5F31] border-none text-white' : 'bg-[#1D5F31] border-none text-white hover:bg-[#1D5F31]/90'}`}
                     >
                         {isSaving ? <Loader2 className="animate-spin" size={18} /> : (showSuccess ? <CheckCircle2 size={18} strokeWidth={3} /> : <Save size={18} strokeWidth={3} />)}
                         {isSaving ? 'Processando...' : (showSuccess ? 'Salvo com Sucesso' : 'Salvar Projeto')}
@@ -561,7 +561,7 @@ export default function CourseBuilder() {
                         </div>
                         <button
                             onClick={() => setModules([...modules, { id: Date.now().toString(), title: `MÓDULO DE APRENDIZADO ${modules.length + 1}`, lessons: [] }])}
-                            className="text-[10px] font-black uppercase tracking-[4px] text-black hover:bg-black/10 px-6 py-3 rounded-xl border-2 border-black transition-all"
+                            className="text-[10px] font-black uppercase tracking-[4px] text-white bg-[#061629] hover:bg-[#061629]/90 px-6 py-3 rounded-xl border-none transition-all"
                         >
                             + Novo Módulo
                         </button>
@@ -613,7 +613,7 @@ export default function CourseBuilder() {
                         </div>
 
                         {selectedLesson ? (
-                            <div className="space-y-8 bg-white p-8 rounded-xl border-2 border-[#1D5F31] animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="space-y-8 bg-white p-8 rounded-xl border border-[#1D5F31]/20 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-8 border-b-2 border-[#1D5F31]">
                                     <div className="space-y-2 flex-grow">
                                         <span className="text-[9px] font-black uppercase text-[#1D5F31] tracking-[3px]">Título da Aula Digital</span>
@@ -645,14 +645,14 @@ export default function CourseBuilder() {
                                         </div>
                                     ) : (
                                         <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                                            <div className="aspect-video w-full bg-black rounded-xl overflow-hidden border-2 border-[#1D5F31] group relative">
+                                            <div className="aspect-video w-full bg-black rounded-xl overflow-hidden border border-[#1D5F31]/20 group relative">
                                                 <video
                                                     src={selectedLesson.video_url}
                                                     controls
                                                     className="w-full h-full object-contain"
                                                 />
                                                 <div className="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <div className="bg-white/80 backdrop-blur-md px-4 py-2 rounded-xl border-2 border-[#1D5F31] text-[10px] font-black uppercase text-[#1D5F31] tracking-widest flex items-center gap-2">
+                                                    <div className="bg-white/80 backdrop-blur-md px-4 py-2 rounded-xl border border-[#1D5F31]/20 text-[10px] font-black uppercase text-[#1D5F31] tracking-widest flex items-center gap-2">
                                                         <span className="w-2 h-2 rounded-xl bg-[#1D5F31] animate-pulse"></span>
                                                         Conteúdo Ativo
                                                     </div>
@@ -660,7 +660,7 @@ export default function CourseBuilder() {
                                             </div>
 
                                             <div className="flex flex-col md:flex-row gap-6 items-center">
-                                                <div className="flex-1 p-6 bg-[#1D5F31]/10 rounded-xl border-2 border-[#1D5F31]/20 w-full">
+                                                <div className="flex-1 p-6 bg-[#1D5F31]/10 rounded-xl border border-[#1D5F31]/20/20 w-full">
                                                     <div className="flex items-center gap-4">
                                                         <div className="w-10 h-10 bg-[#1D5F31] rounded-xl flex items-center justify-center text-black">
                                                             <CheckCircle2 size={20} />
@@ -702,18 +702,15 @@ export default function CourseBuilder() {
                                                 </button>
                                             </div>
 
-                                            <div className="p-6 bg-white border-2 border-[#1D5F31] rounded-xl">
-                                                <p className="text-[9px] font-black uppercase tracking-[4px] text-[#1D5F31] italic mb-2">Dica de Especialista</p>
-                                                <p className="text-[10px] text-black/70 leading-relaxed font-bold uppercase tracking-widest">Use vídeos curtos e objetivos para manter a retenção máxima de seus alunos.</p>
-                                            </div>
+
                                         </div>
                                     )}
                                 </div>
                             </div>
                         ) : (
-                            <div className="p-12 bg-white border-2 border-[#1D5F31] rounded-xl flex flex-col items-center justify-center text-center relative overflow-hidden group border-dashed">
+                            <div className="p-12 bg-white border border-[#1D5F31]/20 rounded-xl flex flex-col items-center justify-center text-center relative overflow-hidden group border-dashed">
                                 <div className="absolute inset-0 bg-[#1D5F31]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-                                <div className="w-24 h-24 bg-white rounded-xl flex items-center justify-center text-[#1D5F31] mb-8 border-2 border-[#1D5F31] relative z-10 group-hover:scale-105 transition-transform duration-500">
+                                <div className="w-24 h-24 bg-white rounded-xl flex items-center justify-center text-[#1D5F31] mb-8 border border-[#1D5F31]/20 relative z-10 group-hover:scale-105 transition-transform duration-500">
                                     <Video size={48} />
                                 </div>
                                 <p className="text-[11px] text-black/60 font-black uppercase tracking-[4px] leading-relaxed max-w-[280px] mx-auto relative z-10">
@@ -726,8 +723,7 @@ export default function CourseBuilder() {
 
                 {/* Lado Direito: Configurações e Capa */}
                 <aside className="space-y-12">
-                    <section className="bg-white p-8 rounded-xl border-2 border-[#1D5F31] relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-[#1D5F31]/5 blur-3xl -mr-16 -mt-16 group-hover:bg-[#1D5F31]/10 transition-all duration-1000"></div>
+                    <section className="bg-white p-8 rounded-xl border border-[#1D5F31]/20 relative overflow-hidden group">
                         <h3 className="text-[10px] font-black uppercase tracking-[5px] text-[#1D5F31] mb-10 italic relative z-10">Configurações Base</h3>
                         <div className="space-y-8 relative z-10">
                             <div className="space-y-4">
@@ -737,7 +733,7 @@ export default function CourseBuilder() {
                                     value={courseSubtitle}
                                     onChange={(e) => setCourseSubtitle(e.target.value)}
                                     placeholder="Frase curta de impacto"
-                                    className="w-full bg-white border-2 border-[#1D5F31] rounded-xl px-5 py-3 focus:border-[#1D5F31] outline-none text-sm text-black transition-all"
+                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-xl px-5 py-3 focus:border-[#1D5F31] outline-none text-sm text-black transition-all"
                                 />
                             </div>
 
@@ -747,7 +743,7 @@ export default function CourseBuilder() {
                                     value={courseDescription}
                                     onChange={(e) => setCourseDescription(e.target.value)}
                                     placeholder="O que o aluno vai aprender?"
-                                    className="w-full bg-white border-2 border-[#1D5F31] rounded-xl px-6 py-4 focus:border-[#1D5F31] outline-none text-sm text-black transition-all min-h-[120px]"
+                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-xl px-6 py-4 focus:border-[#1D5F31] outline-none text-sm text-black transition-all min-h-[120px]"
                                 />
                             </div>
 
@@ -756,7 +752,7 @@ export default function CourseBuilder() {
                                 <select
                                     value={courseCategory}
                                     onChange={(e) => setCourseCategory(e.target.value)}
-                                    className="w-full bg-white border-2 border-[#1D5F31] rounded-xl px-5 py-3 focus:border-[#1D5F31] outline-none text-sm text-black transition-all appearance-none"
+                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-xl px-5 py-3 focus:border-[#1D5F31] outline-none text-sm text-black transition-all appearance-none"
                                 >
                                     <option value="" disabled>Escolha o nicho...</option>
                                     {CATEGORIES.map((cat: string) => <option key={cat} value={cat}>{cat}</option>)}
@@ -769,7 +765,7 @@ export default function CourseBuilder() {
                                     type="number"
                                     value={courseDuration}
                                     onChange={(e) => setCourseDuration(Number(e.target.value))}
-                                    className="w-full bg-white border-2 border-[#1D5F31] rounded-xl px-6 py-4 focus:border-[#1D5F31] outline-none font-black text-xl text-black transition-all"
+                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-xl px-6 py-4 focus:border-[#1D5F31] outline-none font-black text-xl text-black transition-all"
                                 />
                             </div>
 
@@ -781,7 +777,7 @@ export default function CourseBuilder() {
                                         type="text"
                                         value={coursePrice}
                                         onChange={(e) => setCoursePrice(e.target.value)}
-                                        className="w-full bg-white border-2 border-[#1D5F31] rounded-xl pl-24 pr-8 py-5 focus:border-[#1D5F31] outline-none font-black text-2xl text-black transition-all"
+                                        className="w-full bg-white border border-[#1D5F31]/20 rounded-xl pl-24 pr-8 py-5 focus:border-[#1D5F31] outline-none font-black text-2xl text-black transition-all"
                                     />
                                 </div>
                             </div>
@@ -805,9 +801,9 @@ export default function CourseBuilder() {
                                                     setCourseCurriculum(newCurriculum);
                                                 }}
                                                 placeholder={`Ex: Tópico ${idx + 1}`}
-                                                className="w-full bg-white border-2 border-[#1D5F31] rounded-none px-4 h-12 focus:border-[#28b828] outline-none text-sm text-black transition-all placeholder:text-black/40"
+                                                className="w-full bg-white border border-[#1D5F31]/20 rounded-none px-4 h-12 focus:border-[#28b828] outline-none text-sm text-black transition-all placeholder:text-black/40"
                                             />
-                                            <button 
+                                            <button
                                                 type="button"
                                                 onClick={() => {
                                                     const newCurriculum = courseCurriculum.filter((_, i) => i !== idx);
@@ -822,7 +818,7 @@ export default function CourseBuilder() {
                                     <button
                                         type="button"
                                         onClick={() => setCourseCurriculum([...courseCurriculum, ''])}
-                                        className="w-full flex justify-center items-center h-12 bg-[#1D5F31]/10 text-black font-black uppercase text-[9px] tracking-[3px] rounded-none border-2 border-dashed border-[#1D5F31]/50 hover:border-[#1D5F31] hover:bg-[#1D5F31]/20 transition-all text-center mt-2"
+                                        className="w-full flex justify-center items-center h-12 bg-[#1D5F31]/10 text-black font-black uppercase text-[9px] tracking-[3px] rounded-none border-2 border-dashed border-[#1D5F31]/30/30/30/50 hover:border-[#1D5F31] hover:bg-[#1D5F31]/20 transition-all text-center mt-2"
                                     >
                                         <Plus size={14} className="mr-2" />
                                         Adicionar Tópico
@@ -834,7 +830,7 @@ export default function CourseBuilder() {
 
                     <section>
                         <h3 className="text-[10px] font-black uppercase tracking-[5px] text-black/60 mb-6 px-1 italic">Vídeo de Apresentação (Intro)</h3>
-                        <div className="bg-white p-6 rounded-xl border-2 border-[#1D5F31] space-y-6">
+                        <div className="bg-white p-6 rounded-xl border border-[#1D5F31]/20 space-y-6">
                             <div className="space-y-4">
                                 <label className="text-[9px] font-black uppercase tracking-[3px] text-black/60 px-1">Upload ou Link</label>
                                 <div className={`
@@ -882,7 +878,7 @@ export default function CourseBuilder() {
                                     value={courseIntroVideo}
                                     onChange={(e) => setCourseIntroVideo(e.target.value)}
                                     placeholder="Link YouTube/Vimeo"
-                                    className="w-full bg-white border-2 border-[#1D5F31] rounded-xl px-4 py-3 focus:border-[#1D5F31] outline-none text-xs text-black transition-all"
+                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-xl px-4 py-3 focus:border-[#1D5F31] outline-none text-xs text-black transition-all"
                                 />
                                 <p className="text-[8px] text-[#1D5F31] font-black uppercase tracking-widest">Máximo 5 minutos recomendados para conversão.</p>
                             </div>
@@ -891,7 +887,7 @@ export default function CourseBuilder() {
 
                     <section>
                         <h3 className="text-[10px] font-black uppercase tracking-[5px] text-black/60 mb-6 px-1 italic">Capa do Produto</h3>
-                        <div className="bg-white p-3 rounded-xl border-2 border-[#1D5F31]">
+                        <div className="bg-white p-3 rounded-xl border border-[#1D5F31]/20">
                             <CourseImageUpload
                                 currentImageUrl={courseImage}
                                 onUploadComplete={setCourseImage}
