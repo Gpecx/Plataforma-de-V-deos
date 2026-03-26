@@ -1,6 +1,8 @@
 import { getPendingCourses, getPendingLessons, getAllTeachers } from '@/app/actions/admin'
 import { ApprovalsContent } from '@/app/admin/approvals/components/ApprovalsContent'
 
+export const dynamic = 'force-dynamic'
+
 export default async function ApprovalsPage() {
     const pendingCourses = await getPendingCourses()
     const pendingLessons = await getPendingLessons()

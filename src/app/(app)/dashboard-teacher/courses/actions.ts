@@ -189,6 +189,7 @@ export async function updateCourseAction(courseId: string, formData: any) {
         revalidatePath(`/dashboard-teacher/courses/${courseId}/edit`)
         revalidatePath(`/classroom/${courseId}`)
         revalidatePath('/dashboard-teacher/courses')
+        revalidatePath('/admin/approvals')
 
         return { success: true }
     } catch (error) {

@@ -2,6 +2,25 @@
 
 import { adminDb } from '@/lib/firebase-admin'
 
+function serializeFirestoreData(data: any): any {
+    if (data === null || data === undefined) return null
+    if (data instanceof Date) return data.toISOString()
+    if (typeof data === 'object' && data._seconds !== undefined) {
+        return new Date(data._seconds * 1000).toISOString()
+    }
+    if (Array.isArray(data)) {
+        return data.map(item => serializeFirestoreData(item))
+    }
+    if (typeof data === 'object') {
+        const result: any = {}
+        for (const key of Object.keys(data)) {
+            result[key] = serializeFirestoreData(data[key])
+        }
+        return result
+    }
+    return data
+}
+
 export async function getClassroomData(courseId: string, userId: string) {
     try {
         // 1. Verificação de acesso: checa se o aluno possui o curso
@@ -36,12 +55,10 @@ export async function getClassroomData(courseId: string, userId: string) {
         }
         
         const courseRawData = courseDoc.data() || {}
-        const courseData = { 
+        const courseData = serializeFirestoreData({ 
             id: courseDoc.id, 
             ...courseRawData,
-            created_at: courseRawData.created_at?.toDate ? courseRawData.created_at.toDate().toISOString() : null,
-            updated_at: courseRawData.updated_at?.toDate ? courseRawData.updated_at.toDate().toISOString() : null,
-        }
+        })
 
         // 3. Busca lições
         const lessonsSnapshot = await adminDb.collection('lessons')
@@ -51,13 +68,9 @@ export async function getClassroomData(courseId: string, userId: string) {
         
         const isTeacher = courseRawData.teacher_id === userId
         let lessonsData = lessonsSnapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-                id: doc.id,
-                ...data,
-                created_at: data.created_at?.toDate ? data.created_at.toDate().toISOString() : null,
-                updated_at: data.updated_at?.toDate ? data.updated_at.toDate().toISOString() : null,
-            }
+            const data = doc.data()
+            data.id = doc.id
+            return serializeFirestoreData(data)
         })
 
         // Filtrar lições para estudantes (não admin, não teacher)
