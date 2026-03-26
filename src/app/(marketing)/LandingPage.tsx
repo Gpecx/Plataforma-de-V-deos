@@ -101,7 +101,7 @@ export default function LandingPageClient({ user: initialUser }: LandingPageProp
             <section
                 className="hero-section"
                 style={{
-                    backgroundImage: "url('/images/hero-bg.png')",
+                    backgroundImage: "url('/images/hero-bg1.png')",
                     backgroundSize: "cover",
                     backgroundPosition: "center"
                 }}
