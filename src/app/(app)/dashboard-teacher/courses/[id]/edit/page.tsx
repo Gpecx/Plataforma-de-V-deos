@@ -37,7 +37,9 @@ import {
     Layout,
     Settings as SettingsIcon,
     Clock,
-    Check
+    Check,
+    AlertCircle,
+    RotateCcw
 } from 'lucide-react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
@@ -69,6 +71,8 @@ interface Lesson {
     video_url: string
     position: number
     description?: string
+    status?: string
+    motivoRejeicao?: string
 }
 
 interface Module {
@@ -78,12 +82,13 @@ interface Module {
 }
 
 // --- Sortable Item Component (Lesson) ---
-function SortableLesson({ lesson, onDelete, onSelect, isSelected, onTitleChange }: {
+function SortableLesson({ lesson, onDelete, onSelect, isSelected, onTitleChange, onResubmit }: {
     lesson: Lesson,
     onDelete: () => void,
     onSelect: () => void,
     isSelected: boolean,
-    onTitleChange: (newTitle: string) => void
+    onTitleChange: (newTitle: string) => void,
+    onResubmit?: () => void
 }) {
     const {
         attributes,
@@ -122,28 +127,49 @@ function SortableLesson({ lesson, onDelete, onSelect, isSelected, onTitleChange 
                         onChange={(e) => onTitleChange(e.target.value)}
                     />
                     <div className="flex items-center gap-2">
-                        <div className={`w-1.5 h-1.5 rounded-xl ${lesson.video_url ? 'bg-[#1D5F31]' : 'bg-slate-700'}`}></div>
-                        <span className="text-[9px] text-black/60 font-black uppercase tracking-[2px]">
-                            {lesson.video_url ? 'VÍDEO ATIVO' : 'AGUARDANDO CONTEÚDO'}
+                        {lesson.status === 'REJEITADO' ? (
+                            <AlertCircle size={14} className="text-red-500" />
+                        ) : (
+                            <div className={`w-1.5 h-1.5 rounded-xl ${lesson.video_url ? 'bg-[#1D5F31]' : 'bg-slate-700'}`}></div>
+                        )}
+                        <span className={`text-[9px] font-black uppercase tracking-[2px] ${
+                            lesson.status === 'REJEITADO' ? 'text-red-500' : 'text-black/60'
+                        }`}>
+                            {lesson.status === 'REJEITADO' ? 'REJEITADA' : (lesson.video_url ? 'VÍDEO ATIVO' : 'AGUARDANDO CONTEÚDO')}
                         </span>
                     </div>
                 </div>
             </div>
-            <button
-                onClick={(e) => {
-                    e.stopPropagation()
-                    onDelete()
-                }}
-                className="opacity-0 group-hover:opacity-100 p-3 text-slate-400 hover:text-red-500 transition-all hover:bg-red-500/10 rounded-xl"
-            >
-                <Trash2 size={18} />
-            </button>
+            <div className="flex items-center gap-1">
+                {lesson.status === 'REJEITADO' && onResubmit && (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            onResubmit()
+                        }}
+                        className="p-3 text-amber-500 hover:text-amber-600 transition-all hover:bg-amber-50 rounded-xl"
+                        title="Reenviar para aprovação"
+                    >
+                        <RotateCcw size={18} />
+                    </button>
+                )}
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation()
+                        onDelete()
+                    }}
+                    className="p-3 text-slate-400 hover:text-red-500 transition-all hover:bg-red-500/10 rounded-xl"
+                    title="Excluir aula"
+                >
+                    <Trash2 size={18} />
+                </button>
+            </div>
         </div>
     )
 }
 
 // --- Sortable Module Component ---
-function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons, onSelectLesson, selectedLessonId, onLessonTitleChange, onDeleteModule, canDeleteModule }: {
+function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons, onSelectLesson, selectedLessonId, onLessonTitleChange, onDeleteModule, canDeleteModule, onResubmitLesson }: {
     module: Module,
     onAddLesson: () => void,
     onDeleteLesson: (lessonId: string) => void,
@@ -152,7 +178,8 @@ function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons,
     selectedLessonId?: string,
     onLessonTitleChange: (lessonId: string, newTitle: string) => void,
     onDeleteModule: () => void,
-    canDeleteModule: boolean
+    canDeleteModule: boolean,
+    onResubmitLesson?: (lessonId: string) => void
 }) {
     const {
         attributes,
@@ -224,6 +251,7 @@ function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons,
                                 onSelect={() => onSelectLesson(lesson)}
                                 onDelete={() => onDeleteLesson(lesson.id)}
                                 onTitleChange={(newTitle) => onLessonTitleChange(lesson.id, newTitle)}
+                                onResubmit={() => onResubmitLesson && onResubmitLesson(lesson.id)}
                             />
                         ))}
                     </SortableContext>
@@ -482,6 +510,12 @@ export default function CourseBuilder() {
         setIsSaving(true)
         const allLessons = modules.flatMap(m => m.lessons)
 
+        // Verifica se há aulas resubmetidas (status mudou de REJEITADO para PENDENTE)
+        const hasResubmittedLessons = allLessons.some(l => l.status === 'PENDENTE' && l.id && !l.id.startsWith('new-'))
+
+        // Se curso está REJEITADO e há aulas resubmetidas, muda status do curso para PENDENTE
+        const newCourseStatus = (course?.status === 'REJEITADO' && hasResubmittedLessons) ? 'PENDENTE' : course?.status
+
         // Parse price safely
         let formattedPrice = 0
         try {
@@ -503,7 +537,7 @@ export default function CourseBuilder() {
                 intro_video_url: courseIntroVideo,
                 curriculum: courseCurriculum,
                 lessons: allLessons,
-                status: course?.status // Preserve status
+                status: newCourseStatus
             })
 
             if (result.success) {
@@ -544,16 +578,30 @@ export default function CourseBuilder() {
                         <div className={`px-4 py-2 rounded-xl border shrink-0 ${
                             course?.status === 'APROVADO' 
                                 ? 'bg-[#1D5F31]/10 border-[#1D5F31]/30' 
-                                : 'bg-amber-50 border-amber-300'
+                                : course?.status === 'REJEITADO'
+                                    ? 'bg-red-50 border-red-300'
+                                    : 'bg-amber-50 border-amber-300'
                         }`}>
                             <span className={`text-[10px] font-black uppercase tracking-widest ${
-                                course?.status === 'APROVADO' ? 'text-[#1D5F31]' : 'text-amber-700'
+                                course?.status === 'APROVADO' ? 'text-[#1D5F31]' : 
+                                course?.status === 'REJEITADO' ? 'text-red-600' : 'text-amber-700'
                             }`}>
-                                {course?.status === 'APROVADO' ? '✓ Aprovado' : '⏳ Pendente'}
+                                {course?.status === 'APROVADO' ? '✓ Aprovado' : 
+                                 course?.status === 'REJEITADO' ? '✕ Rejeitado' : '⏳ Pendente'}
                             </span>
                         </div>
                     </div>
                 </div>
+
+                {course?.status === 'REJEITADO' && course?.motivoRejeicao && (
+                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+                        <div className="flex items-center gap-2 mb-2">
+                            <AlertCircle size={16} className="text-red-500" />
+                            <span className="text-[10px] font-black uppercase text-red-600 tracking-widest">Curso Rejeitado - Feedback do Admin</span>
+                        </div>
+                        <p className="text-sm text-red-700">{course.motivoRejeicao}</p>
+                    </div>
+                )}
 
                 <div className="flex items-center gap-4 bg-white p-3 rounded-xl border border-[#1D5F31]/20 shrink-0">
                     <button
@@ -633,6 +681,15 @@ export default function CourseBuilder() {
                                         }
                                     }}
                                     canDeleteModule={modules.length > 1}
+                                    onResubmitLesson={(lessonId) => {
+                                        setModules(prev => prev.map(m => m.id === module.id ? {
+                                            ...m,
+                                            lessons: m.lessons.map(l => l.id === lessonId ? { ...l, status: 'PENDENTE' } : l)
+                                        } : m))
+                                        if (selectedLesson?.id === lessonId) {
+                                            setSelectedLesson(prev => prev ? { ...prev, status: 'PENDENTE' } : null)
+                                        }
+                                    }}
                                 />
                             ))}
                         </SortableContext>
@@ -676,6 +733,15 @@ export default function CourseBuilder() {
                                                 })))
                                             }}
                                         />
+                                        {selectedLesson.status === 'REJEITADO' && selectedLesson.motivoRejeicao && (
+                                            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <AlertCircle size={16} className="text-red-500" />
+                                                    <span className="text-[10px] font-black uppercase text-red-600 tracking-widest">Feedback do Admin</span>
+                                                </div>
+                                                <p className="text-sm text-red-700">{selectedLesson.motivoRejeicao}</p>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 

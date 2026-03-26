@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Bell, MessageSquare, PlayCircle, CheckCheck, X, TrendingUp, Users } from 'lucide-react'
+import { Bell, MessageSquare, PlayCircle, CheckCheck, X, TrendingUp, Users, AlertCircle } from 'lucide-react'
 import { onAuthStateChanged } from 'firebase/auth'
 import { auth, db } from '@/lib/firebase'
 import { collection, query, where, orderBy, limit, getDocs, onSnapshot, doc, getDoc } from 'firebase/firestore'
@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils'
 
 interface Notification {
     id: string
-    type: 'reply' | 'new_lesson' | 'sale' | 'new_student'
+    type: 'reply' | 'new_lesson' | 'sale' | 'new_student' | 'lesson_rejected' | 'course_rejected'
     title: string
     subtitle: string
     time: string
@@ -56,22 +56,51 @@ export function NotificationBell({
         if (!user) return
         try {
             if (isTeacher) {
+                // Busca cursos do professor
                 const coursesRef = collection(db, 'courses')
                 const coursesQuery = query(coursesRef, where('teacher_id', '==', user.uid))
                 const coursesSnapshot = await getDocs(coursesQuery)
                 const courseIds = coursesSnapshot.docs.map(doc => doc.id)
-                if (courseIds.length === 0) { setNotifications([]); setLoading(false); return }
-                const enrollmentsRef = collection(db, 'enrollments')
-                const enrollmentsQuery = query(enrollmentsRef, where('course_id', 'in', courseIds), orderBy('created_at', 'desc'), limit(5))
-                const enrollmentsSnapshot = await getDocs(enrollmentsQuery)
-                const teacherNotifs: Notification[] = await Promise.all(enrollmentsSnapshot.docs.map(async (enrollDoc) => {
-                    const e = enrollDoc.data()
-                    const userData = await getPublicProfile(e.user_id)
-                    const courseDoc = await getDoc(doc(db, 'courses', e.course_id))
-                    const courseData = courseDoc.data()
-                    return { id: enrollDoc.id, type: 'sale', title: 'Nova venda realizada!', subtitle: `${userData?.full_name || 'Aluno'} comprou ${courseData?.title || 'Curso'}`, time: parseFirebaseDate(e.created_at)?.toLocaleDateString('pt-BR') || 'Recentemente', read: false, href: `/dashboard-teacher/analytics?saleId=${enrollDoc.id}` }
-                }))
-                setNotifications(teacherNotifs)
+
+                // Array para acumular notificações
+                let teacherNotifs: Notification[] = []
+
+                // Busca notificações da coleção notifications (rejeições)
+                const notifsRef = collection(db, 'notifications')
+                const notifsQuery = query(notifsRef, where('user_id', '==', user.uid), orderBy('created_at', 'desc'), limit(10))
+                const notifsSnapshot = await getDocs(notifsQuery)
+                const rejectionNotifs: Notification[] = notifsSnapshot.docs.map(doc => {
+                    const n = doc.data()
+                    return { 
+                        id: doc.id, 
+                        type: n.type as any, 
+                        title: n.title || 'Notificação', 
+                        subtitle: n.message || '', 
+                        time: parseFirebaseDate(n.created_at)?.toLocaleDateString('pt-BR') || 'Recentemente', 
+                        read: n.read || false, 
+                        href: n.course_id ? `/dashboard-teacher/courses/${n.course_id}/edit` : '#'
+                    }
+                })
+                teacherNotifs = [...rejectionNotifs]
+
+                // Se tiver cursos, busca vendas
+                if (courseIds.length > 0) {
+                    const enrollmentsRef = collection(db, 'enrollments')
+                    const enrollmentsQuery = query(enrollmentsRef, where('course_id', 'in', courseIds), orderBy('created_at', 'desc'), limit(5))
+                    const enrollmentsSnapshot = await getDocs(enrollmentsQuery)
+                    const saleNotifs: Notification[] = await Promise.all(enrollmentsSnapshot.docs.map(async (enrollDoc) => {
+                        const e = enrollDoc.data()
+                        const userData = await getPublicProfile(e.user_id)
+                        const courseDoc = await getDoc(doc(db, 'courses', e.course_id))
+                        const courseData = courseDoc.data()
+                        return { id: enrollDoc.id, type: 'sale' as any, title: 'Nova venda realizada!', subtitle: `${userData?.full_name || 'Aluno'} comprou ${courseData?.title || 'Curso'}`, time: parseFirebaseDate(e.created_at)?.toLocaleDateString('pt-BR') || 'Recentemente', read: false, href: `/dashboard-teacher/analytics?saleId=${enrollDoc.id}` }
+                    }))
+                    teacherNotifs = [...teacherNotifs, ...saleNotifs]
+                }
+
+                // Ordena por mais recente
+                teacherNotifs.sort((a, b) => a.time.localeCompare(b.time))
+                setNotifications(teacherNotifs.slice(0, 10))
             } else {
                 const enrollmentsRef = collection(db, 'enrollments')
                 const enrollmentsQuery = query(enrollmentsRef, where('user_id', '==', user.uid))
@@ -165,6 +194,7 @@ export function NotificationBell({
                                             {notif.type === 'new_lesson' && <PlayCircle size={18} className={notif.read ? "text-slate-400" : "text-[#1D5F31]"} />}
                                             {notif.type === 'sale' && <TrendingUp size={18} className={notif.read ? "text-slate-400" : "text-[#1D5F31]"} />}
                                             {notif.type === 'new_student' && <Users size={18} className={notif.read ? "text-slate-400" : "text-[#1D5F31]"} />}
+                                            {(notif.type === 'lesson_rejected' || notif.type === 'course_rejected') && <AlertCircle size={18} className={notif.read ? "text-slate-400" : "text-red-500"} />}
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <p className={cn(

@@ -298,11 +298,37 @@ export async function approveLesson(lessonId: string) {
  */
 export async function rejectLesson(lessonId: string, reason: string) {
     try {
+        // Primeiro busca a aula para obter o course_id
+        const lessonDoc = await adminDb.collection('lessons').doc(lessonId).get()
+        const lessonData = lessonDoc.data()
+        
+        if (!lessonData) {
+            return { success: false, error: "Aula não encontrada." }
+        }
+
         await adminDb.collection('lessons').doc(lessonId).update({
             status: 'REJEITADO',
             motivoRejeicao: reason,
             updated_at: new Date()
         })
+
+        // Busca o curso para obter o teacher_id
+        const courseDoc = await adminDb.collection('courses').doc(lessonData.course_id).get()
+        const courseData = courseDoc.data()
+
+        // Cria notificação para o professor
+        if (courseData?.teacher_id) {
+            await adminDb.collection('notifications').add({
+                user_id: courseData.teacher_id,
+                type: 'lesson_rejected',
+                title: 'Aula Rejeitada',
+                message: `Sua aula "${lessonData.title}" foi rejeitada. Motivo: ${reason}`,
+                course_id: lessonData.course_id,
+                lesson_id: lessonId,
+                read: false,
+                created_at: new Date()
+            })
+        }
         
         revalidatePath('/admin/approvals')
         return { success: true }
@@ -317,11 +343,32 @@ export async function rejectLesson(lessonId: string, reason: string) {
  */
 export async function rejectCourse(courseId: string, reason: string) {
     try {
+        // Busca o curso para obter o teacher_id
+        const courseDoc = await adminDb.collection('courses').doc(courseId).get()
+        const courseData = courseDoc.data()
+
+        if (!courseData) {
+            return { success: false, error: "Curso não encontrado." }
+        }
+
         await adminDb.collection('courses').doc(courseId).update({
             status: 'REJEITADO',
             motivoRejeicao: reason,
             updated_at: new Date()
         })
+
+        // Cria notificação para o professor
+        if (courseData.teacher_id) {
+            await adminDb.collection('notifications').add({
+                user_id: courseData.teacher_id,
+                type: 'course_rejected',
+                title: 'Curso Rejeitado',
+                message: `Seu curso "${courseData.title}" foi rejeitado. Motivo: ${reason}`,
+                course_id: courseId,
+                read: false,
+                created_at: new Date()
+            })
+        }
         
         revalidatePath('/admin/approvals')
         return { success: true }

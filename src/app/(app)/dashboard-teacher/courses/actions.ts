@@ -163,15 +163,18 @@ export async function updateCourseAction(courseId: string, formData: any) {
                 description: lesson.description || '',
                 updated_at: new Date()
             }
-            
-            if (isNew) {
+
+            // Se o status for explicitamento enviado (ex: resubmit), usa ele
+            if (lesson.status && !isNew) {
+                payload.status = lesson.status
+            } else if (isNew) {
                 payload.created_at = new Date()
                 payload.status = 'PENDENTE'
             } else {
                 // Se já existia, verifica se mudou algo vital para resetar o status
                 const existing = existingLessonsMap.get(lesson.id)
                 if (existing) {
-                    const hasChanged = existing.title !== lesson.title || existing.video_url !== lesson.video_url
+                    const hasChanged = existing.title !== lesson.title || existing.video_url !== lesson.video_url || existing.description !== lesson.description
                     if (hasChanged) {
                         payload.status = 'PENDENTE'
                     }
