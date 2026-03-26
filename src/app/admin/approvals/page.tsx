@@ -11,7 +11,7 @@ export default async function ApprovalsPage() {
         return acc
     }, {})
 
-    const lessonsInActiveCourses = pendingLessons.filter((l: any) => l.course_status === 'APROVADO')
+    const lessonsInActiveCourses = pendingLessons
 
     return (
         <div className="flex flex-col animate-in fadeIn duration-700 font-exo bg-white min-h-screen">

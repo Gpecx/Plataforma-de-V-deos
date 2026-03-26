@@ -49,7 +49,8 @@ export async function getClassroomData(courseId: string, userId: string) {
             .orderBy('position', 'asc')
             .get()
         
-        const lessonsData = lessonsSnapshot.docs.map(doc => {
+        const isTeacher = courseRawData.teacher_id === userId
+        let lessonsData = lessonsSnapshot.docs.map(doc => {
             const data = doc.data();
             return {
                 id: doc.id,
@@ -58,6 +59,11 @@ export async function getClassroomData(courseId: string, userId: string) {
                 updated_at: data.updated_at?.toDate ? data.updated_at.toDate().toISOString() : null,
             }
         })
+
+        // Filtrar lições para estudantes (não admin, não teacher)
+        if (!isAdmin && !isTeacher) {
+            lessonsData = lessonsData.filter((l: any) => l.status === 'APROVADO')
+        }
 
         return { 
             success: true, 
