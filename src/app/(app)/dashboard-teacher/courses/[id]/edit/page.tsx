@@ -534,12 +534,25 @@ export default function CourseBuilder() {
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6 px-2">
                 <div className="flex-grow">
 
-                    <input
-                        className="bg-transparent border-none focus:outline-none text-3xl font-black tracking-tighter uppercase w-full py-1 transition-all placeholder:text-black/40 text-black"
-                        placeholder="TÍTULO DO CURSO"
-                        value={courseTitle}
-                        onChange={(e) => setCourseTitle(e.target.value)}
-                    />
+                    <div className="flex items-center gap-3 mb-2">
+                        <input
+                            className="bg-transparent border-none focus:outline-none text-3xl font-black tracking-tighter uppercase w-full py-1 transition-all placeholder:text-black/40 text-black"
+                            placeholder="TÍTULO DO CURSO"
+                            value={courseTitle}
+                            onChange={(e) => setCourseTitle(e.target.value)}
+                        />
+                        <div className={`px-4 py-2 rounded-xl border shrink-0 ${
+                            course?.status === 'APROVADO' 
+                                ? 'bg-[#1D5F31]/10 border-[#1D5F31]/30' 
+                                : 'bg-amber-50 border-amber-300'
+                        }`}>
+                            <span className={`text-[10px] font-black uppercase tracking-widest ${
+                                course?.status === 'APROVADO' ? 'text-[#1D5F31]' : 'text-amber-700'
+                            }`}>
+                                {course?.status === 'APROVADO' ? '✓ Aprovado' : '⏳ Pendente'}
+                            </span>
+                        </div>
+                    </div>
                 </div>
 
                 <div className="flex items-center gap-4 bg-white p-3 rounded-xl border border-[#1D5F31]/20 shrink-0">

@@ -77,10 +77,11 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
 
     const filteredCourses = searchQuery
         ? initialCourses.filter(c =>
-            c.title?.toLowerCase().includes(searchQuery) ||
-            c.category?.toLowerCase().includes(searchQuery)
+            (c.title?.toLowerCase().includes(searchQuery) ||
+            c.category?.toLowerCase().includes(searchQuery)) &&
+            c.status === 'APROVADO'
         )
-        : initialCourses;
+        : initialCourses.filter(c => c.status === 'APROVADO');
 
     const handleCourseClick = (course: Course) => {
         setSelectedCourse(course);

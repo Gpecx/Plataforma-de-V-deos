@@ -121,9 +121,20 @@ export default function TeacherCoursesPage() {
                                     alt={curso.title}
                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                                 />
-                                <div className="absolute top-4 right-4">
+                                <div className="absolute top-4 right-4 flex flex-col gap-2">
                                     <div className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-black/20 shadow-sm">
                                         <span className="text-[8px] font-black text-slate-900 tracking-widest uppercase">{curso.category || 'GERAL'}</span>
+                                    </div>
+                                    <div className={`px-3 py-1.5 rounded-lg border shadow-sm ${
+                                        curso.status === 'APROVADO' 
+                                            ? 'bg-[#1D5F31]/10 border-[#1D5F31]/30' 
+                                            : 'bg-amber-50 border-amber-300'
+                                    }`}>
+                                        <span className={`text-[8px] font-black tracking-widest uppercase ${
+                                            curso.status === 'APROVADO' ? 'text-[#1D5F31]' : 'text-amber-700'
+                                        }`}>
+                                            {curso.status === 'APROVADO' ? 'Aprovado' : 'Pendente'}
+                                        </span>
                                     </div>
                                 </div>
                             </div>

@@ -49,7 +49,7 @@ export default async function StudentDashboard() {
     const purchasedCourseIds = enrollmentsSnapshot.docs.map(doc => doc.data().course_id)
 
     const meusCursos = allCourses.filter(c => purchasedCourseIds.includes(c.id))
-    const cursosDisponiveis = allCourses.filter(c => !purchasedCourseIds.includes(c.id))
+    const cursosDisponiveis = allCourses.filter(c => !purchasedCourseIds.includes(c.id) && c.status === 'APROVADO')
 
     return (
         <div className="min-h-screen bg-white font-exo relative pb-16">

@@ -48,6 +48,12 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
     const profileRes = await getProfile()
     const profile = profileRes.success ? profileRes.data : null
     const isAdmin = profile?.role === 'admin'
+    const isTeacher = course.teacher_id === sessionUser?.uid
+    
+    // Verifica se o curso está aprovado ou se o usuário tem permissão
+    if (course.status !== 'APROVADO' && !isAdmin && !isTeacher) {
+        return notFound()
+    }
     
     // Busca na coleção de enrollments (fonte de verdade)
     let hasEnrollment = false
