@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Plus, Users, Star, DollarSign, TrendingUp, Edit, MessageSquare } from 'lucide-react'
 import { SalesChart } from './components/SalesChart'
 import { parseFirebaseDate } from '@/lib/date-utils'
+import { getTeacherRating } from '@/app/actions/evaluation-actions'
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -22,9 +23,10 @@ export default async function TeacherDashboard() {
         redirect('/login')
     }
 
-    const [profileDoc, coursesSnapshot] = await Promise.all([
+    const [profileDoc, coursesSnapshot, ratingData] = await Promise.all([
         adminDb.collection('profiles').doc(user.uid).get(),
-        adminDb.collection('courses').where('teacher_id', '==', user.uid).get()
+        adminDb.collection('courses').where('teacher_id', '==', user.uid).get(),
+        getTeacherRating(user.uid)
     ])
 
     const profile = profileDoc.data()
@@ -76,7 +78,7 @@ export default async function TeacherDashboard() {
     const metrics = [
         { label: 'Receita Mensal', value: `R$ ${monthlyRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: DollarSign, color: 'text-[#1D5F31]' },
         { label: 'Total Alunos', value: totalStudents.toString(), icon: Users, color: 'text-blue-500' },
-        { label: 'Avaliação Média', value: '4.8', icon: Star, color: 'text-yellow-500' },
+        { label: 'Avaliação Média', value: ratingData.success ? (ratingData.rating > 0 ? ratingData.rating.toFixed(1) : '0.0') : '0.0', icon: Star, color: 'text-yellow-500', subtext: ratingData.success && ratingData.count > 0 ? `${ratingData.count} avaliações` : '' },
         { label: 'Vendas Hoje', value: `R$ ${todaySales.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: TrendingUp, color: 'text-purple-500' },
     ]
 
@@ -108,6 +110,9 @@ export default async function TeacherDashboard() {
                             </div>
                             <p className="text-slate-900 text-[10px] font-black uppercase tracking-[3px] mb-1">{metric.label}</p>
                             <h3 className="text-3xl font-black tracking-tighter text-slate-900">{metric.value}</h3>
+                            {'subtext' in metric && metric.subtext && (
+                                <p className="text-[9px] text-slate-500 font-medium mt-1">{metric.subtext}</p>
+                            )}
                         </div>
                     ))}
                 </div>

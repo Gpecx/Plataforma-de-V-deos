@@ -9,12 +9,15 @@ import {
     Reply,
     User,
     CheckCircle2,
-    PlayCircle
+    PlayCircle,
+    Star
 } from 'lucide-react'
+import { EvaluationForm } from '@/components/EvaluationForm'
 
 interface ClassroomTabsProps {
     lessonTitle: string;
     description?: string;
+    courseId?: string;
 }
 
 const MOCK_COMMENTS = [
@@ -50,8 +53,8 @@ const MOCK_COMMENTS = [
     }
 ]
 
-export function ClassroomTabs({ lessonTitle, description }: ClassroomTabsProps) {
-    const [activeTab, setActiveTab] = useState<'overview' | 'comments'>('overview')
+export function ClassroomTabs({ lessonTitle, description, courseId }: ClassroomTabsProps) {
+    const [activeTab, setActiveTab] = useState<'overview' | 'comments' | 'evaluate'>('overview')
 
     return (
         <div className="mt-4 transition-colors duration-500 font-exo">
@@ -75,11 +78,27 @@ export function ClassroomTabs({ lessonTitle, description }: ClassroomTabsProps) 
                         <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1D5F31] shadow-[0_0_10px_rgba(50,205,50,0.5)]"></div>
                     )}
                 </button>
+                {courseId && (
+                    <button
+                        onClick={() => setActiveTab('evaluate')}
+                        className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all relative ${activeTab === 'evaluate' ? 'text-[#1D5F31]' : 'text-slate-400 hover:text-slate-600'}`}
+                    >
+                        <div className="flex items-center gap-2">
+                            <Star size={16} />
+                            Avaliar
+                        </div>
+                        {activeTab === 'evaluate' && (
+                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1D5F31] shadow-[0_0_10px_rgba(50,205,50,0.5)]"></div>
+                        )}
+                    </button>
+                )}
             </div>
 
             {/* Tab Content */}
             <div className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                {activeTab === 'overview' ? (
+                {activeTab === 'evaluate' ? (
+                    courseId ? <EvaluationForm courseId={courseId} /> : null
+                ) : activeTab === 'overview' ? (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
                         <div className="lg:col-span-2 space-y-6">
                             <h3 className="text-xl font-black uppercase tracking-tighter text-slate-900">Sobre esta aula</h3>

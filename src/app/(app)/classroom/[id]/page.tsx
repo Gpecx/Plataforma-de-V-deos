@@ -239,6 +239,7 @@ export default function ClassroomPage() {
                             <ClassroomTabs
                                 lessonTitle={currentLesson?.title || ''}
                                 description={course?.description || "Esta aula aborda os fundamentos necessários para sua evolução técnica e estratégica."}
+                                courseId={course?.id}
                             />
                         </div>
                     </div>
