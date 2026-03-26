@@ -1,32 +1,135 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { getSettings, saveSettings, GlobalSettings, BannersData, BannerItem } from './actions'
+import { useState, useEffect, useCallback } from 'react'
+import { getSettings, saveSettings, GlobalSettings, BannersData, BannerItem, searchCourses, SearchedCourse, getCoursesByIds } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Image as ImageIcon, Settings, Palette, Globe, UploadCloud, Loader2, ArrowUp, ArrowDown } from 'lucide-react'
+import { Image as ImageIcon, Settings, Palette, Globe, UploadCloud, Loader2, ArrowUp, ArrowDown, Search, X, BookOpen, Plus } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
 import { uploadCourseImage } from '@/lib/storage-helpers'
 import Logo from '@/components/Logo'
 
+function CourseCard({ course, index, onAdd, onRemove, variant = 'search' }: {
+    course: SearchedCourse
+    index?: number
+    onAdd?: () => void
+    onRemove?: () => void
+    variant?: 'search' | 'selected'
+}) {
+    return (
+        <div className={`
+            relative group overflow-hidden rounded-xl border border-black/10 bg-white
+            transition-all duration-300 hover:border-black/40 hover:shadow-lg hover:-translate-y-1
+            ${variant === 'selected' ? 'p-4' : 'p-3'}
+        `}>
+            <div className="flex items-start gap-3">
+                {variant === 'selected' && index !== undefined && (
+                    <span className="text-xs font-black text-white bg-[#1D5F31] w-6 h-6 rounded-full flex items-center justify-center shrink-0">
+                        {index + 1}
+                    </span>
+                )}
+                {course.image_url && (
+                    <img 
+                        src={course.image_url} 
+                        alt={course.title} 
+                        className={`object-cover rounded-lg ${variant === 'selected' ? 'w-12 h-12' : 'w-14 h-14'}`}
+                    />
+                )}
+                <div className="flex-1 min-w-0">
+                    <p className="font-bold text-slate-900 text-sm truncate leading-tight">{course.title}</p>
+                    <p className="text-[10px] text-slate-500 mt-1">{course.tag}</p>
+                    <p className="text-xs font-bold text-[#1D5F31] mt-2">R$ {course.price.toFixed(2)}</p>
+                </div>
+            </div>
+            
+            {variant === 'search' && onAdd && (
+                <button
+                    onClick={onAdd}
+                    className="absolute top-2 right-2 w-7 h-7 rounded-lg bg-[#1D5F31] text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-[#1a5230] hover:scale-110 shadow-md"
+                >
+                    <Plus size={14} />
+                </button>
+            )}
+            
+            {variant === 'selected' && onRemove && (
+                <button
+                    onClick={onRemove}
+                    className="absolute top-2 right-2 w-6 h-6 rounded-full bg-slate-200 hover:bg-rose-100 flex items-center justify-center transition-all hover:scale-110"
+                >
+                    <X size={14} className="text-rose-600" />
+                </button>
+            )}
+        </div>
+    )
+}
+
 export default function AdminSettingsPage() {
     const [settings, setSettings] = useState<GlobalSettings>({
         banners: { hero_home: [], hero_dashboard: [], hero_course: [] },
-        branding: { logoUrl: '', siteName: 'PowerPlay', primaryColor: '#1D5F31' }
+        branding: { logoUrl: '', siteName: 'PowerPlay', primaryColor: '#1D5F31' },
+        featuredCourseIds: []
     })
     const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
     const [saving, setSaving] = useState(false)
     const [saved, setSaved] = useState(false)
     const [uploadingLogo, setUploadingLogo] = useState(false)
+    const [searchTerm, setSearchTerm] = useState('')
+    const [searchResults, setSearchResults] = useState<SearchedCourse[]>([])
+    const [searching, setSearching] = useState(false)
+    const [selectedCourses, setSelectedCourses] = useState<SearchedCourse[]>([])
+    const [searchTimeout, setSearchTimeout] = useState<ReturnType<typeof setTimeout> | null>(null)
 
     useEffect(() => {
-        getSettings().then(data => {
-            setSettings(data)
-            setLoading(false)
-        })
+        getSettings()
+            .then(data => {
+                setSettings(data)
+                setLoading(false)
+                if (data.featuredCourseIds && data.featuredCourseIds.length > 0) {
+                    getCoursesByIds(data.featuredCourseIds).then(courses => {
+                        setSelectedCourses(courses)
+                    })
+                }
+            })
+            .catch(err => {
+                console.error('Error loading settings:', err)
+                setError(err.message)
+                setLoading(false)
+            })
     }, [])
+
+    const handleSearch = useCallback(async (term: string) => {
+        if (term.length < 2) {
+            setSearchResults([])
+            return
+        }
+        setSearching(true)
+        try {
+            const results = await searchCourses(term)
+            const filtered = results.filter(r => !selectedCourses.some(s => s.id === r.id))
+            setSearchResults(filtered)
+        } catch (e) {
+            console.error('Search error:', e)
+            setSearchResults([])
+        } finally {
+            setSearching(false)
+        }
+    }, [selectedCourses])
+
+    useEffect(() => {
+        if (searchTimeout) clearTimeout(searchTimeout)
+        if (searchTerm.length >= 2) {
+            const timeout = setTimeout(() => handleSearch(searchTerm), 300)
+            setSearchTimeout(timeout)
+        } else {
+            setSearchResults([])
+        }
+        return () => {
+            if (searchTimeout) clearTimeout(searchTimeout)
+        }
+    }, [searchTerm])
 
     const handleSave = async () => {
         setSaving(true)
@@ -90,6 +193,22 @@ export default function AdminSettingsPage() {
         }
     }
 
+    const addFeaturedCourse = (course: SearchedCourse) => {
+        if (selectedCourses.length >= 5) return
+        if (selectedCourses.some(c => c.id === course.id)) return
+        const newList = [...selectedCourses, course]
+        setSelectedCourses(newList)
+        setSettings(s => ({ ...s, featuredCourseIds: newList.map(c => c.id) }))
+        setSearchTerm('')
+        setSearchResults([])
+    }
+
+    const removeFeaturedCourse = (courseId: string) => {
+        const newList = selectedCourses.filter(c => c.id !== courseId)
+        setSelectedCourses(newList)
+        setSettings(s => ({ ...s, featuredCourseIds: newList.map(c => c.id) }))
+    }
+
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop: onDropLogo,
         accept: { 'image/*': [] },
@@ -110,6 +229,16 @@ export default function AdminSettingsPage() {
             <div className="space-y-8 opacity-50">
                 <div className="h-[400px] bg-white border border-slate-200 rounded-md animate-pulse" />
                 <div className="h-[600px] bg-white border border-slate-200 rounded-md animate-pulse" />
+            </div>
+        </div>
+    )
+
+    if (error) return (
+        <div className="max-w-6xl mx-auto p-8 md:p-16 font-exo">
+            <div className="bg-red-50 border border-red-200 rounded-xl p-8 text-center">
+                <h2 className="text-xl font-bold text-red-600 mb-2">Erro ao carregar configurações</h2>
+                <p className="text-red-500 text-sm mb-4">{error}</p>
+                <Button onClick={() => window.location.reload()}>Tentar novamente</Button>
             </div>
         </div>
     )
@@ -320,6 +449,95 @@ export default function AdminSettingsPage() {
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* ─── FEATURED COURSES ─────────────────────────────── */}
+                <div className="mb-20">
+                    <div className="flex items-center gap-4 mb-10">
+                        <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100">
+                            <BookOpen size={20} className="text-[#1D5F31]" />
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-black uppercase tracking-wider !text-[#000000]">Cursos em Destaque</h2>
+                            <p className="text-[10px] !text-[#000000] font-medium uppercase tracking-widest">Selecione até 5 cursos para a Landing Page</p>
+                        </div>
+                        <div className="flex-1 h-px bg-slate-50 ml-6" />
+                    </div>
+
+                    <Card className="rounded-md border border-black shadow-sm bg-white overflow-hidden">
+                        <CardContent className="p-12 space-y-8">
+                            <div className="space-y-4">
+                                <Label className="text-[10px] font-black uppercase tracking-wider !text-[#000000] flex items-center gap-2">
+                                    <Search size={14} className="text-[#1D5F31]" /> Buscar Curso
+                                </Label>
+                                <div className="relative">
+                                    <Input
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        placeholder="Digite o nome do curso (mínimo 2 caracteres)"
+                                        disabled={selectedCourses.length >= 5}
+                                        className="rounded-xl h-14 font-bold text-slate-900 text-base bg-slate-50 border border-black focus:border-black focus:bg-white transition-all shadow-inner px-6 placeholder:text-slate-500 pr-12"
+                                    />
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                        {searching ? (
+                                            <Loader2 size={20} className="animate-spin text-[#1D5F31]" />
+                                        ) : searchTerm ? (
+                                            <button onClick={() => { setSearchTerm(''); setSearchResults([]) }}>
+                                                <X size={20} className="text-slate-400 hover:text-slate-600" />
+                                            </button>
+                                        ) : (
+                                            <Search size={20} className="text-slate-400" />
+                                        )}
+                                    </div>
+                                </div>
+                                {searchResults.length > 0 && (
+                                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-white border border-black rounded-xl shadow-xl animate-in fade-in slide-in-from-top-2 duration-300">
+                                        {searchResults.slice(0, 5).map(course => (
+                                            <CourseCard 
+                                                key={course.id} 
+                                                course={course} 
+                                                variant="search"
+                                                onAdd={() => addFeaturedCourse(course)}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+                                {selectedCourses.length >= 5 && (
+                                    <p className="text-xs text-amber-600 font-medium">Limite máximo de 5 cursos atingido</p>
+                                )}
+                            </div>
+
+                            <div className="space-y-4">
+                                <Label className="text-[10px] font-black uppercase tracking-wider !text-[#000000]">
+                                    Cursos Selecionados ({selectedCourses.length}/5)
+                                </Label>
+                                {selectedCourses.length === 0 ? (
+                                    <div className="text-center py-12 border-2 border-dashed border-black/10 rounded-xl bg-slate-50/50">
+                                        <BookOpen className="mx-auto text-black/30 mb-4" size={32} strokeWidth={1} />
+                                        <p className="!text-[#000000] font-medium text-sm">Nenhum curso em destaque selecionado</p>
+                                        <p className="!text-[#000000] text-[10px] uppercase tracking-wider mt-1">A página inicial mostrará os primeiros 5 cursos aprovados</p>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                                        {selectedCourses.map((course, index) => (
+                                            <div 
+                                                key={course.id} 
+                                                className="animate-in fade-in zoom-in-95 duration-300"
+                                                style={{ animationDelay: `${index * 50}ms` }}
+                                            >
+                                                <CourseCard 
+                                                    course={course} 
+                                                    index={index}
+                                                    variant="selected"
+                                                    onRemove={() => removeFeaturedCourse(course.id)}
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </CardContent>
                     </Card>

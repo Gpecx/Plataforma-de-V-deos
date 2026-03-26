@@ -7,8 +7,8 @@ import { useAuth } from "@/context/AuthProvider";
 import { ArrowRight, Clock, Infinity, Award, Headphones, TrendingUp, Handshake, BarChart3, Loader2 } from "lucide-react";
 import { db, auth } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, query, where, limit, getDocs } from "firebase/firestore";
-import { getBanners, BannersData } from "@/app/admin/settings/actions";
+import { collection, query, where, limit, getDocs, doc, getDoc } from "firebase/firestore";
+import { getBanners, getGlobalSettings, BannersData, GlobalSettings } from "@/app/admin/settings/actions";
 import { ExpandableCard } from "@/components/ui/ExpandableCard";
 import { useCartStore } from "@/store/useCartStore";
 
@@ -39,17 +39,34 @@ export default function LandingPageClient({ user: initialUser }: LandingPageProp
         async function fetchTopCourses() {
             setLoading(true);
             try {
-                const coursesRef = collection(db, 'courses');
-                const q = query(coursesRef, where('status', '==', 'APROVADO'), limit(5));
-                const querySnapshot = await getDocs(q);
-                const coursesData = querySnapshot.docs.map(doc => {
-                    const data = doc.data();
-                    return {
-                        id: doc.id,
-                        ...data,
-                        price: Number(data.price) || 0
-                    };
-                });
+                const settings: GlobalSettings = await getGlobalSettings();
+                const featuredIds = settings.featuredCourseIds || [];
+                
+                let coursesData: any[] = [];
+                
+                if (featuredIds.length > 0) {
+                    for (const id of featuredIds) {
+                        const courseDoc = await getDoc(doc(db, 'courses', id));
+                        if (courseDoc.exists()) {
+                            coursesData.push({ id: courseDoc.id, ...courseDoc.data(), price: Number(courseDoc.data().price) || 0 });
+                        }
+                    }
+                }
+                
+                if (coursesData.length === 0) {
+                    const coursesRef = collection(db, 'courses');
+                    const q = query(coursesRef, where('status', '==', 'APROVADO'), limit(5));
+                    const querySnapshot = await getDocs(q);
+                    coursesData = querySnapshot.docs.map(d => {
+                        const data = d.data();
+                        return {
+                            id: d.id,
+                            ...data,
+                            price: Number(data.price) || 0
+                        };
+                    });
+                }
+                
                 setCourses(coursesData);
             } catch (error) {
                 console.error("Erro ao buscar cursos:", error);

@@ -23,6 +23,7 @@ export interface BrandingData {
 export interface GlobalSettings {
     banners: BannersData
     branding: BrandingData
+    featuredCourseIds: string[]
 }
 
 const DEFAULT_SETTINGS: GlobalSettings = {
@@ -35,7 +36,8 @@ const DEFAULT_SETTINGS: GlobalSettings = {
         logoUrl: '',
         siteName: 'PowerPlay',
         primaryColor: '#1D5F31',
-    }
+    },
+    featuredCourseIds: []
 }
 
 export async function getSettings(): Promise<GlobalSettings> {
@@ -70,7 +72,8 @@ export async function getSettings(): Promise<GlobalSettings> {
                     logoUrl: br?.logoUrl || DEFAULT_SETTINGS.branding.logoUrl,
                     siteName: br?.siteName || DEFAULT_SETTINGS.branding.siteName,
                     primaryColor: br?.primaryColor || DEFAULT_SETTINGS.branding.primaryColor,
-                }
+                },
+                featuredCourseIds: Array.isArray(data?.featuredCourseIds) ? data.featuredCourseIds : DEFAULT_SETTINGS.featuredCourseIds
             }
         }
         return DEFAULT_SETTINGS
@@ -98,4 +101,63 @@ export async function saveSettings(settings: GlobalSettings): Promise<{ success:
 export async function getBanners(): Promise<BannersData> {
     const settings = await getSettings()
     return settings.banners
+}
+
+export async function getGlobalSettings(): Promise<GlobalSettings> {
+    return getSettings()
+}
+
+export interface SearchedCourse {
+    id: string
+    title: string
+    image_url: string
+    price: number
+    tag?: string
+}
+
+export async function searchCourses(term: string): Promise<SearchedCourse[]> {
+    try {
+        const coursesRef = adminDb.collection('courses')
+        const snapshot = await coursesRef
+            .where('status', '==', 'APROVADO')
+            .where('title', '>=', term)
+            .where('title', '<=', term + '\uf8ff')
+            .limit(10)
+            .get()
+
+        return snapshot.docs.map((d: any) => ({
+            id: d.id,
+            title: d.data().title || '',
+            image_url: d.data().image_url || '',
+            price: Number(d.data().price) || 0,
+            tag: d.data().tag || ''
+        }))
+    } catch (error) {
+        console.error('Error searching courses:', error)
+        return []
+    }
+}
+
+export async function getCoursesByIds(ids: string[]): Promise<SearchedCourse[]> {
+    if (!ids || ids.length === 0) return []
+    try {
+        const courses: SearchedCourse[] = []
+        for (const id of ids) {
+            const doc = await adminDb.collection('courses').doc(id).get()
+            if (doc.exists) {
+                const data = doc.data()
+                courses.push({
+                    id: doc.id,
+                    title: data?.title || '',
+                    image_url: data?.image_url || '',
+                    price: Number(data?.price) || 0,
+                    tag: data?.tag || ''
+                })
+            }
+        }
+        return courses
+    } catch (error) {
+        console.error('Error fetching courses by ids:', error)
+        return []
+    }
 }
