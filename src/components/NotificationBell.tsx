@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { Bell, MessageSquare, PlayCircle, CheckCheck, X, TrendingUp, Users, AlertCircle } from 'lucide-react'
+import { Bell, MessageSquare, PlayCircle, CheckCheck, X, TrendingUp, Users, AlertCircle, CheckCircle2 } from 'lucide-react'
 import { onAuthStateChanged } from 'firebase/auth'
 import { auth, db } from '@/lib/firebase'
 import { collection, query, where, orderBy, limit, getDocs, onSnapshot, doc, getDoc } from 'firebase/firestore'
@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils'
 
 interface Notification {
     id: string
-    type: 'reply' | 'new_lesson' | 'sale' | 'new_student' | 'lesson_rejected' | 'course_rejected'
+    type: 'reply' | 'new_lesson' | 'sale' | 'new_student' | 'lesson_rejected' | 'course_rejected' | 'lesson_approved' | 'course_approved'
     title: string
     subtitle: string
     time: string
@@ -195,6 +195,7 @@ export function NotificationBell({
                                             {notif.type === 'sale' && <TrendingUp size={18} className={notif.read ? "text-slate-400" : "text-[#1D5F31]"} />}
                                             {notif.type === 'new_student' && <Users size={18} className={notif.read ? "text-slate-400" : "text-[#1D5F31]"} />}
                                             {(notif.type === 'lesson_rejected' || notif.type === 'course_rejected') && <AlertCircle size={18} className={notif.read ? "text-slate-400" : "text-red-500"} />}
+                                            {(notif.type === 'lesson_approved' || notif.type === 'course_approved') && <CheckCircle2 size={18} className={notif.read ? "text-slate-400" : "text-[#1D5F31]"} />}
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <p className={cn(

@@ -253,12 +253,29 @@ export async function getPendingLessons() {
 // ... dentro da função approveCourse
 export async function approveCourse(courseId: string) {
     try {
+        // Busca dados do curso para obter o teacher_id
+        const courseDoc = await adminDb.collection('courses').doc(courseId).get()
+        const courseData = courseDoc.data()
+
         // 1. Atualiza apenas o curso
         const courseRef = adminDb.collection('courses').doc(courseId)
         await courseRef.update({ 
             status: 'APROVADO',
             updated_at: new Date()
         })
+
+        // Cria notificação para o professor
+        if (courseData?.teacher_id) {
+            await adminDb.collection('notifications').add({
+                user_id: courseData.teacher_id,
+                type: 'course_approved',
+                title: 'Curso Aprovado!',
+                message: `Seu curso "${courseData.title}" foi aprovado e agora está disponível para os alunos.`,
+                course_id: courseId,
+                read: false,
+                created_at: new Date()
+            })
+        }
 
         revalidatePath('/admin/approvals')
         revalidatePath('/course')
@@ -276,11 +293,37 @@ export async function approveCourse(courseId: string) {
  */
 export async function approveLesson(lessonId: string) {
     try {
+        // Busca dados da aula para obter course_id e título
+        const lessonDoc = await adminDb.collection('lessons').doc(lessonId).get()
+        const lessonData = lessonDoc.data()
+
+        if (!lessonData) {
+            return { success: false, error: "Aula não encontrada." }
+        }
+
         await adminDb.collection('lessons').doc(lessonId).update({
             status: 'APROVADO',
             approved_at: new Date(),
             updated_at: new Date()
         })
+
+        // Busca o curso para obter o teacher_id
+        const courseDoc = await adminDb.collection('courses').doc(lessonData.course_id).get()
+        const courseData = courseDoc.data()
+
+        // Cria notificação para o professor
+        if (courseData?.teacher_id) {
+            await adminDb.collection('notifications').add({
+                user_id: courseData.teacher_id,
+                type: 'lesson_approved',
+                title: 'Aula Aprovada!',
+                message: `Sua aula "${lessonData.title}" foi aprovada e está disponível para os alunos.`,
+                course_id: lessonData.course_id,
+                lesson_id: lessonId,
+                read: false,
+                created_at: new Date()
+            })
+        }
         
         revalidatePath('/admin/approvals')
         revalidatePath('/course')
