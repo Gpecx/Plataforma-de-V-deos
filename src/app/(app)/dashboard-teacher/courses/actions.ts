@@ -52,6 +52,7 @@ export async function createCourseAction(formData: any) {
                     title: lesson.title,
                     video_url: lesson.video_url,
                     position: index + 1,
+                    description: lesson.description || '',
                     status: 'PENDENTE',
                     created_at: new Date()
                 })
@@ -159,6 +160,7 @@ export async function updateCourseAction(courseId: string, formData: any) {
                 title: lesson.title,
                 video_url: lesson.video_url,
                 position: index + 1,
+                description: lesson.description || '',
                 updated_at: new Date()
             }
             

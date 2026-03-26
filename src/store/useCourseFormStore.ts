@@ -4,6 +4,7 @@ export interface Lesson {
     title: string
     video_url: string
     position: number
+    description?: string
 }
 
 interface CourseFormData {

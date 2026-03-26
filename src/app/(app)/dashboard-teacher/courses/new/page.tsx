@@ -371,21 +371,21 @@ export default function NewCoursePage() {
                                     <div className={`
                                         relative h-40 rounded-xl border-2 border-dashed transition-all flex flex-col items-center justify-center overflow-hidden cursor-pointer
                                         ${formData.intro_video_url && !formData.intro_video_url.includes('youtube.com') && !formData.intro_video_url.includes('vimeo.com')
-                                            ? 'border-black bg-black/5' : 'border-black bg-white hover:border-black/50 text-black/60'}
+                                            ? 'border-[#1D5F31] bg-[#1D5F31]/5' : 'border-black bg-white hover:border-black/50 text-black/60'}
                                     `}>
                                         {isUploadingIntro ? (
                                             <div className="flex flex-col items-center gap-3">
-                                                <Loader2 className="animate-spin text-black" size={24} />
-                                                <span className="text-[8px] font-black uppercase tracking-[2px] animate-pulse text-black">UPLOADING...</span>
+                                                <Loader2 className="animate-spin text-[#1D5F31]" size={24} />
+                                                <span className="text-[8px] font-black uppercase tracking-[2px] animate-pulse text-[#1D5F31]">UPLOADING...</span>
                                             </div>
                                         ) : formData.intro_video_url && !formData.intro_video_url.includes('youtube.com') && !formData.intro_video_url.includes('vimeo.com') ? (
                                             <div className="flex flex-col items-center gap-2">
-                                                <div className="w-10 h-10 bg-black rounded-xl flex items-center justify-center text-white">
+                                                <div className="w-10 h-10 bg-[#1D5F31] rounded-xl flex items-center justify-center text-white">
                                                     <Check size={20} strokeWidth={4} />
                                                 </div>
-                                                <span className="text-[9px] font-black uppercase tracking-widest text-black">VÍDEO CARREGADO</span>
+                                                <span className="text-[9px] font-black uppercase tracking-widest text-[#1D5F31]">VÍDEO CARREGADO</span>
                                                 <button
-                                                    className="text-[8px] text-black/60 hover:text-black font-black uppercase italic tracking-widest mt-2"
+                                                    className="text-[8px] text-[#1D5F31]/60 hover:text-red-500 font-black uppercase italic tracking-widest mt-2"
                                                     onClick={() => setStepData({ intro_video_url: '' })}
                                                 >
                                                     [ REMOVER ]
@@ -505,6 +505,13 @@ export default function NewCoursePage() {
                                                         value={lesson.title}
                                                         onChange={(e) => handleUpdateLesson(index, { title: e.target.value })}
                                                     />
+                                                    <Label className="text-[10px] font-black uppercase tracking-widest text-black/60 px-1 italic">Descrição (opcional)</Label>
+                                                    <textarea
+                                                        placeholder="Descreva o que o aluno aprenderá nesta aula..."
+                                                        className="bg-white border-2 border-black/20 focus:border-[#1D5F31] rounded-xl p-3 text-sm font-medium text-black placeholder:text-black/40 min-h-[80px] resize-none"
+                                                        value={lesson.description || ''}
+                                                        onChange={(e) => handleUpdateLesson(index, { description: e.target.value })}
+                                                    />
                                                 </div>
                                             </div>
 
@@ -512,21 +519,21 @@ export default function NewCoursePage() {
                                                 <Label className="text-[10px] font-black uppercase tracking-widest text-black/90 px-1 italic">Vídeo da Aula</Label>
                                                 <div className={`
                                                     relative h-32 rounded-xl border-2 border-dashed transition-all flex flex-col items-center justify-center overflow-hidden
-                                                    ${lesson.video_url ? 'border-black bg-white' : 'border-black bg-white hover:border-black/50'}
+                                                    ${lesson.video_url ? 'border-[#1D5F31] bg-[#1D5F31]/5' : 'border-black bg-white hover:border-black/50'}
                                                 `}>
                                                     {uploadingVideos[index] ? (
                                                         <div className="flex flex-col items-center gap-3">
-                                                            <Loader2 className="animate-spin text-black" size={24} />
-                                                            <span className="text-[8px] font-black uppercase tracking-[2px] animate-pulse text-black">UPLOADING...</span>
+                                                            <Loader2 className="animate-spin text-[#1D5F31]" size={24} />
+                                                            <span className="text-[8px] font-black uppercase tracking-[2px] animate-pulse text-[#1D5F31]">UPLOADING...</span>
                                                         </div>
                                                     ) : lesson.video_url ? (
                                                         <div className="flex flex-col items-center gap-2">
-                                                            <div className="w-10 h-10 bg-black/5 rounded-xl flex items-center justify-center text-black border border-black/20">
+                                                            <div className="w-10 h-10 bg-[#1D5F31] rounded-xl flex items-center justify-center text-white border border-[#1D5F31]">
                                                                 <Check size={20} strokeWidth={4} />
                                                             </div>
-                                                            <span className="text-[9px] font-black uppercase tracking-widest text-black">MULTIMÍDIA PRONTA</span>
+                                                            <span className="text-[9px] font-black uppercase tracking-widest text-[#1D5F31]">MULTIMÍDIA PRONTA</span>
                                                             <button
-                                                                className="text-[8px] text-black/40 hover:text-black font-black uppercase tracking-widest mt-1 italic"
+                                                                className="text-[8px] text-[#1D5F31]/40 hover:text-red-500 font-black uppercase tracking-widest mt-1 italic"
                                                                 onClick={() => handleUpdateLesson(index, { video_url: '' })}
                                                             >
                                                                 [ SUBSTITUIR ]

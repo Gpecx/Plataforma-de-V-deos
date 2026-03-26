@@ -68,6 +68,7 @@ interface Lesson {
     title: string
     video_url: string
     position: number
+    description?: string
 }
 
 interface Module {
@@ -142,14 +143,16 @@ function SortableLesson({ lesson, onDelete, onSelect, isSelected, onTitleChange 
 }
 
 // --- Sortable Module Component ---
-function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons, onSelectLesson, selectedLessonId, onLessonTitleChange }: {
+function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons, onSelectLesson, selectedLessonId, onLessonTitleChange, onDeleteModule, canDeleteModule }: {
     module: Module,
     onAddLesson: () => void,
     onDeleteLesson: (lessonId: string) => void,
     onReorderLessons: (event: DragEndEvent) => void,
     onSelectLesson: (lesson: Lesson) => void,
     selectedLessonId?: string,
-    onLessonTitleChange: (lessonId: string, newTitle: string) => void
+    onLessonTitleChange: (lessonId: string, newTitle: string) => void,
+    onDeleteModule: () => void,
+    canDeleteModule: boolean
 }) {
     const {
         attributes,
@@ -185,6 +188,15 @@ function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons,
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
+                    {canDeleteModule && (
+                        <button
+                            onClick={onDeleteModule}
+                            className="flex items-center gap-2 px-4 py-3 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl text-[9px] font-black uppercase tracking-[3px] transition-all border border-transparent hover:border-red-500/30"
+                        >
+                            <Trash2 size={16} />
+                            Excluir Módulo
+                        </button>
+                    )}
                     <button
                         onClick={onAddLesson}
                         className="flex items-center gap-3 px-6 py-3 bg-[#1D5F31] text-white rounded-xl text-[9px] font-black uppercase tracking-[3px] hover:bg-[#1D5F31]/90 transition-all border-none"
@@ -585,7 +597,7 @@ export default function CourseBuilder() {
                                     selectedLessonId={selectedLesson?.id}
                                     onSelectLesson={setSelectedLesson}
                                     onAddLesson={() => {
-                                        const newLesson: Lesson = { id: `new-${Date.now()}`, title: 'Nova Aula Digital', video_url: '', position: module.lessons.length + 1 }
+                                        const newLesson: Lesson = { id: `new-${Date.now()}`, title: 'Nova Aula Digital', video_url: '', position: module.lessons.length + 1, description: '' }
                                         setModules(prev => prev.map(m => m.id === module.id ? { ...m, lessons: [...m.lessons, newLesson] } : m))
                                     }}
                                     onDeleteLesson={(lessonId) => {
@@ -600,6 +612,14 @@ export default function CourseBuilder() {
                                         } : m))
                                         if (selectedLesson?.id === lessonId) setSelectedLesson(prev => prev ? { ...prev, title: newTitle } : null)
                                     }}
+                                    onDeleteModule={() => {
+                                        if (!confirm('Tem certeza que deseja excluir este módulo? Todas as aulas dentro dele serão excluídas.')) return
+                                        setModules(prev => prev.filter(m => m.id !== module.id))
+                                        if (selectedLesson && module.lessons.some(l => l.id === selectedLesson.id)) {
+                                            setSelectedLesson(null)
+                                        }
+                                    }}
+                                    canDeleteModule={modules.length > 1}
                                 />
                             ))}
                         </SortableContext>
@@ -626,6 +646,20 @@ export default function CourseBuilder() {
                                                 setModules(prev => prev.map(m => ({
                                                     ...m,
                                                     lessons: m.lessons.map(l => l.id === selectedLesson.id ? { ...l, title: newTitle } : l)
+                                                })))
+                                            }}
+                                        />
+                                        <span className="text-[9px] font-black uppercase text-[#1D5F31] tracking-[3px]">Descrição da Aula</span>
+                                        <textarea
+                                            className="bg-transparent border-none focus:outline-none text-sm text-black/70 w-full mt-1 resize-none"
+                                            placeholder="Descreva o que o aluno aprenderá nesta aula..."
+                                            value={selectedLesson.description || ''}
+                                            onChange={(e) => {
+                                                const newDescription = e.target.value
+                                                setSelectedLesson({ ...selectedLesson, description: newDescription })
+                                                setModules(prev => prev.map(m => ({
+                                                    ...m,
+                                                    lessons: m.lessons.map(l => l.id === selectedLesson.id ? { ...l, description: newDescription } : l)
                                                 })))
                                             }}
                                         />
@@ -662,7 +696,7 @@ export default function CourseBuilder() {
                                             <div className="flex flex-col md:flex-row gap-6 items-center">
                                                 <div className="flex-1 p-6 bg-[#1D5F31]/10 rounded-xl border border-[#1D5F31]/20/20 w-full">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="w-10 h-10 bg-[#1D5F31] rounded-xl flex items-center justify-center text-black">
+                                                        <div className="w-10 h-10 bg-[#1D5F31] rounded-xl flex items-center justify-center text-white">
                                                             <CheckCircle2 size={20} />
                                                         </div>
                                                         <div>
