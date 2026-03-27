@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb } from '@/lib/firebase-admin'
 import { adminAuth } from '@/lib/firebase-admin'
-// @ts-expect-error - Tipos do Mux não disponíveis
+// @ts-ignore - Garantir compatibilidade de tipos do Mux no build
 import { Mux } from '@mux/mux-node'
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
