@@ -4,11 +4,8 @@ export default function AuthLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-brand-dark flex items-center justify-center font-exo">
-      <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-2xl">
-        {/* Aqui entrará o formulário de Login ou Registro */}
-        {children}
-      </div>
+    <div className="min-h-screen bg-transparent font-exo">
+      {children}
     </div>
   )
 }

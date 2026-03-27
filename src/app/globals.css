@@ -1,33 +1,241 @@
 @import "tailwindcss";
 
-@theme {
-  /* Suas Cores Estilo Udemy */
-  --color-brand-dark: #061629;
-  --color-brand-green: #00C402;
-  --color-brand-green-dark: #1D5F31;
-
-  /* Fontes */
-  --font-exo: "Exo 2", sans-serif;
-
-  /* Variáveis de suporte para o Shadcn não quebrar */
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-}
-
 :root {
-  --background: #061629;
-  --foreground: #061629;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #00C402;
-  --radius: 0.5rem;
+  /* === IDENTIDADE: Deep Premium === */
+  --background-color: #061629;
+  --accent-green: #1D5F31;
+  --secondary-green: #28a745;
+
+  /* === NAVBAR GLASSMORPHISM === */
+  --navbar-bg: rgba(6, 22, 41, 0.8);
+  --navbar-blur: blur(16px);
+  --navbar-border: rgba(255, 255, 255, 0.05);
+
+  /* === SISTEMA === */
+  --background: var(--background-color);
+  --foreground: #f8fafc;
+  --border: rgba(29, 95, 49, 0.3);
+  --input: rgba(29, 95, 49, 0.2);
+  --radius: 0.75rem;
+  --global-bg-gradient: linear-gradient(135deg, #061629 0%, #061629 25%, #1D5F31 100%) fixed;
+
+  --primary: var(--accent-green);
+  --primary-foreground: #ffffff;
+
+  --muted: #040d18;
+  --muted-foreground: #94a3b8;
+
+  /* === GRADIENTES === */
+  --premium-gradient: linear-gradient(135deg, #061629 0%, #061629 25%, #1D5F31 100%);
+  --overlay-gradient: linear-gradient(180deg, rgba(6, 22, 41, 0.8) 0%, rgba(6, 22, 41, 0) 30%, rgba(6, 22, 41, 0) 60%, rgba(6, 22, 41, 1) 100%);
+  --btn-gradient: linear-gradient(to top, #061629 0%, #1D5F31 100%);
 }
 
-/* Removemos o @layer base por enquanto para evitar o erro de 'unknown utility' */
+
+html,
 body {
-  background-color: var(--background);
+  font-family: var(--font-exo);
+  font-size: 0.875rem;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  margin: 0;
+  background: var(--global-bg-gradient);
   color: var(--foreground);
+}
+
+/* White Clean Theme Utility */
+.theme-clean-white {
+  background: #FFFFFF !important;
+  color: #000000 !important;
+  position: relative;
+  z-index: 10;
+}
+
+.theme-clean-white h1, 
+.theme-clean-white h2, 
+.theme-clean-white h3, 
+.theme-clean-white h4, 
+.theme-clean-white h5, 
+.theme-clean-white h6 {
+  color: #000000 !important;
+}
+
+.theme-clean-white p, 
+.theme-clean-white span:not(.no-theme-override), 
+.theme-clean-white div:not(.no-theme-override) {
+  color: #000000 !important;
+}
+
+.theme-clean-white a {
+  color: inherit;
+}
+
+/* Gradients Utilities */
+.bg-premium-gradient {
+  background: var(--premium-gradient);
+}
+
+.bg-overlay-gradient {
+  background: var(--overlay-gradient);
+}
+
+.bg-btn-gradient {
+  background: var(--btn-gradient);
+}
+
+/* Soft Matte Filter */
+.page-filter {
+  filter: saturate(0.95) brightness(0.98);
+}
+
+h1,h2,h3,h4,h5,h6 {
+  color: #ffffff;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+}
+
+p {
+  color: #94a3b8;
+}
+
+/* Dark card style - Premium Depth */
+.dark-card {
+  background: rgba(6, 22, 41, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(29, 95, 49, 0.4);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+  transition: all 0.3s ease;
+}
+
+.dark-card:hover {
+  border-color: var(--accent-green);
+  box-shadow: 0 15px 40px -10px rgba(29, 95, 49, 0.2);
+}
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--background-color);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--accent-green);
+  border-radius: 10px;
+}
+
+/* Hero Section */
+.hero-section {
+  position: relative;
+  min-height: 100vh;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--overlay-gradient);
+  z-index: 1;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+}
+
+/* Benefits cards */
+.benefit-card {
+  background: rgba(29, 95, 49, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 0.75rem;
+  padding: 2rem;
+  transition: all 0.3s ease;
+  cursor: default;
+}
+
+.benefit-card:hover {
+  transform: translateY(-6px);
+  background: rgba(29, 95, 49, 0.1);
+  box-shadow: 0 20px 40px -20px rgba(0, 0, 0, 0.5);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Course cards dark */
+.course-card-dark {
+  background: #040d18;
+  border: 1px solid rgba(29, 95, 49, 0.3);
+  border-radius: 0.75rem;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.course-card-dark:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
+  border-color: var(--accent-green);
+}
+
+/* Premium CTA Button */
+.btn-cta {
+  background: var(--btn-gradient);
+  color: #fff;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.9rem 2.5rem;
+  border: 1px solid var(--accent-green);
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -10px var(--accent-green);
+  filter: brightness(1.1);
+}
+
+.btn-cta:active {
+  transform: translateY(0);
+}
+
+/* Email input hero */
+.hero-email-input {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(29, 95, 49, 0.4);
+  color: #fff;
+  border-radius: 0.75rem;
+  padding: 0.9rem 1.5rem;
+  font-size: 1rem;
+  width: 100%;
+  max-width: 420px;
+  outline: none;
+  transition: all 0.2s;
+  backdrop-filter: blur(6px);
+}
+
+.hero-email-input::placeholder {
+  color: #1a1a1a;
+  opacity: 0.7;
+}
+
+.hero-email-input:focus {
+  border-color: var(--accent-green);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 0 0 4px rgba(29, 95, 49, 0.1);
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }

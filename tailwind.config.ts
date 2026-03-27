@@ -14,8 +14,8 @@ const config: Config = {
                 // Suas cores personalizadas estilo Udemy
                 brand: {
                     dark: "#061629",
-                    green: "#00C402",
-                    greenDark: "#1D5F31",
+                    green: "#1D5F31",
+                    accent: "#28a745",
                 },
                 // Variáveis do Shadcn/UI
                 border: "hsl(var(--border))",
@@ -51,6 +51,11 @@ const config: Config = {
                     DEFAULT: "hsl(var(--card))",
                     foreground: "hsl(var(--card-foreground))",
                 },
+            },
+            backgroundImage: {
+                'premium-gradient': "linear-gradient(135deg, #061629 10%, #1D5F31 100%)",
+                'overlay-gradient': "linear-gradient(to bottom, transparent 0%, #061629 100%)",
+                'btn-gradient': "linear-gradient(to top, #061629 0%, #1D5F31 100%)",
             },
             borderRadius: {
                 lg: "var(--radius)",

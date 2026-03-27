@@ -1,0 +1,167 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // =========================================================================
+    // FUNÇÕES AUXILIARES
+    // =========================================================================
+
+    // Verifica se o usuário está autenticado
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Verifica se o usuário autenticado é o dono do recurso
+    function isOwner(uid) {
+      return request.auth.uid == uid;
+    }
+
+    // Busca o papel (role) do usuário no seu documento de perfil
+    function getUserRole() {
+      return get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && getUserRole() == 'admin';
+    }
+
+    function isTeacherOrAdmin() {
+      return isSignedIn() && getUserRole() in ['teacher', 'admin'];
+    }
+
+    // =========================================================================
+    // ⭐ REGRA DE OURO: hasPurchasedCourse
+    // Verifica se o cursoId solicitado está no array `cursos_comprados`
+    // dentro do documento de perfil do usuário que está fazendo a requisição.
+    // Esta é a trava principal que libera o acesso ao conteúdo pago.
+    // =========================================================================
+    function hasPurchasedCourse(cursoId) {
+      // 1. Faz um get() no perfil do usuário autenticado
+      let profile = get(/databases/$(database)/documents/profiles/$(request.auth.uid));
+      // 2. Verifica se o campo cursos_comprados existe e contém o cursoId
+      return profile.data.cursos_comprados != null
+          && cursoId in profile.data.cursos_comprados;
+    }
+
+    // =========================================================================
+    // PROFILES
+    // Cada usuário lê e edita apenas o próprio. Admin lê todos.
+    // O webhook (Admin SDK) escreve sem passar por estas regras.
+    // =========================================================================
+    match /profiles/{userId} {
+      allow read:  if isSignedIn() && (isOwner(userId) || isAdmin());
+      allow write: if isSignedIn() && (isOwner(userId) || isAdmin());
+    }
+
+    // =========================================================================
+    // COURSES (Vitrine)
+    // Qualquer usuário autenticado pode LER cursos aprovados (vitrine da loja).
+    // O conteúdo sensível (aulas, vídeos) está protegido na coleção lessons.
+    // Professores editam os seus próprios; Admin escreve qualquer um.
+    // =========================================================================
+    match /courses/{courseId} {
+      // Leitura: autenticado pode ver cursos aprovados OU o próprio professor OU admin vê qualquer status
+      allow read: if isSignedIn() && (
+        resource.data.status == 'APROVADO'
+        || isOwner(resource.data.teacher_id)
+        || isAdmin()
+      );
+      // Escrita: apenas professores e admins
+      allow write: if isTeacherOrAdmin();
+    }
+
+    // =========================================================================
+    // LESSONS (Conteúdo Pago 🔒)
+    // Esta é a coleção blindada. Não basta estar autenticado.
+    // O aluno SÓ acessa uma aula se:
+    //   1. For Admin → acesso irrestrito
+    //   2. For o Professor dono do curso → pode visualizar/editar seu próprio conteúdo
+    //   3. Tiver comprado o curso → hasPurchasedCourse(resource.data.course_id) == true
+    //
+    // Qualquer outro usuário autenticado que tente ler sem ter comprado
+    // receberá PERMISSION_DENIED automaticamente.
+    // =========================================================================
+    match /lessons/{lessonId} {
+      allow read: if isSignedIn() && (
+        // Trava 1: Admin sempre pode
+        isAdmin()
+        // Trava 2: Professor que criou o curso pode ver suas próprias aulas
+        || (isTeacherOrAdmin()
+            && get(/databases/$(database)/documents/courses/$(resource.data.course_id)).data.teacher_id == request.auth.uid)
+        // ⭐ Trava 3: Aluno comprou o curso? Usa a Regra de Ouro.
+        || hasPurchasedCourse(resource.data.course_id)
+      );
+      // Escrita: apenas professores e admins
+      allow write: if isTeacherOrAdmin();
+    }
+
+    // =========================================================================
+    // ENROLLMENTS
+    // Aluno lê as suas próprias matrículas. Admin lê e escreve tudo.
+    // Nota: com o novo fluxo via webhook, a matrícula principal é via
+    // cursos_comprados no profile. Esta coleção pode ser mantida para histórico.
+    // =========================================================================
+    match /enrollments/{enrollmentId} {
+      allow read: if isSignedIn() && (
+        resource.data.user_id == request.auth.uid || isAdmin()
+      );
+      allow create: if isSignedIn() && request.resource.data.user_id == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+
+    // =========================================================================
+    // VENDAS LOGS (Auditoria 🔒)
+    // Apenas o Admin SDK (backend) e admins humanos podem ler/escrever.
+    // =========================================================================
+    match /vendas_logs/{saleId} {
+      allow read, write: if isAdmin();
+    }
+
+    // =========================================================================
+    // CONFIG (Configurações Globais)
+    // Qualquer um pode ler (ex: taxas, branding). Apenas admin escreve.
+    // =========================================================================
+    match /config/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // =========================================================================
+    // SETTINGS (Branding / Banners)
+    // =========================================================================
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // =========================================================================
+    // NOTIFICATIONS
+    // Cada usuário lê apenas as próprias notificações.
+    // =========================================================================
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn() && (
+        resource.data.targetUserId == request.auth.uid || isAdmin()
+      );
+      allow create: if isAdmin();
+      allow update: if isSignedIn() && resource.data.targetUserId == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+
+    // =========================================================================
+    // MESSAGES (Chat)
+    // Alunos e professores leem apenas as conversas em que participam.
+    // =========================================================================
+    match /messages/{messageId} {
+      allow read: if isSignedIn() && (
+        resource.data.user_id == request.auth.uid
+        || resource.data.teacher_id == request.auth.uid
+        || isAdmin()
+      );
+      allow create: if isSignedIn() && (
+        request.resource.data.user_id == request.auth.uid
+        || request.resource.data.teacher_id == request.auth.uid
+      );
+      allow update, delete: if isAdmin();
+    }
+  }
+}
