@@ -39,7 +39,8 @@ import {
     Clock,
     Check,
     AlertCircle,
-    RotateCcw
+    RotateCcw,
+    XCircle
 } from 'lucide-react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
@@ -47,7 +48,7 @@ import { useDropzone } from 'react-dropzone'
 import { auth, db } from '@/lib/firebase'
 import { doc, getDoc, collection, query, where, orderBy, getDocs } from 'firebase/firestore'
 import { uploadCourseImage, uploadCourseVideo } from "@/lib/storage-helpers"
-import { updateCourseAction, deleteVideoAction } from "../../actions"
+import { updateCourseAction, deleteVideoAction, cancelLessonDeletionRequest } from "../../actions"
 import { onAuthStateChanged, User } from 'firebase/auth'
 
 const CATEGORIES = [
@@ -82,13 +83,14 @@ interface Module {
 }
 
 // --- Sortable Item Component (Lesson) ---
-function SortableLesson({ lesson, onDelete, onSelect, isSelected, onTitleChange, onResubmit }: {
+function SortableLesson({ lesson, onDelete, onSelect, isSelected, onTitleChange, onResubmit, onCancel }: {
     lesson: Lesson,
     onDelete: () => void,
     onSelect: () => void,
     isSelected: boolean,
     onTitleChange: (newTitle: string) => void,
-    onResubmit?: () => void
+    onResubmit?: () => void,
+    onCancel?: () => void
 }) {
     const {
         attributes,
@@ -129,13 +131,18 @@ function SortableLesson({ lesson, onDelete, onSelect, isSelected, onTitleChange,
                     <div className="flex items-center gap-2">
                         {lesson.status === 'REJEITADO' ? (
                             <AlertCircle size={14} className="text-red-500" />
+                        ) : lesson.status === 'SOLICITADO_EXCLUSAO' ? (
+                            <Clock size={14} className="text-red-500" />
                         ) : (
                             <div className={`w-1.5 h-1.5 rounded-xl ${lesson.video_url ? 'bg-[#1D5F31]' : 'bg-slate-700'}`}></div>
                         )}
                         <span className={`text-[9px] font-black uppercase tracking-[2px] ${
-                            lesson.status === 'REJEITADO' ? 'text-red-500' : 'text-black/60'
+                            lesson.status === 'REJEITADO' ? 'text-red-500' : 
+                            lesson.status === 'SOLICITADO_EXCLUSAO' ? 'text-red-500' : 'text-black/60'
                         }`}>
-                            {lesson.status === 'REJEITADO' ? 'REJEITADA' : (lesson.video_url ? 'VÍDEO ATIVO' : 'AGUARDANDO CONTEÚDO')}
+                            {lesson.status === 'REJEITADO' ? 'REJEITADA' : 
+                             lesson.status === 'SOLICITADO_EXCLUSAO' ? 'REMOÇÃO SOLICITADA' : 
+                             (lesson.video_url ? 'VÍDEO ATIVO' : 'AGUARDANDO CONTEÚDO')}
                         </span>
                     </div>
                 </div>
@@ -153,23 +160,42 @@ function SortableLesson({ lesson, onDelete, onSelect, isSelected, onTitleChange,
                         <RotateCcw size={18} />
                     </button>
                 )}
-                <button
-                    onClick={(e) => {
-                        e.stopPropagation()
-                        onDelete()
-                    }}
-                    className="p-3 text-slate-400 hover:text-red-500 transition-all hover:bg-red-500/10 rounded-xl"
-                    title="Excluir aula"
-                >
-                    <Trash2 size={18} />
-                </button>
+                {lesson.status === 'SOLICITADO_EXCLUSAO' ? (
+                    onCancel ? (
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                onCancel()
+                            }}
+                            className="p-3 text-amber-500 hover:text-amber-600 transition-all hover:bg-amber-50 rounded-xl"
+                            title="Cancelar solicitação de exclusão"
+                        >
+                            <XCircle size={18} />
+                        </button>
+                    ) : (
+                        <div className="p-3 text-red-400 rounded-xl" title="Aguardando aprovação de exclusão">
+                            <Clock size={18} />
+                        </div>
+                    )
+                ) : (
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            onDelete()
+                        }}
+                        className="p-3 text-slate-400 hover:text-red-500 transition-all hover:bg-red-500/10 rounded-xl"
+                        title="Excluir aula"
+                    >
+                        <Trash2 size={18} />
+                    </button>
+                )}
             </div>
         </div>
     )
 }
 
 // --- Sortable Module Component ---
-function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons, onSelectLesson, selectedLessonId, onLessonTitleChange, onDeleteModule, canDeleteModule, onResubmitLesson }: {
+function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons, onSelectLesson, selectedLessonId, onLessonTitleChange, onDeleteModule, canDeleteModule, onResubmitLesson, onCancelLesson }: {
     module: Module,
     onAddLesson: () => void,
     onDeleteLesson: (lessonId: string) => void,
@@ -179,7 +205,8 @@ function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons,
     onLessonTitleChange: (lessonId: string, newTitle: string) => void,
     onDeleteModule: () => void,
     canDeleteModule: boolean,
-    onResubmitLesson?: (lessonId: string) => void
+    onResubmitLesson?: (lessonId: string) => void,
+    onCancelLesson?: (lessonId: string) => void
 }) {
     const {
         attributes,
@@ -252,6 +279,7 @@ function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons,
                                 onDelete={() => onDeleteLesson(lesson.id)}
                                 onTitleChange={(newTitle) => onLessonTitleChange(lesson.id, newTitle)}
                                 onResubmit={() => onResubmitLesson && onResubmitLesson(lesson.id)}
+                                onCancel={() => onCancelLesson && onCancelLesson(lesson.id)}
                             />
                         ))}
                     </SortableContext>
@@ -688,6 +716,22 @@ export default function CourseBuilder() {
                                         } : m))
                                         if (selectedLesson?.id === lessonId) {
                                             setSelectedLesson(prev => prev ? { ...prev, status: 'PENDENTE' } : null)
+                                        }
+                                    }}
+                                    onCancelLesson={async (lessonId) => {
+                                        if (!confirm('Cancelar a solicitação de exclusão desta aula?')) return
+                                        const result = await cancelLessonDeletionRequest(lessonId, params.id as string)
+                                        if (result.success) {
+                                            setModules(prev => prev.map(m => m.id === module.id ? {
+                                                ...m,
+                                                lessons: m.lessons.map(l => l.id === lessonId ? { ...l, status: 'APROVADO' } : l)
+                                            } : m))
+                                            if (selectedLesson?.id === lessonId) {
+                                                setSelectedLesson(prev => prev ? { ...prev, status: 'APROVADO' } : null)
+                                            }
+                                            alert('Solicitação de exclusão cancelada!')
+                                        } else {
+                                            alert('Erro ao cancelar: ' + result.error)
                                         }
                                     }}
                                 />

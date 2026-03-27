@@ -1,4 +1,4 @@
-import { getPendingCourses, getPendingLessons, getAllTeachers } from '@/app/actions/admin'
+import { getPendingCourses, getPendingLessons, getAllTeachers, getDeletionPendingCourses, getDeletionPendingLessons } from '@/app/actions/admin'
 import { ApprovalsContent } from '@/app/admin/approvals/components/ApprovalsContent'
 
 export const dynamic = 'force-dynamic'
@@ -7,6 +7,8 @@ export default async function ApprovalsPage() {
     const pendingCourses = await getPendingCourses()
     const pendingLessons = await getPendingLessons()
     const teachers = await getAllTeachers()
+    const deletionPendingCourses = await getDeletionPendingCourses()
+    const deletionPendingLessons = await getDeletionPendingLessons()
 
     const teachersMap = teachers.reduce((acc: any, t: any) => {
         acc[t.id] = t.full_name || t.email
@@ -39,6 +41,8 @@ export default async function ApprovalsPage() {
                     pendingCourses={pendingCourses}
                     lessonsInActiveCourses={lessonsInActiveCourses}
                     teachersMap={teachersMap}
+                    deletionPendingCourses={deletionPendingCourses}
+                    deletionPendingLessons={deletionPendingLessons}
                 />
             </main>
         </div>

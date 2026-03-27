@@ -1,23 +1,30 @@
 'use client'
 
 import { useState } from 'react'
-import { LayoutGrid, PlaySquare } from 'lucide-react'
+import { LayoutGrid, PlaySquare, Trash2 } from 'lucide-react'
 import CourseApprovalList from './CourseApprovalList'
 import LessonApprovalList from './LessonApprovalList'
+import DeletionApprovalList from './DeletionApprovalList'
 import { cn } from '@/lib/utils'
 
 interface ApprovalsContentProps {
     pendingCourses: any[]
     lessonsInActiveCourses: any[]
     teachersMap: Record<string, string>
+    deletionPendingCourses: any[]
+    deletionPendingLessons: any[]
 }
 
 export function ApprovalsContent({ 
     pendingCourses, 
     lessonsInActiveCourses, 
-    teachersMap 
+    teachersMap,
+    deletionPendingCourses,
+    deletionPendingLessons
 }: ApprovalsContentProps) {
-    const [activeTab, setActiveTab] = useState<'courses' | 'lessons'>('courses')
+    const [activeTab, setActiveTab] = useState<'courses' | 'lessons' | 'deletions'>('courses')
+
+    const deletionCount = deletionPendingCourses.length + deletionPendingLessons.length
 
     const tabs = [
         { 
@@ -31,6 +38,12 @@ export function ApprovalsContent({
             label: 'Aulas Pendentes', 
             icon: PlaySquare, 
             count: lessonsInActiveCourses.length 
+        },
+        { 
+            id: 'deletions', 
+            label: 'Exclusões', 
+            icon: Trash2, 
+            count: deletionCount 
         }
     ]
 
@@ -74,10 +87,16 @@ export function ApprovalsContent({
                         initialCourses={pendingCourses} 
                         teachersMap={teachersMap} 
                     />
-                ) : (
+                ) : activeTab === 'lessons' ? (
                     <LessonApprovalList 
                         lessons={lessonsInActiveCourses} 
                         teachersMap={teachersMap} 
+                    />
+                ) : (
+                    <DeletionApprovalList 
+                        pendingCourses={deletionPendingCourses}
+                        pendingLessons={deletionPendingLessons}
+                        teachersMap={teachersMap}
                     />
                 )}
             </div>

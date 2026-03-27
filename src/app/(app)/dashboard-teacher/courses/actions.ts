@@ -75,6 +75,7 @@ export async function createCourseAction(formData: any) {
 
 /**
  * Action para excluir um curso existente
+ * Se o curso estiver APROVADO, solicita exclusão ao admin ao invés de excluir imediatamente
  */
 export async function deleteCourseAction(courseId: string) {
     const user = await getAuthUser()
@@ -88,7 +89,17 @@ export async function deleteCourseAction(courseId: string) {
             return { error: 'Não autorizado ou curso não encontrado.' }
         }
 
-        // Deleta lições associadas
+        const currentStatus = courseDoc.data()?.status
+
+        if (currentStatus === 'APROVADO') {
+            await courseRef.update({
+                status: 'SOLICITADO_EXCLUSAO',
+                updated_at: new Date()
+            })
+            revalidatePath('/dashboard-teacher/courses')
+            return { success: true, requested: true }
+        }
+
         const lessonsSnapshot = await adminDb.collection('lessons').where('course_id', '==', courseId).get()
         const batch = adminDb.batch()
         lessonsSnapshot.docs.forEach(doc => batch.delete(doc.ref))
@@ -147,8 +158,15 @@ export async function updateCourseAction(courseId: string, formData: any) {
 
         const batch = adminDb.batch()
 
-        // Deleta as que não vieram
-        idsToDelete.forEach(id => batch.delete(lessonsRef.doc(id)))
+        // Deleta as que não vieram (se APROVADO, solicita exclusão ao invés de deletar)
+        for (const id of idsToDelete) {
+            const lessonData = existingLessonsMap.get(id)
+            if (lessonData?.status === 'APROVADO') {
+                batch.update(lessonsRef.doc(id), { status: 'SOLICITADO_EXCLUSAO', updated_at: new Date() })
+            } else {
+                batch.delete(lessonsRef.doc(id))
+            }
+        }
 
         // Upsert
         lessons.forEach((lesson: any, index: number) => {
@@ -239,5 +257,72 @@ export async function deleteVideoAction(id: string, collectionName: 'courses' | 
     } catch (error) {
         console.error('Erro ao remover vídeo:', error);
         return { error: 'Falha ao processar remoção física do vídeo.' };
+    }
+}
+
+/**
+ * Action para cancelar solicitação de exclusão de curso
+ */
+export async function cancelCourseDeletionRequest(courseId: string) {
+    const user = await getAuthUser()
+    if (!user) return { error: "Não autorizado" }
+
+    try {
+        const courseRef = adminDb.collection('courses').doc(courseId)
+        const courseDoc = await courseRef.get()
+
+        if (!courseDoc.exists || courseDoc.data()?.teacher_id !== user.uid) {
+            return { error: 'Não autorizado ou curso não encontrado.' }
+        }
+
+        if (courseDoc.data()?.status !== 'SOLICITADO_EXCLUSAO') {
+            return { error: 'Este curso não tem uma solicitação de exclusão pendente.' }
+        }
+
+        await courseRef.update({
+            status: 'APROVADO',
+            updated_at: new Date()
+        })
+
+        revalidatePath('/dashboard-teacher/courses')
+        return { success: true }
+    } catch (error) {
+        console.error('Erro ao cancelar solicitação:', error)
+        return { error: 'Falha ao cancelar solicitação.' }
+    }
+}
+
+/**
+ * Action para cancelar solicitação de exclusão de aula
+ */
+export async function cancelLessonDeletionRequest(lessonId: string, courseId: string) {
+    const user = await getAuthUser()
+    if (!user) return { error: "Não autorizado" }
+
+    try {
+        const courseRef = adminDb.collection('courses').doc(courseId)
+        const courseDoc = await courseRef.get()
+
+        if (!courseDoc.exists || courseDoc.data()?.teacher_id !== user.uid) {
+            return { error: 'Não autorizado ou curso não encontrado.' }
+        }
+
+        const lessonRef = adminDb.collection('lessons').doc(lessonId)
+        const lessonDoc = await lessonRef.get()
+
+        if (!lessonDoc.exists || lessonDoc.data()?.status !== 'SOLICITADO_EXCLUSAO') {
+            return { error: 'Esta aula não tem uma solicitação de exclusão pendente.' }
+        }
+
+        await lessonRef.update({
+            status: 'APROVADO',
+            updated_at: new Date()
+        })
+
+        revalidatePath(`/dashboard-teacher/courses/${courseId}/edit`)
+        return { success: true }
+    } catch (error) {
+        console.error('Erro ao cancelar solicitação:', error)
+        return { error: 'Falha ao cancelar solicitação.' }
     }
 }

@@ -248,6 +248,57 @@ export async function getPendingLessons() {
 }
 
 /**
+ * Lista todos os cursos com status SOLICITADO_EXCLUSAO.
+ */
+export async function getDeletionPendingCourses() {
+    try {
+        const coursesSnap = await adminDb.collection('courses')
+            .where('status', '==', 'SOLICITADO_EXCLUSAO')
+            .get()
+            
+        const courses = coursesSnap.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }))
+
+        return JSON.parse(JSON.stringify(courses))
+    } catch (error) {
+        console.error("Error getting deletion pending courses:", error)
+        return []
+    }
+}
+
+/**
+ * Lista todas as aulas com status SOLICITADO_EXCLUSAO.
+ */
+export async function getDeletionPendingLessons() {
+    try {
+        const lessonsSnap = await adminDb.collection('lessons')
+            .where('status', '==', 'SOLICITADO_EXCLUSAO')
+            .get()
+            
+        const lessons = await Promise.all(lessonsSnap.docs.map(async (doc) => {
+            const data = doc.data()
+            const courseDoc = await adminDb.collection('courses').doc(data.course_id).get()
+            const courseData = courseDoc.exists ? courseDoc.data() : null
+            
+            return {
+                id: doc.id,
+                ...data,
+                course_title: courseData?.title || 'Curso N/A',
+                course_status: courseData?.status || 'N/A',
+                teacher_id: courseData?.teacher_id || null
+            }
+        }))
+
+        return JSON.parse(JSON.stringify(lessons))
+    } catch (error) {
+        console.error("Error getting deletion pending lessons:", error)
+        return []
+    }
+}
+
+/**
  * Aprova apenas o curso (aulas continuam pendentes).
  */
 // ... dentro da função approveCourse
@@ -473,5 +524,164 @@ export async function getSalesLogs(professorId?: string, startDate?: Date, endDa
     } catch (error) {
         console.error("Error getting sales logs:", error)
         return []
+    }
+}
+
+/**
+ * Aprova a exclusão de um curso (exclui permanentemente)
+ */
+export async function approveCourseDeletion(courseId: string) {
+    try {
+        const courseDoc = await adminDb.collection('courses').doc(courseId).get()
+        const courseData = courseDoc.data()
+
+        if (!courseDoc.exists) {
+            return { success: false, error: "Curso não encontrado." }
+        }
+
+        const lessonsSnapshot = await adminDb.collection('lessons').where('course_id', '==', courseId).get()
+        const batch = adminDb.batch()
+        lessonsSnapshot.docs.forEach(doc => batch.delete(doc.ref))
+        batch.delete(adminDb.collection('courses').doc(courseId))
+        await batch.commit()
+
+        if (courseData?.teacher_id) {
+            await adminDb.collection('notifications').add({
+                user_id: courseData.teacher_id,
+                type: 'course_deleted',
+                title: 'Curso Excluído',
+                message: `Seu curso "${courseData.title}" foi removido permanentemente por um administrador.`,
+                course_id: courseId,
+                read: false,
+                created_at: new Date()
+            })
+        }
+
+        revalidatePath('/admin/approvals')
+        revalidatePath('/dashboard-teacher/courses')
+        return { success: true }
+    } catch (error) {
+        console.error("Error approving course deletion:", error)
+        return { success: false, error: "Falha ao excluir curso." }
+    }
+}
+
+/**
+ * Rejeita a exclusão de um curso (mantém o curso como APROVADO)
+ */
+export async function rejectCourseDeletion(courseId: string) {
+    try {
+        const courseDoc = await adminDb.collection('courses').doc(courseId).get()
+        const courseData = courseDoc.data()
+
+        await adminDb.collection('courses').doc(courseId).update({
+            status: 'APROVADO',
+            updated_at: new Date()
+        })
+
+        if (courseData?.teacher_id) {
+            await adminDb.collection('notifications').add({
+                user_id: courseData.teacher_id,
+                type: 'deletion_rejected',
+                title: 'Exclusão de Curso Rejeitada',
+                message: `A solicitação de exclusão do seu curso "${courseData.title}" foi rejeitada. O curso permanece ativo.`,
+                course_id: courseId,
+                read: false,
+                created_at: new Date()
+            })
+        }
+
+        revalidatePath('/admin/approvals')
+        revalidatePath('/dashboard-teacher/courses')
+        return { success: true }
+    } catch (error) {
+        console.error("Error rejecting course deletion:", error)
+        return { success: false, error: "Falha ao rejeitar exclusão." }
+    }
+}
+
+/**
+ * Aprova a exclusão de uma aula (exclui permanentemente)
+ */
+export async function approveLessonDeletion(lessonId: string) {
+    try {
+        const lessonDoc = await adminDb.collection('lessons').doc(lessonId).get()
+        const lessonData = lessonDoc.data()
+
+        if (!lessonDoc.exists) {
+            return { success: false, error: "Aula não encontrada." }
+        }
+
+        // TODO: Implementar Mux SDK para deletar o asset via mux_asset_id antes de remover do DB
+        // if (lessonData?.mux_asset_id) {
+        //     await mux.video.assets.delete(lessonData.mux_asset_id);
+        // }
+
+        await adminDb.collection('lessons').doc(lessonId).delete()
+
+        if (lessonData?.course_id) {
+            const courseDoc = await adminDb.collection('courses').doc(lessonData.course_id).get()
+            const courseData = courseDoc.data()
+
+            if (courseData?.teacher_id) {
+                await adminDb.collection('notifications').add({
+                    user_id: courseData.teacher_id,
+                    type: 'lesson_deleted',
+                    title: 'Aula Excluída',
+                    message: `Sua aula "${lessonData.title}" foi removida permanentemente por um administrador.`,
+                    course_id: lessonData.course_id,
+                    lesson_id: lessonId,
+                    read: false,
+                    created_at: new Date()
+                })
+            }
+        }
+
+        revalidatePath('/admin/approvals')
+        revalidatePath(`/dashboard-teacher/courses/${lessonData?.course_id}/edit`)
+        return { success: true }
+    } catch (error) {
+        console.error("Error approving lesson deletion:", error)
+        return { success: false, error: "Falha ao excluir aula." }
+    }
+}
+
+/**
+ * Rejeita a exclusão de uma aula (mantém a aula como APROVADO)
+ */
+export async function rejectLessonDeletion(lessonId: string) {
+    try {
+        const lessonDoc = await adminDb.collection('lessons').doc(lessonId).get()
+        const lessonData = lessonDoc.data()
+
+        await adminDb.collection('lessons').doc(lessonId).update({
+            status: 'APROVADO',
+            updated_at: new Date()
+        })
+
+        if (lessonData?.course_id) {
+            const courseDoc = await adminDb.collection('courses').doc(lessonData.course_id).get()
+            const courseData = courseDoc.data()
+
+            if (courseData?.teacher_id) {
+                await adminDb.collection('notifications').add({
+                    user_id: courseData.teacher_id,
+                    type: 'deletion_rejected',
+                    title: 'Exclusão de Aula Rejeitada',
+                    message: `A solicitação de exclusão da sua aula "${lessonData.title}" foi rejeitada. A aula permanece ativa.`,
+                    course_id: lessonData.course_id,
+                    lesson_id: lessonId,
+                    read: false,
+                    created_at: new Date()
+                })
+            }
+        }
+
+        revalidatePath('/admin/approvals')
+        revalidatePath(`/dashboard-teacher/courses/${lessonData?.course_id}/edit`)
+        return { success: true }
+    } catch (error) {
+        console.error("Error rejecting lesson deletion:", error)
+        return { success: false, error: "Falha ao rejeitar exclusão." }
     }
 }

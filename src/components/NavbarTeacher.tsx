@@ -98,7 +98,6 @@ export default function NavbarTeacher() {
                                 <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/analytics")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-slate-50 rounded-xl cursor-pointer hover:text-black">Vendas</DropdownMenuItem>
                                 <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/settings")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-slate-50 rounded-xl cursor-pointer hover:text-black">Configurações</DropdownMenuItem>
                                 <DropdownMenuSeparator className="my-1 bg-slate-100" />
-                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student")} className="px-3 py-3 text-sm font-bold text-[#1D5F31] focus:bg-slate-50 rounded-xl cursor-pointer hover:text-[#00a302] bg-green-50/50">Modo Aluno (Testes)</DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     </div>
@@ -118,8 +117,6 @@ export default function NavbarTeacher() {
                         {userProfile?.role === 'admin' && (
                             <Link href="/admin/dashboard" className="text-sm font-black text-[#1D5F31] hover:text-[#00a302] transition-colors py-3 px-3 bg-green-50 border-l-2 border-[#1D5F31]">PAINEL ADMIN</Link>
                         )}
-                        <div className="h-4 w-px bg-slate-200 mx-1"></div>
-                        <Link href="/dashboard-student" className="text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors py-3 px-3">Modo Aluno</Link>
                     </div>
                 </div>
 

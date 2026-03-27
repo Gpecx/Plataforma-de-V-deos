@@ -41,6 +41,7 @@ interface Course {
     price?: number;
     tag?: string;
     image_url?: string | null;
+    status: 'APROVADO' | 'PENDENTE' | 'DESATIVADO';
 }
 
 interface CoursesClientProps {
@@ -78,7 +79,7 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
     const filteredCourses = searchQuery
         ? initialCourses.filter(c =>
             (c.title?.toLowerCase().includes(searchQuery) ||
-            c.category?.toLowerCase().includes(searchQuery)) &&
+                c.category?.toLowerCase().includes(searchQuery)) &&
             c.status === 'APROVADO'
         )
         : initialCourses.filter(c => c.status === 'APROVADO');
@@ -146,7 +147,7 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
                                 transition={{ duration: 0.3, delay: 0.2 }}
                                 className="text-xl !text-white max-w-xl font-medium leading-relaxed"
                             >
-                                {isLoggedIn 
+                                {isLoggedIn
                                     ? "Sua jornada não para aqui. Explore novos conteúdos exclusivos da nossa curadoria."
                                     : displaySlides[currentSlide]?.subtitle
                                 }
@@ -247,7 +248,7 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
                                                     alt={course.title}
                                                     className="object-cover w-full h-full group-hover:scale-105 transition duration-500"
                                                 />
-                                                <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm border border-slate-200 text-[#1D5F31] px-2 py-0.5 text-[8px] font-black uppercase tracking-widest rounded-md">
+                                                <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm border border-slate-200 text-[#1D5F31] px-2 py-0.5 text-[8px] font-black uppercase tracking-widest rounded-md z-10">
                                                     {course.tag || "TREINAMENTO"}
                                                 </div>
                                             </div>

@@ -100,5 +100,62 @@ A aplicação utiliza o **App Router** do Next.js, onde a maioria das rotas são
 
 ---
 
-**Última Atualização:** 26 de Março de 2026
-**Status do Documento:** Versão 1.0 (Estável)
+**Última Atualização:** 27 de Março de 2026
+**Status do Documento:** Versão 1.2 (Estável)
+
+---
+
+## 7. Changelog de Implementações — 26 e 27 de Março de 2026
+
+### 26 de Março de 2026
+
+#### 🎨 Front-end
+
+**Refinamento Visual — Dashboard do Professor (`/dashboard-teacher/courses/[courseId]/edit`)**
+- Suavização da intensidade das bordas dos elementos do formulário de edição de curso, reduzindo o ruído visual da interface.
+- Botões de ação do formulário (salvar, cancelar, excluir) atualizados para utilizar a paleta de cores definida no design system do projeto (`#1D5F31` para ações primárias/verde e azul para ações secundárias).
+- Cor do texto nos botões ajustada para `white` em todos os estados para garantir contraste adequado e consistência com o padrão visual da plataforma.
+
+---
+
+### 27 de Março de 2026
+
+#### 🎨 Front-end
+
+**Funcionalidade: Reprodução de Vídeo na Fila de Exclusões — Admin (`/admin/approvals`)**
+
+Arquivo modificado: `src/app/admin/approvals/components/DeletionApprovalList.tsx`
+
+- Exportada a interface `LessonData` com tipagem completa e campos opcionais para suporte futuro ao Mux:
+  - `video_url?: string | null` — URL legada de vídeo (Firebase Storage / upload direto).
+  - `mux_playback_id?: string | null` — ID de playback do Mux para migração futura.
+  - `mux_asset_id?: string | null` — ID de asset do Mux para futura gestão via SDK.
+- Adicionado estado `selectedLesson: LessonData | null` no componente para gerenciar qual aula está sendo exibida no modal.
+- Implementado **VideoModal** animado via `framer-motion` (`AnimatePresence` + `motion.div`):
+  - **Lógica de player híbrida**: renderiza `SecureMuxPlayer` se `mux_playback_id` estiver presente; caso contrário, faz fallback para a tag `<video>` nativa com `autoPlay` e `controls`.
+  - Exibe nome da aula e curso associado no rodapé do modal.
+  - Modal fecha ao clicar no backdrop ou no botão `X`.
+- Overlay interativo de Play adicionado nos thumbnails das aulas pendentes de exclusão:
+  - Fundo com `bg-black/20` que escurece para `bg-black/40` no hover.
+  - Ícone `Play` (lucide-react, preenchido) centralizado, revelado com transição de opacidade e escala suave no hover.
+  - Cursor `pointer` ativado em toda a área do thumbnail.
+- Importações adicionadas: `motion`, `AnimatePresence` de `framer-motion`; ícone `Play` de `lucide-react`; componente `SecureMuxPlayer`.
+
+#### ⚙️ Back-end
+
+**Placeholder de Cleanup para Mux — `src/app/actions/admin.ts`**
+
+- Inserido bloco `// TODO` documentado na Server Action `approveLessonDeletion`, indicando o ponto exato onde a chamada ao **Mux SDK** deverá ocorrer para exclusão do asset de vídeo (`mux_asset_id`) antes da remoção definitiva do documento no Firestore.
+  - Comentário de código incluso como guia para a implementação futura:
+    ```ts
+    // TODO: Implementar Mux SDK para deletar o asset via mux_asset_id antes de remover do DB
+    // if (lessonData?.mux_asset_id) {
+    //     await mux.video.assets.delete(lessonData.mux_asset_id);
+    // }
+    ```
+
+#### 🗄️ Banco de Dados (Firestore)
+
+**Nenhuma alteração de schema realizada.** As mudanças de 27/03 foram exclusivamente de front-end e back-end (nível de código). Os campos `mux_playback_id` e `mux_asset_id` foram adicionados como **opcionais** na interface TypeScript `LessonData`, antecipando a migração futura da coleção `lessons` no Firestore para armazenar esses campos. Quando a migração for concluída, os documentos de `lessons` deverão incluir esses campos para que o player Mux seja automaticamente ativado no painel de moderação do Admin.
+
+

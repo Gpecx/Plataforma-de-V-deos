@@ -19,8 +19,9 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { XCircle } from 'lucide-react'
 // Importamos a action que você acabou de criar no actions.ts
-import { deleteCourseAction } from './actions'
+import { deleteCourseAction, cancelCourseDeletionRequest } from './actions'
 
 export default function TeacherCoursesPage() {
     const [courses, setCourses] = useState<any[]>([])
@@ -49,17 +50,38 @@ export default function TeacherCoursesPage() {
     }, [])
 
     // --- AQUI ENTRA O CÓDIGO QUE VOCÊ ESTAVA NA DÚVIDA ---
-    const handleDelete = async (courseId: string) => {
-        if (!confirm("Tem certeza que deseja excluir este curso permanentemente?")) return;
+    const handleDelete = async (courseId: string, currentStatus: string) => {
+        const confirmMessage = currentStatus === 'APROVADO' 
+            ? "Este curso está APROVADO. A exclusão será enviada para aprovação do admin. Continuar?" 
+            : "Tem certeza que deseja excluir este curso permanentemente?";
+        
+        if (!confirm(confirmMessage)) return;
 
         const result = await deleteCourseAction(courseId);
 
         if (result.success) {
-            // Remove o curso da lista na tela na mesma hora
-            setCourses(prev => prev.filter(c => c.id !== courseId));
-            alert("🚀 Curso removido com sucesso!");
+            if (result.requested) {
+                alert("📋 Solicitação de exclusão enviada ao admin!");
+                setCourses(prev => prev.map(c => c.id === courseId ? { ...c, status: 'SOLICITADO_EXCLUSAO' } : c));
+            } else {
+                setCourses(prev => prev.filter(c => c.id !== courseId));
+                alert("🚀 Curso removido com sucesso!");
+            }
         } else {
             alert("Erro ao remover: " + result.error);
+        }
+    };
+
+    const handleCancelDeletionRequest = async (courseId: string) => {
+        if (!confirm("Cancelar a solicitação de exclusão? O curso voltará a estar ativo.")) return;
+
+        const result = await cancelCourseDeletionRequest(courseId);
+
+        if (result.success) {
+            alert("Solicitação de exclusão cancelada!");
+            setCourses(prev => prev.map(c => c.id === courseId ? { ...c, status: 'APROVADO' } : c));
+        } else {
+            alert("Erro ao cancelar: " + result.error);
         }
     };
     // ---------------------------------------------------
@@ -121,19 +143,23 @@ export default function TeacherCoursesPage() {
                                     alt={curso.title}
                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                                 />
-                                <div className="absolute top-4 right-4 flex flex-col gap-2">
+                                <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
                                     <div className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-black/20 shadow-sm">
                                         <span className="text-[8px] font-black text-slate-900 tracking-widest uppercase">{curso.category || 'GERAL'}</span>
                                     </div>
                                     <div className={`px-3 py-1.5 rounded-lg border shadow-sm ${
                                         curso.status === 'APROVADO' 
-                                            ? 'bg-[#1D5F31]/10 border-[#1D5F31]/30' 
+                                            ? 'bg-white/95 backdrop-blur-md border-[#1D5F31]/30' 
+                                            : curso.status === 'SOLICITADO_EXCLUSAO'
+                                            ? 'bg-red-50 border-red-300'
                                             : 'bg-amber-50 border-amber-300'
                                     }`}>
                                         <span className={`text-[8px] font-black tracking-widest uppercase ${
-                                            curso.status === 'APROVADO' ? 'text-[#1D5F31]' : 'text-amber-700'
+                                            curso.status === 'APROVADO' ? 'text-[#1D5F31]' : 
+                                            curso.status === 'SOLICITADO_EXCLUSAO' ? 'text-red-600' : 'text-amber-700'
                                         }`}>
-                                            {curso.status === 'APROVADO' ? 'Aprovado' : 'Pendente'}
+                                            {curso.status === 'APROVADO' ? 'Aprovado' : 
+                                             curso.status === 'SOLICITADO_EXCLUSAO' ? 'Remoção Solicitada' : 'Pendente'}
                                         </span>
                                     </div>
                                 </div>
@@ -159,13 +185,25 @@ export default function TeacherCoursesPage() {
                                         </Button>
                                     </Link>
 
-                                    <Button
-                                        variant="outline"
-                                        onClick={() => handleDelete(curso.id)}
-                                        className="border border-black/20 text-slate-600 hover:text-red-600 hover:border-red-600 hover:bg-red-50 p-4 w-14 h-14 rounded-xl transition-all shadow-sm"
-                                    >
-                                        <Trash2 size={18} />
-                                    </Button>
+                                    {curso.status === 'SOLICITADO_EXCLUSAO' ? (
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => handleCancelDeletionRequest(curso.id)}
+                                            className="border border-amber-400 text-amber-600 hover:text-amber-700 hover:bg-amber-50 p-4 w-14 h-14 rounded-xl transition-all shadow-sm"
+                                            title="Cancelar solicitação de exclusão"
+                                        >
+                                            <XCircle size={18} />
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => handleDelete(curso.id, curso.status)}
+                                            className="border border-black/20 text-slate-600 hover:text-red-600 hover:border-red-600 hover:bg-red-50 p-4 w-14 h-14 rounded-xl transition-all shadow-sm"
+                                            title="Excluir curso"
+                                        >
+                                            <Trash2 size={18} />
+                                        </Button>
+                                    )}
                                 </div>
                             </div>
                         </div>

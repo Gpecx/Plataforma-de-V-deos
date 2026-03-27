@@ -184,9 +184,6 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                                     <Link href="/admin/dashboard" className="text-[10px] font-black uppercase tracking-[0.2em] text-[#22c55e] border border-[#22c55e]/30 px-3 py-2 rounded-xl hover:bg-[#22c55e]/10 transition-all duration-300 ml-2">
                                         Painel Admin
                                     </Link>
-                                    <Link href="/dashboard-student" className="text-[10px] font-bold uppercase tracking-widest text-slate-400 border border-white/10 px-3 py-2 rounded-xl hover:bg-white/5 transition-all duration-300 ml-2">
-                                        Modo Aluno
-                                    </Link>
                                 </>
                             )}
                         </div>
@@ -334,9 +331,6 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                                                             <ShieldAlert size={18} className="text-[#22c55e]" /><span className="text-[11px] font-black uppercase tracking-widest leading-none">Acessar Painel Admin</span>
                                                         </DropdownMenuItem>
 
-                                                        <DropdownMenuItem onSelect={() => router.push("/dashboard-student")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none mb-1", light ? "text-slate-600 hover:!text-[#1D5F31] focus:!text-[#1D5F31]" : "text-slate-400 hover:!text-[#1D5F31] focus:!text-[#1D5F31]")}>
-                                                            <GraduationCap size={18} className={light ? "text-slate-600" : "text-slate-400"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Modo Aluno (Testes)</span>
-                                                        </DropdownMenuItem>
                                                     </>
                                                 )}
                                                 <DropdownMenuSeparator className={cn("my-2", light ? "bg-slate-100" : "bg-white/5")} />
@@ -477,14 +471,6 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                             </div>
                         )}
 
-                        {userProfile?.role === 'admin' && (
-                            <div className={`pt-3 border-t mt-3 ${'border-white/10'}`}>
-
-                                <Link href="/dashboard-student" onClick={() => setIsMobileMenuOpen(false)} className={`flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-sm transition text-[#1D5F31]`}>
-                                    <GraduationCap size={16} /> Modo Aluno (Testes)
-                                </Link>
-                            </div>
-                        )}
 
                     </div>
                 )}
