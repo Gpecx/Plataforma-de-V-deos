@@ -317,7 +317,8 @@ export async function approveCourse(courseId: string) {
 
         // Cria notificação para o professor
         if (courseData?.teacher_id) {
-            await adminDb.collection('notifications').add({
+            console.log('[approveCourse] Creating notification for teacher:', courseData.teacher_id)
+            const notifRef = await adminDb.collection('notifications').add({
                 user_id: courseData.teacher_id,
                 type: 'course_approved',
                 title: 'Curso Aprovado!',
@@ -326,6 +327,9 @@ export async function approveCourse(courseId: string) {
                 read: false,
                 created_at: new Date()
             })
+            console.log('[approveCourse] Notification created with ID:', notifRef.id)
+        } else {
+            console.warn('[approveCourse] No teacher_id found for course:', courseId)
         }
 
         revalidatePath('/admin/approvals')
@@ -364,7 +368,8 @@ export async function approveLesson(lessonId: string) {
 
         // Cria notificação para o professor
         if (courseData?.teacher_id) {
-            await adminDb.collection('notifications').add({
+            console.log('[approveLesson] Creating notification for teacher:', courseData.teacher_id)
+            const notifRef = await adminDb.collection('notifications').add({
                 user_id: courseData.teacher_id,
                 type: 'lesson_approved',
                 title: 'Aula Aprovada!',
@@ -374,6 +379,9 @@ export async function approveLesson(lessonId: string) {
                 read: false,
                 created_at: new Date()
             })
+            console.log('[approveLesson] Notification created with ID:', notifRef.id)
+        } else {
+            console.warn('[approveLesson] No teacher_id found for course:', lessonData.course_id)
         }
         
         revalidatePath('/admin/approvals')
@@ -412,7 +420,8 @@ export async function rejectLesson(lessonId: string, reason: string) {
 
         // Cria notificação para o professor
         if (courseData?.teacher_id) {
-            await adminDb.collection('notifications').add({
+            console.log('[rejectLesson] Creating notification for teacher:', courseData.teacher_id)
+            const notifRef = await adminDb.collection('notifications').add({
                 user_id: courseData.teacher_id,
                 type: 'lesson_rejected',
                 title: 'Aula Rejeitada',
@@ -422,6 +431,9 @@ export async function rejectLesson(lessonId: string, reason: string) {
                 read: false,
                 created_at: new Date()
             })
+            console.log('[rejectLesson] Notification created with ID:', notifRef.id)
+        } else {
+            console.warn('[rejectLesson] No teacher_id found for course:', lessonData.course_id)
         }
         
         revalidatePath('/admin/approvals')
@@ -453,7 +465,8 @@ export async function rejectCourse(courseId: string, reason: string) {
 
         // Cria notificação para o professor
         if (courseData.teacher_id) {
-            await adminDb.collection('notifications').add({
+            console.log('[rejectCourse] Creating notification for teacher:', courseData.teacher_id)
+            const notifRef = await adminDb.collection('notifications').add({
                 user_id: courseData.teacher_id,
                 type: 'course_rejected',
                 title: 'Curso Rejeitado',
@@ -462,6 +475,9 @@ export async function rejectCourse(courseId: string, reason: string) {
                 read: false,
                 created_at: new Date()
             })
+            console.log('[rejectCourse] Notification created with ID:', notifRef.id)
+        } else {
+            console.warn('[rejectCourse] No teacher_id found for course:', courseId)
         }
         
         revalidatePath('/admin/approvals')
