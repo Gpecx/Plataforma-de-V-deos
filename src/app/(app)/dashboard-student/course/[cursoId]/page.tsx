@@ -36,21 +36,21 @@ export default async function CoursePage({ params }: CoursePageProps) {
     uid = decodedToken.uid;
   } catch {
     // Token invalid or expired — clear cookies and redirect
-    redirect("/api/auth/signout?redirectTo=/login");
+    redirect("/api/auth/signout?redirectTo=/login" as any);
   }
 
   // ─── 2. Session Lock: Validate active_session_id ─────────────────────────
   const sessionIdCookie = cookieStore.get("active_session_id")?.value;
 
   if (!sessionIdCookie) {
-    redirect("/api/auth/signout?redirectTo=/login");
+    redirect("/api/auth/signout?redirectTo=/login" as any);
   }
 
   // ─── 3. Enrollment validation: Check purchase + session concurrency ───────
   const profileSnap = await adminDb.collection("profiles").doc(uid).get();
 
   if (!profileSnap.exists) {
-    redirect("/dashboard-student/my-courses?error=unauthorized");
+    redirect("/dashboard-student/my-courses?error=unauthorized" as any);
   }
 
   const profileData = profileSnap.data() as ProfileData;
@@ -59,21 +59,21 @@ export default async function CoursePage({ params }: CoursePageProps) {
   if (profileData.active_session_id !== sessionIdCookie) {
     // Another device logged in and took over the session
     redirect(
-      "/api/auth/signout?redirectTo=/login?error=concurrent_login"
+      "/api/auth/signout?redirectTo=/login?error=concurrent_login" as any
     );
   }
 
   const cursosPurchased = profileData?.cursos_comprados ?? [];
 
   if (!cursosPurchased.includes(cursoId)) {
-    redirect("/dashboard-student/my-courses?error=unauthorized");
+    redirect("/dashboard-student/my-courses?error=unauthorized" as any);
   }
 
   // ─── 4. Fetch course data ─────────────────────────────────────────────────
   const courseSnap = await adminDb.collection("courses").doc(cursoId).get();
 
   if (!courseSnap.exists) {
-    redirect("/dashboard-student/my-courses");
+    redirect("/dashboard-student/my-courses" as any);
   }
 
   const courseData = courseSnap.data() as CourseData;
