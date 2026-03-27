@@ -171,7 +171,7 @@ export function NotificationBell({
                 await updateDoc(doc(db, 'notifications', notif.id), { read: true })
             } catch (err) { console.error('Error marking as read:', err) }
         }
-        router.push(notif.href)
+        router.push(notif.href as any)
     }
 
     return (

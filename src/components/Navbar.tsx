@@ -168,7 +168,7 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                             {filteredNavLinks.map(link => (
                                 <Link
                                     key={link.href}
-                                    href={link.href}
+                                    href={link.href as any}
                                     className={cn(
                                         "transition-colors duration-200 text-[13px] font-black uppercase tracking-[0.2em] px-4 py-2 font-exo",
                                         pathname === link.href
@@ -427,7 +427,7 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                         {filteredNavLinks.map(link => (
                             <Link
                                 key={link.href}
-                                href={link.href}
+                                href={link.href as any}
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className={cn(
                                     "flex items-center px-4 py-3 rounded-xl font-bold text-sm tracking-tight transition-colors",

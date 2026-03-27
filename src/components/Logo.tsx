@@ -74,7 +74,7 @@ export default function Logo({ className = '', variant = 'horizontal', href = '/
 
     if (variant === 'text-only') {
         return (
-            <Link href={href} className={`hover:scale-105 transition-transform duration-500 outline-none ${className}`}>
+            <Link href={href as any} className={`hover:scale-105 transition-transform duration-500 outline-none ${className}`}>
                 <span className={`text-2xl font-black tracking-tighter uppercase`} style={{ color: primaryColor }}>
                     POWER <span style={{ color: primaryColor }}>PLAY</span>
                 </span>
@@ -83,7 +83,7 @@ export default function Logo({ className = '', variant = 'horizontal', href = '/
     }
 
     return (
-        <Link href={href} className={`flex items-center hover:opacity-90 transition-opacity outline-none h-12 md:h-14 ${className}`}>
+        <Link href={href as any} className={`flex items-center hover:opacity-90 transition-opacity outline-none h-12 md:h-14 ${className}`}>
             <PowerPlayLogo />
         </Link>
     )

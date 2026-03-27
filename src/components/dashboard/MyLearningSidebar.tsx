@@ -75,7 +75,7 @@ export function MyLearningSidebar({ recentCourses }: MyLearningSidebarProps) {
                 </div>
 
                 <div className="mt-8 pt-6 border-t border-slate-50">
-                    <Link href="/dashboard-student/my-courses" className="text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-[#1D5F31] transition-colors flex items-center justify-center gap-2">
+                    <Link href={"/dashboard-student/my-courses" as any} className="text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-[#1D5F31] transition-colors flex items-center justify-center gap-2">
                         Ver todos os cursos
                     </Link>
                 </div>

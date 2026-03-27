@@ -83,7 +83,7 @@ export default function CourseModal({ course, isOpen, onClose }: CourseModalProp
                             <div className="flex items-center gap-2 mb-6">
                                 <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest leading-none">Instrutor:</span>
                                 <Link 
-                                    href={`/professor/${course.teacher_id}`}
+                                    href={`/professor/${course.teacher_id}` as any}
                                     onClick={onClose}
                                     className="text-[9px] font-black text-[#1D5F31] uppercase tracking-[2px] hover:underline leading-none"
                                 >
