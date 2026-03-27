@@ -248,10 +248,10 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                                 <ShoppingCart size={20} />
                                 {mounted && items.length > 0 && (
                                     <span className={cn(
-                                        "absolute -top-1 -right-1.5 w-4 h-4 rounded-full bg-[#1D5F31] text-white text-[9px] font-black flex items-center justify-center border-2",
+                                        "absolute -top-1.5 -right-2 min-w-[20px] h-5 px-1 rounded-full bg-[#1D5F31] !text-white text-[11px] font-black flex items-center justify-center border-2",
                                         light ? "border-white" : "border-[#061629]"
                                     )}>
-                                        {items.length}
+                                        {items.length > 99 ? '99+' : items.length}
                                     </span>
                                 )}
                             </Link>
