@@ -88,7 +88,7 @@ export default function AdminSidebar() {
                     return (
                         <Link 
                             key={item.href} 
-                            href={item.href}
+                            href={item.href as any}
                             className={cn(
                                 "group flex items-center gap-4 p-4 transition-all duration-300 relative",
                                 isActive 
