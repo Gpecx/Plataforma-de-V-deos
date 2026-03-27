@@ -58,7 +58,7 @@ function LoginContent() {
             router.refresh()
 
             if (redirectTo) {
-                router.push(redirectTo)
+                window.location.href = redirectTo
                 return
             }
 
