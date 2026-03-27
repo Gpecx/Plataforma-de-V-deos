@@ -75,7 +75,7 @@ export function ConversionBridge({ redirectTo, onShowLogin }: ConversionBridgePr
                         className="space-y-4"
                     >
                         <Link
-                            href={registerUrl}
+                            href={registerUrl as any}
                             className="w-full flex items-center justify-center gap-3 bg-[#28b828] hover:bg-[#28b828] text-white font-black uppercase tracking-[3px] h-14 rounded-xl shadow-lg transition-all hover:scale-[1.01] active:scale-[0.99]"
                         >
                             Quero me inscrever agora
