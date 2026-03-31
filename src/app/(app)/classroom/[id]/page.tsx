@@ -148,7 +148,7 @@ export default function ClassroomPage() {
             <header className="h-16 flex items-center justify-between px-6 border-b border-slate-800 bg-[#061629] z-50 shadow-sm">
                 {/* Lado Esquerdo: Logo para sair da classroom */}
                 <div className="flex items-center w-1/4">
-                    <Link href="/courses" className="flex items-center gap-3 text-slate-400 hover:text-white transition-colors group">
+                    <Link href="/course" className="flex items-center gap-3 text-slate-400 hover:text-white transition-colors group">
                         <Logo />
                         <span className="text-xs font-black uppercase tracking-widest group-hover:text-white transition-colors hidden md:block">
                             Sair
