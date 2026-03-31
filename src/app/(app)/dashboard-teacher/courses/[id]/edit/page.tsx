@@ -40,7 +40,8 @@ import {
     Check,
     AlertCircle,
     RotateCcw,
-    XCircle
+    XCircle,
+    HelpCircle
 } from 'lucide-react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
@@ -50,6 +51,9 @@ import { doc, getDoc, collection, query, where, orderBy, getDocs } from 'firebas
 import { uploadCourseImage, uploadCourseVideo } from "@/lib/storage-helpers"
 import { updateCourseAction, deleteVideoAction, cancelLessonDeletionRequest } from "../../actions"
 import { onAuthStateChanged, User } from 'firebase/auth'
+import QuizForm from '@/app/(app)/dashboard-teacher/components/QuizForm'
+
+import { Quiz, Question } from '@/lib/types/quiz'
 
 const CATEGORIES = [
     'Engenharia Elétrica',
@@ -74,6 +78,13 @@ interface Lesson {
     description?: string
     status?: string
     motivoRejeicao?: string
+    type?: 'lesson' | 'quiz'
+    quizData?: {
+        id?: string
+        title?: string
+        description?: string
+        questions?: Question[]
+    }
 }
 
 interface Module {
@@ -118,13 +129,13 @@ function SortableLesson({ lesson, onDelete, onSelect, isSelected, onTitleChange,
                     <GripVertical size={20} />
                 </button>
                 <div className={`p-3 rounded-xl transition-colors ${isSelected ? 'bg-[#1D5F31]/10 text-[#1D5F31]' : 'bg-white text-slate-500'}`}>
-                    <Video size={18} />
+                    {lesson.type === 'quiz' ? <HelpCircle size={18} /> : <Video size={18} />}
                 </div>
                 <div>
                     <input
                         className="bg-transparent border-none focus:outline-none text-base font-black tracking-tight w-full text-black placeholder:text-black/40 mb-1"
                         value={lesson.title}
-                        placeholder="Título da Aula Digital"
+                        placeholder={lesson.type === 'quiz' ? 'Título do Quiz' : 'Título da Aula Digital'}
                         onClick={(e) => e.stopPropagation()}
                         onChange={(e) => onTitleChange(e.target.value)}
                     />
@@ -134,7 +145,7 @@ function SortableLesson({ lesson, onDelete, onSelect, isSelected, onTitleChange,
                         ) : lesson.status === 'SOLICITADO_EXCLUSAO' ? (
                             <Clock size={14} className="text-red-500" />
                         ) : (
-                            <div className={`w-1.5 h-1.5 rounded-xl ${lesson.video_url ? 'bg-[#1D5F31]' : 'bg-slate-700'}`}></div>
+                            <div className={`w-1.5 h-1.5 rounded-xl ${lesson.type === 'quiz' ? 'bg-[#1D5F31]' : (lesson.video_url ? 'bg-[#1D5F31]' : 'bg-slate-700')}`}></div>
                         )}
                         <span className={`text-[9px] font-black uppercase tracking-[2px] ${
                             lesson.status === 'REJEITADO' ? 'text-red-500' : 
@@ -142,7 +153,7 @@ function SortableLesson({ lesson, onDelete, onSelect, isSelected, onTitleChange,
                         }`}>
                             {lesson.status === 'REJEITADO' ? 'REJEITADA' : 
                              lesson.status === 'SOLICITADO_EXCLUSAO' ? 'REMOÇÃO SOLICITADA' : 
-                             (lesson.video_url ? 'VÍDEO ATIVO' : 'AGUARDANDO CONTEÚDO')}
+                             (lesson.type === 'quiz' ? 'QUESTIONÁRIO' : (lesson.video_url ? 'VÍDEO ATIVO' : 'AGUARDANDO CONTEÚDO'))}
                         </span>
                     </div>
                 </div>
@@ -195,7 +206,7 @@ function SortableLesson({ lesson, onDelete, onSelect, isSelected, onTitleChange,
 }
 
 // --- Sortable Module Component ---
-function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons, onSelectLesson, selectedLessonId, onLessonTitleChange, onDeleteModule, canDeleteModule, onResubmitLesson, onCancelLesson }: {
+function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons, onSelectLesson, selectedLessonId, onLessonTitleChange, onDeleteModule, canDeleteModule, onResubmitLesson, onCancelLesson, onAddQuiz }: {
     module: Module,
     onAddLesson: () => void,
     onDeleteLesson: (lessonId: string) => void,
@@ -206,7 +217,8 @@ function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons,
     onDeleteModule: () => void,
     canDeleteModule: boolean,
     onResubmitLesson?: (lessonId: string) => void,
-    onCancelLesson?: (lessonId: string) => void
+    onCancelLesson?: (lessonId: string) => void,
+    onAddQuiz?: () => void
 }) {
     const {
         attributes,
@@ -257,6 +269,13 @@ function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons,
                     >
                         <Plus size={16} />
                         Adicionar Aula
+                    </button>
+                    <button
+                        onClick={onAddQuiz}
+                        className="flex items-center gap-3 px-6 py-3 bg-slate-800 text-white rounded-xl text-[9px] font-black uppercase tracking-[3px] hover:bg-slate-700 transition-all border-none"
+                    >
+                        <HelpCircle size={16} />
+                        Adicionar Quiz
                     </button>
                 </div>
             </div>
@@ -734,6 +753,23 @@ export default function CourseBuilder() {
                                             alert('Erro ao cancelar: ' + result.error)
                                         }
                                     }}
+                                    onAddQuiz={() => {
+                                        const newQuiz: Lesson = { 
+                                            id: `quiz-${Date.now()}`, 
+                                            title: 'Novo Questionário', 
+                                            video_url: '', 
+                                            position: module.lessons.length + 1, 
+                                            description: '',
+                                            type: 'quiz',
+                                            quizData: {
+                                                title: 'Novo Questionário',
+                                                description: '',
+                                                questions: [{ id: Math.random().toString(), text: '', options: ['', ''], correctAnswer: 0 }]
+                                            }
+                                        }
+                                        setModules(prev => prev.map(m => m.id === module.id ? { ...m, lessons: [...m.lessons, newQuiz] } : m))
+                                        setSelectedLesson(newQuiz)
+                                    }}
                                 />
                             ))}
                         </SortableContext>
@@ -790,77 +826,97 @@ export default function CourseBuilder() {
                                 </div>
 
                                 <div className="grid grid-cols-1 gap-10">
-                                    {!selectedLesson.video_url ? (
-                                        <div className="animate-in fade-in zoom-in duration-500">
-                                            <VideoUpload onUploadComplete={(url) => {
-                                                setSelectedLesson({ ...selectedLesson, video_url: url })
+                                    {selectedLesson.type === 'quiz' ? (
+                                        <QuizForm 
+                                            initialData={selectedLesson.quizData}
+                                            onSave={(quizData: {
+                                                id?: string
+                                                title?: string
+                                                description?: string
+                                                questions?: Question[]
+                                            }) => {
+                                                setSelectedLesson({ ...selectedLesson, quizData })
                                                 setModules(prev => prev.map(m => ({
                                                     ...m,
-                                                    lessons: m.lessons.map(l => l.id === selectedLesson.id ? { ...l, video_url: url } : l)
+                                                    lessons: m.lessons.map(l => l.id === selectedLesson.id ? { ...l, quizData } : l)
                                                 })))
-                                            }} />
-                                        </div>
+                                            }}
+                                        />
                                     ) : (
-                                        <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                                            <div className="aspect-video w-full bg-black rounded-xl overflow-hidden border border-[#1D5F31]/20 group relative">
-                                                <video
-                                                    src={selectedLesson.video_url}
-                                                    controls
-                                                    className="w-full h-full object-contain"
-                                                />
-                                                <div className="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <div className="bg-white/80 backdrop-blur-md px-4 py-2 rounded-xl border border-[#1D5F31]/20 text-[10px] font-black uppercase text-[#1D5F31] tracking-widest flex items-center gap-2">
-                                                        <span className="w-2 h-2 rounded-xl bg-[#1D5F31] animate-pulse"></span>
-                                                        Conteúdo Ativo
-                                                    </div>
+                                        <>
+                                            {!selectedLesson.video_url ? (
+                                                <div className="animate-in fade-in zoom-in duration-500">
+                                                    <VideoUpload onUploadComplete={(url) => {
+                                                        setSelectedLesson({ ...selectedLesson, video_url: url })
+                                                        setModules(prev => prev.map(m => ({
+                                                            ...m,
+                                                            lessons: m.lessons.map(l => l.id === selectedLesson.id ? { ...l, video_url: url } : l)
+                                                        })))
+                                                    }} />
                                                 </div>
-                                            </div>
-
-                                            <div className="flex flex-col md:flex-row gap-6 items-center">
-                                                <div className="flex-1 p-6 bg-[#1D5F31]/10 rounded-xl border border-[#1D5F31]/20/20 w-full">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="w-10 h-10 bg-[#1D5F31] rounded-xl flex items-center justify-center text-white">
-                                                            <CheckCircle2 size={20} />
-                                                        </div>
-                                                        <div>
-                                                            <span className="text-[10px] font-black uppercase text-[#1D5F31] tracking-[2px] block mb-1">Upload Processado com Sucesso</span>
-                                                            <p className="text-[11px] text-black/60 font-medium truncate max-w-[400px]">{selectedLesson.video_url}</p>
+                                            ) : (
+                                                <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-right-4 duration-500">
+                                                    <div className="aspect-video w-full bg-black rounded-xl overflow-hidden border border-[#1D5F31]/20 group relative">
+                                                        <video
+                                                            src={selectedLesson.video_url}
+                                                            controls
+                                                            className="w-full h-full object-contain"
+                                                        />
+                                                        <div className="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            <div className="bg-white/80 backdrop-blur-md px-4 py-2 rounded-xl border border-[#1D5F31]/20 text-[10px] font-black uppercase text-[#1D5F31] tracking-widest flex items-center gap-2">
+                                                                <span className="w-2 h-2 rounded-xl bg-[#1D5F31] animate-pulse"></span>
+                                                                Conteúdo Ativo
+                                                            </div>
                                                         </div>
                                                     </div>
+
+                                                    <div className="flex flex-col md:flex-row gap-6 items-center">
+                                                        <div className="flex-1 p-6 bg-[#1D5F31]/10 rounded-xl border border-[#1D5F31]/20/20 w-full">
+                                                            <div className="flex items-center gap-4">
+                                                                <div className="w-10 h-10 bg-[#1D5F31] rounded-xl flex items-center justify-center text-white">
+                                                                    <CheckCircle2 size={20} />
+                                                                </div>
+                                                                <div>
+                                                                    <span className="text-[10px] font-black uppercase text-[#1D5F31] tracking-[2px] block mb-1">Upload Processado com Sucesso</span>
+                                                                    <p className="text-[11px] text-black/60 font-medium truncate max-w-[400px]">{selectedLesson.video_url}</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <button
+                                                            onClick={async () => {
+                                                                if (!confirm("Tem certeza que deseja apagar permanentemente este vídeo? Isso não pode ser desfeito.")) return
+
+                                                                setIsDeletingVideo(true)
+                                                                try {
+                                                                    const result = await deleteVideoAction(selectedLesson.id, 'lessons', selectedLesson.video_url)
+                                                                    if (result.success) {
+                                                                        setSelectedLesson({ ...selectedLesson, video_url: '' })
+                                                                        setModules(prev => prev.map(m => ({
+                                                                            ...m,
+                                                                            lessons: m.lessons.map(l => l.id === selectedLesson.id ? { ...l, video_url: '' } : l)
+                                                                        })))
+                                                                    } else {
+                                                                        alert(result.error)
+                                                                    }
+                                                                } catch (error) {
+                                                                    alert("Houve um erro técnico ao tentar remover o vídeo.")
+                                                                } finally {
+                                                                    setIsDeletingVideo(false)
+                                                                }
+                                                            }}
+                                                            disabled={isDeletingVideo}
+                                                            className="w-full md:w-auto flex items-center justify-center gap-3 px-8 py-5 bg-red-500/10 text-red-500 rounded-xl text-xs font-black uppercase tracking-[3px] hover:bg-red-500/20 transition-all border-2 border-red-500/20 disabled:opacity-50 group"
+                                                        >
+                                                            {isDeletingVideo ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} className="group-hover:scale-110 transition-transform" />}
+                                                            {isDeletingVideo ? 'Processando Exclusão...' : 'Substituir Conteúdo'}
+                                                        </button>
+                                                    </div>
+
+
                                                 </div>
-
-                                                <button
-                                                    onClick={async () => {
-                                                        if (!confirm("Tem certeza que deseja apagar permanentemente este vídeo? Isso não pode ser desfeito.")) return
-
-                                                        setIsDeletingVideo(true)
-                                                        try {
-                                                            const result = await deleteVideoAction(selectedLesson.id, 'lessons', selectedLesson.video_url)
-                                                            if (result.success) {
-                                                                setSelectedLesson({ ...selectedLesson, video_url: '' })
-                                                                setModules(prev => prev.map(m => ({
-                                                                    ...m,
-                                                                    lessons: m.lessons.map(l => l.id === selectedLesson.id ? { ...l, video_url: '' } : l)
-                                                                })))
-                                                            } else {
-                                                                alert(result.error)
-                                                            }
-                                                        } catch (error) {
-                                                            alert("Houve um erro técnico ao tentar remover o vídeo.")
-                                                        } finally {
-                                                            setIsDeletingVideo(false)
-                                                        }
-                                                    }}
-                                                    disabled={isDeletingVideo}
-                                                    className="w-full md:w-auto flex items-center justify-center gap-3 px-8 py-5 bg-red-500/10 text-red-500 rounded-xl text-xs font-black uppercase tracking-[3px] hover:bg-red-500/20 transition-all border-2 border-red-500/20 disabled:opacity-50 group"
-                                                >
-                                                    {isDeletingVideo ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} className="group-hover:scale-110 transition-transform" />}
-                                                    {isDeletingVideo ? 'Processando Exclusão...' : 'Substituir Conteúdo'}
-                                                </button>
-                                            </div>
-
-
-                                        </div>
+                                            )}
+                                        </>
                                     )}
                                 </div>
                             </div>

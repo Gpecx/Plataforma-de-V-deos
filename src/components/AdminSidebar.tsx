@@ -2,12 +2,12 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { 
-    LayoutDashboard, 
-    Users, 
-    Settings, 
-    BarChart3, 
-    ShieldAlert, 
+import {
+    LayoutDashboard,
+    Users,
+    Settings,
+    BarChart3,
+    ShieldAlert,
     LogOut,
     ChevronRight,
     Loader2
@@ -54,12 +54,6 @@ const menuItems: MenuItem[] = [
         href: '/admin/approvals',
         description: 'Cursos e Aulas'
     },
-    {
-        title: 'Auditoria de Vendas',
-        icon: ShieldAlert,
-        href: '/admin/sales',
-        description: 'Logs Financeiros'
-    },
 ]
 
 export default function AdminSidebar() {
@@ -86,22 +80,22 @@ export default function AdminSidebar() {
                 {menuItems.map((item) => {
                     const isActive = pathname === item.href
                     return (
-                        <Link 
-                            key={item.href} 
+                        <Link
+                            key={item.href}
                             href={item.href as any}
                             className={cn(
                                 "group flex items-center gap-4 p-4 transition-all duration-300 relative",
-                                isActive 
-                                    ? "text-[#1D5F31]" 
+                                isActive
+                                    ? "text-[#1D5F31]"
                                     : "text-slate-700 hover:!text-[#1D5F31] font-medium"
                             )}
                         >
-                            <item.icon 
-                                size={20} 
+                            <item.icon
+                                size={20}
                                 className={cn(
                                     "transition-colors duration-300",
                                     isActive ? "text-[#1D5F31]" : "text-slate-700 group-hover:text-[#1D5F31]"
-                                )} 
+                                )}
                             />
                             <div className="flex flex-col">
                                 <span className={cn(
@@ -117,12 +111,12 @@ export default function AdminSidebar() {
                                     {item.description}
                                 </span>
                             </div>
-                            <ChevronRight 
-                                size={14} 
+                            <ChevronRight
+                                size={14}
                                 className={cn(
                                     "ml-auto transition-transform duration-300",
                                     isActive ? "text-[#1D5F31] translate-x-0" : "text-slate-400 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0"
-                                )} 
+                                )}
                             />
                         </Link>
                     )
@@ -130,7 +124,7 @@ export default function AdminSidebar() {
             </nav>
 
             <div className="p-8 border-t border-slate-200">
-                <button 
+                <button
                     onClick={handleExitPanel}
                     disabled={isLoggingOut}
                     className="flex items-center gap-3 !text-[#000000] hover:!text-red-500 transition-colors uppercase font-black text-[10px] tracking-widest group disabled:opacity-50"

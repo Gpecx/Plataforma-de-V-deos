@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import { approveLesson, rejectLesson } from '@/app/actions/admin'
-import { X, PlaySquare, AlertCircle, Loader2 } from 'lucide-react'
+import { X, PlaySquare, AlertCircle, Loader2, HelpCircle, CheckCircle2 } from 'lucide-react'
 import Logo from '@/components/Logo'
+import { Question } from '@/lib/types/quiz'
 
 interface Lesson {
     id: string
@@ -13,6 +14,13 @@ interface Lesson {
     course_title: string
     course_status: string
     teacher_id: string
+    type?: 'lesson' | 'quiz'
+    quizData?: {
+        id?: string
+        title?: string
+        description?: string
+        questions?: Question[]
+    }
 }
 
 interface LessonApprovalListProps {
@@ -150,9 +158,15 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
                                 <header className="p-6 flex justify-between items-center bg-white border-b border-black/5">
                                     <div className="flex items-center gap-4">
                                         <div className="w-10 h-10 rounded-lg bg-black/5 flex items-center justify-center border border-black/10">
-                                            <PlaySquare size={18} className="text-[#1D5F31]" strokeWidth={2.5} />
+                                            {reviewingLesson.type === 'quiz' ? (
+                                                <HelpCircle size={18} className="text-[#1D5F31]" strokeWidth={2.5} />
+                                            ) : (
+                                                <PlaySquare size={18} className="text-[#1D5F31]" strokeWidth={2.5} />
+                                            )}
                                         </div>
-                                        <h2 className="text-[11px] font-bold uppercase tracking-wider !text-[#000000]">AUDITORIA DE VÍDEO-AULA</h2>
+                                        <h2 className="text-[11px] font-bold uppercase tracking-wider !text-[#000000]">
+                                            {reviewingLesson.type === 'quiz' ? 'AUDITORIA DE QUESTIONÁRIO' : 'AUDITORIA DE VÍDEO-AULA'}
+                                        </h2>
                                     </div>
                                     <button 
                                         onClick={() => setReviewingLesson(null)} 
@@ -162,8 +176,43 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
                                     </button>
                                 </header>
 
-                                <div className="flex-1 flex items-center justify-center bg-slate-900 p-0 relative group" key={reviewingLesson.id}>
-                                    {isExternalVideo(reviewingLesson.video_url) ? (
+                                <div className="flex-1 flex items-center justify-center bg-slate-900 p-0 relative group overflow-y-auto" key={reviewingLesson.id}>
+                                    {reviewingLesson.type === 'quiz' && reviewingLesson.quizData?.questions ? (
+                                        <div className="w-full h-full p-8 overflow-y-auto bg-white">
+                                            <div className="max-w-2xl mx-auto space-y-6">
+                                                <h3 className="text-xl font-black uppercase tracking-tighter text-slate-900 mb-6">
+                                                    {reviewingLesson.quizData.title || reviewingLesson.title}
+                                                </h3>
+                                                {reviewingLesson.quizData.questions.map((question, qIndex) => (
+                                                    <div key={qIndex} className="bg-slate-50 border border-slate-200 rounded-xl p-6">
+                                                        <div className="flex items-start gap-3 mb-4">
+                                                            <span className="bg-slate-900 text-white text-xs font-black px-3 py-1 rounded-lg">
+                                                                {qIndex + 1}
+                                                            </span>
+                                                            <p className="font-bold text-slate-900 flex-1">{question.text}</p>
+                                                        </div>
+                                                        <div className="space-y-2 ml-8">
+                                                            {question.options?.map((option, oIndex) => (
+                                                                <div 
+                                                                    key={oIndex} 
+                                                                    className={`flex items-center gap-3 p-3 rounded-lg border ${
+                                                                        question.correctAnswer === oIndex 
+                                                                            ? 'bg-green-50 border-green-500 text-green-700' 
+                                                                            : 'bg-white border-slate-200 text-slate-600'
+                                                                    }`}
+                                                                >
+                                                                    {question.correctAnswer === oIndex && (
+                                                                        <CheckCircle2 size={16} className="text-green-500" />
+                                                                    )}
+                                                                    <span className="text-sm font-medium">{option}</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ) : isExternalVideo(reviewingLesson.video_url) ? (
                                         <iframe
                                             src={getEmbedUrl(reviewingLesson.video_url)}
                                             className="w-full h-full aspect-video border-0"

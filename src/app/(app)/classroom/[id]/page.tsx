@@ -19,6 +19,7 @@ import { auth } from '@/lib/firebase'
 import Logo from '@/components/Logo'
 import { onAuthStateChanged } from 'firebase/auth'
 import { getClassroomData } from './actions'
+import { QuizPlayer } from './QuizPlayer'
 
 const scrollbarHideStyle = {
     msOverflowStyle: 'none',
@@ -37,6 +38,7 @@ export default function ClassroomPage() {
     const [loading, setLoading] = useState(true)
     const [isCheckingAccess, setIsCheckingAccess] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [autoNextCountdown, setAutoNextCountdown] = useState<number | null>(null)
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -47,11 +49,11 @@ export default function ClassroomPage() {
             }
 
             const courseId = params.id as string
-            
+
             try {
                 setIsCheckingAccess(true)
                 const result = await getClassroomData(courseId, user.uid)
-                
+
                 if (!result.success) {
                     if (result.error === 'ACCESS_DENIED') {
                         router.push(`/course/${courseId}`)
@@ -65,7 +67,7 @@ export default function ClassroomPage() {
 
                 setCourse(result.course)
                 setLessons(result.lessons || [])
-                
+
                 if (result.lessons && result.lessons.length > 0) {
                     setCurrentLesson(result.lessons[0])
                 } else {
@@ -83,7 +85,25 @@ export default function ClassroomPage() {
         return () => unsubscribe()
     }, [params.id, router])
 
+    useEffect(() => {
+        let timer: NodeJS.Timeout
+        if (autoNextCountdown !== null && autoNextCountdown > 0) {
+            timer = setTimeout(() => {
+                setAutoNextCountdown(autoNextCountdown - 1)
+            }, 1000)
+        } else if (autoNextCountdown === 0) {
+            goToNextLesson()
+            setAutoNextCountdown(null)
+        }
+        return () => clearTimeout(timer)
+    }, [autoNextCountdown])
+
+    const cancelAutoNext = () => {
+        setAutoNextCountdown(null)
+    }
+
     const goToNextLesson = () => {
+        cancelAutoNext()
         const index = lessons.findIndex(l => l.id === currentLesson?.id)
         if (index < lessons.length - 1) {
             setCurrentLesson(lessons[index + 1])
@@ -91,6 +111,7 @@ export default function ClassroomPage() {
     }
 
     const goToPrevLesson = () => {
+        cancelAutoNext()
         const index = lessons.findIndex(l => l.id === currentLesson?.id)
         if (index > 0) {
             setCurrentLesson(lessons[index - 1])
@@ -194,20 +215,82 @@ export default function ClassroomPage() {
 
             <main className="flex flex-1 overflow-hidden h-full">
                 {/* Player Section */}
-                <div 
+                <div
                     className="flex-1 overflow-y-auto flex flex-col transition-colors duration-500 bg-[#061629] scrollbar-hide"
                     style={scrollbarHideStyle}
                 >
                     <div className="flex-1 flex items-center justify-center p-0 md:p-6 lg:p-8">
                         <div className="w-full max-w-[1440px] aspect-video relative group animate-in zoom-in-95 duration-700">
                             <div className="relative w-full h-full rounded-2xl overflow-hidden border border-slate-100 shadow-2xl transition-all duration-500 bg-black">
-                                <video
-                                    src={currentLesson?.video_url}
-                                    controls
-                                    className="w-full h-full object-contain"
-                                    poster={course?.image_url}
-                                    onEnded={() => toggleLessonStatus(currentLesson?.id)}
-                                />
+                                {currentLesson?.type === 'quiz' ? (
+                                    <QuizPlayer
+                                        quizData={currentLesson.quizData || {}}
+                                        onComplete={() => toggleLessonStatus(currentLesson.id)}
+                                    />
+                                ) : (
+                                    <>
+                                        <video
+                                            src={currentLesson?.video_url}
+                                            controls
+                                            autoPlay
+                                            className="w-full h-full object-contain"
+                                            poster={course?.image_url}
+                                            onEnded={() => {
+                                                toggleLessonStatus(currentLesson?.id)
+                                                // Só inicia auto-next se não for a última aula
+                                                const index = lessons.findIndex(l => l.id === currentLesson?.id)
+                                                if (index < lessons.length - 1) {
+                                                    setAutoNextCountdown(3)
+                                                }
+                                            }}
+                                        />
+
+                                        {/* Overlay de Auto-Next */}
+                                        {autoNextCountdown !== null && (
+                                            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center z-20 animate-in fade-in duration-300">
+                                                <div className="text-center space-y-6">
+                                                    <div className="relative w-24 h-24 mx-auto">
+                                                        <svg className="w-full h-full transform -rotate-90">
+                                                            <circle
+                                                                cx="48"
+                                                                cy="48"
+                                                                r="44"
+                                                                stroke="currentColor"
+                                                                strokeWidth="4"
+                                                                fill="transparent"
+                                                                className="text-slate-800"
+                                                            />
+                                                            <circle
+                                                                cx="48"
+                                                                cy="48"
+                                                                r="44"
+                                                                stroke="currentColor"
+                                                                strokeWidth="4"
+                                                                fill="transparent"
+                                                                strokeDasharray={276.46}
+                                                                strokeDashoffset={276.46 * (1 - autoNextCountdown / 3)}
+                                                                className="text-green-500 transition-all duration-1000 ease-linear"
+                                                            />
+                                                        </svg>
+                                                        <span className="absolute inset-0 flex items-center justify-center text-4xl font-black text-white">
+                                                            {autoNextCountdown}
+                                                        </span>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-black uppercase tracking-[4px] text-green-500 mb-2">Próxima Aula em Instantes</p>
+                                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{lessons[lessons.findIndex(l => l.id === currentLesson?.id) + 1]?.title}</p>
+                                                    </div>
+                                                    <button
+                                                        onClick={cancelAutoNext}
+                                                        className="px-8 py-3 bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-700 transition-all"
+                                                    >
+                                                        Cancelar
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
                             </div>
 
                             <div className="flex items-center justify-between mt-2 px-4 md:px-0">
@@ -263,7 +346,7 @@ export default function ClassroomPage() {
                             <p className="text-[11px] font-black uppercase truncate tracking-tight text-white font-exo">{course?.title}</p>
                         </div>
 
-                        <div 
+                        <div
                             className="flex-1 overflow-y-auto scrollbar-hide"
                             style={scrollbarHideStyle}
                         >
@@ -272,6 +355,7 @@ export default function ClassroomPage() {
                                     <button
                                         key={lesson.id}
                                         onClick={() => {
+                                            cancelAutoNext()
                                             setCurrentLesson(lesson)
                                             if (window.innerWidth < 768) setSidebarOpen(false)
                                         }}
@@ -313,7 +397,9 @@ export default function ClassroomPage() {
                                                 {lesson.title}
                                             </p>
                                             <div className="flex items-center gap-2 mt-1">
-                                                <span className="text-[9px] font-black text-slate-200 uppercase tracking-widest leading-none">VÍDEO AULA</span>
+                                                <span className="text-[9px] font-black text-slate-200 uppercase tracking-widest leading-none">
+                                                    {lesson.type === 'quiz' ? 'QUESTIONÁRIO' : 'VÍDEO AULA'}
+                                                </span>
                                                 {currentLesson?.id === lesson.id && (
                                                     <span className="flex h-1 w-1 rounded-full bg-[#1D5F31] animate-pulse"></span>
                                                 )}
