@@ -134,7 +134,7 @@ export default function ClassroomPage() {
         : 0
 
     return (
-        <div className="flex flex-col h-screen overflow-hidden font-exo transition-colors duration-500 bg-white text-slate-900">
+        <div className="flex flex-col h-screen overflow-hidden font-exo transition-colors duration-500 bg-[#061629] text-white">
             <style jsx global>{`
                 .scrollbar-hide::-webkit-scrollbar {
                     display: none;
@@ -145,15 +145,20 @@ export default function ClassroomPage() {
                 }
             `}</style>
             {/* Header Imersivo */}
-            <header className="h-16 flex items-center justify-between px-6 border-b border-slate-200 bg-white z-50 shadow-sm">
-                {/* Lado Esquerdo: Identificador/Espaço */}
+            <header className="h-16 flex items-center justify-between px-6 border-b border-slate-800 bg-[#061629] z-50 shadow-sm">
+                {/* Lado Esquerdo: Logo para sair da classroom */}
                 <div className="flex items-center w-1/4">
-                    {/* Logo removido por solicitação */}
+                    <Link href="/courses" className="flex items-center gap-3 text-slate-400 hover:text-white transition-colors group">
+                        <Logo />
+                        <span className="text-xs font-black uppercase tracking-widest group-hover:text-white transition-colors hidden md:block">
+                            Sair
+                        </span>
+                    </Link>
                 </div>
 
                 {/* Centro: Título do Curso */}
                 <div className="flex-1 flex justify-center items-center px-4">
-                    <h1 className="text-sm md:text-base font-bold font-exo tracking-tight text-center line-clamp-1 text-slate-900">
+                    <h1 className="text-sm md:text-base font-bold font-exo tracking-tight text-center line-clamp-1 text-white">
                         {course?.title || 'Carregando...'}
                     </h1>
                 </div>
@@ -163,7 +168,7 @@ export default function ClassroomPage() {
                     <div className="hidden lg:flex items-center gap-3">
                         <div className="flex flex-col items-end">
                             <div className="flex items-center gap-2">
-                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Progresso Final</span>
+                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-200">Progresso Final</span>
                                 <span className="text-xs font-black text-[#1D5F31]">{progressPercent}%</span>
                             </div>
                             <div className="w-20 h-1 rounded-full overflow-hidden mt-1 bg-slate-100">
@@ -179,7 +184,7 @@ export default function ClassroomPage() {
 
                         <button
                             onClick={() => setSidebarOpen(!sidebarOpen)}
-                            className="p-2 bg-slate-50 text-slate-400 border border-slate-200 rounded-xl transition-colors hover:text-slate-900 flex items-center justify-center"
+                            className="p-2 bg-slate-800/50 text-slate-400 border border-slate-800 rounded-xl transition-colors hover:text-white flex items-center justify-center"
                         >
                             {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
                         </button>
@@ -190,7 +195,7 @@ export default function ClassroomPage() {
             <main className="flex flex-1 overflow-hidden h-full">
                 {/* Player Section */}
                 <div 
-                    className="flex-1 overflow-y-auto flex flex-col transition-colors duration-500 bg-white scrollbar-hide"
+                    className="flex-1 overflow-y-auto flex flex-col transition-colors duration-500 bg-[#061629] scrollbar-hide"
                     style={scrollbarHideStyle}
                 >
                     <div className="flex-1 flex items-center justify-center p-0 md:p-6 lg:p-8">
@@ -210,8 +215,8 @@ export default function ClassroomPage() {
                                     onClick={goToPrevLesson}
                                     disabled={lessons.findIndex(l => l.id === currentLesson?.id) === 0}
                                     className={`flex items-center gap-2 px-8 py-4 rounded-xl font-black font-exo uppercase tracking-tighter transition-all shadow-sm border ${lessons.findIndex(l => l.id === currentLesson?.id) === 0
-                                        ? 'bg-slate-50 text-slate-200 border-slate-100 cursor-not-allowed'
-                                        : 'bg-white text-slate-600 hover:text-slate-900 border-slate-200 hover:border-[#1D5F31]/40'
+                                        ? 'bg-slate-800/50 text-slate-500 border-slate-800 cursor-not-allowed'
+                                        : 'bg-slate-800 text-white hover:bg-slate-700 hover:border-white/20 border-slate-700'
                                         }`}
                                 >
                                     <ChevronLeft size={20} />
@@ -222,8 +227,8 @@ export default function ClassroomPage() {
                                     onClick={goToNextLesson}
                                     disabled={lessons.findIndex(l => l.id === currentLesson?.id) === lessons.length - 1}
                                     className={`flex items-center gap-2 px-8 py-4 rounded-xl font-black font-exo uppercase tracking-tighter transition-all shadow-md ${lessons.findIndex(l => l.id === currentLesson?.id) === lessons.length - 1
-                                        ? 'bg-slate-50 text-slate-200 border-slate-100 cursor-not-allowed'
-                                        : 'bg-[#1D5F31] text-white hover:bg-[#28b828] hover:scale-105 transition-all shadow-lg'
+                                        ? 'bg-slate-800/50 text-slate-500 border-slate-800 cursor-not-allowed'
+                                        : 'bg-green-600 text-white hover:bg-green-500 hover:scale-105 transition-all shadow-lg'
                                         }`}
                                 >
                                     <span className="text-xs">Próxima Aula</span>
@@ -248,21 +253,21 @@ export default function ClassroomPage() {
                 {/* Sidebar Playlist */}
                 <aside
                     className={`
-                        fixed md:relative top-0 right-0 h-full w-full md:w-[420px] transition-all duration-500 ease-in-out z-40 shadow-xl border-l border-slate-100 bg-white
+                        fixed md:relative top-0 right-0 h-full w-full md:w-[420px] transition-all duration-500 ease-in-out z-40 shadow-xl border-l border-slate-800 bg-[#061629]
                         ${sidebarOpen ? 'translate-x-0' : 'translate-x-full md:hidden'}
                     `}
                 >
                     <div className="flex flex-col h-full">
-                        <div className="p-8 border-b border-slate-100 bg-[#F8FAFC]">
-                            <h3 className="text-[10px] font-black uppercase tracking-[4px] text-[#1D5F31] mb-1 font-exo">CONTEÚDO DO CURSO</h3>
-                            <p className="text-[11px] font-black uppercase truncate tracking-tight text-slate-900 font-exo">{course?.title}</p>
+                        <div className="p-8 border-b border-slate-800 bg-[#061629]">
+                            <h3 className="text-[10px] font-black uppercase tracking-[4px] text-green-500 mb-1 font-exo">CONTEÚDO DO CURSO</h3>
+                            <p className="text-[11px] font-black uppercase truncate tracking-tight text-white font-exo">{course?.title}</p>
                         </div>
 
                         <div 
                             className="flex-1 overflow-y-auto scrollbar-hide"
                             style={scrollbarHideStyle}
                         >
-                            <div className="divide-y divide-slate-100">
+                            <div className="divide-y divide-slate-800">
                                 {lessons.map((lesson) => (
                                     <button
                                         key={lesson.id}
@@ -271,10 +276,10 @@ export default function ClassroomPage() {
                                             if (window.innerWidth < 768) setSidebarOpen(false)
                                         }}
                                         className={`
-                                            w-full flex items-center gap-4 px-8 py-6 text-left transition-all relative group border-b border-slate-100
+                                            w-full flex items-center gap-4 px-8 py-6 text-left transition-all relative group border-b border-slate-800
                                             ${currentLesson?.id === lesson.id
-                                                ? 'bg-slate-50'
-                                                : 'hover:bg-slate-50/50'}
+                                                ? 'bg-slate-800/50'
+                                                : 'hover:bg-slate-800/30'}
                                         `}
                                     >
                                         {/* Indicador de Aula Atual */}
@@ -291,7 +296,7 @@ export default function ClassroomPage() {
                                                 flex-shrink-0 w-6 h-6 rounded-full border flex items-center justify-center transition-all
                                                 ${completedLessons.includes(lesson.id)
                                                     ? 'bg-[#1D5F31] border-[#1D5F31]'
-                                                    : 'border-slate-200 group-hover:border-[#1D5F31]/40 bg-white'}
+                                                    : 'border-slate-700 group-hover:border-[#1D5F31]/40 bg-[#061629]'}
                                             `}
                                         >
                                             {completedLessons.includes(lesson.id) ? (
@@ -303,12 +308,12 @@ export default function ClassroomPage() {
 
                                         <div className="flex-1 min-w-0 font-exo">
                                             <p className={`text-[13px] font-bold tracking-tight truncate ${currentLesson?.id === lesson.id
-                                                ? 'text-slate-900'
-                                                : 'text-slate-500 group-hover:text-slate-900'}`}>
+                                                ? 'text-white'
+                                                : 'text-slate-400 group-hover:text-white'}`}>
                                                 {lesson.title}
                                             </p>
                                             <div className="flex items-center gap-2 mt-1">
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">VÍDEO AULA</span>
+                                                <span className="text-[9px] font-black text-slate-200 uppercase tracking-widest leading-none">VÍDEO AULA</span>
                                                 {currentLesson?.id === lesson.id && (
                                                     <span className="flex h-1 w-1 rounded-full bg-[#1D5F31] animate-pulse"></span>
                                                 )}

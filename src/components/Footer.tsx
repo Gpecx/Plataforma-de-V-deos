@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import Logo from '@/components/Logo'
 import { useBranding } from '@/context/BrandingContext'
 import { useAuth } from '@/context/AuthProvider'
@@ -8,12 +9,14 @@ import { useAuth } from '@/context/AuthProvider'
 export default function Footer({ variant = 'light' }: { variant?: 'light' | 'dark' }) {
     const { user } = useAuth()
     const { siteName } = useBranding()
+    const pathname = usePathname()
     const year = new Date().getFullYear()
 
-    const isDark = variant === 'dark'
+    const isClassroomRoute = pathname?.startsWith('/classroom/')
+    const isDark = variant === 'dark' || isClassroomRoute
 
     return (
-        <footer className={`relative pt-12 pb-10 overflow-hidden font-exo z-[10] bg-transparent`}>
+        <footer className={`relative pt-12 pb-10 overflow-hidden font-exo z-[10] ${isClassroomRoute ? 'bg-[#061629]' : 'bg-transparent'}`}>
             <div className="max-w-[1600px] mx-auto px-6 md:px-12 flex flex-col items-center space-y-8">
                 {/* Logo Principal (Aumentada) */}
                 <Logo className="h-24 py-2" href={user ? '/course' : '/'} light={!isDark} />

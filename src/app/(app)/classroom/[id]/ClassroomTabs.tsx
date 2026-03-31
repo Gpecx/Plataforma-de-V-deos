@@ -59,36 +59,36 @@ export function ClassroomTabs({ lessonTitle, description, courseId }: ClassroomT
     return (
         <div className="mt-4 transition-colors duration-500 font-exo">
             {/* Tab Headers */}
-            <div className="flex gap-8 mb-8 transition-colors duration-500 border-b border-slate-100">
+            <div className="flex gap-8 mb-8 transition-colors duration-500 border-b border-slate-800">
                 <button
                     onClick={() => setActiveTab('overview')}
-                    className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all relative ${activeTab === 'overview' ? 'text-[#1D5F31]' : 'text-slate-400 hover:text-slate-600'}`}
+                    className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all relative ${activeTab === 'overview' ? 'text-green-500' : 'text-slate-300 hover:text-white'}`}
                 >
                     Visão Geral
                     {activeTab === 'overview' && (
-                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1D5F31] shadow-[0_0_10px_rgba(50,205,50,0.5)]"></div>
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
                     )}
                 </button>
                 <button
                     onClick={() => setActiveTab('comments')}
-                    className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all relative ${activeTab === 'comments' ? 'text-[#1D5F31]' : 'text-slate-400 hover:text-slate-600'}`}
+                    className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all relative ${activeTab === 'comments' ? 'text-green-500' : 'text-slate-300 hover:text-white'}`}
                 >
                     Comentários (Q&A)
                     {activeTab === 'comments' && (
-                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1D5F31] shadow-[0_0_10px_rgba(50,205,50,0.5)]"></div>
+                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
                     )}
                 </button>
                 {courseId && (
                     <button
                         onClick={() => setActiveTab('evaluate')}
-                        className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all relative ${activeTab === 'evaluate' ? 'text-[#1D5F31]' : 'text-slate-400 hover:text-slate-600'}`}
+                        className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all relative ${activeTab === 'evaluate' ? 'text-green-500' : 'text-slate-300 hover:text-white'}`}
                     >
                         <div className="flex items-center gap-2">
                             <Star size={16} />
                             Avaliar
                         </div>
                         {activeTab === 'evaluate' && (
-                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1D5F31] shadow-[0_0_10px_rgba(50,205,50,0.5)]"></div>
+                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
                         )}
                     </button>
                 )}
@@ -101,16 +101,16 @@ export function ClassroomTabs({ lessonTitle, description, courseId }: ClassroomT
                 ) : activeTab === 'overview' ? (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
                         <div className="lg:col-span-2 space-y-6">
-                            <h3 className="text-xl font-black uppercase tracking-tighter text-slate-900">Sobre esta aula</h3>
-                            <p className="leading-relaxed text-slate-600">
+                            <h3 className="text-xl font-black uppercase tracking-tighter text-white">Sobre esta aula</h3>
+                            <p className="leading-relaxed text-white">
                                 {description || "Nesta aula vamos explorar os conceitos fundamentais para o desenvolvimento de alta performance. Preste atenção em cada detalhe da implementação e utilize o código fonte disponível nos materiais."}
                             </p>
-                            <div className="p-6 rounded-xl border border-slate-100 bg-slate-50/50">
-                                <h4 className="text-sm font-bold uppercase tracking-widest mb-4 flex items-center gap-2 text-slate-900">
-                                    <FileText size={16} className="text-[#1D5F31]" />
+                            <div className="p-6 rounded-xl border border-slate-800 bg-slate-800/30">
+                                <h4 className="text-sm font-bold uppercase tracking-widest mb-4 flex items-center gap-2 text-white">
+                                    <FileText size={16} className="text-green-500" />
                                     Notas da Aula
                                 </h4>
-                                <ul className="text-sm text-slate-600 space-y-2 list-disc list-inside">
+                                <ul className="text-sm text-white space-y-2 list-disc list-inside">
                                     <li>Conceitos de Renderização no Servidor</li>
                                     <li>Setup inicial do Design System</li>
                                     <li>Boas práticas com Tailwind CSS 4.0</li>
@@ -119,48 +119,48 @@ export function ClassroomTabs({ lessonTitle, description, courseId }: ClassroomT
                         </div>
 
                         <div className="space-y-6">
-                            <h3 className="text-xl font-black uppercase tracking-tighter text-slate-900">Materiais</h3>
+                            <h3 className="text-xl font-black uppercase tracking-tighter text-white">Materiais</h3>
                             <div className="space-y-3">
-                                <a href="#" className="flex items-center justify-between p-4 border border-slate-100 bg-slate-50/50 rounded-xl hover:border-[#1D5F31]/30 transition-all group">
+                                <a href="#" className="flex items-center justify-between p-4 border border-slate-800 bg-slate-800/30 rounded-xl hover:border-[#1D5F31]/30 transition-all group">
                                     <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-xl bg-white text-slate-400 group-hover:text-[#1D5F31] transition-colors shadow-sm">
+                                        <div className="p-2 rounded-xl bg-[#061629] text-slate-200 group-hover:text-green-500 transition-colors shadow-sm">
                                             <FileText size={18} />
                                         </div>
                                         <div>
-                                            <p className="text-sm font-bold text-slate-900">Resumo da Aula.pdf</p>
-                                            <p className="text-[10px] text-slate-400 uppercase tracking-widest">2.4 MB</p>
+                                            <p className="text-sm font-bold text-white">Resumo da Aula.pdf</p>
+                                            <p className="text-[10px] text-slate-200 uppercase tracking-widest">2.4 MB</p>
                                         </div>
                                     </div>
-                                    <Download size={18} className="text-slate-400 group-hover:text-[#1D5F31]" />
+                                    <Download size={18} className="text-slate-200 group-hover:text-green-500" />
                                 </a>
-                                <a href="#" className="flex items-center justify-between p-4 border border-slate-100 bg-slate-50/50 rounded-xl hover:border-[#1D5F31]/30 transition-all group">
+                                <a href="#" className="flex items-center justify-between p-4 border border-slate-800 bg-slate-800/30 rounded-xl hover:border-[#1D5F31]/30 transition-all group">
                                     <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-xl bg-white text-slate-400 group-hover:text-[#1D5F31] transition-colors shadow-sm">
+                                        <div className="p-2 rounded-xl bg-[#061629] text-slate-400 group-hover:text-[#1D5F31] transition-colors shadow-sm">
                                             <Download size={18} />
                                         </div>
                                         <div>
-                                            <p className="text-sm font-bold text-slate-900">Codigo_Fonte.zip</p>
-                                            <p className="text-[10px] text-slate-400 uppercase tracking-widest">15.8 MB</p>
+                                            <p className="text-sm font-bold text-white">Codigo_Fonte.zip</p>
+                                            <p className="text-[10px] text-slate-200 uppercase tracking-widest">15.8 MB</p>
                                         </div>
                                     </div>
-                                    <Download size={18} className="text-slate-400 group-hover:text-[#1D5F31]" />
+                                    <Download size={18} className="text-slate-200 group-hover:text-green-500" />
                                 </a>
                             </div>
                         </div>
                     </div>
                 ) : (
                     <div className="max-w-4xl space-y-8">
-                        <div className="flex gap-4 p-6 rounded-xl border border-slate-100 bg-slate-50/50 focus-within:border-[#1D5F31]/30 transition-all">
-                            <div className="w-10 h-10 rounded-full bg-[#1D5F31]/10 flex-shrink-0 flex items-center justify-center text-[#1D5F31]">
+                        <div className="flex gap-4 p-6 rounded-xl border border-slate-800 bg-slate-800/30 focus-within:border-[#1D5F31]/30 transition-all">
+                                <div className="w-10 h-10 rounded-full bg-green-500/10 flex-shrink-0 flex items-center justify-center text-green-500">
                                 <User size={20} />
                             </div>
                             <div className="flex-1 space-y-4">
                                 <textarea
                                     placeholder="Dúvida ou sugestão? Manda pra gente..."
-                                    className="w-full bg-transparent border-none focus:ring-0 text-sm resize-none min-h-[60px] placeholder-slate-400 text-slate-900 font-exo"
+                                    className="w-full bg-transparent border-none focus:ring-0 text-sm resize-none min-h-[60px] placeholder-slate-400 text-white font-exo"
                                 />
                                 <div className="flex justify-end">
-                                    <button className="px-6 py-2 bg-[#1D5F31] text-white text-xs font-black uppercase rounded-xl hover:scale-105 transition-all font-exo">
+                                    <button className="px-6 py-2 bg-green-600 text-white text-xs font-black uppercase rounded-xl hover:scale-105 transition-all font-exo">
                                         Enviar Pergunta
                                     </button>
                                 </div>
@@ -170,21 +170,21 @@ export function ClassroomTabs({ lessonTitle, description, courseId }: ClassroomT
                         <div className="space-y-8 pb-20">
                             {MOCK_COMMENTS.map((comment) => (
                                 <div key={comment.id} className="space-y-4">
-                                    <div className={`p-6 rounded-xl border transition-all ${comment.isInstructor ? 'bg-[#1D5F31]/5 border-[#1D5F31]/10' : 'bg-white border-slate-100 shadow-sm'}`}>
+                                    <div className={`p-6 rounded-xl border transition-all ${comment.isInstructor ? 'bg-green-500/5 border-green-500/10' : 'bg-[#061629] border-slate-800 shadow-sm'}`}>
                                         <div className="flex justify-between items-start mb-4">
                                             <div className="flex gap-4">
-                                                <img src={comment.avatar} className="w-10 h-10 rounded-full border border-slate-100" alt={comment.user} />
+                                                <img src={comment.avatar} className="w-10 h-10 rounded-full border border-slate-800" alt={comment.user} />
                                                 <div>
                                                     <div className="flex items-center gap-2">
-                                                        <h4 className="text-sm font-bold uppercase tracking-tight text-slate-900 font-exo">{comment.user}</h4>
+                                                        <h4 className="text-sm font-bold uppercase tracking-tight text-white font-exo">{comment.user}</h4>
                                                         {comment.isInstructor && (
-                                                            <span className="flex items-center gap-1 px-2 py-0.5 bg-[#1D5F31] text-white text-[8px] font-black uppercase rounded tracking-widest font-exo">
+                                                            <span className="flex items-center gap-1 px-2 py-0.5 bg-green-600 text-white text-[8px] font-black uppercase rounded tracking-widest font-exo">
                                                                 <CheckCircle2 size={8} />
                                                                 Instrutor
                                                             </span>
                                                         )}
                                                     </div>
-                                                    <span className="text-[10px] text-slate-400 uppercase font-bold font-exo">{comment.date}</span>
+                                                    <span className="text-[10px] text-slate-300 uppercase font-bold font-exo">{comment.date}</span>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2">
@@ -197,7 +197,7 @@ export function ClassroomTabs({ lessonTitle, description, courseId }: ClassroomT
                                                 <button className="p-1.5 text-slate-400 hover:text-[#1D5F31] transition-colors"><Reply size={16} /></button>
                                             </div>
                                         </div>
-                                        <p className="text-sm text-slate-600 leading-relaxed pl-14 font-exo">
+                                        <p className="text-sm text-white leading-relaxed pl-14 font-exo">
                                             {comment.text}
                                         </p>
                                     </div>
