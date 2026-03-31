@@ -43,7 +43,7 @@ export default function CartPage() {
                 <div className="mb-12 flex flex-col md:flex-row md:items-center justify-between gap-8">
                     <div className="flex items-center gap-6">
                         <div className="w-16 h-16 bg-[#1D5F31] rounded-2xl flex items-center justify-center text-white shadow-lg relative">
-                            <ShoppingCart size={28} strokeWidth={2.5} />
+                            <ShoppingCart size={28} strokeWidth={2.5} className="text-white" />
                             <span className="absolute -top-2 -right-2 bg-white text-[#1D5F31] text-[11px] font-black w-7 h-7 flex items-center justify-center rounded-full border-2 border-[#1D5F31] shadow-sm">
                                 {items.length}
                             </span>
@@ -85,10 +85,6 @@ export default function CartPage() {
                                     <div className="flex-1 text-center md:text-left">
                                         <h3 className="text-2xl font-black tracking-tighter mb-3 group-hover:text-[#1D5F31] transition uppercase text-slate-900 leading-tight">{course.title}</h3>
                                         <div className="flex flex-wrap items-center justify-center md:justify-start gap-5 mb-5">
-                                            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest flex items-center gap-2">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-[#1D5F31]"></div>
-                                                Acesso vitalício
-                                            </span>
                                             <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest flex items-center gap-2">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-[#1D5F31]"></div>
                                                 Certificado PowerPlay
