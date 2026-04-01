@@ -10,7 +10,9 @@ export default async function ClassroomLayout({
 
     return (
         <AuthProvider user={user}>
-            {children}
+            <div className="classroom-theme">
+                {children}
+            </div>
         </AuthProvider>
     )
 }

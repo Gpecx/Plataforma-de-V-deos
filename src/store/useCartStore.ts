@@ -66,7 +66,8 @@ export const useCartStore = create<CartStore>()(
             },
         }),
         {
-            name: 'spcs-cart-storage', // Nome da chave no LocalStorage
+            name: 'spcs-cart-storage',
+            partialize: (state) => ({ items: state.items }),
         }
     )
 )

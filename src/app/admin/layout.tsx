@@ -19,7 +19,7 @@ export default async function AdminLayout({
             <div className="fixed inset-0 bg-white -z-10" />
             <AdminSidebar />
 
-            <main className="relative z-10 pl-72 min-h-screen bg-white">
+            <main className="relative z-10 pl-72 min-h-screen">
                 <div className="p-8 md:p-12">
                     {children}
                 </div>

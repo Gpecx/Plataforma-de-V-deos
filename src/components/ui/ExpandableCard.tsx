@@ -138,11 +138,11 @@ export function ExpandableCard({ id, thumbnail, title, description, accent, rank
                                         </span>
                                     </div>
                                     
-                                    <h2 className="text-3xl md:text-4xl font-black text-white uppercase mb-6 tracking-tighter leading-[0.9]">
-                                        {title}
+                                    <h2 className="text-3xl md:text-4xl font-black uppercase mb-6 tracking-tighter leading-[0.9]">
+                                        <span className="text-white !text-white" style={{ color: 'white' }}>{title}</span>
                                     </h2>
                                     
-                                    <p className="text-slate-400 text-sm md:text-base leading-relaxed mb-8 font-medium">
+                                    <p className="text-slate-400 !text-slate-400 text-sm md:text-base leading-relaxed mb-8 font-medium" style={{ color: '#94a3b8' }}>
                                         {description || 'Explore técnicas avançadas e domine o mercado com este treinamento exclusivo da PowerPlay.'}
                                     </p>
                                     

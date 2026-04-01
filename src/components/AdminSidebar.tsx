@@ -10,7 +10,8 @@ import {
     ShieldAlert,
     LogOut,
     ChevronRight,
-    Loader2
+    Loader2,
+    BookOpen
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Logo from './Logo'
@@ -53,6 +54,12 @@ const menuItems: MenuItem[] = [
         icon: ShieldAlert,
         href: '/admin/approvals',
         description: 'Cursos e Aulas'
+    },
+    {
+        title: 'Cursos',
+        icon: BookOpen,
+        href: '/admin/all-courses',
+        description: 'Catálogo Global'
     },
 ]
 

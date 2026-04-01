@@ -701,3 +701,78 @@ export async function rejectLessonDeletion(lessonId: string) {
         return { success: false, error: "Falha ao rejeitar exclusão." }
     }
 }
+
+/**
+ * Busca todos os cursos com nomes dos professores.
+ */
+export async function getAllCourses() {
+    try {
+        const coursesSnap = await adminDb.collection('courses').orderBy('created_at', 'desc').get()
+        
+        const courses = await Promise.all(coursesSnap.docs.map(async (doc) => {
+            const data = doc.data()
+            let teacherName = 'Professor N/A'
+            
+            if (data.teacher_id) {
+                const profileDoc = await adminDb.collection('profiles').doc(data.teacher_id).get()
+                const profileData = profileDoc.data()
+                teacherName = profileData?.full_name || profileData?.name || 'Professor N/A'
+            }
+
+            return {
+                id: doc.id,
+                ...data,
+                teacherName
+            }
+        }))
+
+        return JSON.parse(JSON.stringify(courses))
+    } catch (error) {
+        console.error("Error getting all courses:", error)
+        return []
+    }
+}
+
+/**
+ * Suspende uma aula (status = SUSPENSO).
+ */
+export async function suspendLesson(lessonId: string) {
+    try {
+        const lessonDoc = await adminDb.collection('lessons').doc(lessonId).get()
+        const lessonData = lessonDoc.data()
+
+        if (!lessonData) {
+            return { success: false, error: "Aula não encontrada." }
+        }
+
+        await adminDb.collection('lessons').doc(lessonId).update({
+            status: 'SUSPENSO',
+            updated_at: new Date()
+        })
+
+        if (lessonData?.course_id) {
+            const courseDoc = await adminDb.collection('courses').doc(lessonData.course_id).get()
+            const courseData = courseDoc.data()
+
+            if (courseData?.teacher_id) {
+                await adminDb.collection('notifications').add({
+                    user_id: courseData.teacher_id,
+                    type: 'lesson_suspended',
+                    title: 'Aula Suspensa',
+                    message: `Sua aula "${lessonData.title}" foi suspensa por um administrador.`,
+                    course_id: lessonData.course_id,
+                    lesson_id: lessonId,
+                    read: false,
+                    created_at: new Date()
+                })
+            }
+        }
+
+        revalidatePath('/admin/all-courses')
+        revalidatePath('/admin/approvals')
+        return { success: true }
+    } catch (error) {
+        console.error("Error suspending lesson:", error)
+        return { success: false, error: "Falha ao suspender aula." }
+    }
+}

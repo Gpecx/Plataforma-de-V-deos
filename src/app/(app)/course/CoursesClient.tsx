@@ -4,7 +4,7 @@ import { useState, Suspense, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useSearchParams } from "next/navigation";
-import { Play, Info, ChevronRight, Loader2 } from "lucide-react";
+import { Info, ChevronRight, Loader2 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import CourseModal from "@/components/CourseModal";
 import { BannerWrapper } from "@/components/ui/BannerWrapper";
@@ -13,14 +13,14 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const heroSlides = [
     {
-        title: "FULLSTACK NEXUS",
-        subtitle: "A jornada definitiva Next.js e Firebase.",
+        title: "CENTRO DE ESTUDOS EM QUALIDADE DA ENERGIA",
+        subtitle: "Configuração de malas de teste. • Parametrização de relés de linhas de transmissão. ",
         image: "https://images.unsplash.com/photo-1627398242454-45a1465c2479?auto=format&fit=crop&q=80&w=1600",
         tag: "ORIGINAL POWERPLAY"
     },
     {
-        title: "DESIGN SYSTEM PRO",
-        subtitle: "Crie interfaces modernas e escaláveis.",
+        title: "ESTUDO DE PROTEÇÃO E PARAMETRIZAÇÃO DE RELÉS",
+        subtitle: "Vamos capacitá-lo para trabalhar com mala de testes de relés computadorizadas e obter competência para testar as diversas tecnologias de relés.",
         image: "https://images.unsplash.com/photo-1558655146-d09347e92766?auto=format&fit=crop&q=80&w=1600",
         tag: "LANÇAMENTO"
     },
@@ -104,7 +104,7 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
                         </div>
                     ))}
 
-                    <div className="relative z-20 h-full flex flex-col justify-center px-8 md:px-12 lg:px-16 space-y-6 max-w-4xl pt-24">
+                    <div className="relative z-20 h-full flex flex-col justify-center px-8 md:px-12 lg:px-16 space-y-6 max-w-4xl pt-16 pb-12">
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={isLoggedIn ? 'logged-in' : 'logged-out'}
@@ -153,30 +153,8 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
                                 }
                             </motion.p>
                         </AnimatePresence>
-                        <div className="flex flex-wrap gap-4 pt-6">
-                            {isLoggedIn ? (
-                                <Button
-                                    onClick={() => filteredCourses.length > 0 && handleCourseClick(filteredCourses[0])}
-                                    className="bg-[#1D5F31] text-white hover:bg-[#1D5F31]/90 h-14 px-8 text-sm font-black uppercase tracking-[2px] flex gap-3 shadow-2xl shadow-[#1D5F31]/30 active:scale-95 transition-all"
-                                >
-                                    <Play fill="currentColor" size={18} /> Continuar Treinando
-                                </Button>
-                            ) : (
-                                <>
-                                    <Button
-                                        onClick={() => filteredCourses.length > 0 && handleCourseClick(filteredCourses[0])}
-                                        className="bg-[#1D5F31] text-white hover:bg-[#1D5F31]/90 h-14 px-8 text-sm font-black uppercase tracking-[2px] flex gap-3 shadow-2xl shadow-[#1D5F31]/30 active:scale-95 transition-all"
-                                    >
-                                        <Play fill="currentColor" size={18} /> Iniciar Treinamento
-                                    </Button>
-                                    <Link href="/register">
-                                        <Button variant="outline" className="border-white/20 text-white hover:bg-[#1D5F31] hover:text-white h-14 px-8 text-sm font-black uppercase tracking-[2px] backdrop-blur-md shadow-xl active:scale-95 transition-all">
-                                            Quero me Inscrever Agora
-                                        </Button>
-                                    </Link>
-                                </>
-                            )}
-                        </div>
+                        {/* Botões removidos conforme solicitado */}
+
                     </div>
 
                     {displaySlides.length > 1 && (
