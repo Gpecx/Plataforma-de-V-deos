@@ -7,7 +7,18 @@ import { auth } from '@/lib/firebase'
 import { createUserWithEmailAndPassword, updateProfile as firebaseUpdateProfile } from 'firebase/auth'
 import { createProfile, getAddressByCep } from './actions'
 import Logo from '@/components/Logo'
-import { UserPlus, User, GraduationCap, ArrowRight, AlertCircle } from 'lucide-react'
+import { ArrowRight, AlertCircle } from 'lucide-react'
+import { motion, AnimatePresence, type Variants } from 'framer-motion'
+
+const fadeUp: Variants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] } }
+}
+
+const inputVariants: Variants = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.35 } }
+}
 
 // ─── Validação CPF ──────────────────────────────────────────────────────────
 function validateCpf(cpf: string): boolean {
@@ -269,14 +280,11 @@ function RegisterForm() {
         }
     }
 
-    const inputClass = (hasError: boolean = false) =>
-        `w-full p-4 bg-gray-50 text-gray-900 border border-gray-300 shadow-sm transition-all outline-none text-sm font-medium placeholder:text-gray-400 focus:border-gray-500 focus:bg-white rounded-xl ${hasError
-            ? 'border-red-500 focus:border-red-600'
-            : ''
-        }`
+    const inputClass = (hasError: boolean = false, isCepLoading: boolean = false) =>
+        `w-full p-4 bg-white/5 text-white border border-white/10 shadow-sm transition-all outline-none text-sm font-medium placeholder:text-white/30 focus:border-[#28b828] focus:bg-white/10 rounded-xl relative overflow-hidden ${hasError ? 'border-red-500/60' : ''}`
 
-    const sectionTitleClass = 'text-gray-400 text-xs uppercase tracking-widest font-bold mb-4 block'
-    const labelClass = 'text-[9px] font-black uppercase tracking-widest text-green-200/60 mb-1 block'
+    const sectionTitleClass = 'text-white/40 text-xs uppercase tracking-widest font-bold mb-4 block'
+    const labelClass = 'text-[9px] font-black uppercase tracking-widest text-white mb-1 block'
 
     return (
         <div className="min-h-screen w-full flex flex-row bg-[var(--background-color)] overflow-hidden font-exo">
@@ -296,25 +304,35 @@ function RegisterForm() {
             <div className="w-full md:w-1/2 flex flex-col items-center justify-start pt-8 md:pt-12 lg:pt-16 p-6 md:p-12 bg-[var(--background-color)] relative overflow-y-auto custom-scrollbar">
                 <div className="w-full max-w-[550px]">
                     {/* Header Section */}
-                    <div className="text-center space-y-4 mb-10">
+                    <motion.div
+                        initial="hidden"
+                        animate="visible"
+                        variants={fadeUp}
+                        className="text-center space-y-4 mb-10"
+                    >
                         <div className="flex justify-center mb-4">
                             <Logo variant="vertical" className="scale-110" />
                         </div>
                         <div className="flex flex-col items-center">
                             <h2 className="text-2xl md:text-3xl font-black tracking-tighter uppercase text-white">Alta Performance</h2>
-                            <p className="text-[#1D5F31] font-bold uppercase text-[9px] tracking-[4px] mt-2 opacity-80">Crie sua conta industrial</p>
+                            <p className="font-bold uppercase text-[9px] tracking-[4px] mt-2 text-white">Crie sua conta industrial</p>
                         </div>
-                    </div>
+                    </motion.div>
 
                     {/* Form Container */}
                     <div className="bg-transparent p-0 border-t border-white/5">
                         <form onSubmit={handleRegister} className="space-y-10 py-8">
 
                             {/* Grupo 1: Dados de Acesso */}
-                            <section>
+                            <motion.section
+                                initial="hidden"
+                                animate="visible"
+                                variants={fadeUp}
+                                custom={1}
+                            >
                                 <span className={sectionTitleClass}>Grupo 1: Dados de Acesso</span>
                                 <div className="space-y-4">
-                                    <div className="space-y-1">
+                                    <motion.div variants={inputVariants} custom={1.1} className="space-y-1">
                                         <label className={labelClass}>Nome Completo</label>
                                         <input
                                             type="text"
@@ -324,9 +342,9 @@ function RegisterForm() {
                                             value={fullName}
                                             onChange={(e) => setFullName(e.target.value)}
                                         />
-                                    </div>
+                                    </motion.div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="space-y-1">
+                                        <motion.div variants={inputVariants} custom={1.2} className="space-y-1">
                                             <label className={labelClass}>E-mail</label>
                                             <input
                                                 type="email"
@@ -336,8 +354,8 @@ function RegisterForm() {
                                                 value={email}
                                                 onChange={(e) => setEmail(e.target.value)}
                                             />
-                                        </div>
-                                        <div className="space-y-1">
+                                        </motion.div>
+                                        <motion.div variants={inputVariants} custom={1.3} className="space-y-1">
                                             <label className={labelClass}>Senha</label>
                                             <input
                                                 type="password"
@@ -347,13 +365,18 @@ function RegisterForm() {
                                                 value={password}
                                                 onChange={(e) => setPassword(e.target.value)}
                                             />
-                                        </div>
+                                        </motion.div>
                                     </div>
                                 </div>
-                            </section>
+                            </motion.section>
 
                             {/* Grupo 2: Identificação */}
-                            <section>
+                            <motion.section
+                                initial="hidden"
+                                animate="visible"
+                                variants={fadeUp}
+                                custom={2}
+                            >
                                 <span className={sectionTitleClass}>Grupo 2: Identificação</span>
                                 <div className="grid grid-cols-12 gap-4">
                                     <div className="col-span-12 md:col-span-7 space-y-1">
@@ -375,7 +398,7 @@ function RegisterForm() {
                                                 ))}
                                             </div>
                                         </div>
-                                        <input
+                                        <motion.input
                                             type="text"
                                             placeholder={personType === 'CPF' ? '000.000.000-00' : '00.000.000/0000-00'}
                                             inputMode="numeric"
@@ -384,11 +407,13 @@ function RegisterForm() {
                                             value={cpfCnpj}
                                             onChange={handleCpfCnpjChange}
                                             onBlur={() => setCpfCnpjTouched(true)}
+                                            variants={inputVariants}
+                                            custom={2.1}
                                         />
                                     </div>
                                     <div className="col-span-12 md:col-span-5 space-y-1">
                                         <label className={labelClass}>Data de Nascimento</label>
-                                        <input
+                                        <motion.input
                                             type="text"
                                             placeholder="DD/MM/AAAA"
                                             inputMode="numeric"
@@ -397,13 +422,20 @@ function RegisterForm() {
                                             className={inputClass()}
                                             value={birthDate}
                                             onChange={handleBirthDateChange}
+                                            variants={inputVariants}
+                                            custom={2.2}
                                         />
                                     </div>
                                 </div>
-                            </section>
+                            </motion.section>
 
                             {/* Grupo 3: Endereço */}
-                            <section>
+                            <motion.section
+                                initial="hidden"
+                                animate="visible"
+                                variants={fadeUp}
+                                custom={3}
+                            >
                                 <span className={sectionTitleClass}>Grupo 3: Endereço (Otimizado)</span>
                                 <div className="space-y-4">
                                     {/* Linha 1: CEP e Rua */}
@@ -421,11 +453,23 @@ function RegisterForm() {
                                                     onChange={handleCepChange}
                                                     onBlur={handleCepBlur}
                                                 />
-                                                {isCepLoading && (
-                                                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                                                        <div className="animate-spin h-4 w-4 border-t-2 border-green-500 rounded-full"></div>
-                                                    </div>
-                                                )}
+                                                <AnimatePresence>
+                                                    {isCepLoading && (
+                                                        <motion.div
+                                                            initial={{ opacity: 0 }}
+                                                            animate={{ opacity: 1 }}
+                                                            exit={{ opacity: 0 }}
+                                                            className="absolute inset-0 pointer-events-none overflow-hidden"
+                                                        >
+                                                            <motion.div
+                                                                initial={{ y: '-100%' }}
+                                                                animate={{ y: '100%' }}
+                                                                transition={{ repeat: Infinity, duration: 1.2, ease: 'linear' }}
+                                                                className="absolute left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#28b828] to-transparent"
+                                                            />
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
                                             </div>
                                             {cepError && (
                                                 <div className="flex items-center gap-1 mt-1 text-orange-400">
@@ -511,12 +555,16 @@ function RegisterForm() {
                                         </div>
                                     </div>
                                 </div>
-                            </section>
+                            </motion.section>
 
-                            <button
+                            <motion.button
                                 type="submit"
                                 disabled={loading || !isFormValid}
-                                className="group relative w-full overflow-hidden bg-[#1D5F31] hover:bg-[#28b828] text-white font-black uppercase tracking-[3px] py-5 transition-all disabled:opacity-30 disabled:cursor-not-allowed mt-4 rounded-xl active:scale-[0.98]"
+                                className="group relative w-full overflow-hidden bg-gradient-to-r from-[#1D5F31] via-[#28b828] to-[#1D5F31] hover:from-[#28b828] hover:via-[#34d834] hover:to-[#28b828] text-white font-black uppercase tracking-[3px] py-5 transition-all disabled:opacity-30 disabled:cursor-not-allowed mt-4 rounded-xl active:scale-[0.98] shadow-[0_0_20px_rgba(40,184,40,0.3)] hover:shadow-[0_0_30px_rgba(40,184,40,0.5)]"
+                                initial="hidden"
+                                animate="visible"
+                                variants={fadeUp}
+                                custom={4}
                             >
                                 <span className="relative z-10 flex items-center justify-center gap-3 text-sm">
                                     {loading ? (
@@ -534,7 +582,7 @@ function RegisterForm() {
                                         </>
                                     )}
                                 </span>
-                            </button>
+                            </motion.button>
 
                             <div className="pt-6 border-t border-white/5 text-center">
                                 <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-loose">

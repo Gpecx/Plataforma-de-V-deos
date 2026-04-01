@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { approveLesson, rejectLesson } from '@/app/actions/admin'
-import { X, PlaySquare, AlertCircle, Loader2, HelpCircle, CheckCircle2 } from 'lucide-react'
+import { X, PlaySquare, AlertCircle, Loader2, HelpCircle, CheckCircle2, User } from 'lucide-react'
 import Logo from '@/components/Logo'
 import { Question } from '@/lib/types/quiz'
 
@@ -94,52 +94,69 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
 
     if (lessonList.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center py-32 bg-white border border-black/20 rounded-xl animate-in fade-in duration-700 shadow-sm">
-                <div className="w-20 h-20 bg-black/5 rounded-full flex items-center justify-center mb-8 border border-black/10 shadow-inner">
-                    <PlaySquare size={40} className="text-black/20" />
+            <div className="flex flex-col items-center justify-center py-32 rounded-xl animate-in fade-in duration-700" style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0' }}>
+                <div className="w-20 h-20 rounded-full flex items-center justify-center mb-8" style={{ backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0' }}>
+                    <PlaySquare size={40} style={{ color: '#94a3b8' }} />
                 </div>
-                <p className="!text-[#000000] font-bold uppercase tracking-wider text-[10px]">Tudo em Dia: Nenhuma aula pendente</p>
+                <p className="font-bold uppercase tracking-wider text-[10px]" style={{ color: '#000000' }}>Tudo em Dia: Nenhuma aula pendente</p>
             </div>
         )
     }
 
     return (
         <div className="space-y-6 animate-in fade-in duration-700 font-exo">
-            <div className="overflow-x-auto">
-                <table className="w-full text-left border-separate border-spacing-y-4">
+            <div className="overflow-x-auto rounded-xl border-2" style={{ borderColor: '#e2e8f0', backgroundColor: '#fff' }}>
+                <table className="w-full text-left border-collapse">
                     <thead>
-                        <tr className="text-[10px] font-black uppercase tracking-wider !text-[#000000] text-left">
-                            <th className="px-8 py-4 font-black">Ficha Técnica</th>
-                            <th className="px-8 py-4 font-black">Procedência</th>
-                            <th className="px-8 py-4 text-right font-black">Protocolo</th>
+                        <tr style={{ backgroundColor: '#0f172a' }}>
+                            <th className="p-6 text-[10px] font-black uppercase tracking-wider text-left" style={{ color: '#fff' }}>Aula</th>
+                            <th className="p-6 text-[10px] font-black uppercase tracking-wider text-left" style={{ color: '#fff' }}>Curso</th>
+                            <th className="p-6 text-[10px] font-black uppercase tracking-wider text-left" style={{ color: '#fff' }}>Professor</th>
+                            <th className="p-6 text-[10px] font-black uppercase tracking-wider text-right" style={{ color: '#fff' }}>Ação</th>
                         </tr>
                     </thead>
                     <tbody>
                         {lessonList.map((lesson) => (
-                            <tr key={lesson.id} className="group bg-white border border-black/10 hover:border-[#1D5F31]/30 transition-all duration-300 shadow-sm hover:shadow-md">
-                                <td className="px-8 py-6 rounded-l-xl">
-                                    <div className="flex flex-col">
-                                        <h3 className="font-black !text-[#000000] uppercase tracking-tight text-sm group-hover:text-[#1D5F31] transition-colors">{lesson.title}</h3>
-                                        <div className="flex items-center gap-2 mt-1.5">
-                                            <div className="w-1 h-1 rounded-full bg-black/30"></div>
-                                            <p className="text-[10px] !text-[#000000] font-bold uppercase tracking-wider">
-                                                CURSO: <span className="!text-[#000000]">{lesson.course_title}</span>
+                            <tr 
+                                key={lesson.id} 
+                                className="border-b transition-all duration-300 hover:shadow-xl cursor-pointer"
+                                style={{ borderColor: '#e2e8f0', backgroundColor: '#ffffff' }}
+                            >
+                                <td className="p-6">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-16 h-16 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0' }}>
+                                            {lesson.type === 'quiz' ? (
+                                                <HelpCircle size={24} style={{ color: '#1D5F31' }} />
+                                            ) : (
+                                                <PlaySquare size={24} style={{ color: '#1D5F31' }} />
+                                            )}
+                                        </div>
+                                        <div>
+                                            <h3 className="font-black uppercase tracking-tight text-sm" style={{ color: '#0f172a' }}>{lesson.title}</h3>
+                                            <p className="text-[10px] font-bold uppercase tracking-wider mt-1" style={{ color: '#64748b' }}>
+                                                {lesson.type === 'quiz' ? 'QUESTIONÁRIO' : 'VÍDEO-AULA'}
                                             </p>
                                         </div>
                                     </div>
                                 </td>
-                                <td className="px-8 py-6">
-                                    <div className="flex flex-col text-[10px] !text-[#000000] font-bold uppercase tracking-wider">
-                                        <span className="text-[8px] !text-[#000000] mb-0.5">CRIADOR</span>
-                                        <span className="!text-[#000000]">{teachersMap[lesson.teacher_id] || 'Instrutor Desconhecido'}</span>
+                                <td className="p-6">
+                                    <span className="text-xs font-bold" style={{ color: '#334155' }}>{lesson.course_title}</span>
+                                </td>
+                                <td className="p-6">
+                                    <div className="flex items-center gap-2">
+                                        <User size={14} style={{ color: '#94a3b8' }} />
+                                        <span className="text-xs font-bold uppercase tracking-wide" style={{ color: '#334155' }}>
+                                            {teachersMap[lesson.teacher_id] || 'Instrutor Desconhecido'}
+                                        </span>
                                     </div>
                                 </td>
-                                <td className="px-8 py-6 rounded-r-xl text-right">
+                                <td className="p-6 text-right">
                                     <button
                                         onClick={() => setReviewingLesson(lesson)}
-                                        className="h-11 px-8 bg-[#1D5F31] text-white text-[10px] font-bold uppercase tracking-wider hover:bg-slate-900 rounded-lg transition-all duration-300 shadow-sm active:scale-95"
+                                        className="h-11 px-8 text-white text-[10px] font-bold uppercase tracking-wider rounded-lg transition-all duration-300 active:scale-95 hover:shadow-lg"
+                                        style={{ backgroundColor: '#1D5F31' }}
                                     >
-                                        Revisar Aula
+                                        Revisar
                                     </button>
                                 </td>
                             </tr>
