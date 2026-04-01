@@ -1,6 +1,7 @@
 import { getSessionUser } from '@/app/actions/auth'
 import { redirect } from 'next/navigation'
 import AdminSidebar from '@/components/AdminSidebar'
+import AdminMainWrapper from '@/components/AdminMainWrapper'
 
 export default async function AdminLayout({
     children,
@@ -15,15 +16,12 @@ export default async function AdminLayout({
 
     return (
         <div className="min-h-screen relative overflow-hidden text-slate-900" style={{ background: '#ffffff' }}>
-            {/* Override global gradient background for admin area */}
             <div className="fixed inset-0 bg-white -z-10" />
             <AdminSidebar />
 
-            <main className="relative z-10 pl-72 min-h-screen">
-                <div className="p-8 md:p-12">
-                    {children}
-                </div>
-            </main>
+            <AdminMainWrapper>
+                {children}
+            </AdminMainWrapper>
         </div>
     )
 }

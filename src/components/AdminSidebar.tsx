@@ -77,10 +77,7 @@ export default function AdminSidebar() {
         <aside className="fixed left-0 top-0 h-screen w-72 bg-[#F8F9FA] border-r border-[#D1D7DC] flex flex-col z-50">
             <div className="p-8 border-b border-slate-200">
                 <Logo light />
-                <div className="mt-4 flex items-center gap-2">
-                    <div className="w-2 h-2 bg-[#1D5F31]" />
-                    <span className="text-[10px] font-black uppercase tracking-[4px] !text-[#000000]">Admin Panel</span>
-                </div>
+
             </div>
 
             <nav className="flex-grow py-8 px-4 space-y-2 overflow-y-auto custom-scrollbar">
