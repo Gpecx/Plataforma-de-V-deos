@@ -12,19 +12,30 @@ import { getBanners, getGlobalSettings, BannersData, GlobalSettings } from "@/ap
 import { ExpandableCard } from "@/components/ui/ExpandableCard";
 import { useCartStore } from "@/store/useCartStore";
 
+interface CourseData {
+    id: string;
+    title: string;
+    description: string;
+    image_url: string | null;
+    tag: string;
+    price: number;
+    status: string;
+}
+
 interface LandingPageProps {
     user: {
         uid: string;
         email?: string;
         role: string;
     } | null;
+    initialCourses: CourseData[];
 }
 
-export default function LandingPageClient({ user: initialUser }: LandingPageProps) {
+export default function LandingPageClient({ user: initialUser, initialCourses }: LandingPageProps) {
     const { user, loading: authLoading } = useAuth();
     const router = useRouter();
-    const [courses, setCourses] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
+    const courses = initialCourses;
+    const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState("");
     const [banners, setBanners] = useState<BannersData | null>(null);
 
@@ -36,45 +47,6 @@ export default function LandingPageClient({ user: initialUser }: LandingPageProp
     }, [user, authLoading, router]);
 
     useEffect(() => {
-        async function fetchTopCourses() {
-            setLoading(true);
-            try {
-                const settings: GlobalSettings = await getGlobalSettings();
-                const featuredIds = settings.featuredCourseIds || [];
-                
-                let coursesData: any[] = [];
-                
-                if (featuredIds.length > 0) {
-                    for (const id of featuredIds) {
-                        const courseDoc = await getDoc(doc(db, 'courses', id));
-                        if (courseDoc.exists()) {
-                            coursesData.push({ id: courseDoc.id, ...courseDoc.data(), price: Number(courseDoc.data().price) || 0 });
-                        }
-                    }
-                }
-                
-                if (coursesData.length === 0) {
-                    const coursesRef = collection(db, 'courses');
-                    const q = query(coursesRef, where('status', '==', 'APROVADO'), limit(5));
-                    const querySnapshot = await getDocs(q);
-                    coursesData = querySnapshot.docs.map(d => {
-                        const data = d.data();
-                        return {
-                            id: d.id,
-                            ...data,
-                            price: Number(data.price) || 0
-                        };
-                    });
-                }
-                
-                setCourses(coursesData);
-            } catch (error) {
-                console.error("Erro ao buscar cursos:", error);
-            } finally {
-                setLoading(false);
-            }
-        }
-        fetchTopCourses();
         getBanners().then(data => setBanners(data));
     }, []);
 

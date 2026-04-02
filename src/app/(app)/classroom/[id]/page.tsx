@@ -18,7 +18,7 @@ import { ClassroomTabs } from './ClassroomTabs'
 import { auth } from '@/lib/firebase'
 import Logo from '@/components/Logo'
 import { onAuthStateChanged } from 'firebase/auth'
-import { getClassroomData } from './actions'
+import { getClassroomData, toggleLessonCompletion } from './actions'
 import { QuizPlayer } from './QuizPlayer'
 
 const scrollbarHideStyle = {
@@ -39,6 +39,8 @@ export default function ClassroomPage() {
     const [isCheckingAccess, setIsCheckingAccess] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [autoNextCountdown, setAutoNextCountdown] = useState<number | null>(null)
+    const [isToggling, setIsToggling] = useState(false)
+    const [currentUser, setCurrentUser] = useState<any>(null)
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -47,6 +49,8 @@ export default function ClassroomPage() {
                 setIsCheckingAccess(false)
                 return
             }
+
+            setCurrentUser(user)
 
             const courseId = params.id as string
 
@@ -67,6 +71,7 @@ export default function ClassroomPage() {
 
                 setCourse(result.course)
                 setLessons(result.lessons || [])
+                setCompletedLessons(result.completedLessons || [])
 
                 if (result.lessons && result.lessons.length > 0) {
                     setCurrentLesson(result.lessons[0])
@@ -118,10 +123,31 @@ export default function ClassroomPage() {
         }
     }
 
-    const toggleLessonStatus = (id: string) => {
-        setCompletedLessons(prev =>
-            prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
-        )
+    const toggleLessonStatus = async (id: string, autoNext: boolean = false) => {
+        if (!currentUser) return
+        
+        const isCompleted = completedLessons.includes(id)
+        
+        setIsToggling(true)
+        
+        try {
+            await toggleLessonCompletion(course?.id, id, currentUser.uid, !isCompleted)
+            
+            setCompletedLessons(prev =>
+                prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+            )
+            
+            if (autoNext) {
+                const index = lessons.findIndex(l => l.id === id)
+                if (index < lessons.length - 1) {
+                    setAutoNextCountdown(3)
+                }
+            }
+        } catch (err) {
+            console.error("Erro ao salvar conclusão:", err)
+        } finally {
+            setIsToggling(false)
+        }
     }
 
     if (loading || isCheckingAccess) {
@@ -236,12 +262,7 @@ export default function ClassroomPage() {
                                             className="w-full h-full object-contain"
                                             poster={course?.image_url}
                                             onEnded={() => {
-                                                toggleLessonStatus(currentLesson?.id)
-                                                // Só inicia auto-next se não for a última aula
-                                                const index = lessons.findIndex(l => l.id === currentLesson?.id)
-                                                if (index < lessons.length - 1) {
-                                                    setAutoNextCountdown(3)
-                                                }
+                                                toggleLessonStatus(currentLesson?.id, true)
                                             }}
                                         />
 
@@ -307,6 +328,29 @@ export default function ClassroomPage() {
                                 </button>
 
                                 <button
+                                    onClick={() => toggleLessonStatus(currentLesson?.id)}
+                                    disabled={isToggling}
+                                    className={`flex items-center gap-2 px-6 py-4 rounded-md font-black font-exo uppercase tracking-tighter transition-all border ${
+                                        completedLessons.includes(currentLesson?.id)
+                                            ? 'bg-[#00c853]/20 text-[#00c853] border-[#00c853]/30'
+                                            : 'bg-slate-800 text-white hover:bg-slate-700 border-slate-700'
+                                    }`}
+                                >
+                                    {isToggling ? (
+                                        <span className="text-xs">Carregando...</span>
+                                    ) : completedLessons.includes(currentLesson?.id) ? (
+                                        <>
+                                            <CheckCircle2 size={18} />
+                                            <span className="text-xs">Concluída</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span className="text-xs">Marcar Concluída</span>
+                                        </>
+                                    )}
+                                </button>
+
+                                <button
                                     onClick={goToNextLesson}
                                     disabled={lessons.findIndex(l => l.id === currentLesson?.id) === lessons.length - 1}
                                     className={`flex items-center gap-2 px-8 py-4 rounded-xl font-black font-exo uppercase tracking-tighter transition-all shadow-md ${lessons.findIndex(l => l.id === currentLesson?.id) === lessons.length - 1
@@ -325,6 +369,7 @@ export default function ClassroomPage() {
                     <div className="px-6 md:px-12 pb-16">
                         <div className="max-w-[1440px] mx-auto">
                             <ClassroomTabs
+                                lessonId={currentLesson?.id}
                                 lessonTitle={currentLesson?.title || ''}
                                 description={course?.description || "Esta aula aborda os fundamentos necessários para sua evolução técnica e estratégica."}
                                 courseId={course?.id}

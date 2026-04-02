@@ -161,5 +161,60 @@ A aplicação utiliza o **App Router** do Next.js, onde a maioria das rotas são
 
 ---
 
-**Última Atualização:** 27 de Março de 2026
-**Status do Documento:** Versão 1.3 (Atualizado com Engine de Notificações e Fixes de Build)
+### 31 de Março de 2026
+
+#### 🎨 Front-end
+
+**1. Aprimoramento da Experiência em Aula (Next Lesson Auto-play)**
+- **Componente**: `src/components/ClassroomPlayer.tsx`
+- Implementação de transição automática para a próxima lição 3 segundos após o término do vídeo.
+- Adição de lógica para cancelamento da transição caso o usuário navegue manualmente.
+
+**2. Redesign do Sistema de Quizzes (Industrial Style)**
+- **Novo Componente**: `QuizPlayer` seguindo o design system "Industrial" (bordas retas, sem arredondamento).
+- Implementação de feedback visual imediato: bordas verdes em opções corretas após confirmação.
+- Limpeza de labels das opções para exibir apenas identificadores simplificados ("A", "B", etc) sem caracteres residuais.
+
+---
+
+### 01 de Abril de 2026
+
+#### ⚙️ Back-end & Admin
+
+**1. Fluxo de Exclusão em Cascata (Cursos)**
+- **Rota**: `/admin/all-courses`
+- Implementação de Server Action para exclusão atômica: remove o documento do curso e todas as lições vinculadas no Firestore.
+- Início da integração para limpeza de assets no Firebase Storage associados às aulas deletadas.
+
+**2. Módulo de Gestão de Alunos (Dashboard Admin)**
+- **Nova Rota**: `/admin/students`
+- Interface de listagem com busca em tempo real.
+- Exibição de métricas individuais: quantidade de cursos adquiridos e tempo total de consumo de conteúdo.
+- Queries de Firestore otimizadas para evitar leitura excessiva de documentos.
+
+#### 🎨 Front-end & UI/UX
+
+**1. Refinamento de Identidade Admin**
+- **Componente**: `AdminSidebar.tsx`
+- Remoção da label redundante "Admin Panel" para um visual mais limpo e focado na navegação.
+- Correção de layout global para garantir que o background das páginas administrativas preencha 100% da viewport (`min-h-screen`).
+
+**2. Melhoria de Conversão e UI de Marketing**
+- **Componente**: `CoursesClient.tsx` (Hero Banner)
+- Padronização do botão "Quero me Inscrever Agora" visível para todos os estados de autenticação.
+- Remoção dos botões de "Continuar Treinando" do banner para focar o usuário no fluxo de aquisição.
+
+**3. Redesign da Página de Registro**
+- **Rota**: `/register`
+- Reestruturação completa do formulário de cadastro com foco em legibilidade e contraste.
+- Input fields atualizados para o padrão premium da plataforma.
+
+**4. Ajustes de Acessibilidade e Contraste**
+- **Componentes**: `CourseModal`, cards de aulas pendentes.
+- Correção de cores de texto que estavam "invisíveis" devido ao baixo contraste com o fundo dos modais.
+- Aulas pendentes agora possuem indicadores visuais mais fortes para distinção do background.
+
+---
+
+**Última Atualização:** 02 de Abril de 2026
+**Status do Documento:** Versão 1.4 (Atualizado com Gestão de Alunos e Exclusão Admin)

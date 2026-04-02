@@ -1,6 +1,8 @@
 'use server'
 
 import { adminDb } from '@/lib/firebase-admin'
+import { doc, getDoc, setDoc, deleteDoc, collection, query, where, getDocs } from 'firebase/firestore'
+import { db } from '@/lib/firebase'
 
 function serializeFirestoreData(data: any): any {
     if (data === null || data === undefined) return null
@@ -19,6 +21,75 @@ function serializeFirestoreData(data: any): any {
         return result
     }
     return data
+}
+
+export async function getUserCourseProgress(userId: string, courseId: string) {
+    try {
+        const progressDoc = await adminDb.collection('userProgress').doc(`${userId}_${courseId}`).get()
+        
+        if (progressDoc.exists) {
+            const data = progressDoc.data()
+            return {
+                success: true,
+                completedLessons: data?.completedLessons || []
+            }
+        }
+        
+        return {
+            success: true,
+            completedLessons: []
+        }
+    } catch (err: any) {
+        console.error("Erro ao buscar progresso:", err)
+        return { success: false, error: err.message }
+    }
+}
+
+export async function toggleLessonCompletion(
+    courseId: string, 
+    lessonId: string, 
+    userId: string, 
+    completed: boolean
+) {
+    try {
+        const progressId = `${userId}_${courseId}`
+        const progressRef = doc(db, 'userProgress', progressId)
+        
+        const progressDoc = await getDoc(progressRef)
+        
+        if (progressDoc.exists()) {
+            const data = progressDoc.data()
+            const currentCompleted = data?.completedLessons || []
+            
+            let newCompleted: string[]
+            if (completed) {
+                newCompleted = [...currentCompleted, lessonId]
+            } else {
+                newCompleted = currentCompleted.filter((id: string) => id !== lessonId)
+            }
+            
+            await setDoc(progressRef, {
+                userId,
+                courseId,
+                completedLessons: newCompleted,
+                updatedAt: new Date()
+            }, { merge: true })
+        } else {
+            if (completed) {
+                await setDoc(progressRef, {
+                    userId,
+                    courseId,
+                    completedLessons: [lessonId],
+                    updatedAt: new Date()
+                })
+            }
+        }
+        
+        return { success: true }
+    } catch (err: any) {
+        console.error("Erro ao salvar progresso:", err)
+        return { success: false, error: err.message }
+    }
 }
 
 export async function getClassroomData(courseId: string, userId: string) {
@@ -78,10 +149,15 @@ export async function getClassroomData(courseId: string, userId: string) {
             lessonsData = lessonsData.filter((l: any) => l.status === 'APROVADO')
         }
 
+        // 4. Busca progresso do usuário
+        const progressResult = await getUserCourseProgress(userId, courseId)
+        const completedLessons = progressResult.success ? progressResult.completedLessons : []
+
         return { 
             success: true, 
             course: courseData, 
-            lessons: lessonsData 
+            lessons: lessonsData,
+            completedLessons
         }
 
     } catch (err: any) {

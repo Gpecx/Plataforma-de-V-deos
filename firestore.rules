@@ -163,5 +163,28 @@ service cloud.firestore {
       );
       allow update, delete: if isAdmin();
     }
+
+    // =========================================================================
+    // COMMENTS (Q&A)
+    // Usuários autenticados podem criar e ler comentários de aulas que compraram.
+    // Apenas o autor pode excluir seu próprio comentário.
+    // =========================================================================
+    match /comments/{commentId} {
+      allow read: if isSignedIn() && hasPurchasedCourse(resource.data.courseId);
+      allow create: if isSignedIn() && hasPurchasedCourse(request.resource.data.courseId)
+        && request.resource.data.userId == request.auth.uid;
+      allow delete: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || isAdmin()
+      );
+    }
+
+    // =========================================================================
+    // USER PROGRESS
+    // Cada usuário gerencia apenas seu próprio progresso.
+    // =========================================================================
+    match /userProgress/{progressId} {
+      allow read: if isSignedIn() && request.auth.uid == resource.data.userId;
+      allow write: if isSignedIn() && request.auth.uid == resource.data.userId;
+    }
   }
 }
