@@ -176,20 +176,39 @@ export async function getTeacherStudents(teacherId: string) {
 }
 
 /**
- * Lista todos os usuários que são alunos (role == 'student' ou sem role).
+ * Lista todos os usuários que são alunos (role == 'student' ou 'user').
+ * Inclui quantidade de cursos adquiridos e tempo assistido.
  */
 export async function getAllStudents() {
     try {
         const studentsSnap = await adminDb.collection('profiles')
-            .where('role', '==', 'student')
+            .where('role', 'in', ['student', 'user'])
             .get()
-            
-        const students = studentsSnap.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }))
+        
+        const students = studentsSnap.docs.map(doc => doc.data())
+        const studentIds = students.map(s => s.uid)
 
-        return JSON.parse(JSON.stringify(students))
+        const enrollmentsSnap = await adminDb.collection('enrollments').get()
+        const enrollments = enrollmentsSnap.docs.map(doc => doc.data())
+
+        const studentsWithData = students.map(student => {
+            const userEnrollments = enrollments.filter(e => e.user_id === student.uid)
+            const coursesCount = userEnrollments.length
+            
+            return {
+                id: student.id,
+                uid: student.uid,
+                full_name: student.full_name || 'Sem nome',
+                email: student.email || 'Sem e-mail',
+                role: student.role || 'user',
+                coursesCount,
+                watchedTime: 0,
+                lastAccess: student.last_access || null,
+                createdAt: student.created_at || null,
+            }
+        })
+
+        return JSON.parse(JSON.stringify(studentsWithData))
     } catch (error) {
         console.error("Error getting students:", error)
         return []
@@ -543,9 +562,6 @@ export async function getSalesLogs(professorId?: string, startDate?: Date, endDa
     }
 }
 
-/**
- * Aprova a exclusão de um curso (exclui permanentemente)
- */
 export async function approveCourseDeletion(courseId: string) {
     try {
         const courseDoc = await adminDb.collection('courses').doc(courseId).get()
@@ -575,12 +591,15 @@ export async function approveCourseDeletion(courseId: string) {
 
         revalidatePath('/admin/approvals')
         revalidatePath('/dashboard-teacher/courses')
+        revalidatePath('/admin/all-courses')
         return { success: true }
     } catch (error) {
         console.error("Error approving course deletion:", error)
         return { success: false, error: "Falha ao excluir curso." }
     }
 }
+
+export const deleteCourse = approveCourseDeletion
 
 /**
  * Rejeita a exclusão de um curso (mantém o curso como APROVADO)

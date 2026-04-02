@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getAllCourses } from '@/app/actions/admin'
 import { Search, User, Tag, AlertCircle, CheckCircle2, BookOpen } from 'lucide-react'
+import CourseDeleteButton from '@/components/CourseDeleteButton'
 
 export const dynamic = 'force-dynamic'
 
@@ -106,12 +107,16 @@ export default async function AllCoursesPage() {
                                             </span>
                                         </td>
                                         <td className="p-6 text-right">
-                                            <Link
-                                                href={`/admin/classroom/${String(course.id)}`}
-                                                className="inline-flex items-center gap-2 px-6 py-3 bg-[#1D5F31] text-white text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition-all rounded-none active:scale-95"
-                                            >
-                                                Acessar Sala
-                                            </Link>
+                                            <div className="flex items-center justify-end gap-2">
+                                                <CourseDeleteButton courseId={String(course.id)} courseTitle={course.title} />
+                                                <Link
+                                                    href={`/admin/classroom/${String(course.id)}`}
+                                                    className="inline-flex items-center gap-2 px-6 py-3 text-white text-[10px] font-black uppercase tracking-widest transition-all rounded-lg active:scale-95"
+                                                    style={{ backgroundColor: '#1D5F31' }}
+                                                >
+                                                    Acessar Sala
+                                                </Link>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))

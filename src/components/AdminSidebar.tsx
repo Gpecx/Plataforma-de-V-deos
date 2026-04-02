@@ -44,6 +44,12 @@ const menuItems: MenuItem[] = [
         description: 'Filtro por Professor'
     },
     {
+        title: 'Gestão de Alunos',
+        icon: Users,
+        href: '/admin/students',
+        description: 'Métricas e Acessos'
+    },
+    {
         title: 'Branding & Banners',
         icon: LayoutDashboard,
         href: '/admin/settings',
