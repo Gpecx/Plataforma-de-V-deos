@@ -73,40 +73,55 @@ export function ClassroomTabs({ lessonId, description, courseId }: ClassroomTabs
     const [comments, setComments] = useState<Comment[]>([])
     const [commentText, setCommentText] = useState('')
     const [isSending, setIsSending] = useState(false)
+    const [isHydrated, setIsHydrated] = useState(false)
     const { user } = useAuth()
 
     useEffect(() => {
-        if (!lessonId) return
+        setIsHydrated(true)
+    }, [])
 
-        const commentsRef = collection(db, 'comments')
-        const q = query(
-            commentsRef,
-            where('lessonId', '==', lessonId),
-            orderBy('createdAt', 'desc')
-        )
+    useEffect(() => {
+        if (!lessonId || !isHydrated) return
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const loadedComments: Comment[] = snapshot.docs.map((doc) => {
-                const data = doc.data()
-                return {
-                    id: doc.id,
-                    user: data.userName || data.user || 'Usuário',
-                    avatar: data.avatar || '',
-                    text: data.content || data.text || '',
-                    date: data.createdAt ? 'Agora mesmo' : '',
-                    isInstructor: data.isInstructor || false,
-                    canEdit: data.userId === user?.uid || false,
-                    userId: data.userId,
-                    createdAt: data.createdAt
-                }
+        let unsubscribe: (() => void) | undefined
+
+        try {
+            const commentsRef = collection(db, 'comments')
+            const q = query(
+                commentsRef,
+                where('lessonId', '==', lessonId),
+                orderBy('createdAt', 'desc')
+            )
+
+            unsubscribe = onSnapshot(q, (snapshot) => {
+                const loadedComments: Comment[] = snapshot.docs.map((doc) => {
+                    const data = doc.data()
+                    return {
+                        id: doc.id,
+                        user: data.userName || data.user || 'Usuário',
+                        avatar: data.avatar || '',
+                        text: data.content || data.text || '',
+                        date: data.createdAt ? 'Agora mesmo' : '',
+                        isInstructor: data.isInstructor || false,
+                        canEdit: data.userId === user?.uid || false,
+                        userId: data.userId,
+                        createdAt: data.createdAt
+                    }
+                })
+                setComments(loadedComments)
+            }, (error) => {
+                console.error('Erro ao carregar comentários:', error)
             })
-            setComments(loadedComments)
-        }, (error) => {
-            console.error('Erro ao carregar comentários:', error)
-        })
+        } catch (error) {
+            console.error('Erro ao inicializar listener de comentários:', error)
+        }
 
-        return () => unsubscribe()
-    }, [lessonId, user?.uid])
+        return () => {
+            if (unsubscribe) {
+                unsubscribe()
+            }
+        }
+    }, [lessonId, isHydrated, user?.uid])
 
     const getUserName = () => {
         if (user?.displayName) return user.displayName

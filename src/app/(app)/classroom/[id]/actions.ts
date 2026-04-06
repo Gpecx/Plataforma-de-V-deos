@@ -31,13 +31,17 @@ export async function getUserCourseProgress(userId: string, courseId: string) {
             const data = progressDoc.data()
             return {
                 success: true,
-                completedLessons: data?.completedLessons || []
+                completedLessons: data?.completedLessons || [],
+                lastLessonId: data?.lastLessonId || null,
+                lastTimestamp: data?.lastTimestamp || 0
             }
         }
         
         return {
             success: true,
-            completedLessons: []
+            completedLessons: [],
+            lastLessonId: null,
+            lastTimestamp: 0
         }
     } catch (err: any) {
         console.error("Erro ao buscar progresso:", err)
@@ -157,7 +161,11 @@ export async function getClassroomData(courseId: string, userId: string) {
             success: true, 
             course: courseData, 
             lessons: lessonsData,
-            completedLessons
+            completedLessons,
+            progress: {
+                lastLessonId: progressResult.lastLessonId,
+                lastTimestamp: progressResult.lastTimestamp
+            }
         }
 
     } catch (err: any) {

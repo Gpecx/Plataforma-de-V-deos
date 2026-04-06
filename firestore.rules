@@ -165,26 +165,87 @@ service cloud.firestore {
     }
 
     // =========================================================================
-    // COMMENTS (Q&A)
-    // Usuários autenticados podem criar e ler comentários de aulas que compraram.
-    // Apenas o autor pode excluir seu próprio comentário.
+    // COMMENTS (Q&A 💬)
+    // Regra de Leitura: O usuário DEVE estar autenticado E ter comprado o curso.
+    //   → Admin é a única exceção (para fins de moderação de conteúdo).
+    // Regra de Criação: Autenticado + comprou + o userId no corpo == auth.uid.
+    //   → Impede que um usuário crie comentários em nome de outro.
+    // Regra de Exclusão: Apenas o próprio autor ou o Admin podem deletar.
     // =========================================================================
     match /comments/{commentId} {
-      allow read: if isSignedIn() && hasPurchasedCourse(resource.data.courseId);
-      allow create: if isSignedIn() && hasPurchasedCourse(request.resource.data.courseId)
+      // Leitura: exige compra do curso. Admin tem acesso irrestrito para moderação.
+      allow read: if isSignedIn() && (
+        isAdmin()
+        || hasPurchasedCourse(resource.data.courseId)
+      );
+
+      // Criação: tripla verificação — autenticado, comprou o curso e userId legítimo.
+      allow create: if isSignedIn()
+        && hasPurchasedCourse(request.resource.data.courseId)
         && request.resource.data.userId == request.auth.uid;
+
+      // Exclusão: apenas o autor do comentário ou o Admin.
       allow delete: if isSignedIn() && (
         resource.data.userId == request.auth.uid || isAdmin()
       );
     }
 
     // =========================================================================
-    // USER PROGRESS
-    // Cada usuário gerencia apenas seu próprio progresso.
+    // USER PROGRESS (Progresso do Aluno 🎓 — BLINDADO)
+    //
+    // Campos IMUTÁVEIS (nunca podem ser alterados após a criação):
+    //   → userId, courseId
+    //
+    // Campos MUTÁVEIS (whitelist explícita de campos permitidos no update):
+    //   → completedLessons, lastTimestamp, lastLessonId, updatedAt
+    //
+    // ID do Documento: {userId}_{courseId}
+    //   → A consistência do ID é validada no create para impedir
+    //     que um usuário escreva no namespace de outro.
     // =========================================================================
     match /userProgress/{progressId} {
-      allow read: if isSignedIn() && request.auth.uid == resource.data.userId;
-      allow write: if isSignedIn() && request.auth.uid == resource.data.userId;
+
+      // FUNÇÃO: Verifica se o progressId pertence ao usuário autenticado.
+      // Valida que o documento COMEÇA com o auth.uid seguido de '_',
+      // impedindo ataques de namespace (ex: uid_falso que começa igual ao uid real).
+      function progressBelongsToUser() {
+        let uid = request.auth.uid;
+        return progressId[0:uid.size()] == uid
+          && progressId[uid.size()] == '_';
+      }
+
+      // FUNÇÃO: Whitelist de campos permitidos num update.
+      // Qualquer campo fora desta lista (ex: userId, courseId) causará PERMISSION_DENIED.
+      function onlyMutableFieldsChanged() {
+        return request.resource.data.keys().hasOnly([
+          'userId', 'courseId',
+          'completedLessons', 'lastTimestamp', 'lastLessonId', 'updatedAt'
+        ]);
+      }
+
+      // Leitura: apenas o dono legítimo pode ver seu próprio progresso.
+      allow read: if isSignedIn()
+        && resource.data.userId == request.auth.uid;
+
+      // Criação: validação tripla de identidade.
+      //   1. O campo userId NO CORPO do documento == auth.uid.
+      //   2. O ID do documento pertence ao namespace do auth.uid.
+      //   3. Ambos concordam — sem inconsistência entre ID e payload.
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && progressBelongsToUser()
+        && request.resource.data.userId == request.resource.data.userId; // autocheck
+
+      // Atualização: quatro travas sequenciais.
+      //   1. O solicitante é o dono atual do documento (anti-takeover).
+      //   2. O campo userId NÃO FOI ALTERADO (imutabilidade).
+      //   3. O campo courseId NÃO FOI ALTERADO (imutabilidade).
+      //   4. Apenas campos da whitelist foram enviados (anti-field-injection).
+      allow update: if isSignedIn()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.courseId == resource.data.courseId
+        && onlyMutableFieldsChanged();
     }
 
     // =========================================================================

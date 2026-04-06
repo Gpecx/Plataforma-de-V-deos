@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import {
     CheckCircle2,
@@ -15,11 +15,13 @@ import {
 } from 'lucide-react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { ClassroomTabs } from './ClassroomTabs'
-import { auth } from '@/lib/firebase'
+import { auth, db } from '@/lib/firebase'
 import Logo from '@/components/Logo'
 import { onAuthStateChanged } from 'firebase/auth'
 import { getClassroomData, toggleLessonCompletion } from './actions'
 import { QuizPlayer } from './QuizPlayer'
+import { useProgressStore } from '@/store/useProgressStore'
+import { doc, setDoc, getDoc } from 'firebase/firestore'
 
 const scrollbarHideStyle = {
     msOverflowStyle: 'none',
@@ -42,6 +44,13 @@ export default function ClassroomPage() {
     const [autoNextCountdown, setAutoNextCountdown] = useState<number | null>(null)
     const [isToggling, setIsToggling] = useState(false)
     const [currentUser, setCurrentUser] = useState<any>(null)
+    const [lastTimestamp, setLastTimestamp] = useState(0)
+    const [redirectDone, setRedirectDone] = useState(false)
+    const videoRef = useRef<HTMLVideoElement>(null)
+    const saveProgressRef = useRef<NodeJS.Timeout | null>(null)
+    const isMountedRef = useRef(true)
+
+    const courseProgress = useProgressStore(state => state.courseProgress[params.id as string])
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -76,16 +85,22 @@ export default function ClassroomPage() {
 
                 if (result.lessons && result.lessons.length > 0) {
                     const lessonIdParam = searchParams.get('lessonId')
+                    let targetLesson = result.lessons[0]
+
                     if (lessonIdParam) {
                         const foundLesson = result.lessons.find((l: any) => l.id === lessonIdParam)
                         if (foundLesson) {
-                            setCurrentLesson(foundLesson)
-                        } else {
-                            setCurrentLesson(result.lessons[0])
+                            targetLesson = foundLesson
                         }
-                    } else {
-                        setCurrentLesson(result.lessons[0])
+                    } else if (result.progress?.lastLessonId) {
+                        const lastLesson = result.lessons.find((l: any) => l.id === result.progress.lastLessonId)
+                        if (lastLesson) {
+                            targetLesson = lastLesson
+                        }
                     }
+
+                    setCurrentLesson(targetLesson)
+                    setLastTimestamp(result.progress?.lastTimestamp || 0)
                 } else {
                     setError("Nenhuma aula encontrada para este curso.")
                 }
@@ -100,6 +115,25 @@ export default function ClassroomPage() {
 
         return () => unsubscribe()
     }, [params.id, router])
+
+    useEffect(() => {
+        return () => {
+            isMountedRef.current = false
+        }
+    }, [])
+
+    useEffect(() => {
+        if (!loading && !isCheckingAccess && !redirectDone && currentLesson && searchParams.get('lessonId') === null) {
+            const progressLessonId = courseProgress?.lastLessonId
+            if (progressLessonId && progressLessonId !== currentLesson.id) {
+                const foundLesson = lessons.find((l: any) => l.id === progressLessonId)
+                if (foundLesson && isMountedRef.current) {
+                    setRedirectDone(true)
+                    router.replace(`/classroom/${params.id}?lessonId=${progressLessonId}`, { scroll: false })
+                }
+            }
+        }
+    }, [loading, isCheckingAccess, redirectDone, currentLesson, courseProgress, lessons, params.id, router, searchParams])
 
     useEffect(() => {
         let timer: NodeJS.Timeout
@@ -122,7 +156,11 @@ export default function ClassroomPage() {
         cancelAutoNext()
         const index = lessons.findIndex(l => l.id === currentLesson?.id)
         if (index < lessons.length - 1) {
-            setCurrentLesson(lessons[index + 1])
+            const nextLesson = lessons[index + 1]
+            setCurrentLesson(nextLesson)
+            if (currentUser && course) {
+                saveProgress(nextLesson.id, 0)
+            }
         }
     }
 
@@ -130,7 +168,11 @@ export default function ClassroomPage() {
         cancelAutoNext()
         const index = lessons.findIndex(l => l.id === currentLesson?.id)
         if (index > 0) {
-            setCurrentLesson(lessons[index - 1])
+            const prevLesson = lessons[index - 1]
+            setCurrentLesson(prevLesson)
+            if (currentUser && course) {
+                saveProgress(prevLesson.id, 0)
+            }
         }
     }
 
@@ -161,6 +203,30 @@ export default function ClassroomPage() {
         }
     }
 
+    const saveProgress = async (lessonId: string, timestamp: number) => {
+        if (!currentUser || !course) {
+            console.log('saveProgress: user or course missing', { currentUser: !!currentUser, course: !!course })
+            return
+        }
+
+        const progressId = `${currentUser.uid}_${course.id}`
+        console.log('saveProgress: saving', { progressId, lessonId, timestamp })
+
+        try {
+            const progressRef = doc(db, 'userProgress', progressId)
+            await setDoc(progressRef, {
+                userId: currentUser.uid,
+                courseId: course.id,
+                lastLessonId: lessonId,
+                lastTimestamp: timestamp,
+                updatedAt: new Date()
+            }, { merge: true })
+            console.log('saveProgress: success', { progressId })
+        } catch (err: any) {
+            console.error('saveProgress: error', err?.message || err)
+        }
+    }
+
     if (loading || isCheckingAccess) {
         return (
             <div className="h-screen bg-[#F4F7F9] flex items-center justify-center">
@@ -180,9 +246,17 @@ export default function ClassroomPage() {
                 <h1 className="text-2xl font-black uppercase italic tracking-tighter text-slate-800">
                     {error || 'Treinamento não encontrado'}
                 </h1>
-                <Link href="/dashboard-student" className="mt-6 text-[#1D5F31] font-bold uppercase text-xs tracking-widest underline">
-                    Voltar para o Dashboard
-                </Link>
+                <div className="mt-6 flex flex-col gap-3">
+                    <button 
+                        onClick={() => window.location.reload()}
+                        className="px-6 py-3 bg-[#1D5F31] text-white font-black uppercase text-xs tracking-widest rounded-xl hover:bg-[#1D5F31]/90 transition-all"
+                    >
+                        Tentar Novamente
+                    </button>
+                    <Link href="/dashboard-student" className="text-[#1D5F31] font-bold uppercase text-xs tracking-widest underline">
+                        Voltar para o Dashboard
+                    </Link>
+                </div>
             </div>
         )
     }
@@ -206,12 +280,12 @@ export default function ClassroomPage() {
             <header className="h-16 flex items-center justify-between px-6 border-b border-slate-800 bg-[#061629] z-50 shadow-sm">
                 {/* Lado Esquerdo: Logo para sair da classroom */}
                 <div className="flex items-center w-1/4">
-                    <Link href="/course" className="flex items-center gap-3 text-slate-400 hover:text-white transition-colors group">
+                    <div className="flex items-center gap-3 text-slate-400 group">
                         <Logo />
-                        <span className="text-xs font-black uppercase tracking-widest group-hover:text-white transition-colors hidden md:block">
+                        <Link href="/course" className="text-xs font-black uppercase tracking-widest group-hover:text-white transition-colors hidden md:block">
                             Sair
-                        </span>
-                    </Link>
+                        </Link>
+                    </div>
                 </div>
 
                 {/* Centro: Título do Curso */}
@@ -267,11 +341,25 @@ export default function ClassroomPage() {
                                 ) : (
                                     <>
                                         <video
+                                            ref={videoRef}
                                             src={currentLesson?.video_url}
                                             controls
                                             autoPlay
                                             className="w-full h-full object-contain"
                                             poster={course?.image_url}
+                                            onLoadedMetadata={() => {
+                                                if (lastTimestamp > 0 && videoRef.current) {
+                                                    videoRef.current.currentTime = lastTimestamp
+                                                }
+                                            }}
+                                            onTimeUpdate={() => {
+                                                if (videoRef.current && currentLesson && currentUser) {
+                                                    const currentTime = Math.floor(videoRef.current.currentTime)
+                                                    if (currentTime > 0 && currentTime % 10 === 0) {
+                                                        saveProgress(currentLesson.id, currentTime)
+                                                    }
+                                                }
+                                            }}
                                             onEnded={() => {
                                                 toggleLessonStatus(currentLesson?.id, true)
                                             }}

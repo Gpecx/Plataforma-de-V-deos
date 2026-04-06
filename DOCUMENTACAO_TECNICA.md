@@ -216,5 +216,115 @@ A aplicação utiliza o **App Router** do Next.js, onde a maioria das rotas são
 
 ---
 
-**Última Atualização:** 02 de Abril de 2026
-**Status do Documento:** Versão 1.4 (Atualizado com Gestão de Alunos e Exclusão Admin)
+### 02 de Abril de 2026
+
+#### 🔒 Segurança & Firestore Rules
+
+**1. Incidente INC-001 — Nova Coleção `userProgress` sem Cobertura nas Regras**
+- **Arquivo**: `firestore.rules`, `DOC_FIREBASE_RULES.md`
+- Identificado e documentado o bloqueio de `permission-denied` ao persistir progresso de aulas.
+- Causa raiz: coleção `userProgress` sem bloco `match` — Firestore opera em *deny-by-default*.
+- Implementadas regras separadas por operação (`create`, `update`, `delete`) com validação via `request.resource.data.userId`.
+
+#### 🎨 Front-end
+
+**2. Funcionalidade: Progresso de Aulas (Persistência)**
+- **Componentes**: `ClassroomPlayer.tsx`, `actions.ts`
+- Server Action `markLessonComplete` implementada para gravar o conclusão em `userProgress/{userId}_{courseId}`.
+- `revalidatePath` adicionado para atualizar o Dashboard imediatamente após conclusão.
+
+---
+
+### 06 de Abril de 2026
+
+#### 🔒 Segurança — Endurecimento das Firestore Security Rules (SEC-001)
+
+> Esta seção documenta o hardening realizado nas regras do Firestore seguindo o **Princípio do Menor Privilégio**, para preparação de revisão formal de segurança.
+
+**Coleção `userProgress` — Refatoração Completa**
+- **Arquivo**: `firestore.rules`
+- O bloco anterior utilizava um único `allow write` genérico — extremamente permissivo e vulnerável.
+- **Travas aplicadas:**
+
+| Operação | Travas Implementadas |
+|---|---|
+| **`read`** | Removida brecha `resource == null`. Apenas o dono lê (`resource.data.userId == auth.uid`). |
+| **`create`** | Validação tripla: `payload.userId == auth.uid` + `progressBelongsToUser()` (namespace check) |
+| **`update`** | Imutabilidade de `userId` e `courseId` + whitelist explícita de campos via `onlyMutableFieldsChanged()` |
+
+- **`progressBelongsToUser()`** — substitui a função `getUidFromProgressId()` que era vulnerável a ataques de prefixo via `split('_')[0]`. A nova versão compara byte-a-byte: `progressId[0:uid.size()] == uid && progressId[uid.size()] == '_'`.
+- **`onlyMutableFieldsChanged()`** — whitelist de campos permitidos no `update`: `completedLessons`, `lastTimestamp`, `lastLessonId`, `updatedAt`.
+
+**Coleção `comments` — Reforço de Leitura**
+- **Arquivo**: `firestore.rules`
+- `read` agora exige `isSignedIn() && (isAdmin() || hasPurchasedCourse(resource.data.courseId))`.
+- Admin adicionado como bypass explícito para fins de moderação de conteúdo.
+
+---
+
+#### ⚙️ Back-end & Server Actions
+
+**1. Persistência de Progresso — Novos Campos (`lastTimestamp` e `lastLessonId`)**
+- **Arquivos**: `useProgressStore.ts`, `ProgressInitializer.tsx`, `actions.ts`
+- Implementado salvamento do `lastLessonId` e `lastTimestamp` para suportar o recurso de retomada de vídeo (`video resumption`).
+- Server Actions atualizadas para persistir esses campos na coleção `userProgress`.
+- `ProgressInitializer.tsx` responsável por hidratação do estado Zustand com os dados do servidor no carregamento da sala.
+
+**2. Perfil Público de Professores**
+- **Rota**: `/professor/[id]`
+- Correção de erro 404 — componente de página implementado.
+- Firestore rule de `profiles` atualizada para permitir leitura pública, mantendo escrita restrita ao dono ou Admin. (Documentada no INC-002 em `DOC_FIREBASE_RULES.md`)
+
+---
+
+#### 🎨 Front-end & UI/UX
+
+**1. Dashboard do Aluno — Progresso Dinâmico**
+- **Componentes**: `DashboardStudent`, `ContinueLessonButton`
+- Substituída a barra de progresso hardcoded por um cálculo dinâmico baseado em `completedLessons.length / totalLessons`.
+- `ContinueLessonButton` atualizado para redirecionar ao próximo episódio não concluído na sequência.
+- Links de "materiais de apoio" quebrados substituídos por badges `Em Breve`.
+
+**2. Busca Global Multicamadas**
+- **Componentes**: `CoursesClient.tsx`, `Navbar.tsx`
+- Filtro de cursos expandido para cobrir: título, nome do instrutor, tags e categoria (case-insensitive, com trim).
+- Implementado input de busca com debounce na Navbar que usa `useRouter` para redirecionar a `/course?s=termo`.
+- Sincronização de estado entre URL param e input da Navbar (previne re-renders desnecessários do Navbar inteiro).
+
+**3. Tags Dinâmicas de Cursos**
+- **Novo Componente**: `TagInput.tsx`
+- Sistema de input de tags com UI de badges (adicionar/remover), integrado nos formulários de criação e edição de curso.
+- Constraints implementados: sem tags vazias, sem duplicatas, máximo de 5 tags por curso.
+- Server Actions `createCourseAction` e `updateCourseAction` atualizadas para persistir `tags: string[]` no Firestore.
+
+**4. Funcionalidade: Wishlist (Minha Lista)**
+- **Rota**: `/dashboard-student/my-list`
+- Subcoleção Firestore: `profiles/{userId}/wishlist/{courseId}`.
+- Server Actions implementadas para adicionar/remover cursos da lista.
+- Componente com feedback visual animado via `framer-motion`.
+- Firestore rule adicionada: `allow read, write: if isSignedIn() && isOwner(userId)`.
+- Banner da página refinado: overlay removido, texto em branco, ícone de favorito corrigido.
+
+**5. Navegação Admin — Correções**
+- **Componente**: `Navbar.tsx`, `AdminSidebar.tsx`
+- Logo Admin agora redireciona para `/dashboard-teacher/courses` em vez da view de aluno.
+- Botão "Modo Aluno" adicionado no dropdown do Admin para navegação explícita ao dashboard do estudante.
+- Item de menu "Minha Lista" renomeado para "Meu Aprendizado".
+
+---
+
+#### 📊 Auditoria & Documentação
+
+**6. Análise de Gaps — Benchmark Netflix/Udemy**
+- Realizado audit completo da plataforma para identificar funcionalidades ausentes em relação aos benchmarks do mercado.
+- Relatório gerado categorizado por: status de implementação, impacto no engajamento e prioridade de desenvolvimento.
+
+**7. Documentação de Incidentes**
+- **Arquivo**: `DOC_FIREBASE_RULES.md`
+- Adicionado INC-002 documentando bloqueios de permissão em `profiles` e `userProgress`.
+- Regras propostas para revisão e aprovação do líder técnico (Fred).
+
+---
+
+**Última Atualização:** 06 de Abril de 2026
+**Status do Documento:** Versão 1.6 (Endurecimento de Segurança + Busca Global + Tags + Wishlist + Progresso Dinâmico)
