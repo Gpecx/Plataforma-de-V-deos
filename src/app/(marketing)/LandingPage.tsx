@@ -287,6 +287,7 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                             description={course.description}
                             accent={course.tag}
                             ranking={i + 1}
+                            showWishlist={false}
                         />
                     ))}
                 </div>
