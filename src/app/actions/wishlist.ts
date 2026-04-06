@@ -12,12 +12,30 @@ export async function toggleWishlist(courseId: string) {
     }
 
     const userId = session.uid
-    const wishlistRef = adminDb.collection('profiles').doc(userId).collection('wishlist').doc(courseId)
+    const profileRef = adminDb.collection('profiles').doc(userId)
+    const wishlistRef = profileRef.collection('wishlist').doc(courseId)
 
     try {
-        const doc = await wishlistRef.get()
+        const [profileDoc, wishlistDoc] = await Promise.all([
+            profileRef.get(),
+            wishlistRef.get()
+        ])
+
+        const profile = profileDoc.data()
+        const purchasedCourseIds = profile?.cursos_comprados || []
+
+        // Se já foi comprado, não permite adicionar e remove se já estiver lá
+        if (purchasedCourseIds.includes(courseId)) {
+            if (wishlistDoc.exists) {
+                await wishlistRef.delete()
+                revalidatePath('/dashboard-student/my-list')
+                revalidatePath('/course')
+                return { action: 'removed', courseId }
+            }
+            return { action: 'none', courseId, message: 'Curso já adquirido' }
+        }
         
-        if (doc.exists) {
+        if (wishlistDoc.exists) {
             await wishlistRef.delete()
             revalidatePath('/dashboard-student/my-list')
             revalidatePath('/course')

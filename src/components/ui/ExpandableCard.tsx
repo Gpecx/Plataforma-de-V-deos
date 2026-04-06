@@ -17,9 +17,20 @@ interface ExpandableCardProps {
     ranking?: number
     showWishlist?: boolean
     initialIsInWishlist?: boolean
+    isPurchased?: boolean
 }
 
-export function ExpandableCard({ id, thumbnail, title, description, accent, ranking, showWishlist = true, initialIsInWishlist = false }: ExpandableCardProps) {
+export function ExpandableCard({ 
+    id, 
+    thumbnail, 
+    title, 
+    description, 
+    accent, 
+    ranking, 
+    showWishlist = true, 
+    initialIsInWishlist = false,
+    isPurchased = false 
+}: ExpandableCardProps) {
     const [isOpen, setIsOpen] = useState(false)
     const [isInWishlist, setIsInWishlist] = useState(initialIsInWishlist)
     const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -86,7 +97,7 @@ export function ExpandableCard({ id, thumbnail, title, description, accent, rank
                 </div>
 
                 {/* Wishlist Button */}
-                {showWishlist && (
+                {showWishlist && !isPurchased && (
                     <motion.button
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}

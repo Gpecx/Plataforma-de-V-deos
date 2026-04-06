@@ -9,9 +9,10 @@ import Link from 'next/link'
 interface AddToCartButtonProps {
     course: CartItem
     purchasedCourseIds?: string[]
+    iconOnly?: boolean
 }
 
-export function AddToCartButton({ course, purchasedCourseIds = [] }: AddToCartButtonProps) {
+export function AddToCartButton({ course, purchasedCourseIds = [], iconOnly = false }: AddToCartButtonProps) {
     const { addItem, items } = useCartStore()
     const [isAdded, setIsAdded] = useState(false)
     const router = useRouter()
@@ -44,7 +45,8 @@ export function AddToCartButton({ course, purchasedCourseIds = [] }: AddToCartBu
         <button
             onClick={handleAdd}
             disabled={isInCart}
-            className={`w-full font-black uppercase text-[10px] tracking-[2px] py-3 rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 group ${isInCart
+            title={isInCart ? 'No Carrinho' : 'Adicionar ao Carrinho'}
+            className={`${iconOnly ? 'p-2.5' : 'w-full py-3 px-4'} font-black uppercase text-[10px] tracking-[2px] rounded-xl transition-all shadow-lg flex items-center justify-center gap-2 group ${isInCart
                 ? 'bg-[#1D5F31]/20 text-[#1D5F31] border border-[#1D5F31]/30 cursor-default'
                 : 'bg-black text-white hover:bg-[#1D5F31] border border-black hover:border-[#1D5F31]'
                 }`}
@@ -52,17 +54,17 @@ export function AddToCartButton({ course, purchasedCourseIds = [] }: AddToCartBu
             {isInCart ? (
                 <>
                     <Check size={14} strokeWidth={3} />
-                    No Carrinho
+                    {!iconOnly && 'No Carrinho'}
                 </>
             ) : isAdded ? (
                 <>
                     <Check size={14} strokeWidth={3} />
-                    Adicionado!
+                    {!iconOnly && 'Adicionado!'}
                 </>
             ) : (
                 <>
                     <ShoppingCart size={14} className="group-hover:rotate-12 transition-transform" />
-                    Adicionar ao Carrinho
+                    {!iconOnly && 'Adicionar ao Carrinho'}
                 </>
             )}
         </button>

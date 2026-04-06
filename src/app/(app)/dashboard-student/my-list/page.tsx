@@ -5,6 +5,7 @@ import { Heart, ArrowLeft, GraduationCap, BookOpen } from 'lucide-react'
 import Link from 'next/link'
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { parseFirebaseDate } from '@/lib/date-utils'
+import RemoveFromWishlistButton from '@/components/RemoveFromWishlistButton'
 
 export default async function MyListPage() {
     const cookieStore = await cookies()
@@ -29,7 +30,8 @@ export default async function MyListPage() {
 
     const profile = profileDoc.data()
     const wishlistCourseIds = wishlistSnapshot.docs.map(doc => doc.id)
-    
+    const purchasedCourseIds = profile?.cursos_comprados || []
+
     const allCourses = coursesSnapshot.docs.map(doc => {
         const data = doc.data()
         return {
@@ -40,31 +42,39 @@ export default async function MyListPage() {
         }
     }) as any[]
 
-    const wishlistCourses = allCourses.filter(c => wishlistCourseIds.includes(c.id))
+    const wishlistCourses = allCourses.filter(c => wishlistCourseIds.includes(c.id) && !purchasedCourseIds.includes(c.id))
 
     return (
-        <div className="min-h-screen bg-white font-exo relative">
-            <div className="bg-[#061629] pt-24 pb-16">
-                <div className="px-6 md:px-12 max-w-[1600px] mx-auto">
-                    <Link 
-                        href="/dashboard-student" 
-                        className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-colors mb-6 text-[10px] font-black uppercase tracking-widest"
-                    >
-                        <ArrowLeft size={14} />
-                        Voltar ao Dashboard
-                    </Link>
-                    
-                    <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 rounded-xl bg-[#1D5F31] flex items-center justify-center">
-                            <Heart size={32} className="text-white" />
-                        </div>
-                        <div>
-                            <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tighter text-white">
-                                Minha Lista
-                            </h1>
-                            <p className="text-white/60 text-sm font-medium mt-1">
-                                {wishlistCourses.length} curso{wishlistCourses.length !== 1 ? 's' : ''} favoritado{wishlistCourses.length !== 1 ? 's' : ''}
-                            </p>
+        <div className="min-h-screen bg-slate-50 font-exo relative flex flex-col">
+            <div className="px-6 md:px-12 pt-6 w-full">
+                <div className="relative max-w-[1600px] mx-auto rounded-3xl overflow-hidden shadow-xl min-h-[300px] md:min-h-[350px] flex items-center">
+                    <img
+                        src="https://images.unsplash.com/photo-1515378960530-7c0da6231fb1?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                        alt="Minha Lista Banner"
+                        className="absolute inset-0 w-full h-full object-cover"
+                    />
+
+                    <div className="relative z-20 w-full px-8 md:px-16 py-12">
+                        <Link
+                            href="/dashboard-student"
+                            className="inline-flex items-center gap-2 !text-white hover:!text-white/80 transition-colors mb-8 text-[10px] font-black uppercase tracking-[0.2em] bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 hover:bg-black/60"
+                        >
+                            <ArrowLeft size={14} />
+                            Voltar ao Dashboard
+                        </Link>
+                        <div className="flex flex-col md:flex-row md:items-center gap-6 md:gap-8">
+                            <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-[#1D5F31] to-[#0a2e15] border border-white/10 flex items-center justify-center shadow-2xl shadow-[#1D5F31]/30 transition-transform hover:scale-105 duration-300">
+                                <Heart size={32} className="text-[#00c853] fill-[#00c853] filter drop-shadow-md" />
+                            </div>
+                            <div>
+                                <h1 className="text-3xl md:text-5xl lg:text-6xl font-black uppercase tracking-tighter !text-white drop-shadow-2xl">
+                                    Minha Lista
+                                </h1>
+                                <p className="!text-white text-sm md:text-base font-bold mt-2 flex items-center gap-2 tracking-wide drop-shadow-lg">
+                                    <span className="w-2 h-2 rounded-full bg-[#00c853] animate-pulse"></span>
+                                    {wishlistCourses.length} curso{wishlistCourses.length !== 1 ? 's' : ''} favorito{wishlistCourses.length !== 1 ? 's' : ''}
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -82,8 +92,8 @@ export default async function MyListPage() {
                         <p className="text-slate-500 font-medium mb-8 max-w-md mx-auto">
                             Explore nosso catálogo e adicione cursos à sua lista para salvá-los aqui.
                         </p>
-                        <Link 
-                            href="/course" 
+                        <Link
+                            href="/course"
                             className="inline-flex items-center gap-2 bg-[#1D5F31] text-white px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
                         >
                             <GraduationCap size={18} />
@@ -92,7 +102,9 @@ export default async function MyListPage() {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                        {wishlistCourses.map((curso) => (
+                        {wishlistCourses.map((curso) => {
+                            const hasPurchased = purchasedCourseIds.includes(curso.id)
+                            return (
                             <div key={curso.id} className="group bg-white rounded-[24px] overflow-hidden border border-black shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col">
                                 <div className="relative h-48 overflow-hidden bg-slate-100">
                                     <img
@@ -100,12 +112,35 @@ export default async function MyListPage() {
                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                                         alt={curso.title}
                                     />
-                                    <div className="absolute top-4 left-4 bg-[#1D5F31]/90 backdrop-blur-md px-3 py-1.5 rounded-lg z-10">
-                                        <span className="text-[8px] font-black text-white tracking-widest uppercase flex items-center gap-1">
-                                            <Heart size={10} className="fill-white" />
-                                            Favorito
-                                        </span>
-                                    </div>
+                                    {hasPurchased ? (
+                                        <div className="absolute top-4 left-4 bg-[#1D5F31] px-3 py-1.5 rounded-lg z-10">
+                                            <span className="text-[8px] font-black text-white tracking-widest uppercase flex items-center gap-1">
+                                                <BookOpen size={10} />
+                                                Já Possui
+                                            </span>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="absolute top-4 left-4 bg-[#1D5F31]/90 backdrop-blur-md px-3 py-1.5 rounded-lg z-10">
+                                                <span className="text-[8px] font-black text-white tracking-widest uppercase flex items-center gap-1">
+                                                    <Heart size={10} className="fill-white" />
+                                                    Favorito
+                                                </span>
+                                            </div>
+                                            <div className="absolute top-4 right-4 z-10">
+                                                <AddToCartButton 
+                                                    course={{
+                                                        id: curso.id,
+                                                        title: curso.title,
+                                                        price: Number(curso.price || 0),
+                                                        image_url: curso.image_url
+                                                    }} 
+                                                    purchasedCourseIds={purchasedCourseIds}
+                                                    iconOnly={true}
+                                                />
+                                            </div>
+                                        </>
+                                    )}
                                 </div>
 
                                 <div className="p-6 flex-grow flex flex-col">
@@ -127,19 +162,14 @@ export default async function MyListPage() {
                                     </div>
                                 </div>
 
-                                <div className="w-full">
-                                    <AddToCartButton
-                                        course={{
-                                            id: curso.id,
-                                            title: curso.title,
-                                            price: Number(curso.price || 0),
-                                            image_url: curso.image_url
-                                        }}
-                                        purchasedCourseIds={[]}
-                                    />
-                                </div>
+                                {!hasPurchased && (
+                                    <div className="w-full p-4 bg-slate-50 border-t border-black">
+                                        <RemoveFromWishlistButton courseId={curso.id} />
+                                    </div>
+                                )}
                             </div>
-                        ))}
+                            )
+                        })}
                     </div>
                 )}
             </div>

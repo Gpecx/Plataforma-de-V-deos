@@ -227,7 +227,10 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
                                                     alt={course.title}
                                                     className="object-cover w-full h-full group-hover:scale-105 transition duration-500"
                                                 />
-                                                <WishlistButton courseId={course.id} />
+                                                <WishlistButton 
+                                                    courseId={course.id} 
+                                                    isPurchased={profile?.cursos_comprados?.includes(course.id)} 
+                                                />
                                                 <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm border border-slate-200 text-[#1D5F31] px-2 py-0.5 text-[8px] font-black uppercase tracking-widest rounded-md z-10">
                                                     {course.tag || "TREINAMENTO"}
                                                 </div>

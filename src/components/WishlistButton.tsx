@@ -10,9 +10,10 @@ import { onAuthStateChanged } from 'firebase/auth'
 interface WishlistButtonProps {
     courseId: string
     className?: string
+    isPurchased?: boolean
 }
 
-export default function WishlistButton({ courseId, className = '' }: WishlistButtonProps) {
+export default function WishlistButton({ courseId, className = '', isPurchased = false }: WishlistButtonProps) {
     const [isInWishlist, setIsInWishlist] = useState(false)
     const [isLoggedIn, setIsLoggedIn] = useState(false)
     const [isToggling, setIsToggling] = useState(false)
@@ -27,6 +28,10 @@ export default function WishlistButton({ courseId, className = '' }: WishlistBut
         })
         return () => unsubscribe()
     }, [courseId])
+
+    if (isPurchased) {
+        return null
+    }
 
     const handleToggle = async (e: React.MouseEvent) => {
         e.preventDefault()
