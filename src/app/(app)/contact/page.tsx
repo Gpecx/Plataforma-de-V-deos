@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import { Mail, Phone, MapPin, Send, CheckCircle2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -17,7 +17,9 @@ export default function ContactPage() {
 
     return (
         <div className="min-h-screen bg-white"> {/* Fundo branco unificado com o tema clean */}
-            <Navbar light={true} />
+            <Suspense fallback={null}>
+                <Navbar light={true} />
+            </Suspense>
             <div className="pt-32 pb-20 px-4 md:px-8 font-exo">
                 <div className="w-full max-w-7xl mx-auto">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">

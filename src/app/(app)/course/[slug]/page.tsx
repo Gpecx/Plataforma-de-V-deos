@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import { Suspense } from "react"
 import Link from "next/link"
 import Navbar from "@/components/Navbar"
 import { MotivationalBanner } from "@/components/MotivationalBanner"
@@ -91,7 +92,9 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
 
     return (
         <div className="min-h-screen bg-transparent text-[#061629] font-exo">
-            <Navbar light={true} />
+            <Suspense fallback={null}>
+                <Navbar light={true} />
+            </Suspense>
 
             {/* HERO & VIDEO SECTION - BORDAS QUADRADAS E ALINHAMENTO RIGOROSO */}
             <section className="relative pt-4 md:pt-6 pb-0 overflow-hidden">

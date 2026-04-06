@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import Footer from '@/components/Footer'
 import Navbar from '@/components/Navbar'
 import { AuthProvider } from '@/context/AuthProvider'
@@ -10,7 +11,9 @@ export default function MarketingLayout({
     return (
         <AuthProvider>
             <div className="flex flex-col min-h-screen bg-transparent">
-                <Navbar />
+                <Suspense fallback={null}>
+                    <Navbar />
+                </Suspense>
 
                 {/* A classe 'pt-24' (ou pt-[80px]) é essencial aqui. 
                    Como a Navbar é fixed, este padding garante que o 

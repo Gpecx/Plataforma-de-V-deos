@@ -1,12 +1,13 @@
 "use client"
 
+import { Suspense } from 'react'
 import { CheckCircle2, ArrowRight, GraduationCap } from 'lucide-react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 
-export default function CheckoutSuccessPage() {
+function CheckoutSuccessContent() {
     return (
         <div className="min-h-screen bg-white font-exo flex flex-col">
             <Navbar />
@@ -77,5 +78,17 @@ export default function CheckoutSuccessPage() {
 
             <Footer />
         </div>
+    )
+}
+
+export default function CheckoutSuccessPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-white font-exo flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1D5F31]"></div>
+            </div>
+        }>
+            <CheckoutSuccessContent />
+        </Suspense>
     )
 }
