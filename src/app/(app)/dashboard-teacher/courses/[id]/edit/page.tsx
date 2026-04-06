@@ -52,6 +52,7 @@ import { uploadCourseImage, uploadCourseVideo } from "@/lib/storage-helpers"
 import { updateCourseAction, deleteVideoAction, cancelLessonDeletionRequest } from "../../actions"
 import { onAuthStateChanged, User } from 'firebase/auth'
 import QuizForm from '@/app/(app)/dashboard-teacher/components/QuizForm'
+import TagInput from '@/components/ui/TagInput'
 
 import { Quiz, Question } from '@/lib/types/quiz'
 
@@ -459,6 +460,7 @@ export default function CourseBuilder() {
     const [courseIntroVideo, setCourseIntroVideo] = useState('')
     const [courseCurriculum, setCourseCurriculum] = useState<string[]>([])
     const [isUploadingIntro, setIsUploadingIntro] = useState(false)
+    const [courseTags, setCourseTags] = useState<string[]>([])
 
     // 1. Carrega dados do Firestore
     useEffect(() => {
@@ -482,6 +484,7 @@ export default function CourseBuilder() {
                         setCourseImage(cData.image_url || '')
                         setCourseIntroVideo(cData.intro_video_url || '')
                         setCourseCurriculum(cData.curriculum || [])
+                        setCourseTags(cData.tags || [])
 
                         // Busca as aulas
                         const lessonsRef = collection(db, 'lessons')
@@ -584,7 +587,8 @@ export default function CourseBuilder() {
                 intro_video_url: courseIntroVideo,
                 curriculum: courseCurriculum,
                 lessons: allLessons,
-                status: newCourseStatus
+                status: newCourseStatus,
+                tags: courseTags
             })
 
             if (result.success) {
@@ -979,6 +983,16 @@ export default function CourseBuilder() {
                                     value={courseDuration}
                                     onChange={(e) => setCourseDuration(Number(e.target.value))}
                                     className="w-full bg-white border border-[#1D5F31]/20 rounded-xl px-6 py-4 focus:border-[#1D5F31] outline-none font-black text-xl text-black transition-all"
+                                />
+                            </div>
+
+                            <div className="space-y-4">
+                                <label className="text-[9px] font-black uppercase tracking-[3px] text-black/60 px-1">Tags para Busca</label>
+                                <TagInput
+                                    tags={courseTags}
+                                    onChange={(tags) => setCourseTags(tags)}
+                                    maxTags={5}
+                                    placeholder="Digite uma tag e pressione Enter"
                                 />
                             </div>
 

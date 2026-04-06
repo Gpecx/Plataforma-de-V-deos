@@ -12,6 +12,7 @@ import { ContinueLessonButton } from '@/components/dashboard/ContinueLessonButto
 import { BannerWrapper } from '@/components/ui/BannerWrapper'
 import { CourseProgressBar } from '@/components/dashboard/CourseProgressBar'
 import WishlistButton from '@/components/WishlistButton'
+import { ProgressInitializer } from '@/components/dashboard/ProgressInitializer'
 
 export default async function StudentDashboard() {
     const cookieStore = await cookies()
@@ -28,12 +29,13 @@ export default async function StudentDashboard() {
         redirect('/login')
     }
 
-    const [profileDoc, coursesSnapshot, enrollmentsSnapshot, lessonsSnapshot, banners] = await Promise.all([
+    const [profileDoc, coursesSnapshot, enrollmentsSnapshot, lessonsSnapshot, banners, userProgressSnapshot] = await Promise.all([
         adminDb.collection('profiles').doc(user.uid).get(),
         adminDb.collection('courses').get(),
         adminDb.collection('enrollments').where('user_id', '==', user.uid).get(),
         adminDb.collection('lessons').get(),
-        getBanners()
+        getBanners(),
+        adminDb.collection('userProgress').where('userId', '==', user.uid).get()
     ])
 
     const profile = profileDoc.data()
@@ -48,6 +50,24 @@ export default async function StudentDashboard() {
     }) as any[]
     const allLessons = lessonsSnapshot.docs.map(doc => doc.data()) as any[]
     const purchasedCourseIds = enrollmentsSnapshot.docs.map(doc => doc.data().course_id)
+    
+    const userProgressMap: Record<string, { completedLessons: string[], totalLessons: number }> = {}
+    userProgressSnapshot.docs.forEach(doc => {
+        const data = doc.data()
+        const courseId = data.courseId
+        const courseLessons = allLessons.filter((l: any) => l.course_id === courseId)
+        userProgressMap[courseId] = {
+            completedLessons: data.completedLessons || [],
+            totalLessons: courseLessons.length
+        }
+    })
+
+    const courseLessonsCount: Record<string, number> = {}
+    allLessons.forEach((lesson: any) => {
+        if (lesson.course_id) {
+            courseLessonsCount[lesson.course_id] = (courseLessonsCount[lesson.course_id] || 0) + 1
+        }
+    })
 
     const meusCursos = allCourses.filter(c => purchasedCourseIds.includes(c.id))
     const cursosDisponiveis = allCourses.filter(c => !purchasedCourseIds.includes(c.id) && c.status === 'APROVADO')
@@ -55,6 +75,10 @@ export default async function StudentDashboard() {
     return (
         <div className="min-h-screen bg-white font-exo relative pb-16">
             <StoreInitializer purchasedCourseIds={purchasedCourseIds} />
+            <ProgressInitializer 
+                purchasedCourseIds={purchasedCourseIds}
+                courseLessonsCount={courseLessonsCount}
+            />
 
             <BannerWrapper>
                 <div className="absolute top-10 left-8 md:left-20 z-20 pointer-events-none">
@@ -83,9 +107,13 @@ export default async function StudentDashboard() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                             {meusCursos.map((curso) => {
-                                const courseLessons = allLessons.filter((l: any) => l.course_id === curso.id)
+                                const courseLessons = allLessons.filter((l: any) => l.course_id === curso.id).sort((a: any, b: any) => (a.position || 0) - (b.position || 0))
                                 const totalLessons = courseLessons.length
-                                const completedLessons = 0 // TODO: Implement progress tracking
+                                const progress = userProgressMap[curso.id] || { completedLessons: [], totalLessons }
+                                const completedLessons = progress.completedLessons.length
+
+                                const nextLesson = courseLessons.find((lesson: any) => !progress.completedLessons.includes(lesson.id))
+                                const nextLessonId = nextLesson?.id || courseLessons[courseLessons.length - 1]?.id
                                 
                                 return (
                                 <div key={curso.id} className="group bg-white rounded-[24px] overflow-hidden border border-black transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 flex flex-col">
@@ -107,7 +135,7 @@ export default async function StudentDashboard() {
                                                 completedLessons={completedLessons} 
                                                 totalLessons={totalLessons} 
                                             />
-                                            <ContinueLessonButton courseId={curso.id} />
+                                            <ContinueLessonButton courseId={curso.id} lessonId={nextLessonId} />
                                         </div>
                                     </div>
                                 </div>

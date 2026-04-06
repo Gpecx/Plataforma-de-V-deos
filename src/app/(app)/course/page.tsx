@@ -36,6 +36,7 @@ export default async function CoursesPage() {
                 status: data.status || 'APROVADO',
                 teacher_id: data.teacher_id || null,
                 teacher_name: data.teacher_name || 'Equipe PowerPlay',
+                tags: data.tags || [],
                 created_at: parseFirebaseDate(data.created_at)?.toISOString() || null,
             };
         });

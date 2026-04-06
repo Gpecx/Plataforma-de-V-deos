@@ -19,6 +19,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import TagInput from '@/components/ui/TagInput'
 
 // Importamos a Store, a Action e o utilitário de Storage
 import { useCourseFormStore, Lesson } from "@/store/useCourseFormStore"
@@ -307,6 +308,15 @@ export default function NewCoursePage() {
                                 placeholder="Descreva os benefícios e o que o aluno vai aprender..."
                                 value={formData.description}
                                 onChange={(e) => setStepData({ description: e.target.value })}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-black px-1">Tags para Busca</Label>
+                            <TagInput
+                                tags={formData.tags || []}
+                                onChange={(tags) => setStepData({ tags })}
+                                maxTags={5}
+                                placeholder="Digite uma tag e pressione Enter"
                             />
                         </div>
                         <div className="space-y-4 pt-4 border-t border-black/10">

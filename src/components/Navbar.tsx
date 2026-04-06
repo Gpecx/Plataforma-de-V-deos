@@ -6,7 +6,7 @@ import { onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth'
 import { getPublicProfile } from '@/app/actions/profile'
 import { removeSessionCookie } from '@/app/actions/auth'
 import Link from 'next/link'
-import { useRouter, usePathname } from 'next/navigation'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import {
     Search,
     User,
@@ -50,6 +50,7 @@ interface NavbarProps {
 export default function Navbar({ transparent, light = false }: NavbarProps) {
     const pathname = usePathname()
     const router = useRouter()
+    const searchParams = useSearchParams()
     // ... (no changes in inner hooks)
     const [userProfile, setUserProfile] = useState<{ full_name: string | null, role: string | null, created_at: any } | null>(null)
     const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -59,6 +60,11 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
     const [searchQuery, setSearchQuery] = useState('')
     const [isScrolled, setIsScrolled] = useState(false)
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+    useEffect(() => {
+        const queryFromUrl = searchParams.get('s') || ''
+        setSearchQuery(queryFromUrl)
+    }, [searchParams])
 
     useEffect(() => {
         setMounted(true)
@@ -210,17 +216,40 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                                         light ? "placeholder:text-slate-400 text-slate-900" : "placeholder:text-white/50 text-white"
                                     )}
                                     value={searchQuery}
-                                    onChange={e => setSearchQuery(e.target.value)}
+                                    onChange={e => {
+                                        const value = e.target.value
+                                        setSearchQuery(value)
+                                        
+                                        if (value.trim()) {
+                                            const encodedQuery = encodeURIComponent(value.trim())
+                                            if (pathname !== '/course') {
+                                                router.push(`/course?s=${encodedQuery}`)
+                                            } else {
+                                                router.replace(`/course?s=${encodedQuery}`, { scroll: false })
+                                            }
+                                        } else {
+                                            if (pathname === '/course') {
+                                                router.replace('/course', { scroll: false })
+                                            }
+                                        }
+                                    }}
                                     onKeyDown={e => {
                                         if (e.key === 'Enter') {
-                                            router.push(`/course?s=${searchQuery}`)
                                             setIsSearchOpen(false)
                                         }
                                     }}
                                 />
                             </div>
                             <button
-                                onClick={() => setIsSearchOpen(!isSearchOpen)}
+                                onClick={() => {
+                                    if (isSearchOpen && searchQuery) {
+                                        setSearchQuery('')
+                                        if (pathname === '/course') {
+                                            router.replace('/course', { scroll: false })
+                                        }
+                                    }
+                                    setIsSearchOpen(!isSearchOpen)
+                                }}
                                 className={cn(
                                     "transition cursor-pointer outline-none flex items-center justify-center",
                                     light ? "text-slate-900 hover:text-[#1D5F31]" : "text-white hover:opacity-70"

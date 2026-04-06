@@ -35,6 +35,7 @@ export async function createCourseAction(formData: any) {
             image_url: formData.image_url || "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=2070",
             intro_video_url: formData.intro_video_url || '',
             curriculum: formData.curriculum || [],
+            tags: formData.tags || [],
             created_at: new Date(),
             updated_at: new Date()
         }
@@ -140,6 +141,7 @@ export async function updateCourseAction(courseId: string, formData: any) {
         if (formData.image_url !== undefined) updateData.image_url = formData.image_url
         if (formData.intro_video_url !== undefined) updateData.intro_video_url = formData.intro_video_url
         if (formData.curriculum !== undefined) updateData.curriculum = formData.curriculum
+        if (formData.tags !== undefined) updateData.tags = formData.tags
 
         await courseRef.update(updateData)
 

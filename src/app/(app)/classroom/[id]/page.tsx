@@ -13,7 +13,7 @@ import {
     Lightbulb,
     Moon
 } from 'lucide-react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { ClassroomTabs } from './ClassroomTabs'
 import { auth } from '@/lib/firebase'
 import Logo from '@/components/Logo'
@@ -29,6 +29,7 @@ const scrollbarHideStyle = {
 export default function ClassroomPage() {
     const params = useParams()
     const router = useRouter()
+    const searchParams = useSearchParams()
 
     const [sidebarOpen, setSidebarOpen] = useState(true)
     const [course, setCourse] = useState<any>(null)
@@ -74,7 +75,17 @@ export default function ClassroomPage() {
                 setCompletedLessons(result.completedLessons || [])
 
                 if (result.lessons && result.lessons.length > 0) {
-                    setCurrentLesson(result.lessons[0])
+                    const lessonIdParam = searchParams.get('lessonId')
+                    if (lessonIdParam) {
+                        const foundLesson = result.lessons.find((l: any) => l.id === lessonIdParam)
+                        if (foundLesson) {
+                            setCurrentLesson(foundLesson)
+                        } else {
+                            setCurrentLesson(result.lessons[0])
+                        }
+                    } else {
+                        setCurrentLesson(result.lessons[0])
+                    }
                 } else {
                     setError("Nenhuma aula encontrada para este curso.")
                 }

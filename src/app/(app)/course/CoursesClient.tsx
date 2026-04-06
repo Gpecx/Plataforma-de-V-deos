@@ -43,6 +43,8 @@ interface Course {
     tag?: string;
     image_url?: string | null;
     status: 'APROVADO' | 'PENDENTE' | 'DESATIVADO';
+    teacher_name?: string;
+    tags?: string[];
 }
 
 interface CoursesClientProps {
@@ -78,11 +80,15 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
     }, [displaySlides.length]);
 
     const filteredCourses = searchQuery
-        ? initialCourses.filter(c =>
-            (c.title?.toLowerCase().includes(searchQuery) ||
-                c.category?.toLowerCase().includes(searchQuery)) &&
-            c.status === 'APROVADO'
-        )
+        ? initialCourses.filter(c => {
+            const query = searchQuery.toLowerCase().trim()
+            return c.status === 'APROVADO' && (
+                c.title?.toLowerCase().includes(query) ||
+                c.category?.toLowerCase().includes(query) ||
+                c.teacher_name?.toLowerCase().includes(query) ||
+                (c.tags && c.tags.some((tag: string) => tag.toLowerCase().includes(query)))
+            )
+        })
         : initialCourses.filter(c => c.status === 'APROVADO');
 
     const handleCourseClick = (course: Course) => {

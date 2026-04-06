@@ -221,30 +221,34 @@ export function ClassroomTabs({ lessonId, description, courseId }: ClassroomTabs
                         <div className="space-y-6">
                             <h3 className="text-xl font-black uppercase tracking-tighter text-white">Materiais</h3>
                             <div className="space-y-3">
-                                <a href="#" className="flex items-center justify-between p-4 border border-slate-800 bg-slate-800/30 rounded-xl hover:border-[#1D5F31]/30 transition-all group">
+                                <div className="flex items-center justify-between p-4 border border-slate-800 bg-slate-800/30 rounded-xl opacity-60 cursor-not-allowed">
                                     <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-xl bg-[#061629] text-slate-200 group-hover:text-green-500 transition-colors shadow-sm">
+                                        <div className="p-2 rounded-xl bg-[#061629] text-slate-500 shadow-sm">
                                             <FileText size={18} />
                                         </div>
                                         <div>
-                                            <p className="text-sm font-bold text-white">Resumo da Aula.pdf</p>
-                                            <p className="text-[10px] text-slate-200 uppercase tracking-widest">2.4 MB</p>
+                                            <p className="text-sm font-bold text-slate-400">Resumo da Aula.pdf</p>
+                                            <p className="text-[10px] text-slate-500 uppercase tracking-widest">2.4 MB</p>
                                         </div>
                                     </div>
-                                    <Download size={18} className="text-slate-200 group-hover:text-green-500" />
-                                </a>
-                                <a href="#" className="flex items-center justify-between p-4 border border-slate-800 bg-slate-800/30 rounded-xl hover:border-[#1D5F31]/30 transition-all group">
+                                    <span className="px-3 py-1 bg-[#00c853] text-black text-[10px] font-black uppercase tracking-widest rounded-full">
+                                        Em Breve
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between p-4 border border-slate-800 bg-slate-800/30 rounded-xl opacity-60 cursor-not-allowed">
                                     <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-xl bg-[#061629] text-slate-400 group-hover:text-[#1D5F31] transition-colors shadow-sm">
+                                        <div className="p-2 rounded-xl bg-[#061629] text-slate-500 shadow-sm">
                                             <Download size={18} />
                                         </div>
                                         <div>
-                                            <p className="text-sm font-bold text-white">Codigo_Fonte.zip</p>
-                                            <p className="text-[10px] text-slate-200 uppercase tracking-widest">15.8 MB</p>
+                                            <p className="text-sm font-bold text-slate-400">Codigo_Fonte.zip</p>
+                                            <p className="text-[10px] text-slate-500 uppercase tracking-widest">15.8 MB</p>
                                         </div>
                                     </div>
-                                    <Download size={18} className="text-slate-200 group-hover:text-green-500" />
-                                </a>
+                                    <span className="px-3 py-1 bg-[#00c853] text-black text-[10px] font-black uppercase tracking-widest rounded-full">
+                                        Em Breve
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
