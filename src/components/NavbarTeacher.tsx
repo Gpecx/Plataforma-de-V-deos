@@ -18,7 +18,8 @@ import {
     Users,
     UserCog,
     Menu,
-    ShieldAlert
+    ShieldAlert,
+    GraduationCap
 } from 'lucide-react'
 import { NotificationBell } from '@/components/NotificationBell'
 
@@ -186,10 +187,16 @@ export default function NavbarTeacher() {
 
                                 <div className="p-1 space-y-1">
                                     {userProfile?.role === 'admin' && (
-                                        <DropdownMenuItem onSelect={() => router.push("/admin/dashboard")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-green-50 text-[#1D5F31] transition-colors focus:bg-green-50 border border-green-100 mb-1">
-                                            <ShieldAlert size={18} className="text-[#1D5F31]" />
-                                            <span className="text-[11px] font-black uppercase tracking-widest leading-none">Acessar Painel Admin</span>
-                                        </DropdownMenuItem>
+                                        <>
+                                            <DropdownMenuItem onSelect={() => router.push("/admin/dashboard")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-green-50 text-[#1D5F31] transition-colors focus:bg-green-50 border border-green-100 mb-1">
+                                                <ShieldAlert size={18} className="text-[#1D5F31]" />
+                                                <span className="text-[11px] font-black uppercase tracking-widest leading-none">Acessar Painel Admin</span>
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem onSelect={() => router.push("/dashboard-student")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-green-50 text-[#1D5F31] transition-colors focus:bg-green-50 border border-green-100 mb-1">
+                                                <GraduationCap size={18} className="text-[#1D5F31]" />
+                                                <span className="text-[11px] font-black uppercase tracking-widest leading-none">Modo Aluno</span>
+                                            </DropdownMenuItem>
+                                        </>
                                     )}
                                     <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/profile")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors focus:bg-slate-50">
                                         <UserCog size={18} className="text-slate-400" />

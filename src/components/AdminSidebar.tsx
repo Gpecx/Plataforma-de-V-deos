@@ -3,6 +3,13 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
     LayoutDashboard,
     Users,
     Settings,
@@ -11,11 +18,15 @@ import {
     LogOut,
     ChevronRight,
     Loader2,
-    BookOpen
+    BookOpen,
+    GraduationCap
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Logo from './Logo'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { auth, db } from '@/lib/firebase'
+import { onAuthStateChanged } from 'firebase/auth'
+import { doc, getDoc } from 'firebase/firestore'
 
 interface MenuItem {
     title: string;
@@ -73,6 +84,24 @@ export default function AdminSidebar() {
     const pathname = usePathname()
     const router = useRouter()
     const [isLoggingOut, setIsLoggingOut] = useState(false)
+    const [userProfile, setUserProfile] = useState<{ role: string | null } | null>(null)
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    const docRef = doc(db, 'profiles', user.uid)
+                    const docSnap = await getDoc(docRef)
+                    if (docSnap.exists()) {
+                        setUserProfile(docSnap.data() as any)
+                    }
+                } catch (error) {
+                    console.error("Erro ao buscar perfil:", error)
+                }
+            }
+        })
+        return () => unsubscribe()
+    }, [])
 
     const handleExitPanel = () => {
         setIsLoggingOut(true)
@@ -82,7 +111,7 @@ export default function AdminSidebar() {
     return (
         <aside className="fixed left-0 top-0 h-screen w-72 bg-[#F8F9FA] border-r border-[#D1D7DC] flex flex-col z-50">
             <div className="p-8 border-b border-slate-200">
-                <Logo light />
+                <Logo href="/dashboard-teacher/courses" light />
 
             </div>
 
@@ -134,18 +163,43 @@ export default function AdminSidebar() {
             </nav>
 
             <div className="p-8 border-t border-slate-200">
-                <button
-                    onClick={handleExitPanel}
-                    disabled={isLoggingOut}
-                    className="flex items-center gap-3 !text-[#000000] hover:!text-red-500 transition-colors uppercase font-black text-[10px] tracking-widest group disabled:opacity-50"
-                >
-                    {isLoggingOut ? (
-                        <Loader2 className="animate-spin" size={16} />
-                    ) : (
-                        <LogOut size={16} />
-                    )}
-                    <span>{isLoggingOut ? "Redirecionando..." : "Sair do Painel"}</span>
-                </button>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <button
+                            disabled={isLoggingOut}
+                            className="flex items-center gap-3 !text-[#000000] hover:!text-[#1D5F31] transition-colors uppercase font-black text-[10px] tracking-widest group disabled:opacity-50 w-full"
+                        >
+                            {isLoggingOut ? (
+                                <Loader2 className="animate-spin" size={16} />
+                            ) : (
+                                <LogOut size={16} />
+                            )}
+                            <span>{isLoggingOut ? "Redirecionando..." : "Sair do Painel"}</span>
+                        </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-56 bg-white border border-slate-200 rounded-xl p-2 shadow-sm z-[200]">
+                        {userProfile?.role === 'admin' && (
+                            <>
+                                <DropdownMenuItem 
+                                    onSelect={() => router.push('/dashboard-student')}
+                                    className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-700 transition-colors outline-none focus:bg-slate-50"
+                                >
+                                    <GraduationCap size={18} className="text-[#1D5F31]" />
+                                    <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Modo Aluno</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator className="my-2 bg-slate-100" />
+                            </>
+                        )}
+                        <DropdownMenuItem 
+                            onSelect={handleExitPanel}
+                            disabled={isLoggingOut}
+                            className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer hover:bg-red-50 text-red-600 transition-colors outline-none focus:bg-red-50"
+                        >
+                            <LogOut size={18} />
+                            <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Sair do Painel</span>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
         </aside>
     )

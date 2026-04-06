@@ -330,6 +330,9 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                                                         <DropdownMenuItem onSelect={() => router.push("/admin/dashboard")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-[#1D5F31]/20 text-[#22c55e] transition-colors outline-none focus:bg-[#1D5F31]/20 border border-[#1D5F31]/30 mb-1 bg-[#1D5F31]/10">
                                                             <ShieldAlert size={18} className="text-[#22c55e]" /><span className="text-[11px] font-black uppercase tracking-widest leading-none">Acessar Painel Admin</span>
                                                         </DropdownMenuItem>
+                                                        <DropdownMenuItem onSelect={() => router.push("/dashboard-student")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-[#1D5F31]/20 text-[#1D5F31] transition-colors outline-none focus:bg-[#1D5F31]/20 border border-[#1D5F31]/30 mb-1">
+                                                            <GraduationCap size={18} className="text-[#1D5F31]" /><span className="text-[11px] font-black uppercase tracking-widest leading-none">Modo Aluno</span>
+                                                        </DropdownMenuItem>
 
                                                     </>
                                                 )}

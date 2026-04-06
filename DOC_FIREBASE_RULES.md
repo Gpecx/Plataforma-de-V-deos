@@ -1,15 +1,15 @@
-# Documentação de Incidente e Solicitação de Permissões (Firestore)
+# Documentação de Incidentes e Solicitação de Permissões (Firestore)
+
+> **Destinatário:** Fred (Líder Técnico) · **Desenvolvedor:** Daniel Siqueira
 
 ---
 
-| Campo                | Detalhe                                             |
-| -------------------- | --------------------------------------------------- |
-| **Projeto**          | PowerPlay (LMS)                                     |
-| **Desenvolvedor**    | Daniel Siqueira                                     |
-| **Data do Ocorrido** | 02/04/2026                                          |
-| **Prioridade**       | 🔴 Alta — Funcionalidade de progresso bloqueada     |
-| **Status**           | ⏳ Aguardando aprovação das Security Rules (Fred)   |
-| **Funcionalidade**   | Persistência de Conclusão de Aulas (Progresso do Aluno) |
+## 📋 Registro de Incidentes
+
+| # | Data | Funcionalidade | Prioridade | Status |
+|---|------|---------------|------------|--------|
+| **INC-001** | 02/04/2026 | Persistência de Progresso (`userProgress`) | 🔴 Alta | ⏳ Aguardando aprovação |
+| **INC-002** | 06/04/2026 | Perfis de Professores + Progresso do Aluno | 🔴 Alta | ⏳ Aguardando aprovação |
 
 ---
 
@@ -176,4 +176,132 @@ Após a aplicação da regra acima, recomenda-se uma **auditoria de cobertura** 
 
 ---
 
-*Documento gerado em 02/04/2026 · Desenvolvedor: Daniel Siqueira · Aguardando revisão de: Fred (Líder Técnico)*
+---
+
+# INC-002 — Erro de Permissão e Rota 404 (Perfis e Progresso)
+
+---
+
+| Campo                | Detalhe                                                          |
+| -------------------- | ---------------------------------------------------------------- |
+| **Data do Ocorrido** | 06/04/2026                                                       |
+| **Prioridade**       | 🔴 Alta — Navegação e persistência bloqueadas                    |
+| **Status**           | ⏳ Aguardando aprovação das Security Rules (Fred)                |
+| **Funcionalidades**  | Perfil Público de Professor · Progresso do Aluno                 |
+
+---
+
+## INC-002.1 — Descrição do Problema
+
+Foram identificados **dois bloqueios** simultâneos causados pelas Security Rules atuais do Firestore:
+
+### Problema A — Perfis de Professores (Rota 404 / Permission Denied)
+
+A rota `/professor/[id]` — que exibe o perfil público de um professor para alunos — está retornando **404 / Permission Denied**.
+
+**Causa:** A regra atual da coleção `profiles` exige que o visitante seja o **dono** do perfil (`request.auth.uid == userId`) **ou** um Admin. Isso bloqueia qualquer leitura de terceiros, inclusive alunos autenticados navegando pelo catálogo.
+
+### Problema B — Progresso do Aluno (Permission Denied ao Gravar)
+
+A persistência de conclusão de aulas falha com:
+
+```
+FirebaseError: Missing or insufficient permissions
+  code: 'permission-denied'
+```
+
+O progresso do aluno **não é salvo**. Ao recarregar a página, todas as aulas marcadas como concluídas voltam ao estado inicial.
+
+---
+
+## INC-002.2 — Causa Raiz (Technical Root Cause)
+
+As Security Rules atuais do Firestore estão **restringindo excessivamente** o acesso:
+
+| Coleção | Regra Atual (Problema) | Efeito |
+|---------|----------------------|--------|
+| `profiles` | `allow read: if request.auth.uid == userId \|\| isAdmin()` | Bloqueia leitura pública de perfis de professores |
+| `userProgress` | Sem cobertura (`deny by default`) | Bloqueia toda escrita autenticada |
+
+> O Firebase opera no modelo **"negar por padrão"** (*deny by default*): ausência de regra = bloqueio total, mesmo para usuários autenticados.
+
+---
+
+## INC-002.3 — Solução Proposta (Ação Necessária do Admin)
+
+> [!IMPORTANT]
+> As regras abaixo devem ser aplicadas pelo **Fred** diretamente no [Console Firebase → Firestore → Rules](https://console.firebase.google.com/).
+> O desenvolvedor **não possui permissão** para alterar as Security Rules neste ambiente.
+
+### Regra 1 — Coleção `profiles` (Leitura Pública)
+
+Alterar para permitir **leitura pública**, mantendo a **escrita privada**:
+
+```javascript
+// =========================================================================
+// PROFILES (Perfis de Usuários)
+// Leitura pública: qualquer visitante pode ver o perfil de um professor.
+// Escrita privada: apenas o próprio dono ou um Admin pode editar.
+// =========================================================================
+match /profiles/{userId} {
+  allow read: if true;
+  allow write: if request.auth != null
+    && (request.auth.uid == userId || isAdmin());
+}
+```
+
+**Por que `read: if true`?**
+Páginas de perfil de professor são conteúdo público de apresentação. Bloquear a leitura impede índices de cursos, páginas de catálogo e a navegação de alunos para o perfil do instrutor.
+
+### Regra 2 — Coleção `userProgress` (Progresso do Aluno)
+
+Criar/Atualizar regra para permitir que o aluno autenticado gerencie **exclusivamente o seu próprio progresso**:
+
+```javascript
+// =========================================================================
+// USER PROGRESS (Progresso do Aluno 🎓)
+// Cada aluno gerencia exclusivamente o seu próprio progresso.
+// Nenhum usuário pode ler ou escrever o progresso de outro.
+// =========================================================================
+match /userProgress/{userId} {
+  allow read, write: if request.auth != null
+    && request.auth.uid == userId;
+}
+```
+
+---
+
+## INC-002.4 — Justificativa de Segurança
+
+| Vetor de Ataque | Como a Regra Mitiga |
+|---|---|
+| **Aluno lê dados de progresso de outro** | `request.auth.uid == userId` garante isolamento total |
+| **Usuário não autenticado acessa progresso** | `request.auth != null` bloqueia requisições sem sessão |
+| **Edição maliciosa de perfil de outro professor** | `write` só é permitido para o dono ou Admin |
+| **Exposição de dados sensíveis em perfis** | A coleção `profiles` só armazena dados públicos de apresentação — não há risco em `read: if true` |
+
+---
+
+## INC-002.5 — Impacto da Não Aplicação
+
+| Impacto | Severidade |
+|---|---|
+| Alunos não conseguem acessar perfil do professor (erro 404) | 🔴 Crítico |
+| Progresso do aluno não é persistido entre sessões | 🔴 Crítico |
+| Navegação quebrada no catálogo de cursos (link de professor) | 🔴 Crítico |
+| Métricas de engajamento sem dados confiáveis | 🟡 Alto |
+
+---
+
+## INC-002.6 — Status de Implementação (Código)
+
+> [!NOTE]
+> As alterações de código no frontend/backend estão **prontas e implementadas**. O único bloqueio é a aplicação das regras acima no Console Firebase.
+
+- ✅ Rota `/professor/[id]` — componente criado e funcional
+- ✅ Lógica de `userProgress` — Server Action implementada
+- ⏳ Security Rules — **aguardando aprovação de Fred**
+
+---
+
+*INC-001 documentado em 02/04/2026 · INC-002 documentado em 06/04/2026 · Desenvolvedor: Daniel Siqueira · Aguardando revisão de: Fred (Líder Técnico)*
