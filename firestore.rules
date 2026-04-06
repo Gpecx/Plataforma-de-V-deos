@@ -186,5 +186,13 @@ service cloud.firestore {
       allow read: if isSignedIn() && request.auth.uid == resource.data.userId;
       allow write: if isSignedIn() && request.auth.uid == resource.data.userId;
     }
+
+    // =========================================================================
+    // WISHLIST (Minha Lista)
+    // Cada usuário gerencia apenas sua própria lista de desejos.
+    // =========================================================================
+    match /profiles/{userId}/wishlist/{courseId} {
+      allow read, write: if isSignedIn() && isOwner(userId);
+    }
   }
 }

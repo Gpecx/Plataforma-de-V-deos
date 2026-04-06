@@ -11,6 +11,7 @@ import { getBanners } from '@/app/admin/settings/actions'
 import { ContinueLessonButton } from '@/components/dashboard/ContinueLessonButton'
 import { BannerWrapper } from '@/components/ui/BannerWrapper'
 import { CourseProgressBar } from '@/components/dashboard/CourseProgressBar'
+import WishlistButton from '@/components/WishlistButton'
 
 export default async function StudentDashboard() {
     const cookieStore = await cookies()
@@ -151,6 +152,7 @@ export default async function StudentDashboard() {
                                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                                         alt={curso.title}
                                     />
+                                    <WishlistButton courseId={curso.id} />
                                     <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-black shadow-sm z-10">
                                         <span className="text-[8px] font-black text-[#1D5F31] tracking-widest uppercase">Lançamento</span>
                                     </div>

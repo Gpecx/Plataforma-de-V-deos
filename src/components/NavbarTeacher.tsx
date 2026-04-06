@@ -19,7 +19,8 @@ import {
     UserCog,
     Menu,
     ShieldAlert,
-    GraduationCap
+    GraduationCap,
+    Heart
 } from 'lucide-react'
 import { NotificationBell } from '@/components/NotificationBell'
 

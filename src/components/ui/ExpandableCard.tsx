@@ -2,8 +2,11 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, ArrowRight } from 'lucide-react'
+import { X, ArrowRight, Heart } from 'lucide-react'
 import Link from 'next/link'
+import { toggleWishlist, getWishlistCourseIds } from '@/app/actions/wishlist'
+import { auth } from '@/lib/firebase'
+import { onAuthStateChanged } from 'firebase/auth'
 
 interface ExpandableCardProps {
     id: string
@@ -12,10 +15,44 @@ interface ExpandableCardProps {
     description: string
     accent?: string
     ranking?: number
+    showWishlist?: boolean
+    initialIsInWishlist?: boolean
 }
 
-export function ExpandableCard({ id, thumbnail, title, description, accent, ranking }: ExpandableCardProps) {
+export function ExpandableCard({ id, thumbnail, title, description, accent, ranking, showWishlist = true, initialIsInWishlist = false }: ExpandableCardProps) {
     const [isOpen, setIsOpen] = useState(false)
+    const [isInWishlist, setIsInWishlist] = useState(initialIsInWishlist)
+    const [isLoggedIn, setIsLoggedIn] = useState(false)
+    const [isToggling, setIsToggling] = useState(false)
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            setIsLoggedIn(!!user)
+            if (user) {
+                const wishlistIds = await getWishlistCourseIds()
+                setIsInWishlist(wishlistIds.includes(id))
+            }
+        })
+        return () => unsubscribe()
+    }, [id])
+
+    const handleToggleWishlist = async (e: React.MouseEvent) => {
+        e.stopPropagation()
+        if (!isLoggedIn) {
+            window.location.href = '/login'
+            return
+        }
+        
+        setIsToggling(true)
+        try {
+            const result = await toggleWishlist(id)
+            setIsInWishlist(result.action === 'added')
+        } catch (error) {
+            console.error('Erro ao atualizar wishlist:', error)
+        } finally {
+            setIsToggling(false)
+        }
+    }
 
     // Bloqueio de Scroll
     useEffect(() => {
@@ -47,6 +84,27 @@ export function ExpandableCard({ id, thumbnail, title, description, accent, rank
                         className="w-full h-full object-cover"
                     />
                 </div>
+
+                {/* Wishlist Button */}
+                {showWishlist && (
+                    <motion.button
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={handleToggleWishlist}
+                        disabled={isToggling}
+                        className={`absolute top-3 right-3 z-20 p-2.5 rounded-none border-2 transition-all duration-300 ${
+                            isInWishlist 
+                                ? 'bg-[#1D5F31] border-[#1D5F31] text-white' 
+                                : 'bg-black/50 border-white/30 text-white hover:border-[#1D5F31] hover:text-[#1D5F31]'
+                        }`}
+                    >
+                        <Heart 
+                            size={16} 
+                            className={`transition-all ${isInWishlist ? 'fill-current' : ''}`}
+                        />
+                    </motion.button>
+                )}
 
                 {/* Vertical Gradient Shading: White (top) to Black (bottom) */}
                 <div 

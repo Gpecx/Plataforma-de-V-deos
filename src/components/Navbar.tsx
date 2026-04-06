@@ -26,7 +26,8 @@ import {
     TrendingUp,
     BookOpen,
     Menu,
-    ShieldAlert
+    ShieldAlert,
+    Heart
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useCartStore } from '@/store/useCartStore'
@@ -116,7 +117,8 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
     const studentLinks = [
         { href: '/course', label: 'Cursos' },
         ...(isLoggedIn ? [
-            { href: '/dashboard-student', label: 'Minha Lista' },
+            { href: '/dashboard-student', label: 'Meu Aprendizado' },
+            { href: '/dashboard-student/my-list', label: 'Favoritos' },
             { href: '/dashboard-student/settings', label: 'Configurações' },
             { href: '/dashboard-student/chat', label: 'Chat' },
         ] : []),
@@ -366,6 +368,9 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem onSelect={() => router.push("/dashboard-student/subscriptions")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:!text-[#1D5F31] focus:!text-[#1D5F31]" : "text-white hover:!text-[#1D5F31] focus:!text-[#1D5F31]")}>
                                                     <Zap size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Assinaturas</span>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/my-list")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:!text-[#1D5F31] focus:!text-[#1D5F31]" : "text-white hover:!text-[#1D5F31] focus:!text-[#1D5F31]")}>
+                                                    <Heart size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Minha Lista</span>
                                                 </DropdownMenuItem>
                                                 <DropdownMenuSeparator className={cn("my-2", light ? "bg-slate-100" : "bg-white/5")} />
                                                 <DropdownMenuItem onSelect={() => router.push("/contact")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:!text-[#1D5F31] focus:!text-[#1D5F31]" : "text-white hover:!text-[#1D5F31] focus:!text-[#1D5F31]")}>
