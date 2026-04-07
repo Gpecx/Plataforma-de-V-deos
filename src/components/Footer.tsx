@@ -16,13 +16,13 @@ export default function Footer({ variant = 'light' }: { variant?: 'light' | 'dar
     const isDark = variant === 'dark' || isClassroomRoute
 
     return (
-        <footer className={`relative pt-12 pb-10 overflow-hidden font-exo z-[10] ${isClassroomRoute ? 'bg-[#061629]' : 'bg-transparent'}`}>
+        <footer className={`relative pt-12 pb-10 overflow-hidden font-montserrat z-[10] ${isClassroomRoute ? 'bg-[#061629]' : 'bg-transparent'}`}>
             <div className="max-w-[1600px] mx-auto px-6 md:px-12 flex flex-col items-center space-y-8">
                 {/* Logo Principal (Aumentada) */}
                 <Logo className="h-24 py-2" href={user ? '/course' : '/'} light={!isDark} />
 
                 {/* Navegação Minimalista */}
-                <div className={`flex flex-wrap justify-center gap-x-16 gap-y-6 text-[12px] font-black uppercase tracking-widest ${isDark ? 'text-white/80' : 'text-slate-800'}`}>
+                <div className={`flex flex-wrap justify-center gap-x-16 gap-y-6 text-[12px] font-bold uppercase tracking-widest ${isDark ? 'text-white/80' : 'text-slate-800'}`}>
 
                     <Link href="/course" className="hover:text-[#1D5F31] transition-colors duration-300">Cursos</Link>
                     <Link href="/dashboard-student" className="hover:text-[#1D5F31] transition-colors duration-300">Painel</Link>

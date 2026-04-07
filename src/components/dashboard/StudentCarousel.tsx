@@ -77,11 +77,11 @@ export function StudentCarousel({ heroBanners }: { heroBanners?: BannerItem[] })
 
             {/* Overlay com Gradiente para alto contraste */}
             <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent flex items-center px-8 md:px-20">
-                <div className="max-w-2xl animate-in fade-in slide-in-from-left-4 duration-700">
-                    <h2 className="text-4xl md:text-6xl font-black !text-white tracking-tighter leading-[0.9] mb-6 uppercase drop-shadow-lg">
+                <div className="max-w-xl animate-in fade-in slide-in-from-left-4 duration-700">
+                    <h2 className="text-3xl md:text-5xl lg:text-[3.5rem] font-bold !text-white tracking-tighter leading-[0.9] mb-6 uppercase drop-shadow-lg">
                         {displayItems[currentIndex].title}
                     </h2>
-                    <p className="!text-white text-sm md:text-base font-bold uppercase tracking-widest leading-relaxed max-w-xl drop-shadow-md">
+                    <p className="!text-white text-sm md:text-base font-bold uppercase tracking-widest leading-relaxed max-w-lg drop-shadow-md">
                         {displayItems[currentIndex].text}
                     </p>
                 </div>

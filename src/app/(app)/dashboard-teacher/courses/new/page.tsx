@@ -157,11 +157,11 @@ export default function NewCoursePage() {
     const isPublishable = isStepValid(1) && isStepValid(2)
 
     return (
-        <div className="min-h-screen bg-transparent text-black/90 p-8 md:p-12 font-exo border-t border-black/5">
+        <div className="min-h-screen bg-transparent text-black/90 p-8 md:p-12 font-montserrat border-t border-black/5">
             {/* Header */}
             <div className="flex justify-between items-center mb-16 px-4 max-w-6xl mx-auto">
                 <div>
-                    <h1 className="text-3xl font-black tracking-tighter uppercase leading-none text-black">
+                    <h1 className="text-2xl font-bold tracking-tighter uppercase leading-none text-black max-w-xl">
                         Criar <span className="text-black">Novo Curso</span>
                     </h1>
                     <p className="text-black/80 mt-2 text-[10px] font-bold uppercase tracking-[3px]">Siga os passos abaixo para publicar seu conhecimento.</p>
@@ -171,7 +171,7 @@ export default function NewCoursePage() {
                     className="flex items-center gap-3 text-white hover:text-white transition group bg-[#1D5F31] border-2 border-[#1D5F31] px-6 py-3 rounded-xl shadow-none hover:bg-[#1D5F31]/80"
                 >
                     <X size={18} className="group-hover:rotate-90 transition-transform" />
-                    <span className="font-black uppercase text-[10px] tracking-widest">Sair do Studio</span>
+                    <span className="font-bold uppercase text-[10px] tracking-widest">Sair do Studio</span>
                 </button>
             </div>
 
@@ -200,7 +200,7 @@ export default function NewCoursePage() {
                                 `}>
                                     {isCompleted ? <Check size={24} strokeWidth={4} /> : <Icon size={24} />}
                                 </div>
-                                <span className={`mt-5 text-[9px] font-black uppercase tracking-[2px] ${isActive || isCompleted ? 'text-black' : 'text-black/60'}`}>
+                                <span className={`mt-5 text-[9px] font-bold uppercase tracking-[2px] ${isActive || isCompleted ? 'text-black' : 'text-black/60'}`}>
                                     {step.name}
                                 </span>
                             </div>
@@ -217,7 +217,7 @@ export default function NewCoursePage() {
                     <div className="space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-700">
                         {/* Upload de Capa */}
                         <div className="space-y-4">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-black px-1 italic">Capa do Treinamento</Label>
+                            <Label className="text-[10px] font-bold uppercase tracking-widest text-black px-1 ">Capa do Treinamento</Label>
                             <div className="relative group overflow-hidden rounded-xl border-2 border-dashed border-black hover:border-black/50 transition-all duration-500 bg-white aspect-video flex flex-col items-center justify-center cursor-pointer">
                                 {formData.image_url ? (
                                     <>
@@ -227,7 +227,7 @@ export default function NewCoursePage() {
                                             className="w-full h-full object-cover group-hover:scale-105 transition-all duration-1000 opacity-80"
                                         />
                                         <div className="absolute inset-0 bg-white/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
-                                            <Button variant="outline" className="bg-[#1D5F31] border-2 border-[#1D5F31] text-white hover:bg-[#1D5F31]/90 font-black uppercase text-[10px] tracking-widest h-12 px-8 rounded-xl">
+                                            <Button variant="outline" className="bg-[#1D5F31] border-2 border-[#1D5F31] text-white hover:bg-[#1D5F31]/90 font-bold uppercase text-[10px] tracking-widest h-12 px-8 rounded-xl">
                                                 Trocar Arte
                                             </Button>
                                         </div>
@@ -237,13 +237,13 @@ export default function NewCoursePage() {
                                         {isUploading ? (
                                             <div className="flex flex-col items-center gap-5">
                                                 <Loader2 className="animate-spin text-black" size={40} />
-                                                <p className="text-[10px] font-black tracking-widest text-black animate-pulse">PROCESSANDO UPLOAD...</p>
+                                                <p className="text-[10px] font-bold tracking-widest text-black animate-pulse">PROCESSANDO UPLOAD...</p>
                                             </div>
                                         ) : (
                                             <>
                                                 <Upload size={48} className="mx-auto text-black/40 mb-6 group-hover:text-black group-hover:scale-110 transition-all duration-500" />
-                                                <p className="text-[10px] font-black uppercase tracking-[3px] text-black">Clique para subir a capa</p>
-                                                <p className="text-[9px] text-black/60 mt-2 font-black italic tracking-widest">DIMENSÕES IDEAIS: 1280X720PX</p>
+                                                <p className="text-[10px] font-bold uppercase tracking-[3px] text-black">Clique para subir a capa</p>
+                                                <p className="text-[9px] text-black/60 mt-2 font-bold  tracking-widest">DIMENSÕES IDEAIS: 1280X720PX</p>
                                             </>
                                         )}
                                     </div>
@@ -261,7 +261,7 @@ export default function NewCoursePage() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             <div className="md:col-span-2 lg:col-span-1 space-y-2">
-                                <Label className="text-[10px] font-black uppercase tracking-widest text-black px-1">Nome do Curso</Label>
+                                <Label className="text-[10px] font-bold uppercase tracking-widest text-black px-1">Nome do Curso</Label>
                                 <Input
                                     placeholder="Ex: Do Zero ao Mestre em React"
                                     className="bg-white border-2 border-black focus:border-black focus:ring-black h-14 rounded-xl text-sm font-medium transition-all text-black placeholder:text-black/50"
@@ -270,7 +270,7 @@ export default function NewCoursePage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label className="text-[10px] font-black uppercase tracking-widest text-black px-1">Carga Horária (horas)</Label>
+                                <Label className="text-[10px] font-bold uppercase tracking-widest text-black px-1">Carga Horária (horas)</Label>
                                 <Input
                                     type="number"
                                     placeholder="Ex: 40"
@@ -280,7 +280,7 @@ export default function NewCoursePage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label className="text-[10px] font-black uppercase tracking-widest text-black px-1">Categoria Principal</Label>
+                                <Label className="text-[10px] font-bold uppercase tracking-widest text-black px-1">Categoria Principal</Label>
                                 <select
                                     className="w-full bg-white border-2 border-black text-black rounded-xl px-5 h-14 focus:border-black focus:ring-black outline-none text-sm font-medium transition-all appearance-none"
                                     value={formData.category}
@@ -293,7 +293,7 @@ export default function NewCoursePage() {
                         </div>
 
                         <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-black px-1">Subtítulo Estratégico</Label>
+                            <Label className="text-[10px] font-bold uppercase tracking-widest text-black px-1">Subtítulo Estratégico</Label>
                             <Input
                                 placeholder="Uma frase curta que resume a transformação"
                                 className="bg-white border-2 border-black focus:border-black h-14 rounded-xl text-sm font-medium transition-all text-black placeholder:text-black/50"
@@ -302,7 +302,7 @@ export default function NewCoursePage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-black px-1">Descrição Completa</Label>
+                            <Label className="text-[10px] font-bold uppercase tracking-widest text-black px-1">Descrição Completa</Label>
                             <textarea
                                 className="w-full bg-white border-2 border-black rounded-xl p-6 min-h-[180px] focus:border-black outline-none text-sm font-medium transition-all leading-relaxed text-black placeholder:text-black/50"
                                 placeholder="Descreva os benefícios e o que o aluno vai aprender..."
@@ -311,7 +311,7 @@ export default function NewCoursePage() {
                             />
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-black px-1">Tags para Busca</Label>
+                            <Label className="text-[10px] font-bold uppercase tracking-widest text-black px-1">Tags para Busca</Label>
                             <TagInput
                                 tags={formData.tags || []}
                                 onChange={(tags) => setStepData({ tags })}
@@ -321,7 +321,7 @@ export default function NewCoursePage() {
                         </div>
                         <div className="space-y-4 pt-4 border-t border-black/10">
                             <div>
-                                <Label className="text-[10px] font-black uppercase tracking-widest text-black px-1">Conteúdo Programático (Grade)</Label>
+                                <Label className="text-[10px] font-bold uppercase tracking-widest text-black px-1">Conteúdo Programático (Grade)</Label>
                                 <p className="text-[9px] text-black/60 font-bold uppercase tracking-widest px-1 mt-1">
                                     Adicione os tópicos que os alunos aprenderão neste treinamento.
                                 </p>
@@ -354,7 +354,7 @@ export default function NewCoursePage() {
                                 <Button
                                     type="button"
                                     onClick={() => setStepData({ curriculum: [...formData.curriculum, ''] })}
-                                    className="w-full bg-slate-50 text-black border-2 border-dashed border-black/30 hover:border-black hover:bg-slate-100 font-black uppercase text-[10px] tracking-widest h-12 rounded-none shadow-none mt-2 transition-all"
+                                    className="w-full bg-slate-50 text-black border-2 border-dashed border-black/30 hover:border-black hover:bg-slate-100 font-bold uppercase text-[10px] tracking-widest h-12 rounded-none shadow-none mt-2 transition-all"
                                 >
                                     <Plus size={16} className="mr-2" />
                                     Adicionar Tópico
@@ -370,14 +370,14 @@ export default function NewCoursePage() {
                         {/* Seção de Vídeo de Introdução */}
                         <div className="space-y-6 pb-8 border-b border-black/10">
                             <div className="text-center space-y-2">
-                                <Label className="text-[10px] font-black uppercase tracking-widest text-black block">Vídeo de Apresentação (Intro)</Label>
+                                <Label className="text-[10px] font-bold uppercase tracking-widest text-black block">Vídeo de Apresentação (Intro)</Label>
                                 <p className="text-[9px] text-black/50 font-bold uppercase tracking-widest">Atraia mais alunos com um pitch de vendas visual.</p>
                             </div>
 
                             <div className="grid md:grid-cols-2 gap-8">
                                 {/* Opção Upload */}
                                 <div className="space-y-4">
-                                    <Label className="text-[9px] font-black uppercase tracking-widest text-black/40 px-1">Upload Direto</Label>
+                                    <Label className="text-[9px] font-bold uppercase tracking-widest text-black/40 px-1">Upload Direto</Label>
                                     <div className={`
                                         relative h-40 rounded-xl border-2 border-dashed transition-all flex flex-col items-center justify-center overflow-hidden cursor-pointer
                                         ${formData.intro_video_url && !formData.intro_video_url.includes('youtube.com') && !formData.intro_video_url.includes('vimeo.com')
@@ -386,16 +386,16 @@ export default function NewCoursePage() {
                                         {isUploadingIntro ? (
                                             <div className="flex flex-col items-center gap-3">
                                                 <Loader2 className="animate-spin text-[#1D5F31]" size={24} />
-                                                <span className="text-[8px] font-black uppercase tracking-[2px] animate-pulse text-[#1D5F31]">UPLOADING...</span>
+                                                <span className="text-[8px] font-bold uppercase tracking-[2px] animate-pulse text-[#1D5F31]">UPLOADING...</span>
                                             </div>
                                         ) : formData.intro_video_url && !formData.intro_video_url.includes('youtube.com') && !formData.intro_video_url.includes('vimeo.com') ? (
                                             <div className="flex flex-col items-center gap-2">
                                                 <div className="w-10 h-10 bg-[#1D5F31] rounded-xl flex items-center justify-center text-white">
                                                     <Check size={20} strokeWidth={4} />
                                                 </div>
-                                                <span className="text-[9px] font-black uppercase tracking-widest text-[#1D5F31]">VÍDEO CARREGADO</span>
+                                                <span className="text-[9px] font-bold uppercase tracking-widest text-[#1D5F31]">VÍDEO CARREGADO</span>
                                                 <button
-                                                    className="text-[8px] text-[#1D5F31]/60 hover:text-red-500 font-black uppercase italic tracking-widest mt-2"
+                                                    className="text-[8px] text-[#1D5F31]/60 hover:text-red-500 font-bold uppercase  tracking-widest mt-2"
                                                     onClick={() => setStepData({ intro_video_url: '' })}
                                                 >
                                                     [ REMOVER ]
@@ -404,8 +404,8 @@ export default function NewCoursePage() {
                                         ) : (
                                             <div className="text-center px-6">
                                                 <Upload size={24} className="mx-auto text-black/40 mb-3" />
-                                                <span className="text-[9px] font-black uppercase tracking-widest text-black">SUBIR MP4</span>
-                                                <p className="text-[8px] text-black mt-2 font-black uppercase tracking-widest px-2 italic bg-black/10">MÁXIMO 5 MINUTOS</p>
+                                                <span className="text-[9px] font-bold uppercase tracking-widest text-black">SUBIR MP4</span>
+                                                <p className="text-[8px] text-black mt-2 font-bold uppercase tracking-widest px-2  bg-black/10">MÁXIMO 5 MINUTOS</p>
                                             </div>
                                         )}
                                         {!isUploadingIntro && (
@@ -436,7 +436,7 @@ export default function NewCoursePage() {
 
                                 {/* Opção Link Externo */}
                                 <div className="space-y-4">
-                                    <Label className="text-[9px] font-black uppercase tracking-widest text-black/40 px-1">Link YouTube / Vimeo</Label>
+                                    <Label className="text-[9px] font-bold uppercase tracking-widest text-black/40 px-1">Link YouTube / Vimeo</Label>
                                     <div className="h-40 bg-white border-2 border-black rounded-xl p-6 flex flex-col justify-center gap-4">
                                         <Input
                                             placeholder="https://youtube.com/watch?v=..."
@@ -453,18 +453,18 @@ export default function NewCoursePage() {
                         </div>
 
                         <div className="space-y-6">
-                            <Label className="text-[10px] font-black uppercase tracking-widest text-black text-center block italic">Investimento Sugerido</Label>
+                            <Label className="text-[10px] font-bold uppercase tracking-widest text-black text-center block ">Investimento Sugerido</Label>
                             <div className="relative max-w-sm mx-auto group">
-                                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-black font-black text-2xl group-focus-within:text-black transition-colors">R$</span>
+                                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-black font-bold text-2xl group-focus-within:text-black transition-colors">R$</span>
                                 <Input
                                     type="number"
-                                    className="bg-white border-2 border-black focus:border-black h-24 pl-16 rounded-xl text-6xl font-black text-black shadow-none transition-all text-center pr-8 placeholder:text-black/20"
+                                    className="bg-white border-2 border-black focus:border-black h-24 pl-16 rounded-xl text-6xl font-bold text-black shadow-none transition-all text-center pr-8 placeholder:text-black/20"
                                     placeholder="0"
                                     value={formData.price || ''}
                                     onChange={(e) => setStepData({ price: Number(e.target.value) })}
                                 />
                             </div>
-                            <p className="text-center text-[10px] text-black/70 font-black uppercase tracking-[5px]">Defina o valor do seu conteúdo Premium</p>
+                            <p className="text-center text-[10px] text-black/70 font-bold uppercase tracking-[5px]">Defina o valor do seu conteúdo Premium</p>
                         </div>
                     </div>
 
@@ -474,12 +474,12 @@ export default function NewCoursePage() {
                     <div className="space-y-10 animate-in fade-in duration-700">
                         <div className="flex justify-between items-center bg-white p-6 rounded-xl border-2 border-black">
                             <div>
-                                <h2 className="text-xl font-black tracking-tighter uppercase text-black leading-none italic"> Grade Curricular </h2>
-                                <p className="text-[10px] text-black font-black uppercase tracking-[2px] mt-2">Organize o fluxo de aprendizado.</p>
+                                <h2 className="text-xl font-bold tracking-tighter uppercase text-black leading-none "> Grade Curricular </h2>
+                                <p className="text-[10px] text-black font-bold uppercase tracking-[2px] mt-2">Organize o fluxo de aprendizado.</p>
                             </div>
                             <Button
                                 onClick={handleAddLesson}
-                                className="bg-[#1D5F31] hover:bg-[#1D5F31]/90 text-white text-[10px] font-black uppercase tracking-widest px-8 rounded-xl h-12 shadow-none border-2 border-[#1D5F31]"
+                                className="bg-[#1D5F31] hover:bg-[#1D5F31]/90 text-white text-[10px] font-bold uppercase tracking-widest px-8 rounded-xl h-12 shadow-none border-2 border-[#1D5F31]"
                             >
                                 <Plus size={18} className="mr-2" /> Adicionar Aula
                             </Button>
@@ -488,8 +488,8 @@ export default function NewCoursePage() {
                         {formData.lessons.length === 0 ? (
                             <div className="text-center py-24 bg-white/40 rounded-xl border-2 border-dashed border-black">
                                 <BookOpen size={48} className="mx-auto text-black mb-6" />
-                                <p className="text-black/70 font-black uppercase text-[10px] tracking-[3px]">Nenhuma aula adicionada</p>
-                                <p className="text-black text-[10px] mt-2 font-black italic tracking-widest">CONSTRUA SUA GRADE CURRICULAR AGORA</p>
+                                <p className="text-black/70 font-bold uppercase text-[10px] tracking-[3px]">Nenhuma aula adicionada</p>
+                                <p className="text-black text-[10px] mt-2 font-bold  tracking-widest">CONSTRUA SUA GRADE CURRICULAR AGORA</p>
                             </div>
 
                         ) : (
@@ -499,7 +499,7 @@ export default function NewCoursePage() {
                                         <div className="flex flex-col md:flex-row gap-10">
                                             <div className="flex-grow space-y-6 text-black">
                                                 <div className="flex justify-between items-center">
-                                                    <span className="text-[9px] font-black uppercase tracking-[3px] text-black italic">ESTÁGIO #{index + 1}</span>
+                                                    <span className="text-[9px] font-bold uppercase tracking-[3px] text-black ">ESTÁGIO #{index + 1}</span>
                                                     <button
                                                         onClick={() => handleRemoveLesson(index)}
                                                         className="text-black/40 hover:text-red-500 hover:bg-red-500/10 p-2 rounded-xl transition-all"
@@ -508,14 +508,14 @@ export default function NewCoursePage() {
                                                     </button>
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <Label className="text-[10px] font-black uppercase tracking-widest text-black/90 px-1 italic">Título da Aula</Label>
+                                                    <Label className="text-[10px] font-bold uppercase tracking-widest text-black/90 px-1 ">Título da Aula</Label>
                                                     <Input
                                                         placeholder="Ex: Introdução ao Módulo 1"
                                                         className="bg-white border-2 border-black focus:border-black h-12 rounded-xl text-sm font-medium text-black placeholder:text-black/50"
                                                         value={lesson.title}
                                                         onChange={(e) => handleUpdateLesson(index, { title: e.target.value })}
                                                     />
-                                                    <Label className="text-[10px] font-black uppercase tracking-widest text-black/60 px-1 italic">Descrição (opcional)</Label>
+                                                    <Label className="text-[10px] font-bold uppercase tracking-widest text-black/60 px-1 ">Descrição (opcional)</Label>
                                                     <textarea
                                                         placeholder="Descreva o que o aluno aprenderá nesta aula..."
                                                         className="bg-white border-2 border-black/20 focus:border-[#1D5F31] rounded-xl p-3 text-sm font-medium text-black placeholder:text-black/40 min-h-[80px] resize-none"
@@ -526,7 +526,7 @@ export default function NewCoursePage() {
                                             </div>
 
                                             <div className="w-full md:w-72 space-y-2">
-                                                <Label className="text-[10px] font-black uppercase tracking-widest text-black/90 px-1 italic">Vídeo da Aula</Label>
+                                                <Label className="text-[10px] font-bold uppercase tracking-widest text-black/90 px-1 ">Vídeo da Aula</Label>
                                                 <div className={`
                                                     relative h-32 rounded-xl border-2 border-dashed transition-all flex flex-col items-center justify-center overflow-hidden
                                                     ${lesson.video_url ? 'border-[#1D5F31] bg-[#1D5F31]/5' : 'border-black bg-white hover:border-black/50'}
@@ -534,16 +534,16 @@ export default function NewCoursePage() {
                                                     {uploadingVideos[index] ? (
                                                         <div className="flex flex-col items-center gap-3">
                                                             <Loader2 className="animate-spin text-[#1D5F31]" size={24} />
-                                                            <span className="text-[8px] font-black uppercase tracking-[2px] animate-pulse text-[#1D5F31]">UPLOADING...</span>
+                                                            <span className="text-[8px] font-bold uppercase tracking-[2px] animate-pulse text-[#1D5F31]">UPLOADING...</span>
                                                         </div>
                                                     ) : lesson.video_url ? (
                                                         <div className="flex flex-col items-center gap-2">
                                                             <div className="w-10 h-10 bg-[#1D5F31] rounded-xl flex items-center justify-center text-white border border-[#1D5F31]">
                                                                 <Check size={20} strokeWidth={4} />
                                                             </div>
-                                                            <span className="text-[9px] font-black uppercase tracking-widest text-[#1D5F31]">MULTIMÍDIA PRONTA</span>
+                                                            <span className="text-[9px] font-bold uppercase tracking-widest text-[#1D5F31]">MULTIMÍDIA PRONTA</span>
                                                             <button
-                                                                className="text-[8px] text-[#1D5F31]/40 hover:text-red-500 font-black uppercase tracking-widest mt-1 italic"
+                                                                className="text-[8px] text-[#1D5F31]/40 hover:text-red-500 font-bold uppercase tracking-widest mt-1 "
                                                                 onClick={() => handleUpdateLesson(index, { video_url: '' })}
                                                             >
                                                                 [ SUBSTITUIR ]
@@ -552,7 +552,7 @@ export default function NewCoursePage() {
                                                     ) : (
                                                         <div className="text-center px-6">
                                                             <Upload size={24} className="mx-auto text-black/30 mb-3" />
-                                                            <span className="text-[9px] font-black uppercase tracking-widest text-black/60">SUBIR MP4</span>
+                                                            <span className="text-[9px] font-bold uppercase tracking-widest text-black/60">SUBIR MP4</span>
                                                         </div>
                                                     )}
 
@@ -584,7 +584,7 @@ export default function NewCoursePage() {
                     variant="ghost"
                     onClick={handleBack}
                     disabled={currentStep === 1}
-                    className="text-black/70 hover:text-black hover:bg-black/5 font-black uppercase text-[10px] tracking-[4px] px-10 h-14 rounded-xl disabled:opacity-0 transition-all border-2 border-transparent hover:border-black"
+                    className="text-black/70 hover:text-black hover:bg-black/5 font-bold uppercase text-[10px] tracking-[4px] px-10 h-14 rounded-xl disabled:opacity-0 transition-all border-2 border-transparent hover:border-black"
                 >
                     <ChevronLeft size={20} className="mr-3" /> VOLTAR
                 </Button>
@@ -594,7 +594,7 @@ export default function NewCoursePage() {
                         <Button
                             onClick={handleNext}
                             disabled={!isStepValid(currentStep)}
-                            className="bg-[#1D5F31] text-white hover:bg-[#1D5F31]/90 font-black uppercase text-[10px] tracking-[4px] px-12 h-16 rounded-xl shadow-none border-2 border-[#1D5F31] disabled:opacity-30 group transition-all"
+                            className="bg-[#1D5F31] text-white hover:bg-[#1D5F31]/90 font-bold uppercase text-[10px] tracking-[4px] px-12 h-16 rounded-xl shadow-none border-2 border-[#1D5F31] disabled:opacity-30 group transition-all"
                         >
                             PRÓXIMO PASSO <ChevronRight size={20} className="ml-3 group-hover:translate-x-1 transition-transform" />
                         </Button>
@@ -602,7 +602,7 @@ export default function NewCoursePage() {
                         <Button
                             onClick={handlePublish}
                             disabled={!isPublishable || isPublishing}
-                            className="bg-[#1D5F31] text-white hover:bg-[#1D5F31]/90 font-black uppercase text-[10px] tracking-[4px] px-16 h-16 rounded-xl shadow-none border-2 border-[#1D5F31] disabled:opacity-30 group transition-all"
+                            className="bg-[#1D5F31] text-white hover:bg-[#1D5F31]/90 font-bold uppercase text-[10px] tracking-[4px] px-16 h-16 rounded-xl shadow-none border-2 border-[#1D5F31] disabled:opacity-30 group transition-all"
                         >
                             {isPublishing ? (
                                 <Loader2 className="animate-spin mr-3" />

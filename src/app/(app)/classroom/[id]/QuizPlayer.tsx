@@ -55,7 +55,7 @@ export function QuizPlayer({ quizData, onComplete }: QuizPlayerProps) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-12 text-center bg-slate-900 border border-slate-800">
         <AlertCircle size={48} className="text-amber-500 mb-4" />
-        <h3 className="text-xl font-black uppercase tracking-tighter text-white">Nenhuma questão encontrada</h3>
+        <h3 className="text-xl font-bold uppercase tracking-tighter text-white">Nenhuma questão encontrada</h3>
         <p className="text-slate-400 text-sm mt-2 uppercase tracking-widest font-bold">Este quiz ainda não possui conteúdo.</p>
       </div>
     );
@@ -68,23 +68,23 @@ export function QuizPlayer({ quizData, onComplete }: QuizPlayerProps) {
         <div className="w-24 h-24 rounded-none border-2 border-green-500 flex items-center justify-center mb-6">
           <CheckCircle2 size={48} className="text-green-500" />
         </div>
-        <h3 className="text-3xl font-black uppercase tracking-tighter text-white mb-2">Quiz Finalizado!</h3>
+        <h3 className="text-3xl font-bold uppercase tracking-tighter text-white mb-2">Quiz Finalizado!</h3>
         <p className="text-slate-400 text-sm uppercase tracking-[4px] font-bold mb-8">RESULTADO DA AVALIAÇÃO ESTRATÉGICA</p>
         
         <div className="grid grid-cols-2 gap-8 mb-12 w-full max-w-md">
           <div className="p-6 border border-slate-800 bg-slate-800/50">
-            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Acertos</p>
-            <p className="text-3xl font-black text-white">{score} / {questions.length}</p>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Acertos</p>
+            <p className="text-3xl font-bold text-white">{score} / {questions.length}</p>
           </div>
           <div className="p-6 border border-slate-800 bg-slate-800/50">
-            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Aproveitamento</p>
-            <p className="text-3xl font-black text-green-500">{percentage}%</p>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Aproveitamento</p>
+            <p className="text-3xl font-bold text-green-500">{percentage}%</p>
           </div>
         </div>
 
         <button
           onClick={() => window.location.reload()}
-          className="px-12 py-5 bg-green-600 text-white font-black uppercase tracking-[3px] text-xs hover:bg-green-500 transition-all shadow-2xl active:scale-95"
+          className="px-12 py-5 bg-green-600 text-white font-bold uppercase tracking-[3px] text-xs hover:bg-green-500 transition-all shadow-2xl active:scale-95"
         >
           Refazer Avaliação
         </button>
@@ -93,7 +93,7 @@ export function QuizPlayer({ quizData, onComplete }: QuizPlayerProps) {
   }
 
   return (
-    <div className="flex flex-col h-full bg-slate-900 border border-slate-800 relative overflow-hidden font-exo">
+    <div className="flex flex-col h-full bg-slate-900 border border-slate-800 relative overflow-hidden font-montserrat">
       {/* Progress Bar Industrial */}
       <div className="absolute top-0 left-0 w-full h-1 bg-slate-800">
         <div 
@@ -105,8 +105,8 @@ export function QuizPlayer({ quizData, onComplete }: QuizPlayerProps) {
       <div className="p-8 md:p-12 flex flex-col h-full">
         <div className="flex justify-between items-center mb-12">
           <div>
-            <span className="text-[10px] font-black text-green-500 uppercase tracking-[4px] block mb-1">DESAFIO DE CONHECIMENTO</span>
-            <h2 className="text-2xl font-black uppercase tracking-tighter text-white">Questão {currentQuestionIndex + 1} de {questions.length}</h2>
+            <span className="text-[10px] font-bold text-green-500 uppercase tracking-[4px] block mb-1">DESAFIO DE CONHECIMENTO</span>
+            <h2 className="text-2xl font-bold uppercase tracking-tighter text-white">Questão {currentQuestionIndex + 1} de {questions.length}</h2>
           </div>
           <HelpCircle size={24} className="text-slate-700" />
         </div>
@@ -160,7 +160,7 @@ export function QuizPlayer({ quizData, onComplete }: QuizPlayerProps) {
                     >
                       <div className="flex items-center gap-4">
                         <span className={cn(
-                          "w-8 h-8 flex items-center justify-center font-black text-xs border-2 transition-all rounded-md",
+                          "w-8 h-8 flex items-center justify-center font-bold text-xs border-2 transition-all rounded-md",
                           isSelected ? "bg-green-500 border-green-500 text-white" : "border-slate-700 text-slate-500 group-hover:border-slate-500"
                         )}>                          {String.fromCharCode(65 + index)}
                         </span>
@@ -184,14 +184,14 @@ export function QuizPlayer({ quizData, onComplete }: QuizPlayerProps) {
             <button
               disabled={selectedOption === null}
               onClick={handleConfirm}
-              className="px-12 py-5 bg-green-600 text-white font-black uppercase tracking-[3px] text-xs hover:bg-green-500 transition-all border-none shadow-xl disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
+              className="px-12 py-5 bg-green-600 text-white font-bold uppercase tracking-[3px] text-xs hover:bg-green-500 transition-all border-none shadow-xl disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
             >
               Confirmar Resposta
             </button>
           ) : (
             <button
               onClick={handleNext}
-              className="px-12 py-5 bg-white text-black font-black uppercase tracking-[3px] text-xs hover:bg-slate-200 transition-all border-none shadow-xl flex items-center gap-3 active:scale-95"
+              className="px-12 py-5 bg-white text-black font-bold uppercase tracking-[3px] text-xs hover:bg-slate-200 transition-all border-none shadow-xl flex items-center gap-3 active:scale-95"
             >
               {currentQuestionIndex === questions.length - 1 ? 'Finalizar Quiz' : 'Próxima Questão'}
               <ChevronRight size={16} strokeWidth={3} />

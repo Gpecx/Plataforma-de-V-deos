@@ -51,7 +51,7 @@ export function CourseActionButton({
             <button
                 onClick={() => router.push('/cart')}
                 style={{ borderRadius: '0px' }}
-                className="w-full flex items-center justify-center gap-3 group py-5 bg-[#1D5F31]/10 border-2 border-[#1D5F31] text-[#1D5F31] font-black uppercase text-[11px] tracking-[4px] shadow-lg transition-all hover:bg-[#1D5F31] hover:text-white"
+                className="w-full flex items-center justify-center gap-3 group py-5 bg-[#1D5F31]/10 border-2 border-[#1D5F31] text-[#1D5F31] font-bold uppercase text-[11px] tracking-[4px] shadow-lg transition-all hover:bg-[#1D5F31] hover:text-white"
             >
                 <Check size={16} strokeWidth={3} />
                 IR AO CARRINHO

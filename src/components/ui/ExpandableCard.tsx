@@ -144,13 +144,13 @@ export function ExpandableCard({
                 
                 {/* Info Overlay (Thumbnail) */}
                 <div className={`absolute inset-0 p-4 flex flex-col justify-end items-end opacity-100 group-hover:opacity-0 transition-opacity z-[11] text-right`}>
-                    <span className="text-[10px] font-black text-[#4ADE80] shadow-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] uppercase tracking-[2px] mb-0.5">{accent || 'PREMIUM'}</span>
-                    <h3 className="text-white font-black text-[11px] line-clamp-2 uppercase leading-tight tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">{title}</h3>
+                    <span className="text-[10px] font-bold text-[#4ADE80] shadow-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] uppercase tracking-[2px] mb-0.5">{accent || 'PREMIUM'}</span>
+                    <h3 className="text-white font-bold text-[11px] line-clamp-2 uppercase leading-tight tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">{title}</h3>
                 </div>
 
                 <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-[12]">
                     <div className="flex flex-col items-center gap-2">
-                        <span className="text-white font-black uppercase tracking-[3px] text-[10px]">Ver Detalhes</span>
+                        <span className="text-white font-bold uppercase tracking-[3px] text-[10px]">Ver Detalhes</span>
                         <div className="w-8 h-px bg-[#1D5F31]" />
                     </div>
                 </div>
@@ -202,12 +202,12 @@ export function ExpandableCard({
                                 >
                                     <div className="flex items-center gap-3 mb-6">
                                         <div className="w-10 h-px bg-[#1D5F31]" />
-                                        <span className="text-[10px] font-black uppercase tracking-[4px] text-[#1D5F31]">
+                                        <span className="text-[10px] font-bold uppercase tracking-[4px] text-[#1D5F31]">
                                             {accent || 'PREMIUM'}
                                         </span>
                                     </div>
                                     
-                                    <h2 className="text-3xl md:text-4xl font-black uppercase mb-6 tracking-tighter leading-[0.9]">
+                                    <h2 className="text-3xl md:text-4xl font-bold uppercase mb-6 tracking-tighter leading-[0.9]">
                                         <span className="text-white !text-white" style={{ color: 'white' }}>{title}</span>
                                     </h2>
                                     
@@ -217,7 +217,7 @@ export function ExpandableCard({
                                     
                                     <Link 
                                         href={`/course/${id}`}
-                                        className="group/btn relative inline-flex items-center justify-center bg-btn-gradient text-white font-black py-4 px-10 uppercase tracking-[3px] text-[11px] hover:brightness-110 rounded-xl transition-all overflow-hidden self-start border border-[#1D5F31]"
+                                        className="group/btn relative inline-flex items-center justify-center bg-btn-gradient text-white font-bold py-4 px-10 uppercase tracking-[3px] text-[11px] hover:brightness-110 rounded-xl transition-all overflow-hidden self-start border border-[#1D5F31]"
                                     >
                                         <span className="relative z-10 flex items-center gap-2">
                                             Acessar Curso <ArrowRight size={16} />

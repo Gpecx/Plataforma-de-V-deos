@@ -23,7 +23,7 @@ export function MyLearningSidebar({ recentCourses }: MyLearningSidebarProps) {
         <aside className="sticky top-4 w-full flex flex-col gap-4 animate-in fade-in slide-in-from-right-4 duration-500">
             <div className="bg-white rounded-2xl p-6 shadow-sm">
                 <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-xs font-black uppercase tracking-[3px] text-slate-800">MEU APRENDIZADO</h3>
+                    <h3 className="text-xs font-bold uppercase tracking-[3px] text-slate-800">MEU APRENDIZADO</h3>
                     <TrendingUp size={14} className="text-[#1D5F31]" />
                 </div>
 
@@ -60,12 +60,12 @@ export function MyLearningSidebar({ recentCourses }: MyLearningSidebarProps) {
 
                             {/* Detalhes ao passar o mouse */}
                             <div className={`mt-4 overflow-hidden transition-all duration-300 ease-in-out ${isHovered === curso.id ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'}`}>
-                                <div className="flex items-center justify-between text-[8px] font-black tracking-widest text-[#1D5F31] mb-4">
+                                <div className="flex items-center justify-between text-[8px] font-bold tracking-widest text-[#1D5F31] mb-4">
                                     <span className="flex items-center gap-1"><Clock size={10} /> 4h restantes</span>
                                     <span>65% CONCLUÍDO</span>
                                 </div>
                                 <Link href={`/classroom/${curso.id}`}>
-                                    <button className="w-full bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest py-3 rounded-xl hover:bg-slate-800 transition flex items-center justify-center gap-2 shadow-md">
+                                    <button className="w-full bg-slate-900 text-white text-[9px] font-bold uppercase tracking-widest py-3 rounded-xl hover:bg-slate-800 transition flex items-center justify-center gap-2 shadow-md">
                                         <Play size={10} fill="currentColor" /> Continuar Assistindo
                                     </button>
                                 </Link>
@@ -75,7 +75,7 @@ export function MyLearningSidebar({ recentCourses }: MyLearningSidebarProps) {
                 </div>
 
                 <div className="mt-8 pt-6 border-t border-slate-50">
-                    <Link href={"/dashboard-student/my-courses" as any} className="text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-[#1D5F31] transition-colors flex items-center justify-center gap-2">
+                    <Link href={"/dashboard-student/my-courses" as any} className="text-[9px] font-bold uppercase tracking-widest text-slate-400 hover:text-[#1D5F31] transition-colors flex items-center justify-center gap-2">
                         Ver todos os cursos
                     </Link>
                 </div>

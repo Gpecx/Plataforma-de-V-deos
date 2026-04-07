@@ -73,7 +73,7 @@ export default async function StudentDashboard() {
     const cursosDisponiveis = allCourses.filter(c => !purchasedCourseIds.includes(c.id) && c.status === 'APROVADO')
 
     return (
-        <div className="min-h-screen bg-white font-exo relative pb-16">
+        <div className="min-h-screen bg-white font-montserrat relative pb-16">
             <StoreInitializer purchasedCourseIds={purchasedCourseIds} />
             <ProgressInitializer 
                 purchasedCourseIds={purchasedCourseIds}
@@ -82,7 +82,7 @@ export default async function StudentDashboard() {
 
             <BannerWrapper>
                 <div className="absolute top-10 left-8 md:left-20 z-20 pointer-events-none">
-                    <h1 className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter !text-white uppercase shadow-lg">
+                    <h1 className="text-2xl md:text-3xl font-bold tracking-tighter !text-white uppercase shadow-lg max-w-xl">
                         Olá, <span className="!text-white bg-[#1D5F31] px-2 py-0.5 rounded-md">{profile?.full_name?.split(' ')[0] || 'Daniel'}!</span>
                     </h1>
                 </div>
@@ -96,11 +96,11 @@ export default async function StudentDashboard() {
                 {meusCursos.length > 0 && (
                     <section>
                         <div className="flex items-center justify-between mb-10 pb-4 border-b-2 border-slate-900/5">
-                            <h2 className="text-xl font-black uppercase tracking-tighter flex items-center gap-3 !text-black">
+                            <h2 className="text-xl font-bold uppercase tracking-tight flex items-center gap-3 !text-black">
                                 <BookOpen size={22} className="text-[#1D5F31]" />
                                 Seu Aprendizado
                             </h2>
-                            <span className="text-[10px] font-black uppercase tracking-[2px] !text-black bg-white border border-black px-4 py-2 rounded-xl shadow-sm">
+                            <span className="text-sm font-bold uppercase tracking-tight !text-black bg-white border border-black px-4 py-2 rounded-xl shadow-sm">
                                 {meusCursos.length} TREINAMENTOS
                             </span>
                         </div>
@@ -129,7 +129,7 @@ export default async function StudentDashboard() {
                                     </div>
                                     <div className="p-8 flex-1 flex flex-col">
                                         {/* TÍTULO DO CURSO - Garanti que está PRETO e VISÍVEL */}
-                                        <h3 className="font-black text-lg mb-4 !text-black line-clamp-2 leading-tight uppercase group-hover:text-[#1D5F31] transition-colors">{curso.title}</h3>
+                                        <h3 className="font-bold text-lg mb-4 !text-black line-clamp-2 leading-tight uppercase group-hover:text-[#1D5F31] transition-colors">{curso.title}</h3>
                                         <div className="mt-auto space-y-4">
                                             <CourseProgressBar 
                                                 completedLessons={completedLessons} 
@@ -150,9 +150,9 @@ export default async function StudentDashboard() {
                     <div className="relative z-10">
                         <div className="inline-flex items-center gap-3 px-4 py-2 bg-slate-100 rounded-xl mb-6 border border-black/10">
                             <Trophy size={18} className="text-[#1D5F31]" />
-                            <span className="text-[10px] font-black text-[#1D5F31] uppercase tracking-widest">Excelência PowerPlay</span>
+                            <span className="text-sm font-bold text-[#1D5F31] uppercase tracking-tight">Excelência PowerPlay</span>
                         </div>
-                        <h2 className="text-3xl md:text-4xl font-black uppercase tracking-tighter !text-black mb-4">
+                        <h2 className="text-3xl md:text-4xl font-bold uppercase tracking-tighter !text-black mb-4">
                             Conteúdo <span className="opacity-60">Inovador</span>
                         </h2>
                         <p className="!text-black font-medium text-sm md:text-base leading-relaxed max-w-2xl opacity-90">
@@ -164,11 +164,11 @@ export default async function StudentDashboard() {
                 {/* Seção: Vitrine (Recomendados) */}
                 <section className="pb-20">
                     <div className="flex items-center justify-between mb-10 pb-4 border-b-2 border-slate-900/5">
-                        <h2 className="text-xl font-black uppercase tracking-tighter flex items-center gap-3 !text-black">
+                        <h2 className="text-xl font-bold uppercase tracking-tight flex items-center gap-3 !text-black">
                             <Sparkles size={22} className="text-[#1D5F31]" />
                             Recomendados para você
                         </h2>
-                        <span className="hidden md:block text-[9px] font-black uppercase tracking-[3px] text-slate-900">Vitrine Exclusiva</span>
+                        <span className="hidden md:block text-sm font-bold uppercase tracking-tight text-slate-900">Vitrine Exclusiva</span>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
@@ -182,21 +182,21 @@ export default async function StudentDashboard() {
                                     />
                                     <WishlistButton courseId={curso.id} />
                                     <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-black shadow-sm z-10">
-                                        <span className="text-[8px] font-black text-[#1D5F31] tracking-widest uppercase">Lançamento</span>
+                                        <span className="text-sm font-bold text-[#1D5F31] tracking-tight uppercase">Lançamento</span>
                                     </div>
                                 </div>
 
                                 <div className="p-6 flex-grow flex flex-col">
                                     {/* TÍTULO DO CURSO - Garanti que está PRETO e VISÍVEL */}
-                                    <h3 className="font-black text-base mb-2 !text-black uppercase leading-tight line-clamp-2 group-hover:text-[#1D5F31] transition-colors">{curso.title}</h3>
-                                    <p className="!text-black text-[10px] font-black uppercase line-clamp-2 mb-6">
+                                    <h3 className="font-bold text-base mb-2 !text-black uppercase leading-tight line-clamp-2 group-hover:text-[#1D5F31] transition-colors">{curso.title}</h3>
+                                    <p className="!text-black text-sm font-medium line-clamp-2 mb-6">
                                         {curso.description || 'Domine esta habilidade com o método PowerPlay.'}
                                     </p>
 
                                     <div className="mt-auto pt-4 border-t border-black flex items-center justify-between mb-4">
                                         <div className="flex flex-col">
-                                            <span className="text-[8px] font-bold !text-black uppercase tracking-tighter">Investimento</span>
-                                            <span className="!text-black font-black text-xl tracking-tight">
+                                            <span className="text-sm font-bold !text-black uppercase tracking-tight mb-1">Investimento</span>
+                                            <span className="!text-black font-bold text-xl tracking-tight">
                                                 R$ {Number(curso.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                             </span>
                                         </div>

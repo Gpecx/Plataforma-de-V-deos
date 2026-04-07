@@ -53,11 +53,11 @@ export function EvaluationForm({ courseId }: EvaluationFormProps) {
                 >
                     <Star className="w-10 h-10 text-[#1D5F31] fill-[#1D5F31]" />
                 </motion.div>
-                <h3 className="text-2xl font-black text-slate-900 mb-2">Obrigado!</h3>
+                <h3 className="text-2xl font-bold text-slate-900 mb-2">Obrigado!</h3>
                 <p className="text-slate-600 mb-6">Sua avaliação foi enviada com sucesso.</p>
                 <button
                     onClick={() => setSuccess(false)}
-                    className="text-[#1D5F31] font-black uppercase text-sm tracking-widest hover:underline"
+                    className="text-[#1D5F31] font-bold uppercase text-sm tracking-widest hover:underline"
                 >
                     Fazer nova avaliação
                 </button>
@@ -68,7 +68,7 @@ export function EvaluationForm({ courseId }: EvaluationFormProps) {
     return (
         <form onSubmit={handleSubmit} className="max-w-xl mx-auto py-8">
             <div className="text-center mb-10">
-                <h3 className="text-xl font-black uppercase tracking-tight text-slate-900 mb-2">
+                <h3 className="text-xl font-bold uppercase tracking-tight text-slate-900 mb-2">
                     Avalie seu Professor
                 </h3>
                 <p className="text-sm text-slate-600">
@@ -106,7 +106,7 @@ export function EvaluationForm({ courseId }: EvaluationFormProps) {
                     animate={{ opacity: 1, height: 'auto' }}
                     className="mb-8"
                 >
-                    <label className="block text-xs font-black uppercase tracking-widest text-slate-700 mb-3">
+                    <label className="block text-xs font-bold uppercase tracking-widest text-slate-700 mb-3">
                         Comentário (opcional)
                     </label>
                     <textarea
@@ -127,7 +127,7 @@ export function EvaluationForm({ courseId }: EvaluationFormProps) {
             <button
                 type="submit"
                 disabled={isSubmitting || rating === 0}
-                className={`w-full py-4 px-8 rounded-xl font-black uppercase tracking-widest text-sm flex items-center justify-center gap-3 transition-all ${
+                className={`w-full py-4 px-8 rounded-xl font-bold uppercase tracking-widest text-sm flex items-center justify-center gap-3 transition-all ${
                     rating === 0
                         ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
                         : 'bg-[#1D5F31] text-white hover:bg-[#1D5F31]/90'

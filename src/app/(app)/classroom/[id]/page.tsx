@@ -232,7 +232,7 @@ export default function ClassroomPage() {
             <div className="h-screen bg-[#F4F7F9] flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
                     <Loader2 className="animate-spin text-[#1D5F31]" size={48} />
-                    <p className="text-xs font-black uppercase tracking-widest text-slate-400 animate-pulse">
+                    <p className="text-xs font-bold uppercase tracking-widest text-slate-400 animate-pulse">
                         Verificando Acesso...
                     </p>
                 </div>
@@ -242,14 +242,14 @@ export default function ClassroomPage() {
 
     if (error || !course) {
         return (
-            <div className="h-screen bg-[#F4F7F9] flex flex-col items-center justify-center p-8 text-center font-exo">
-                <h1 className="text-2xl font-black uppercase italic tracking-tighter text-slate-800">
+            <div className="h-screen bg-[#F4F7F9] flex flex-col items-center justify-center p-8 text-center font-montserrat">
+                <h1 className="text-2xl font-bold uppercase  tracking-tighter text-slate-800">
                     {error || 'Treinamento não encontrado'}
                 </h1>
                 <div className="mt-6 flex flex-col gap-3">
                     <button 
                         onClick={() => window.location.reload()}
-                        className="px-6 py-3 bg-[#1D5F31] text-white font-black uppercase text-xs tracking-widest rounded-xl hover:bg-[#1D5F31]/90 transition-all"
+                        className="px-6 py-3 bg-[#1D5F31] text-white font-bold uppercase text-xs tracking-widest rounded-xl hover:bg-[#1D5F31]/90 transition-all"
                     >
                         Tentar Novamente
                     </button>
@@ -266,7 +266,7 @@ export default function ClassroomPage() {
         : 0
 
     return (
-        <div className="flex flex-col h-screen overflow-hidden font-exo transition-colors duration-500 bg-[#061629] text-white">
+        <div className="flex flex-col h-screen overflow-hidden font-montserrat transition-colors duration-500 bg-[#061629] text-white">
             <style jsx global>{`
                 .scrollbar-hide::-webkit-scrollbar {
                     display: none;
@@ -282,7 +282,7 @@ export default function ClassroomPage() {
                 <div className="flex items-center w-1/4">
                     <div className="flex items-center gap-3 text-slate-400 group">
                         <Logo />
-                        <Link href="/course" className="text-xs font-black uppercase tracking-widest group-hover:text-white transition-colors hidden md:block">
+                        <Link href="/course" className="text-xs font-bold uppercase tracking-widest group-hover:text-white transition-colors hidden md:block">
                             Sair
                         </Link>
                     </div>
@@ -290,7 +290,7 @@ export default function ClassroomPage() {
 
                 {/* Centro: Título do Curso */}
                 <div className="flex-1 flex justify-center items-center px-4">
-                    <h1 className="text-sm md:text-base font-bold font-exo tracking-tight text-center line-clamp-1 text-white">
+                    <h1 className="text-sm md:text-base font-bold font-montserrat tracking-tight text-center line-clamp-1 text-white">
                         {course?.title || 'Carregando...'}
                     </h1>
                 </div>
@@ -300,8 +300,8 @@ export default function ClassroomPage() {
                     <div className="hidden lg:flex items-center gap-3">
                         <div className="flex flex-col items-end">
                             <div className="flex items-center gap-2">
-                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-200">Progresso Final</span>
-                                <span className="text-xs font-black text-[#1D5F31]">{progressPercent}%</span>
+                                <span className="text-[9px] font-bold uppercase tracking-widest text-slate-200">Progresso Final</span>
+                                <span className="text-xs font-bold text-[#1D5F31]">{progressPercent}%</span>
                             </div>
                             <div className="w-20 h-1 rounded-full overflow-hidden mt-1 bg-slate-100">
                                 <div
@@ -392,17 +392,17 @@ export default function ClassroomPage() {
                                                                 className="text-green-500 transition-all duration-1000 ease-linear"
                                                             />
                                                         </svg>
-                                                        <span className="absolute inset-0 flex items-center justify-center text-4xl font-black text-white">
+                                                        <span className="absolute inset-0 flex items-center justify-center text-4xl font-bold text-white">
                                                             {autoNextCountdown}
                                                         </span>
                                                     </div>
                                                     <div>
-                                                        <p className="text-sm font-black uppercase tracking-[4px] text-green-500 mb-2">Próxima Aula em Instantes</p>
+                                                        <p className="text-sm font-bold uppercase tracking-[4px] text-green-500 mb-2">Próxima Aula em Instantes</p>
                                                         <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{lessons[lessons.findIndex(l => l.id === currentLesson?.id) + 1]?.title}</p>
                                                     </div>
                                                     <button
                                                         onClick={cancelAutoNext}
-                                                        className="px-8 py-3 bg-slate-800 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-slate-700 transition-all"
+                                                        className="px-8 py-3 bg-slate-800 text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-slate-700 transition-all"
                                                     >
                                                         Cancelar
                                                     </button>
@@ -417,7 +417,7 @@ export default function ClassroomPage() {
                                 <button
                                     onClick={goToPrevLesson}
                                     disabled={lessons.findIndex(l => l.id === currentLesson?.id) === 0}
-                                    className={`flex items-center gap-2 px-8 py-4 rounded-xl font-black font-exo uppercase tracking-tighter transition-all shadow-sm border ${lessons.findIndex(l => l.id === currentLesson?.id) === 0
+                                    className={`flex items-center gap-2 px-8 py-4 rounded-xl font-bold font-montserrat uppercase tracking-tighter transition-all shadow-sm border ${lessons.findIndex(l => l.id === currentLesson?.id) === 0
                                         ? 'bg-slate-800/50 text-slate-500 border-slate-800 cursor-not-allowed'
                                         : 'bg-slate-800 text-white hover:bg-slate-700 hover:border-white/20 border-slate-700'
                                         }`}
@@ -429,7 +429,7 @@ export default function ClassroomPage() {
                                 <button
                                     onClick={() => toggleLessonStatus(currentLesson?.id)}
                                     disabled={isToggling}
-                                    className={`flex items-center gap-2 px-6 py-4 rounded-md font-black font-exo uppercase tracking-tighter transition-all border ${
+                                    className={`flex items-center gap-2 px-6 py-4 rounded-md font-bold font-montserrat uppercase tracking-tighter transition-all border ${
                                         completedLessons.includes(currentLesson?.id)
                                             ? 'bg-[#00c853]/20 text-[#00c853] border-[#00c853]/30'
                                             : 'bg-slate-800 text-white hover:bg-slate-700 border-slate-700'
@@ -452,7 +452,7 @@ export default function ClassroomPage() {
                                 <button
                                     onClick={goToNextLesson}
                                     disabled={lessons.findIndex(l => l.id === currentLesson?.id) === lessons.length - 1}
-                                    className={`flex items-center gap-2 px-8 py-4 rounded-xl font-black font-exo uppercase tracking-tighter transition-all shadow-md ${lessons.findIndex(l => l.id === currentLesson?.id) === lessons.length - 1
+                                    className={`flex items-center gap-2 px-8 py-4 rounded-xl font-bold font-montserrat uppercase tracking-tighter transition-all shadow-md ${lessons.findIndex(l => l.id === currentLesson?.id) === lessons.length - 1
                                         ? 'bg-slate-800/50 text-slate-500 border-slate-800 cursor-not-allowed'
                                         : 'bg-green-600 text-white hover:bg-green-500 hover:scale-105 transition-all shadow-lg'
                                         }`}
@@ -486,8 +486,8 @@ export default function ClassroomPage() {
                 >
                     <div className="flex flex-col h-full">
                         <div className="p-8 border-b border-slate-800 bg-[#061629]">
-                            <h3 className="text-[10px] font-black uppercase tracking-[4px] text-green-500 mb-1 font-exo">CONTEÚDO DO CURSO</h3>
-                            <p className="text-[11px] font-black uppercase truncate tracking-tight text-white font-exo">{course?.title}</p>
+                            <h3 className="text-[10px] font-bold uppercase tracking-[4px] text-green-500 mb-1 font-montserrat">CONTEÚDO DO CURSO</h3>
+                            <p className="text-[11px] font-bold uppercase truncate tracking-tight text-white font-montserrat">{course?.title}</p>
                         </div>
 
                         <div
@@ -534,14 +534,14 @@ export default function ClassroomPage() {
                                             )}
                                         </div>
 
-                                        <div className="flex-1 min-w-0 font-exo">
+                                        <div className="flex-1 min-w-0 font-montserrat">
                                             <p className={`text-[13px] font-bold tracking-tight truncate ${currentLesson?.id === lesson.id
                                                 ? 'text-white'
                                                 : 'text-slate-400 group-hover:text-white'}`}>
                                                 {lesson.title}
                                             </p>
                                             <div className="flex items-center gap-2 mt-1">
-                                                <span className="text-[9px] font-black text-slate-200 uppercase tracking-widest leading-none">
+                                                <span className="text-[9px] font-bold text-slate-200 uppercase tracking-widest leading-none">
                                                     {lesson.type === 'quiz' ? 'QUESTIONÁRIO' : 'VÍDEO AULA'}
                                                 </span>
                                                 {currentLesson?.id === lesson.id && (

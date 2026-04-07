@@ -28,7 +28,7 @@ export default function Error({
           </div>
         </div>
         
-        <h2 className="text-2xl font-black italic text-white mb-3 uppercase tracking-tighter">
+        <h2 className="text-2xl font-bold  text-white mb-3 uppercase tracking-tighter">
           Algo não carregou corretamente
         </h2>
         
@@ -39,7 +39,7 @@ export default function Error({
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <button
             onClick={() => reset()}
-            className="group flex-1 flex items-center justify-center gap-2 px-8 py-4 bg-[#1D5F31] hover:bg-[#28b828] text-white font-black uppercase text-xs tracking-[0.2em] transition-all transform active:scale-95"
+            className="group flex-1 flex items-center justify-center gap-2 px-8 py-4 bg-[#1D5F31] hover:bg-[#28b828] text-white font-bold uppercase text-xs tracking-[0.2em] transition-all transform active:scale-95"
           >
             <RefreshCcw size={18} className="group-hover:rotate-180 transition-transform duration-500" />
             Tentar Novamente
@@ -47,7 +47,7 @@ export default function Error({
           
           <Link
             href="/dashboard-student"
-            className="flex-1 flex items-center justify-center gap-2 px-8 py-4 bg-white/5 hover:bg-white/10 text-white font-black uppercase text-xs tracking-[0.2em] border border-white/10 transition-all transform active:scale-95"
+            className="flex-1 flex items-center justify-center gap-2 px-8 py-4 bg-white/5 hover:bg-white/10 text-white font-bold uppercase text-xs tracking-[0.2em] border border-white/10 transition-all transform active:scale-95"
           >
             <LayoutDashboard size={18} />
             Início do Painel

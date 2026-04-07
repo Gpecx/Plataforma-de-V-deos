@@ -172,7 +172,7 @@ export function ClassroomTabs({ lessonId, description, courseId }: ClassroomTabs
     }
 
     return (
-        <div className="mt-4 transition-colors duration-500 font-exo">
+        <div className="mt-4 transition-colors duration-500 font-montserrat">
             {/* Tab Headers */}
             <div className="flex gap-8 mb-8 transition-colors duration-500 border-b border-slate-800">
                 <button
@@ -216,7 +216,7 @@ export function ClassroomTabs({ lessonId, description, courseId }: ClassroomTabs
                 ) : activeTab === 'overview' ? (
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
                         <div className="lg:col-span-2 space-y-6">
-                            <h3 className="text-xl font-black uppercase tracking-tighter text-white">Sobre esta aula</h3>
+                            <h3 className="text-xl font-bold uppercase tracking-tighter text-white">Sobre esta aula</h3>
                             <p className="leading-relaxed text-white">
                                 {description || "Nesta aula vamos explorar os conceitos fundamentais para o desenvolvimento de alta performance. Preste atenção em cada detalhe da implementação e utilize o código fonte disponível nos materiais."}
                             </p>
@@ -234,7 +234,7 @@ export function ClassroomTabs({ lessonId, description, courseId }: ClassroomTabs
                         </div>
 
                         <div className="space-y-6">
-                            <h3 className="text-xl font-black uppercase tracking-tighter text-white">Materiais</h3>
+                            <h3 className="text-xl font-bold uppercase tracking-tighter text-white">Materiais</h3>
                             <div className="space-y-3">
                                 <div className="flex items-center justify-between p-4 border border-slate-800 bg-slate-800/30 rounded-xl opacity-60 cursor-not-allowed">
                                     <div className="flex items-center gap-3">
@@ -246,7 +246,7 @@ export function ClassroomTabs({ lessonId, description, courseId }: ClassroomTabs
                                             <p className="text-[10px] text-slate-500 uppercase tracking-widest">2.4 MB</p>
                                         </div>
                                     </div>
-                                    <span className="px-3 py-1 bg-[#00c853] text-black text-[10px] font-black uppercase tracking-widest rounded-full">
+                                    <span className="px-3 py-1 bg-[#00c853] text-black text-[10px] font-bold uppercase tracking-widest rounded-full">
                                         Em Breve
                                     </span>
                                 </div>
@@ -260,7 +260,7 @@ export function ClassroomTabs({ lessonId, description, courseId }: ClassroomTabs
                                             <p className="text-[10px] text-slate-500 uppercase tracking-widest">15.8 MB</p>
                                         </div>
                                     </div>
-                                    <span className="px-3 py-1 bg-[#00c853] text-black text-[10px] font-black uppercase tracking-widest rounded-full">
+                                    <span className="px-3 py-1 bg-[#00c853] text-black text-[10px] font-bold uppercase tracking-widest rounded-full">
                                         Em Breve
                                     </span>
                                 </div>
@@ -273,7 +273,7 @@ export function ClassroomTabs({ lessonId, description, courseId }: ClassroomTabs
                                 {user?.photoURL ? (
                                     <img src={user.photoURL} className="w-10 h-10 rounded-full border border-gray-800 flex-shrink-0" alt={user.displayName || "Usuário"} />
                                 ) : (
-                                    <div className="w-10 h-10 rounded-full bg-green-500/10 flex-shrink-0 flex items-center justify-center text-green-500 font-bold font-exo">
+                                    <div className="w-10 h-10 rounded-full bg-green-500/10 flex-shrink-0 flex items-center justify-center text-green-500 font-bold font-montserrat">
                                         {getUserInitial()}
                                     </div>
                                 )}
@@ -282,13 +282,13 @@ export function ClassroomTabs({ lessonId, description, courseId }: ClassroomTabs
                                     placeholder="Dúvida ou sugestão? Manda pra gente..."
                                     value={commentText}
                                     onChange={(e) => setCommentText(e.target.value)}
-                                    className="w-full bg-transparent border-none focus:ring-0 text-sm resize-none min-h-[60px] placeholder-slate-400 text-white font-exo"
+                                    className="w-full bg-transparent border-none focus:ring-0 text-sm resize-none min-h-[60px] placeholder-slate-400 text-white font-montserrat"
                                 />
                                 <div className="flex justify-end">
                                     <button 
                                         onClick={handleSendComment}
                                         disabled={isSending || !user}
-                                        className="px-6 py-2 bg-[#00c853] text-black text-xs font-bold uppercase rounded-md hover:scale-105 transition-all font-exo disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                                        className="px-6 py-2 bg-[#00c853] text-black text-xs font-bold uppercase rounded-md hover:scale-105 transition-all font-montserrat disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                                     >
                                         {isSending ? 'Enviando...' : 'Enviar Pergunta'}
                                     </button>
@@ -299,7 +299,7 @@ export function ClassroomTabs({ lessonId, description, courseId }: ClassroomTabs
                         <div className="space-y-8 pb-20">
                             {comments.length === 0 ? (
                                 <div className="text-center py-12">
-                                    <p className="text-slate-400 text-sm font-exo">NENHUMA DÚVIDA REGISTRADA NESTA AULA</p>
+                                    <p className="text-slate-400 text-sm font-montserrat">NENHUMA DÚVIDA REGISTRADA NESTA AULA</p>
                                 </div>
                             ) : (
                                 comments.map((comment) => (
@@ -310,21 +310,21 @@ export function ClassroomTabs({ lessonId, description, courseId }: ClassroomTabs
                                                     {comment.avatar ? (
                                                         <img src={comment.avatar} className="w-10 h-10 rounded-full border border-gray-800" alt={comment.user} />
                                                     ) : (
-                                                        <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center text-green-500 font-bold font-exo flex-shrink-0">
+                                                        <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center text-green-500 font-bold font-montserrat flex-shrink-0">
                                                             {comment.user.charAt(0).toUpperCase()}
                                                         </div>
                                                     )}
                                                     <div>
                                                         <div className="flex items-center gap-2">
-                                                            <h4 className="text-sm font-bold uppercase tracking-tight text-white font-exo">{comment.user}</h4>
+                                                            <h4 className="text-sm font-bold uppercase tracking-tight text-white font-montserrat">{comment.user}</h4>
                                                             {comment.isInstructor && (
-                                                                <span className="flex items-center gap-1 px-2 py-0.5 bg-green-600 text-white text-[8px] font-black uppercase rounded tracking-widest font-exo">
+                                                                <span className="flex items-center gap-1 px-2 py-0.5 bg-green-600 text-white text-[8px] font-bold uppercase rounded tracking-widest font-montserrat">
                                                                     <CheckCircle2 size={8} />
                                                                     Instrutor
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <span className="text-[10px] text-slate-300 uppercase font-bold font-exo">{comment.date}</span>
+                                                        <span className="text-[10px] text-slate-300 uppercase font-bold font-montserrat">{comment.date}</span>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-2">
@@ -342,7 +342,7 @@ export function ClassroomTabs({ lessonId, description, courseId }: ClassroomTabs
                                                     <button className="p-1.5 text-slate-400 hover:text-[#1D5F31] transition-colors"><Reply size={16} /></button>
                                                 </div>
                                             </div>
-                                            <p className="text-sm text-white leading-relaxed pl-14 font-exo">
+                                            <p className="text-sm text-white leading-relaxed pl-14 font-montserrat">
                                                 {comment.text}
                                             </p>
                                         </div>

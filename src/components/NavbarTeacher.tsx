@@ -117,7 +117,7 @@ export default function NavbarTeacher() {
                         <Link href="/dashboard-teacher/courses" className="text-sm font-medium text-[#374151] hover:text-black transition-colors py-3">Meus Cursos</Link>
                         <Link href="/dashboard-teacher/analytics" className="text-sm font-medium text-[#374151] hover:text-black transition-colors py-3">Vendas</Link>
                         {userProfile?.role === 'admin' && (
-                            <Link href="/admin/dashboard" className="text-sm font-black text-[#1D5F31] hover:text-[#00a302] transition-colors py-3 px-3 bg-green-50 border-l-2 border-[#1D5F31]">PAINEL ADMIN</Link>
+                            <Link href="/admin/dashboard" className="text-sm font-bold text-[#1D5F31] hover:text-[#00a302] transition-colors py-3 px-3 bg-green-50 border-l-2 border-[#1D5F31]">PAINEL ADMIN</Link>
                         )}
                     </div>
                 </div>
@@ -175,13 +175,13 @@ export default function NavbarTeacher() {
                                 className="bg-white text-slate-900 w-[calc(100vw-32px)] sm:w-72 shadow-sm border border-slate-200 rounded-xl overflow-hidden p-3 z-[200] animate-in slide-in-from-top-2"
                             >
                                 <div className="px-5 py-6 bg-slate-50/50 mb-2 rounded-xl">
-                                    <p className="font-black uppercase tracking-tighter text-sm text-slate-800 line-clamp-1">
+                                    <p className="font-bold uppercase tracking-tighter text-sm text-slate-800 line-clamp-1">
                                         PROFESSOR POWERPLAY
                                     </p>
                                     <p className="text-[10px] font-bold uppercase tracking-widest text-slate-700 mt-1 line-clamp-1">
                                         {userProfile?.full_name || 'Membro PowerPlay'}
                                     </p>
-                                    <p className="text-[9px] font-black uppercase tracking-[2px] text-slate-400 mt-2">
+                                    <p className="text-[9px] font-bold uppercase tracking-[2px] text-slate-400 mt-2">
                                         Registrado em {formatDate(userProfile?.created_at || null)}
                                     </p>
                                 </div>
@@ -191,11 +191,11 @@ export default function NavbarTeacher() {
                                         <>
                                             <DropdownMenuItem onSelect={() => router.push("/admin/dashboard")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-green-50 text-[#1D5F31] transition-colors focus:bg-green-50 border border-green-100 mb-1">
                                                 <ShieldAlert size={18} className="text-[#1D5F31]" />
-                                                <span className="text-[11px] font-black uppercase tracking-widest leading-none">Acessar Painel Admin</span>
+                                                <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Acessar Painel Admin</span>
                                             </DropdownMenuItem>
                                             <DropdownMenuItem onSelect={() => router.push("/dashboard-student")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-green-50 text-[#1D5F31] transition-colors focus:bg-green-50 border border-green-100 mb-1">
                                                 <GraduationCap size={18} className="text-[#1D5F31]" />
-                                                <span className="text-[11px] font-black uppercase tracking-widest leading-none">Modo Aluno</span>
+                                                <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Modo Aluno</span>
                                             </DropdownMenuItem>
                                         </>
                                     )}
@@ -215,7 +215,7 @@ export default function NavbarTeacher() {
                                     <DropdownMenuSeparator className="my-2 bg-slate-100" />
 
                                     <div className="px-3 py-2">
-                                        <p className="text-[9px] font-black uppercase tracking-[2px] text-slate-400 mb-2 px-2">Suporte & Ajuda</p>
+                                        <p className="text-[9px] font-bold uppercase tracking-[2px] text-slate-400 mb-2 px-2">Suporte & Ajuda</p>
                                         <div className="grid grid-cols-2 gap-2">
                                             <DropdownMenuItem onSelect={() => router.push("/contact")} className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer focus:bg-slate-100">
                                                 <HelpCircle size={20} className="mb-2 text-slate-400" />
@@ -234,7 +234,7 @@ export default function NavbarTeacher() {
                                         onSelect={handleSignOut}
                                         className="flex items-center justify-between px-4 py-3 rounded-xl cursor-pointer bg-red-50/50 hover:bg-red-100 text-red-600 transition-colors mt-2 focus:bg-red-100"
                                     >
-                                        <span className="text-[11px] font-black uppercase tracking-widest">Sair da Conta</span>
+                                        <span className="text-[11px] font-bold uppercase tracking-widest">Sair da Conta</span>
                                         <LogOut size={16} />
                                     </DropdownMenuItem>
                                 </div>

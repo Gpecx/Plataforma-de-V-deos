@@ -45,7 +45,7 @@ export default async function SucessoPagamentoPage({ searchParams }: SuccessPage
         }
 
         return (
-            <div className="min-h-screen bg-white text-slate-900 font-exo py-20 px-4">
+            <div className="min-h-screen bg-white text-slate-900 font-montserrat py-20 px-4">
                 <div className="max-w-3xl mx-auto text-center">
                     <div className="mb-8 flex justify-center">
                         <div className="p-4 bg-[#1D5F31]/10 rounded-full">
@@ -53,7 +53,7 @@ export default async function SucessoPagamentoPage({ searchParams }: SuccessPage
                         </div>
                     </div>
 
-                    <h1 className="text-4xl font-extrabold text-[#1a1a1a] mb-4 tracking-tight uppercase">
+                    <h1 className="text-4xl font-bold text-[#1a1a1a] mb-4 tracking-tight uppercase">
                         {payment.status === 'RECEIVED' || payment.status === 'CONFIRMED'
                             ? 'Pagamento Confirmado!'
                             : 'Pedido Realizado!'}
@@ -66,7 +66,7 @@ export default async function SucessoPagamentoPage({ searchParams }: SuccessPage
                     </p>
 
                     <div className="bg-white border-[3px] border-slate-900 p-8 md:p-12 mb-10 text-left relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-2 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest">
+                        <div className="absolute top-0 right-0 p-2 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest">
                             {payment.billingType}
                         </div>
 
@@ -74,14 +74,14 @@ export default async function SucessoPagamentoPage({ searchParams }: SuccessPage
                             {/* Lado Esquerdo: Info Principal */}
                             <div className="space-y-6">
                                 <div>
-                                    <span className="text-[10px] font-black uppercase tracking-[3px] text-slate-400">Total a Pagar</span>
-                                    <div className="text-4xl font-black text-[#1D5F31]">R$ {payment.value.toFixed(2)}</div>
+                                    <span className="text-[10px] font-bold uppercase tracking-[3px] text-slate-400">Total a Pagar</span>
+                                    <div className="text-4xl font-bold text-[#1D5F31]">R$ {payment.value.toFixed(2)}</div>
                                 </div>
 
                                 {payment.billingType === 'PIX' && pixData && (
                                     <div className="space-y-4">
                                         <div className="p-4 bg-slate-50 border border-slate-200">
-                                            <p className="text-[10px] font-black uppercase mb-2 text-slate-500">Copia e Cola PIX</p>
+                                            <p className="text-[10px] font-bold uppercase mb-2 text-slate-500">Copia e Cola PIX</p>
                                             <div className="flex gap-2">
                                                 <input
                                                     readOnly
@@ -97,7 +97,7 @@ export default async function SucessoPagamentoPage({ searchParams }: SuccessPage
                                 {payment.billingType === 'BOLETO' && boletoData && (
                                     <div className="space-y-4">
                                         <div className="p-4 bg-slate-50 border border-slate-200">
-                                            <p className="text-[10px] font-black uppercase mb-2 text-slate-500">Linha Digitável</p>
+                                            <p className="text-[10px] font-bold uppercase mb-2 text-slate-500">Linha Digitável</p>
                                             <div className="flex gap-2">
                                                 <input
                                                     readOnly
@@ -115,7 +115,7 @@ export default async function SucessoPagamentoPage({ searchParams }: SuccessPage
                                         href={payment.invoiceUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors"
+                                        className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors"
                                     >
                                         Ver Fatura Original <ExternalLink size={14} />
                                     </a>
@@ -123,7 +123,7 @@ export default async function SucessoPagamentoPage({ searchParams }: SuccessPage
                                         <a
                                             href={payment.invoiceUrl} // Link simplificado, Asaas fornece o PDF
                                             target="_blank"
-                                            className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-[#1D5F31] hover:underline"
+                                            className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-[#1D5F31] hover:underline"
                                         >
                                             Baixar Boleto PDF <Download size={14} />
                                         </a>
@@ -157,13 +157,13 @@ export default async function SucessoPagamentoPage({ searchParams }: SuccessPage
                     <div className="flex flex-col md:flex-row gap-4 justify-center">
                         <Link
                             href="/dashboard-student"
-                            className="px-10 py-5 bg-slate-900 text-white font-black uppercase italic tracking-[3px] hover:bg-slate-800 transition-all text-sm"
+                            className="px-10 py-5 bg-slate-900 text-white font-bold uppercase  tracking-[3px] hover:bg-slate-800 transition-all text-sm"
                         >
                             IR PARA MEUS CURSOS →
                         </Link>
                         <Link
                             href="/course"
-                            className="px-10 py-5 border-[3px] border-slate-900 text-slate-900 font-black uppercase italic tracking-[3px] hover:bg-slate-50 transition-all text-sm"
+                            className="px-10 py-5 border-[3px] border-slate-900 text-slate-900 font-bold uppercase  tracking-[3px] hover:bg-slate-50 transition-all text-sm"
                         >
                             CONTINUAR COMPRANDO
                         </Link>

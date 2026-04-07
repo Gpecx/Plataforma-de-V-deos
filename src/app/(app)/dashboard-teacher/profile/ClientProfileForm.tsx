@@ -87,7 +87,7 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                         </label>
                     </div>
                     <div className="text-center">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-black">Foto Quadrada</p>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-black">Foto Quadrada</p>
                         <p className="text-[9px] font-bold text-slate-500 mt-1 uppercase">JPG/PNG Ideal 500x500px</p>
                     </div>
                 </div>
@@ -96,7 +96,7 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                 <div className="flex-grow space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="space-y-3">
-                            <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-500 px-1">Nome de Exibição</label>
+                            <label className="text-[10px] font-bold uppercase tracking-[3px] text-slate-500 px-1">Nome de Exibição</label>
                             <div className="relative group">
                                 <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#1D5F31] transition-colors" size={18} />
                                 <Input
@@ -107,7 +107,7 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                             </div>
                         </div>
                         <div className="space-y-3">
-                            <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-500 px-1">E-mail Administrativo</label>
+                            <label className="text-[10px] font-bold uppercase tracking-[3px] text-slate-500 px-1">E-mail Administrativo</label>
                             <div className="relative">
                                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-700" size={18} />
                                 <Input
@@ -120,7 +120,7 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                     </div>
 
                     <div className="space-y-3">
-                        <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-500 px-1">Expertise / Especialização</label>
+                        <label className="text-[10px] font-bold uppercase tracking-[3px] text-slate-500 px-1">Expertise / Especialização</label>
                         <div className="relative group">
                             <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#1D5F31] transition-colors" size={18} />
                             <Input
@@ -133,7 +133,7 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                     </div>
 
                     <div className="space-y-3">
-                        <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-500 px-1">Biografia Profissional</label>
+                        <label className="text-[10px] font-bold uppercase tracking-[3px] text-slate-500 px-1">Biografia Profissional</label>
                         <textarea
                             value={bio}
                             onChange={(e) => setBio(e.target.value)}
@@ -144,10 +144,10 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
 
                     {/* Redes Sociais */}
                     <div className="space-y-6 pt-4 border-t border-white/5">
-                        <h3 className="text-sm font-black text-black uppercase tracking-tighter">Links Sociais e Contato</h3>
+                        <h3 className="text-sm font-bold text-black uppercase tracking-tighter">Links Sociais e Contato</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-500 px-1">Website</label>
+                                <label className="text-[10px] font-bold uppercase tracking-[3px] text-slate-500 px-1">Website</label>
                                 <div className="relative group">
                                     <Globe className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-[#1D5F31] transition-colors" size={18} />
                                     <Input
@@ -159,7 +159,7 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                                 </div>
                             </div>
                             <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-500 px-1">LinkedIn</label>
+                                <label className="text-[10px] font-bold uppercase tracking-[3px] text-slate-500 px-1">LinkedIn</label>
                                 <div className="relative group">
                                     <Linkedin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-blue-500 transition-colors" size={18} />
                                     <Input
@@ -171,7 +171,7 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                                 </div>
                             </div>
                             <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-500 px-1">Twitter / X</label>
+                                <label className="text-[10px] font-bold uppercase tracking-[3px] text-slate-500 px-1">Twitter / X</label>
                                 <div className="relative group">
                                     <Twitter className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-sky-500 transition-colors" size={18} />
                                     <Input
@@ -183,7 +183,7 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                                 </div>
                             </div>
                             <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-500 px-1">Youtube</label>
+                                <label className="text-[10px] font-bold uppercase tracking-[3px] text-slate-500 px-1">Youtube</label>
                                 <div className="relative group">
                                     <Youtube className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-red-500 transition-colors" size={18} />
                                     <Input
@@ -201,7 +201,7 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                         <Button 
                             onClick={handleSave}
                             disabled={isSaving || isUploading}
-                            className="bg-[#1D5F31] text-white font-black uppercase tracking-[4px] py-8 px-12 rounded-xl hover:bg-[#00A802] shadow-2xl transition-all gap-4 w-full md:w-auto h-auto border border-black/20"
+                            className="bg-[#1D5F31] text-white font-bold uppercase tracking-[4px] py-8 px-12 rounded-xl hover:bg-[#00A802] shadow-2xl transition-all gap-4 w-full md:w-auto h-auto border border-black/20"
                         >
                             {isSaving ? <Loader2 className="animate-spin" size={24} strokeWidth={3} /> : <Save size={24} strokeWidth={3} />}
                             {isSaving ? 'Sincronizando...' : 'Sincronizar Perfil'}

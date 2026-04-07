@@ -32,7 +32,7 @@ export default function DeleteAccountButton() {
             <button
                 type="button"
                 onClick={() => setIsModalOpen(true)}
-                className="px-8 py-4 bg-transparent border border-red-500/30 text-red-500 font-bold uppercase italic rounded-xl hover:bg-red-500 hover:text-white transition-all w-fit"
+                className="px-8 py-4 bg-transparent border border-red-500/30 text-red-500 font-bold uppercase  rounded-xl hover:bg-red-500 hover:text-white transition-all w-fit"
             >
                 Excluir Minha Conta Permanentemente
             </button>

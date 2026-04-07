@@ -103,12 +103,12 @@ export default function PagamentoPage() {
     }
 
     return (
-        <div className="min-h-screen bg-white text-slate-900 font-exo mb-20">
+        <div className="min-h-screen bg-white text-slate-900 font-montserrat mb-20">
             <div className="max-w-6xl mx-auto px-4 md:px-8 py-12">
                 
                 {/* Header Back Button */}
                 <div className="mb-10">
-                    <Link href="/cart" className="inline-flex items-center gap-2 text-sm font-black uppercase tracking-widest text-slate-400 hover:text-[#1D5F31] transition-colors group">
+                    <Link href="/cart" className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-slate-400 hover:text-[#1D5F31] transition-colors group">
                         <div className="p-2 border border-slate-200 rounded-none group-hover:border-[#1D5F31] transition-colors">
                             <ArrowLeft size={18} />
                         </div>
@@ -121,7 +121,7 @@ export default function PagamentoPage() {
                     {/* Coluna Esquerda (7/12): Formas de Pagamento */}
                     <div className="lg:col-span-7 space-y-10">
                         <div>
-                            <h1 className="text-3xl font-bold text-[#1a1a1a] mb-2">Escolha sua forma de pagamento</h1>
+                            <h1 className="text-2xl font-bold tracking-tighter text-[#1a1a1a] mb-2 max-w-xl">Escolha sua forma de pagamento</h1>
                             <p className="text-slate-500 font-medium">Selecione o método de sua preferência para concluir a inscrição.</p>
                         </div>
 
@@ -132,11 +132,11 @@ export default function PagamentoPage() {
                                         <ShieldCheck size={24} />
                                     </div>
                                     <div className="space-y-1">
-                                        <h3 className="font-black uppercase text-sm text-amber-900 tracking-tight">Ação Necessária: Cadastro de CPF</h3>
+                                        <h3 className="font-bold uppercase text-sm text-amber-900 tracking-tight">Ação Necessária: Cadastro de CPF</h3>
                                         <p className="text-xs text-amber-800 font-medium leading-relaxed">
                                             Para sua segurança e conformidade com a emissão de notas fiscais, o Asaas exige um CPF ou CNPJ vinculado à sua conta.
                                         </p>
-                                        <Link href="/dashboard-student/profile" className="inline-block text-[10px] font-black uppercase tracking-widest text-amber-600 hover:text-amber-700 underline underline-offset-4 pt-2">
+                                        <Link href="/dashboard-student/profile" className="inline-block text-[10px] font-bold uppercase tracking-widest text-amber-600 hover:text-amber-700 underline underline-offset-4 pt-2">
                                             Cadastrar agora no meu perfil →
                                         </Link>
                                     </div>
@@ -195,7 +195,7 @@ export default function PagamentoPage() {
                                         <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">Liberação instantânea • Desconto progressivo</p>
                                     </div>
                                 </div>
-                                <div className="bg-[#32BCAD]/10 text-[#32BCAD] px-2 py-1 text-[10px] font-black uppercase tracking-tighter">Instantâneo</div>
+                                <div className="bg-[#32BCAD]/10 text-[#32BCAD] px-2 py-1 text-[10px] font-bold uppercase tracking-tighter">Instantâneo</div>
                             </div>
 
                             {/* Boleto */}
@@ -224,7 +224,7 @@ export default function PagamentoPage() {
                         </div>
 
                         {/* Informação Asaas */}
-                        <div className="pt-6 border-t border-slate-100 italic">
+                        <div className="pt-6 border-t border-slate-100 ">
                             <div className="flex items-center gap-3 text-slate-400">
                                 <ShieldCheck size={20} />
                                 <p className="text-sm font-medium">Pague com segurança através do Asaas. Seus dados estão protegidos.</p>
@@ -235,7 +235,7 @@ export default function PagamentoPage() {
                     {/* Coluna Direita (5/12): Resumo do Pedido */}
                     <aside className="lg:col-span-5">
                         <div className="bg-white border border-gray-200 p-8 sticky top-32">
-                            <h2 className="text-sm font-black uppercase tracking-[5px] text-[#1D5F31] mb-8 italic">Resumo Profissional</h2>
+                            <h2 className="text-sm font-bold uppercase tracking-[5px] text-[#1D5F31] mb-8 ">Resumo Profissional</h2>
 
                             <div className="space-y-6 mb-8 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                                 {items.map(item => (
@@ -248,7 +248,7 @@ export default function PagamentoPage() {
                                             />
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h4 className="text-[12px] font-black uppercase tracking-tight truncate text-[#1a1a1a]">{item.title}</h4>
+                                            <h4 className="text-[12px] font-bold uppercase tracking-tight truncate text-[#1a1a1a]">{item.title}</h4>
                                             <span className="text-sm font-bold text-[#1D5F31]">
                                                 {item.price === 0 ? 'Gratuito' : `R$ ${item.price.toFixed(2)}`}
                                             </span>
@@ -265,8 +265,8 @@ export default function PagamentoPage() {
                                     <span>R$ {total.toFixed(2)}</span>
                                 </div>
                                 <div className="flex flex-col gap-1">
-                                    <span className="text-[10px] font-black uppercase tracking-[4px] text-slate-400">Total Final</span>
-                                    <div className="text-5xl font-extrabold tracking-tighter text-[#1D5F31]">
+                                    <span className="text-[10px] font-bold uppercase tracking-[4px] text-slate-400">Total Final</span>
+                                    <div className="text-4xl font-bold tracking-tighter text-[#1D5F31]">
                                         {total === 0 ? 'Gratuito' : `R$ ${total.toFixed(2)}`}
                                     </div>
                                 </div>
@@ -275,7 +275,7 @@ export default function PagamentoPage() {
                             {(!isLoadingProfile && !userProfile?.cpf_cnpj && !userProfile?.cpf) ? (
                                 <button
                                     onClick={() => router.push('/dashboard-student/profile')}
-                                    className="w-full py-6 bg-[#1D5F31] text-white hover:brightness-110 active:scale-[0.98] rounded-none font-black uppercase italic tracking-[3px] transition-all flex items-center justify-center gap-3 shadow-lg shadow-[#1D5F31]/20"
+                                    className="w-full py-6 bg-[#1D5F31] text-white hover:brightness-110 active:scale-[0.98] rounded-none font-bold uppercase  tracking-[3px] transition-all flex items-center justify-center gap-3 shadow-lg shadow-[#1D5F31]/20"
                                 >
                                     CADASTRAR CPF PARA PAGAR →
                                 </button>
@@ -284,7 +284,7 @@ export default function PagamentoPage() {
                                     onClick={handlePayment}
                                     disabled={isProcessing || isLoadingProfile}
                                     className={cn(
-                                        "w-full py-6 rounded-none font-black uppercase italic tracking-[3px] transition-all flex items-center justify-center gap-3",
+                                        "w-full py-6 rounded-none font-bold uppercase  tracking-[3px] transition-all flex items-center justify-center gap-3",
                                         (isProcessing || isLoadingProfile)
                                             ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
                                             : 'bg-[#1D5F31] text-white hover:brightness-110 active:scale-[0.98]'

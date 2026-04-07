@@ -76,12 +76,12 @@ export default function CommentInbox() {
     })
 
     return (
-        <div className="p-8 md:p-12 min-h-screen bg-transparent text-white font-exo">
+        <div className="p-8 md:p-12 min-h-screen bg-transparent text-white font-montserrat">
             <header className="mb-12">
                 <div className="flex items-center gap-3 mb-2">
-                    <span className="text-[10px] font-black uppercase tracking-[5px] text-[#1D5F31] italic">Suporte ao Aluno</span>
+                    <span className="text-[10px] font-bold uppercase tracking-[5px] text-[#1D5F31] ">Suporte ao Aluno</span>
                 </div>
-                <h1 className="text-4xl font-black italic tracking-tighter uppercase">Inbox de <span className="text-[#1D5F31]">Dúvidas</span></h1>
+                <h1 className="text-4xl font-bold  tracking-tighter uppercase">Inbox de <span className="text-[#1D5F31]">Dúvidas</span></h1>
                 <p className="text-gray-400 mt-2 font-medium uppercase text-xs tracking-widest">Responda seus alunos com agilidade e mantenha a qualidade PowerPlay.</p>
             </header>
 
@@ -90,19 +90,19 @@ export default function CommentInbox() {
                 <div className="flex items-center gap-2 p-1 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md">
                     <button
                         onClick={() => setFilter('unanswered')}
-                        className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filter === 'unanswered' ? 'bg-[#1D5F31] text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                        className={`px-6 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${filter === 'unanswered' ? 'bg-[#1D5F31] text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}
                     >
                         Não Respondidas
                     </button>
                     <button
                         onClick={() => setFilter('answered')}
-                        className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filter === 'answered' ? 'bg-[#1D5F31] text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                        className={`px-6 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${filter === 'answered' ? 'bg-[#1D5F31] text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}
                     >
                         Respondidas
                     </button>
                     <button
                         onClick={() => setFilter('all')}
-                        className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${filter === 'all' ? 'bg-[#1D5F31] text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                        className={`px-6 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${filter === 'all' ? 'bg-[#1D5F31] text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}
                     >
                         Ver Todas
                     </button>
@@ -134,7 +134,7 @@ export default function CommentInbox() {
                                                 <User size={20} />
                                             </div>
                                             <div>
-                                                <h4 className="text-sm font-black uppercase tracking-tight">{comment.user}</h4>
+                                                <h4 className="text-sm font-bold uppercase tracking-tight">{comment.user}</h4>
                                                 <div className="flex items-center gap-1.5 text-[10px] text-gray-500 font-bold uppercase tracking-widest">
                                                     <Clock size={10} />
                                                     {comment.date}
@@ -143,7 +143,7 @@ export default function CommentInbox() {
                                         </div>
 
                                         <div className="space-y-2 pt-4">
-                                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#1D5F31]/70">
+                                            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-[#1D5F31]/70">
                                                 <BookOpen size={12} />
                                                 <span>Curso</span>
                                             </div>
@@ -151,7 +151,7 @@ export default function CommentInbox() {
                                         </div>
 
                                         <div className="space-y-2 pt-2">
-                                            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-blue-400/70">
+                                            <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-blue-400/70">
                                                 <MessageSquare size={12} />
                                                 <span>Aula</span>
                                             </div>
@@ -167,7 +167,7 @@ export default function CommentInbox() {
                                                     <MoreHorizontal size={18} />
                                                 </button>
                                             </div>
-                                            <p className="text-sm text-gray-300 leading-relaxed italic font-medium">
+                                            <p className="text-sm text-gray-300 leading-relaxed  font-medium">
                                                 "{comment.content}"
                                             </p>
                                         </div>
@@ -177,13 +177,13 @@ export default function CommentInbox() {
                                                 <input
                                                     type="text"
                                                     placeholder="Digite sua resposta mestre..."
-                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 pr-14 outline-none focus:border-[#1D5F31]/30 transition-all font-medium text-sm italic"
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-6 pr-14 outline-none focus:border-[#1D5F31]/30 transition-all font-medium text-sm "
                                                 />
                                                 <button className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-[#1D5F31] text-black rounded-xl hover:scale-105 transition-transform">
                                                     <Send size={18} />
                                                 </button>
                                             </div>
-                                            <button className="flex items-center gap-2 px-6 py-4 border border-white/5 bg-white/5 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white hover:bg-white/10 transition-all">
+                                            <button className="flex items-center gap-2 px-6 py-4 border border-white/5 bg-white/5 rounded-2xl text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-white hover:bg-white/10 transition-all">
                                                 <CheckCircle2 size={16} />
                                                 Arquivar
                                             </button>
@@ -196,7 +196,7 @@ export default function CommentInbox() {
                 ) : (
                     <div className="py-24 border-2 border-dashed border-white/5 rounded-[40px] text-center bg-white/[0.02] flex flex-col items-center justify-center">
                         <CheckCircle2 size={48} className="text-[#1D5F31] opacity-20 mb-4" />
-                        <p className="text-gray-500 italic font-medium">Parabéns! Nenhuma dúvida pendente no momento.</p>
+                        <p className="text-gray-500  font-medium">Parabéns! Nenhuma dúvida pendente no momento.</p>
                     </div>
                 )}
             </div>

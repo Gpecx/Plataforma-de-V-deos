@@ -284,10 +284,10 @@ function RegisterForm() {
         `w-full p-4 bg-white/5 text-white border border-white/10 shadow-sm transition-all outline-none text-sm font-medium placeholder:text-white/30 focus:border-[#28b828] focus:bg-white/10 rounded-xl relative overflow-hidden ${hasError ? 'border-red-500/60' : ''}`
 
     const sectionTitleClass = 'text-white/40 text-xs uppercase tracking-widest font-bold mb-4 block'
-    const labelClass = 'text-[9px] font-black uppercase tracking-widest text-white mb-1 block'
+    const labelClass = 'text-[9px] font-bold uppercase tracking-widest text-white mb-1 block'
 
     return (
-        <div className="min-h-screen w-full flex flex-row bg-[var(--background-color)] overflow-hidden font-exo">
+        <div className="min-h-screen w-full flex flex-row bg-[var(--background-color)] overflow-hidden font-montserrat">
             {/* Left Side - Visual (Full Column Image) */}
             <div className="hidden md:flex md:w-1/2 bg-[var(--background-color)] items-center justify-center p-0 overflow-hidden border-r border-white/5">
                 <div className="w-full h-full relative">
@@ -314,7 +314,7 @@ function RegisterForm() {
                             <Logo variant="vertical" className="scale-110" />
                         </div>
                         <div className="flex flex-col items-center">
-                            <h2 className="text-2xl md:text-3xl font-black tracking-tighter uppercase text-white">Alta Performance</h2>
+                            <h2 className="text-2xl md:text-3xl font-bold tracking-tighter uppercase text-white">Alta Performance</h2>
                             <p className="font-bold uppercase text-[9px] tracking-[4px] mt-2 text-white">Crie sua conta industrial</p>
                         </div>
                     </motion.div>
@@ -388,7 +388,7 @@ function RegisterForm() {
                                                         key={type}
                                                         type="button"
                                                         onClick={() => handleTypeChange(type as 'CPF' | 'CNPJ')}
-                                                        className={`px-3 py-1 text-[8px] font-black uppercase transition-all ${personType === type
+                                                        className={`px-3 py-1 text-[8px] font-bold uppercase transition-all ${personType === type
                                                             ? 'bg-[#1D5F31] text-white shadow'
                                                             : 'text-green-700 hover:text-green-200'
                                                             }`}
@@ -560,7 +560,7 @@ function RegisterForm() {
                             <motion.button
                                 type="submit"
                                 disabled={loading || !isFormValid}
-                                className="group relative w-full overflow-hidden bg-gradient-to-r from-[#1D5F31] via-[#28b828] to-[#1D5F31] hover:from-[#28b828] hover:via-[#34d834] hover:to-[#28b828] text-white font-black uppercase tracking-[3px] py-5 transition-all disabled:opacity-30 disabled:cursor-not-allowed mt-4 rounded-xl active:scale-[0.98] shadow-[0_0_20px_rgba(40,184,40,0.3)] hover:shadow-[0_0_30px_rgba(40,184,40,0.5)]"
+                                className="group relative w-full overflow-hidden bg-gradient-to-r from-[#1D5F31] via-[#28b828] to-[#1D5F31] hover:from-[#28b828] hover:via-[#34d834] hover:to-[#28b828] text-white font-bold uppercase tracking-[3px] py-5 transition-all disabled:opacity-30 disabled:cursor-not-allowed mt-4 rounded-xl active:scale-[0.98] shadow-[0_0_20px_rgba(40,184,40,0.3)] hover:shadow-[0_0_30px_rgba(40,184,40,0.5)]"
                                 initial="hidden"
                                 animate="visible"
                                 variants={fadeUp}
@@ -594,7 +594,7 @@ function RegisterForm() {
                             <div className="mt-8 pt-6 border-t border-white/10 text-center">
                                 <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
                                     Já possui acesso?{' '}
-                                    <Link href="/login" className="text-[#1D5F31] font-black hover:text-[#28b828] transition-colors underline underline-offset-4">
+                                    <Link href="/login" className="text-[#1D5F31] font-bold hover:text-[#28b828] transition-colors underline underline-offset-4">
                                         ENTRAR AGORA
                                     </Link>
                                 </p>

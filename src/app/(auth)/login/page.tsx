@@ -117,7 +117,7 @@ function LoginContent() {
                     <div className="mb-4 text-center">
                         <Logo variant="vertical" className="scale-100 md:scale-110 mb-2" />
                         <div className="space-y-1">
-                            <h2 className="text-2xl md:text-3xl font-black tracking-tighter uppercase text-[var(--foreground)]">
+                            <h2 className="text-2xl md:text-3xl font-bold tracking-tighter uppercase text-[var(--foreground)]">
                                 Área de Acesso
                             </h2>
                             <p className="text-green-200 font-bold uppercase text-[9px] tracking-[4px]">
@@ -135,7 +135,7 @@ function LoginContent() {
                                     name="email"
                                     render={({ field }) => (
                                         <FormItem className="space-y-1.5">
-                                            <FormLabel className="text-[10px] font-black uppercase tracking-widest text-green-200 ml-1">E-mail de acesso</FormLabel>
+                                            <FormLabel className="text-[10px] font-bold uppercase tracking-widest text-green-200 ml-1">E-mail de acesso</FormLabel>
                                             <FormControl>
                                                 <Input
                                                     className="bg-[#153b1b] border-[#266d35] focus:border-slate-800 focus:ring-0 rounded-xl h-14 text-sm font-bold text-[var(--foreground)] placeholder:text-green-700 transition-all shadow-none px-5"
@@ -153,8 +153,8 @@ function LoginContent() {
                                     render={({ field }) => (
                                         <FormItem className="space-y-1.5">
                                             <div className="flex items-center justify-between ml-1">
-                                                <FormLabel className="text-[10px] font-black uppercase tracking-widest text-green-200">Senha</FormLabel>
-                                                <Link href="/forgot-password" title="Esqueceu a senha?" className="text-[9px] font-black uppercase tracking-widest hover:underline text-green-200">Recuperar senha</Link>
+                                                <FormLabel className="text-[10px] font-bold uppercase tracking-widest text-green-200">Senha</FormLabel>
+                                                <Link href="/forgot-password" title="Esqueceu a senha?" className="text-[9px] font-bold uppercase tracking-widest hover:underline text-green-200">Recuperar senha</Link>
                                             </div>
                                             <FormControl>
                                                 <Input
@@ -170,7 +170,7 @@ function LoginContent() {
                                 />
                                 <Button
                                     type="submit"
-                                    className="w-full font-black uppercase tracking-[4px] h-14 rounded-xl shadow-lg transition-all flex items-center justify-center gap-4 bg-[#1D5F31] hover:bg-[#28b828] text-white hover:scale-[1.01] active:scale-[0.99] group mt-2"
+                                    className="w-full font-bold uppercase tracking-[4px] h-14 rounded-xl shadow-lg transition-all flex items-center justify-center gap-4 bg-[#1D5F31] hover:bg-[#28b828] text-white hover:scale-[1.01] active:scale-[0.99] group mt-2"
                                 >
                                     ENTRAR AGORA
                                     <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
@@ -181,7 +181,7 @@ function LoginContent() {
                         {/* Footer Links (Closer) */}
                         <div className="mt-12 pt-8 border-t border-slate-100 text-center">
                             <p className="text-[11px] text-green-200 font-bold uppercase tracking-widest">
-                                Não tem uma conta? <Link href="/register" className="font-black text-[#1D5F31] hover:underline underline-offset-8 ml-2">Crie agora</Link>
+                                Não tem uma conta? <Link href="/register" className="font-bold text-[#1D5F31] hover:underline underline-offset-8 ml-2">Crie agora</Link>
                             </p>
                         </div>
                     </div>
@@ -197,7 +197,7 @@ export default function LoginPage() {
             <div className="w-full h-full min-h-screen flex items-center justify-center p-8 bg-[var(--background-color)]">
                 <div className="text-center space-y-4">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#1D5F31] mx-auto"></div>
-                    <p className="text-[var(--foreground)] font-black uppercase text-[10px] tracking-[3px]">Carregando portal...</p>
+                    <p className="text-[var(--foreground)] font-bold uppercase text-[10px] tracking-[3px]">Carregando portal...</p>
                 </div>
             </div>
         }>

@@ -43,7 +43,7 @@ export default function SalesLogList({ initialSales, teachers }: SalesLogListPro
             {/* Filtros */}
             <div className="bg-white border border-black/10 p-8 flex flex-wrap gap-6 items-end rounded-xl shadow-sm">
                 <div className="flex-grow space-y-3 min-w-[250px]">
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2">
                         <UserIcon size={12} className="text-[#1D5F31]" /> Professor Responsável
                     </label>
                     <select 
@@ -59,7 +59,7 @@ export default function SalesLogList({ initialSales, teachers }: SalesLogListPro
                 </div>
 
                 <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2">
                         <Calendar size={12} className="text-[#1D5F31]" /> Período Inicial
                     </label>
                     <input 
@@ -71,7 +71,7 @@ export default function SalesLogList({ initialSales, teachers }: SalesLogListPro
                 </div>
 
                 <div className="space-y-3">
-                    <label className="text-[10px] font-black uppercase tracking-wider text-slate-900 flex items-center gap-2">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2">
                         <Calendar size={12} className="text-[#1D5F31]" /> Período Final
                     </label>
                     <input 
@@ -100,12 +100,12 @@ export default function SalesLogList({ initialSales, teachers }: SalesLogListPro
                     <table className="w-full text-left">
                         <thead>
                             <tr className="border-b border-black/5 bg-black/5/30">
-                                <th className="p-6 text-[10px] font-black uppercase tracking-wider text-slate-900">Rastreio / Hash</th>
-                                <th className="p-6 text-[10px] font-black uppercase tracking-wider text-slate-900">Timeline</th>
-                                <th className="p-6 text-[10px] font-black uppercase tracking-wider text-slate-900">Montante Bruto</th>
-                                <th className="p-6 text-[10px] font-black uppercase tracking-wider text-slate-900">Dedução Plataforma</th>
-                                <th className="p-6 text-[10px] font-black uppercase tracking-wider text-slate-900">Net Instrutor</th>
-                                <th className="p-6 text-[10px] font-black uppercase tracking-wider text-slate-900">Status</th>
+                                <th className="p-6 text-[10px] font-bold uppercase tracking-wider text-slate-900">Rastreio / Hash</th>
+                                <th className="p-6 text-[10px] font-bold uppercase tracking-wider text-slate-900">Timeline</th>
+                                <th className="p-6 text-[10px] font-bold uppercase tracking-wider text-slate-900">Montante Bruto</th>
+                                <th className="p-6 text-[10px] font-bold uppercase tracking-wider text-slate-900">Dedução Plataforma</th>
+                                <th className="p-6 text-[10px] font-bold uppercase tracking-wider text-slate-900">Net Instrutor</th>
+                                <th className="p-6 text-[10px] font-bold uppercase tracking-wider text-slate-900">Status</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-50">
@@ -117,13 +117,13 @@ export default function SalesLogList({ initialSales, teachers }: SalesLogListPro
                                     <td className="p-6 text-[10px] text-slate-900 font-light uppercase tracking-wider">
                                         {formatDate(sale.dataCriacao)}
                                     </td>
-                                    <td className="p-6 text-[11px] text-slate-900 font-black">
+                                    <td className="p-6 text-[11px] text-slate-900 font-bold">
                                         {formatCurrency(sale.valorBruto)}
                                     </td>
-                                    <td className="p-6 text-[11px] text-rose-500 font-black italic">
+                                    <td className="p-6 text-[11px] text-rose-500 font-bold ">
                                         - {formatCurrency(sale.taxaPlataforma)}
                                     </td>
-                                    <td className="p-6 text-[11px] text-[#1D5F31] font-black">
+                                    <td className="p-6 text-[11px] text-[#1D5F31] font-bold">
                                         + {formatCurrency(sale.repasseProfessor)}
                                     </td>
                                     <td className="p-6">
@@ -147,7 +147,7 @@ export default function SalesLogList({ initialSales, teachers }: SalesLogListPro
                         <div className="w-16 h-16 bg-black/5 rounded-full flex items-center justify-center mb-6 border border-black/10">
                             <Search size={32} className="text-slate-200" />
                         </div>
-                        <p className="text-slate-900 font-light uppercase tracking-wider text-[10px] italic">Base de Dados Vazia: Nenhum registro encontrado</p>
+                        <p className="text-slate-900 font-light uppercase tracking-wider text-[10px] ">Base de Dados Vazia: Nenhum registro encontrado</p>
                     </div>
                 )}
             </div>

@@ -29,14 +29,14 @@ export default function TaxSettings({ currentTax }: TaxSettingsProps) {
         <div className="bg-white p-8 border border-black/20 shadow-sm rounded-xl">
             <div className="flex items-center gap-3 mb-6">
                 <Settings className="text-[#1D5F31]" size={20} />
-                <h3 className="text-sm font-black uppercase tracking-widest !text-[#000000]">
+                <h3 className="text-sm font-bold uppercase tracking-widest !text-[#000000]">
                     Configurações Globais
                 </h3>
             </div>
             
             <div className="space-y-6">
                 <div>
-                    <label className="text-[10px] font-black uppercase tracking-[2px] block mb-3 !text-[#000000]">
+                    <label className="text-[10px] font-bold uppercase tracking-[2px] block mb-3 !text-[#000000]">
                         Taxa da Plataforma (%)
                     </label>
                     <div className="flex items-end gap-4">
@@ -45,19 +45,19 @@ export default function TaxSettings({ currentTax }: TaxSettingsProps) {
                                 type="number" 
                                 value={tax} 
                                 onChange={(e) => setTax(Number(e.target.value))}
-                                className="w-full bg-white border-2 border-black/20 px-4 h-12 outline-none focus:border-[#1D5F31] transition-all font-black !text-[#000000] rounded-lg"
+                                className="w-full bg-white border-2 border-black/20 px-4 h-12 outline-none focus:border-[#1D5F31] transition-all font-bold !text-[#000000] rounded-lg"
                             />
                         </div>
                         <button 
                             onClick={handleSave}
                             disabled={loading}
-                            className="bg-[#1D5F31] text-white px-8 h-12 font-black uppercase text-[10px] tracking-widest hover:bg-[#28b828] transition-all flex items-center gap-2 disabled:opacity-50 rounded-lg"
+                            className="bg-[#1D5F31] text-white px-8 h-12 font-bold uppercase text-[10px] tracking-widest hover:bg-[#28b828] transition-all flex items-center gap-2 disabled:opacity-50 rounded-lg"
                         >
                             {loading ? <Loader2 size={14} className="animate-spin" /> : <><Save size={14} /> Salvar</>}
                         </button>
                     </div>
                 </div>
-                <p className="text-[9px] font-black uppercase tracking-wider !text-[#000000]">
+                <p className="text-[9px] font-bold uppercase tracking-wider !text-[#000000]">
                     * Esta taxa será aplicada em todos os novos cálculos de repasse.
                 </p>
             </div>

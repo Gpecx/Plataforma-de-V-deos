@@ -93,15 +93,15 @@ export default function TeacherSettingsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-transparent p-8 md:p-12 space-y-16 font-exo border-t border-black pb-32">
+        <div className="min-h-screen bg-transparent p-8 md:p-12 space-y-16 font-montserrat border-t border-black pb-32">
             <header className="max-w-6xl mx-auto">
                 <div className="flex items-center gap-3 mb-2">
-                    <span className="text-[10px] font-black uppercase tracking-[5px] text-[#1D5F31]">WORKSPACE SETTINGS</span>
+                    <span className="text-[10px] font-bold uppercase tracking-[5px] text-[#1D5F31]">WORKSPACE SETTINGS</span>
                 </div>
-                <h1 className="text-4xl font-black tracking-tighter text-slate-900">
+                <h1 className="text-2xl md:text-3xl font-bold tracking-tighter text-slate-900 max-w-4xl">
                     CONFIGURAÇÕES DO <span className="text-[#1D5F31] uppercase">TEACHER</span>
                 </h1>
-                <p className="text-slate-600 mt-2 font-semibold text-xs tracking-widest uppercase">Gerencie suas preferências de faturamento e alertas de sistema.</p>
+                <p className="text-sm text-slate-500 mt-2 font-medium tracking-tight">Gerencie suas preferências de faturamento e alertas de sistema.</p>
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
@@ -112,14 +112,14 @@ export default function TeacherSettingsPage() {
                             <Wallet size={24} strokeWidth={2.5} />
                         </div>
                         <div>
-                            <h2 className="text-xl font-black uppercase tracking-tighter text-slate-900 leading-none">Dados de Saída</h2>
-                            <p className="text-[10px] font-bold uppercase tracking-[2px] text-slate-600 mt-2">Como você recebe seus lucros.</p>
+                            <h2 className="text-xl font-bold uppercase tracking-tight text-slate-900 leading-none">Dados de Saída</h2>
+                            <p className="text-sm font-medium tracking-tight text-slate-500 mt-2">Como você recebe seus lucros.</p>
                         </div>
                     </div>
 
                     <div className="space-y-8">
                         <div className="space-y-3">
-                            <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-900 px-1">Chave PIX Estratégica</label>
+                            <label className="text-sm font-bold uppercase tracking-tight text-slate-900 px-1">Chave PIX Estratégica</label>
                             <div className="relative group">
                                 <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1D5F31] transition-colors" size={20} />
                                 <Input
@@ -129,7 +129,7 @@ export default function TeacherSettingsPage() {
                                     className="bg-slate-50 border-black rounded-xl pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
                                 />
                             </div>
-                            <p className="text-[9px] text-slate-600 font-medium italic px-1">As comissões de vendas serão auditadas e enviadas para esta chave.</p>
+                            <p className="text-sm text-slate-500 font-medium px-1">As comissões de vendas serão auditadas e enviadas para esta chave.</p>
                         </div>
                     </div>
                 </section>
@@ -141,16 +141,16 @@ export default function TeacherSettingsPage() {
                             <Bell size={24} strokeWidth={2.5} />
                         </div>
                         <div>
-                            <h2 className="text-xl font-black uppercase tracking-tighter text-slate-900 leading-none">Alertas Digitais</h2>
-                            <p className="text-[10px] font-bold uppercase tracking-[2px] text-slate-600 mt-2">Fique por dentro de cada nova venda.</p>
+                            <h2 className="text-xl font-bold uppercase tracking-tight text-slate-900 leading-none">Alertas Digitais</h2>
+                            <p className="text-sm font-medium tracking-tight text-slate-500 mt-2">Fique por dentro de cada nova venda.</p>
                         </div>
                     </div>
 
                     <div className="space-y-4">
                         <div className="flex items-center justify-between p-6 bg-slate-50 rounded-xl border border-black hover:border-black/30 transition-all">
                             <div>
-                                <h3 className="text-xs font-black uppercase tracking-widest text-slate-900">Relatórios de Performance</h3>
-                                <p className="text-[10px] text-slate-600 font-medium mt-1">Resumo semanal do ecossistema por e-mail.</p>
+                                <h3 className="text-sm font-bold uppercase tracking-tight text-slate-900">Relatórios de Performance</h3>
+                                <p className="text-sm text-slate-500 font-medium mt-1">Resumo semanal do ecossistema por e-mail.</p>
                             </div>
                             <button
                                 onClick={() => setEmailEnabled(!emailEnabled)}
@@ -162,8 +162,8 @@ export default function TeacherSettingsPage() {
 
                         <div className="flex items-center justify-between p-6 bg-slate-50 rounded-xl border border-black hover:border-black/30 transition-all">
                             <div>
-                                <h3 className="text-xs font-black uppercase tracking-widest text-slate-900">Novos Leads e Alunos</h3>
-                                <p className="text-[10px] text-slate-600 font-medium mt-1">Push notifications em tempo real.</p>
+                                <h3 className="text-sm font-bold uppercase tracking-tight text-slate-900">Novos Leads e Alunos</h3>
+                                <p className="text-sm text-slate-500 font-medium mt-1">Push notifications em tempo real.</p>
                             </div>
                             <button
                                 onClick={() => setBrowserEnabled(!browserEnabled)}
@@ -182,15 +182,15 @@ export default function TeacherSettingsPage() {
                             <Shield size={24} strokeWidth={2.5} />
                         </div>
                         <div>
-                            <h2 className="text-xl font-black uppercase tracking-tighter text-slate-900 leading-none">Protocolos de Acesso</h2>
-                            <p className="text-[10px] font-bold uppercase tracking-[2px] text-slate-600 mt-2">Proteção de dados e soberania da conta.</p>
+                            <h2 className="text-xl font-bold uppercase tracking-tight text-slate-900 leading-none">Protocolos de Acesso</h2>
+                            <p className="text-sm font-medium tracking-tight text-slate-500 mt-2">Proteção de dados e soberania da conta.</p>
                         </div>
                     </div>
 
                     <form onSubmit={handleUpdatePassword} className="space-y-8 relative z-10">
                         {needsReauth && (
                             <div className="max-w-md space-y-3 animate-in fade-in slide-in-from-top-2">
-                                <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-900 px-1 flex items-center gap-2">
+                                <label className="text-sm font-bold uppercase tracking-tight text-slate-900 px-1 flex items-center gap-2">
                                     <Key size={14} />
                                     Senha Atual Necessária
                                 </label>
@@ -207,7 +207,7 @@ export default function TeacherSettingsPage() {
 
                         <div className="flex flex-col md:flex-row gap-8">
                             <div className="flex-grow space-y-6">
-                                <h3 className="text-[10px] font-black uppercase tracking-[3px] text-slate-900 px-1">Redefinição de Credenciais</h3>
+                                <h3 className="text-sm font-bold uppercase tracking-tight text-slate-900 px-1">Redefinição de Credenciais</h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <Input
                                         type="password"
@@ -234,7 +234,7 @@ export default function TeacherSettingsPage() {
                                     type="submit"
                                     disabled={isUpdatingPassword}
                                     variant="outline"
-                                    className="border-black text-slate-600 hover:bg-slate-50 hover:text-slate-900 h-14 px-8 rounded-xl font-black uppercase tracking-[2px] text-[10px] transition-all gap-2"
+                                    className="border-black text-slate-600 hover:bg-slate-50 hover:text-slate-900 h-14 px-8 rounded-xl font-bold uppercase tracking-[2px] text-[10px] transition-all gap-2"
                                 >
                                     {isUpdatingPassword ? (
                                         <div className="w-4 h-4 border-2 border-slate-200 border-t-[#1D5F31] rounded-xl animate-spin" />
@@ -255,12 +255,12 @@ export default function TeacherSettingsPage() {
                             <Trash2 size={24} strokeWidth={2.5} />
                         </div>
                         <div>
-                            <h2 className="text-xl font-black uppercase tracking-tighter text-red-600 leading-none">Zona de Perigo</h2>
-                            <p className="text-[10px] font-bold uppercase tracking-[2px] text-red-500/80 mt-2">Ações irreversíveis sobre sua conta e cursos criados.</p>
+                            <h2 className="text-xl font-bold uppercase tracking-tight text-red-600 leading-none">Zona de Perigo</h2>
+                            <p className="text-sm font-medium tracking-tight text-red-500/80 mt-2">Ações irreversíveis sobre sua conta e cursos criados.</p>
                         </div>
                     </div>
 
-                    <p className="text-[11px] text-red-600/70 max-w-2xl font-bold uppercase tracking-wider leading-relaxed bg-white p-6 rounded-xl border border-black">
+                    <p className="text-sm text-red-600/70 max-w-2xl font-bold uppercase tracking-tight leading-relaxed bg-white p-6 rounded-xl border border-black">
                         AVISO: Ao excluir sua conta, todos os seus cursos, matrículas de alunos e dados financeiros serão removidos permanentemente. Esta ação não pode ser desfeita.
                     </p>
 
@@ -269,7 +269,7 @@ export default function TeacherSettingsPage() {
             </div>
 
             <div className="flex justify-end pt-8 max-w-6xl mx-auto">
-                <Button className="bg-[#1D5F31] text-white font-black uppercase tracking-[3px] h-14 px-12 rounded-xl hover:bg-[#28b828] shadow-xl shadow-[#1D5F31]/20 transition-all gap-4 animate-in fade-in slide-in-from-bottom-4 text-[11px]">
+                <Button className="bg-[#1D5F31] text-white font-bold uppercase tracking-[3px] h-14 px-12 rounded-xl hover:bg-[#28b828] shadow-xl shadow-[#1D5F31]/20 transition-all gap-4 animate-in fade-in slide-in-from-bottom-4 text-[11px]">
                     <Save size={18} strokeWidth={3} />
                     Salvar Todas Alterações
                 </Button>

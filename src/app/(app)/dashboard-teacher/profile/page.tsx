@@ -31,12 +31,12 @@ export default async function TeacherProfilePage() {
     } : null
 
     return (
-        <div className="min-h-screen bg-transparent p-8 md:p-12 space-y-16 font-exo border-t border-white/5">
+        <div className="min-h-screen bg-transparent p-8 md:p-12 space-y-16 font-montserrat border-t border-white/5">
             <header className="max-w-4xl mx-auto">
                 <div className="flex items-center gap-3 mb-2">
-                    <span className="text-[10px] font-black uppercase tracking-[5px] text-[#1D5F31]">PROFILE MANAGEMENT</span>
+                    <span className="text-[10px] font-bold uppercase tracking-[5px] text-[#1D5F31]">PROFILE MANAGEMENT</span>
                 </div>
-                <h1 className="text-4xl font-black tracking-tighter text-black">
+                <h1 className="text-4xl font-bold tracking-tighter text-black">
                     IDENTIDADE DO <span className="text-[#1D5F31] uppercase">TEACHER</span>
                 </h1>
                 <p className="text-slate-600 mt-2 font-semibold text-xs tracking-widest uppercase">

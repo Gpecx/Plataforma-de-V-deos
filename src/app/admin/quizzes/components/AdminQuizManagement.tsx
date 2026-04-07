@@ -54,7 +54,7 @@ export default function AdminQuizManagement() {
     localStorage.setItem('mock_quizzes', JSON.stringify(updated));
     setSelectedQuiz(null);
     toast.success('Quiz autorizado com sucesso!', {
-      className: 'bg-slate-900 border-slate-800 text-white rounded-none font-exo',
+      className: 'bg-slate-900 border-slate-800 text-white rounded-none font-montserrat',
     });
   };
 
@@ -72,27 +72,27 @@ export default function AdminQuizManagement() {
     localStorage.setItem('mock_quizzes', JSON.stringify(updated));
     setShowCreateForm(false);
     toast.success('Quiz criado e publicado!', {
-      className: 'bg-slate-900 border-slate-800 text-white rounded-none font-exo',
+      className: 'bg-slate-900 border-slate-800 text-white rounded-none font-montserrat',
     });
   };
 
   return (
-    <div className="font-exo space-y-8 pb-20">
+    <div className="font-montserrat space-y-8 pb-20">
       {/* Header Admin */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="space-y-1">
-          <div className="flex items-center gap-2 text-[#1D5F31] font-black uppercase tracking-[4px] text-[10px]">
+          <div className="flex items-center gap-2 text-[#1D5F31] font-bold uppercase tracking-[4px] text-[10px]">
             <ShieldCheck size={14} />
             Área de Moderação
           </div>
-          <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-slate-900 uppercase leading-none">
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tighter text-slate-900 uppercase leading-none max-w-xl">
             Gestão de <span className="text-[#1D5F31]">Quizzes</span>
           </h1>
         </div>
         
         <button
           onClick={() => setShowCreateForm(true)}
-          className="flex items-center gap-3 bg-slate-900 text-white font-black uppercase tracking-widest px-8 py-4 rounded-none hover:bg-black transition-all shadow-xl active:scale-95 text-xs"
+          className="flex items-center gap-3 bg-slate-900 text-white font-bold uppercase tracking-widest px-8 py-4 rounded-none hover:bg-black transition-all shadow-xl active:scale-95 text-xs"
         >
           <Plus size={18} strokeWidth={3} /> Criar Quiz Admin
         </button>
@@ -105,7 +105,7 @@ export default function AdminQuizManagement() {
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={cn(
-              "pb-4 px-2 text-[10px] font-black uppercase tracking-[3px] transition-all relative",
+              "pb-4 px-2 text-[10px] font-bold uppercase tracking-[3px] transition-all relative",
               activeTab === tab ? "text-[#1D5F31]" : "text-slate-400 hover:text-slate-600"
             )}
           >
@@ -143,7 +143,7 @@ export default function AdminQuizManagement() {
                     {quiz.status === 'pending' ? <Clock size={20} /> : <CheckCircle size={20} />}
                   </div>
                   <div>
-                    <h3 className="font-black text-lg uppercase tracking-tight text-slate-900 group-hover:text-[#1D5F31] transition-colors">
+                    <h3 className="font-bold text-lg uppercase tracking-tight text-slate-900 group-hover:text-[#1D5F31] transition-colors">
                       {quiz.title}
                     </h3>
                     <div className="flex flex-wrap items-center gap-4 mt-1 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
@@ -163,14 +163,14 @@ export default function AdminQuizManagement() {
                 <div className="flex items-center gap-3 w-full md:w-auto">
                   <button
                     onClick={() => setSelectedQuiz(quiz)}
-                    className="flex-1 md:flex-none flex items-center justify-center gap-2 border border-slate-200 px-6 py-3 text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all"
+                    className="flex-1 md:flex-none flex items-center justify-center gap-2 border border-slate-200 px-6 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-slate-50 transition-all"
                   >
                     <Eye size={16} /> Visualizar
                   </button>
                   {quiz.status === 'pending' && (
                     <button
                       onClick={() => handleAuthorize(quiz.id)}
-                      className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-[#1D5F31] text-white px-6 py-3 text-[10px] font-black uppercase tracking-widest hover:bg-[#164a26] transition-all shadow-md"
+                      className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-[#1D5F31] text-white px-6 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-[#164a26] transition-all shadow-md"
                     >
                       <CheckCircle size={16} /> Autorizar
                     </button>
@@ -180,7 +180,7 @@ export default function AdminQuizManagement() {
             ))
           ) : (
             <div className="py-20 border-2 border-dashed border-slate-200 text-center uppercase">
-              <p className="text-slate-400 font-black tracking-widest text-xs">Nenhum quiz encontrado nesta categoria</p>
+              <p className="text-slate-400 font-bold tracking-widest text-xs">Nenhum quiz encontrado nesta categoria</p>
             </div>
           )}
         </AnimatePresence>
@@ -206,8 +206,8 @@ export default function AdminQuizManagement() {
               {/* Modal Header */}
               <div className="bg-slate-900 p-8 text-white flex justify-between items-start">
                 <div>
-                  <div className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 mb-2">Revisão de Conteúdo</div>
-                  <h2 className="text-3xl font-black uppercase tracking-tighter leading-none">{selectedQuiz.title}</h2>
+                  <div className="text-[10px] font-bold uppercase tracking-[3px] text-slate-400 mb-2">Revisão de Conteúdo</div>
+                  <h2 className="text-3xl font-bold uppercase tracking-tighter leading-none">{selectedQuiz.title}</h2>
                   <p className="text-slate-400 mt-4 text-sm font-medium">{selectedQuiz.description}</p>
                 </div>
                 <button onClick={() => setSelectedQuiz(null)} className="text-slate-400 hover:text-white transition-colors">
@@ -220,7 +220,7 @@ export default function AdminQuizManagement() {
                 {selectedQuiz.questions.map((q, idx) => (
                   <div key={q.id} className="bg-white p-6 border border-slate-200">
                     <div className="flex gap-4 mb-4">
-                      <span className="w-8 h-8 shrink-0 bg-slate-900 text-white flex items-center justify-center font-black text-xs">
+                      <span className="w-8 h-8 shrink-0 bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
                         {idx + 1}
                       </span>
                       <h4 className="font-bold text-slate-900 pt-1">{q.text}</h4>
@@ -232,7 +232,7 @@ export default function AdminQuizManagement() {
                           className={cn(
                             "p-3 text-xs font-bold uppercase tracking-wide border",
                             q.correctAnswer === oIdx 
-                              ? "bg-green-50 border-green-200 text-green-700 font-black" 
+                              ? "bg-green-50 border-green-200 text-green-700 font-bold" 
                               : "bg-slate-50 border-slate-100 text-slate-500"
                           )}
                         >
@@ -249,14 +249,14 @@ export default function AdminQuizManagement() {
               <div className="p-6 bg-white border-t border-slate-200 flex justify-end gap-4">
                 <button
                   onClick={() => setSelectedQuiz(null)}
-                  className="px-8 py-3 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 transition-all border border-slate-200"
+                  className="px-8 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50 transition-all border border-slate-200"
                 >
                   Fechar
                 </button>
                 {selectedQuiz.status === 'pending' && (
                   <button
                     onClick={() => handleAuthorize(selectedQuiz.id)}
-                    className="bg-[#1D5F31] text-white px-10 py-3 text-[10px] font-black uppercase tracking-widest hover:bg-[#164a26] transition-all shadow-xl"
+                    className="bg-[#1D5F31] text-white px-10 py-3 text-[10px] font-bold uppercase tracking-widest hover:bg-[#164a26] transition-all shadow-xl"
                   >
                     Autorizar Publicação
                   </button>
@@ -284,7 +284,7 @@ export default function AdminQuizManagement() {
               className="bg-slate-50 w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-none shadow-2xl relative z-10 p-8 border border-white/10"
             >
               <div className="flex justify-between items-center mb-8 pb-4 border-b border-slate-200">
-                <h2 className="text-2xl font-black uppercase tracking-tighter text-slate-900">Novo Quiz Administrativo</h2>
+                <h2 className="text-2xl font-bold uppercase tracking-tighter text-slate-900">Novo Quiz Administrativo</h2>
                 <button onClick={() => setShowCreateForm(false)} className="text-slate-400 hover:text-slate-900">
                   <X size={24} />
                 </button>

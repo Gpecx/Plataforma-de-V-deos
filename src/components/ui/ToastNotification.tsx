@@ -36,7 +36,7 @@ export function ToastNotification() {
                             <div className="bg-white p-1.5 rounded-xl shadow-sm">
                                 {icons[notification.type]}
                             </div>
-                            <p className="text-sm font-black uppercase tracking-tight text-slate-800 leading-tight">
+                            <p className="text-sm font-bold uppercase tracking-tight text-slate-800 leading-tight">
                                 {notification.message}
                             </p>
                         </div>

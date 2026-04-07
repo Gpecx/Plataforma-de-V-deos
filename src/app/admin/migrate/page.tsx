@@ -29,12 +29,12 @@ export default function MigrationPage() {
             <header className="space-y-4">
                 <div className="flex items-center gap-3">
                     <div className="h-[2px] w-8 bg-[#1D5F31]" />
-                    <span className="text-[10px] font-black uppercase tracking-[5px] text-[#1D5F31]">Sistema PowerPlay</span>
+                    <span className="text-[10px] font-bold uppercase tracking-[5px] text-[#1D5F31]">Sistema PowerPlay</span>
                 </div>
-                <h1 className="text-4xl font-black tracking-tighter uppercase leading-none">
+                <h1 className="text-4xl font-bold tracking-tighter uppercase leading-none">
                     Migração de <span className="text-[#1D5F31]">Dados</span>
                 </h1>
-                <p className="text-slate-900 text-sm font-black leading-relaxed">
+                <p className="text-slate-900 text-sm font-bold leading-relaxed">
                     Este script percorre as coleções <code className="text-[#1D5F31]">courses</code> e <code className="text-[#1D5F31]">lessons</code> para adicionar o campo <code className="text-[#1D5F31]">status: "APROVADO"</code> aos documentos antigos.
                 </p>
             </header>
@@ -51,7 +51,7 @@ export default function MigrationPage() {
                 <button
                     onClick={handleRunMigration}
                     disabled={loading}
-                    className="flex items-center gap-3 bg-[#1D5F31] text-black px-6 py-3 font-black uppercase text-xs tracking-widest hover:bg-white transition-all disabled:opacity-50"
+                    className="flex items-center gap-3 bg-[#1D5F31] text-black px-6 py-3 font-bold uppercase text-xs tracking-widest hover:bg-white transition-all disabled:opacity-50"
                 >
                     {loading ? (
                         <Loader2 size={16} className="animate-spin" />
@@ -70,7 +70,7 @@ export default function MigrationPage() {
                         ) : (
                             <AlertTriangle size={24} className="text-rose-500" />
                         )}
-                        <h2 className={`font-black uppercase tracking-widest text-sm ${result.success ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        <h2 className={`font-bold uppercase tracking-widest text-sm ${result.success ? 'text-emerald-500' : 'text-rose-500'}`}>
                             {result.success ? 'Sucesso' : 'Falha'}
                         </h2>
                     </div>

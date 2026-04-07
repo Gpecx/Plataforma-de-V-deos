@@ -105,15 +105,15 @@ export default function AdminClassroomPage({ params }: { params: Promise<{ id: s
     const getStatusBadge = (status: string) => {
         switch (status) {
             case 'APROVADO':
-                return <span className="text-green-500 text-[9px] font-black uppercase tracking-widest">APROVADO</span>
+                return <span className="text-green-500 text-sm font-bold uppercase tracking-tight">APROVADO</span>
             case 'PENDENTE':
-                return <span className="text-amber-500 text-[9px] font-black uppercase tracking-widest">PENDENTE</span>
+                return <span className="text-amber-500 text-sm font-bold uppercase tracking-tight">PENDENTE</span>
             case 'REJEITADO':
-                return <span className="text-red-500 text-[9px] font-black uppercase tracking-widest">REJEITADO</span>
+                return <span className="text-red-500 text-sm font-bold uppercase tracking-tight">REJEITADO</span>
             case 'SUSPENSO':
-                return <span className="text-slate-500 text-[9px] font-black uppercase tracking-widest">SUSPENSO</span>
+                return <span className="text-slate-500 text-sm font-bold uppercase tracking-tight">SUSPENSO</span>
             default:
-                return <span className="text-slate-400 text-[9px] font-black uppercase tracking-widest">{status}</span>
+                return <span className="text-slate-400 text-sm font-bold uppercase tracking-tight">{status}</span>
         }
     }
 
@@ -122,7 +122,7 @@ export default function AdminClassroomPage({ params }: { params: Promise<{ id: s
             <div className="h-screen bg-slate-900 flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
                     <Loader2 className="animate-spin text-[#1D5F31]" size={48} />
-                    <p className="text-xs font-black uppercase tracking-widest text-slate-400 animate-pulse">
+                    <p className="text-sm font-bold uppercase tracking-tight text-slate-400 animate-pulse">
                         Carregando Sala de Auditoria...
                     </p>
                 </div>
@@ -132,11 +132,11 @@ export default function AdminClassroomPage({ params }: { params: Promise<{ id: s
 
     if (error || !course) {
         return (
-            <div className="h-screen bg-slate-900 flex flex-col items-center justify-center p-8 text-center font-exo">
-                <h1 className="text-2xl font-black uppercase italic tracking-tighter text-white">
+            <div className="h-screen bg-slate-900 flex flex-col items-center justify-center p-8 text-center font-montserrat">
+                <h1 className="text-2xl font-bold uppercase  tracking-tighter text-white">
                     {error || 'Treinamento não encontrado'}
                 </h1>
-                <Link href="/admin/all-courses" className="mt-6 text-[#1D5F31] font-bold uppercase text-xs tracking-widest underline">
+                <Link href="/admin/all-courses" className="mt-6 text-[#1D5F31] font-bold uppercase text-sm tracking-tight underline">
                     Voltar para Catálogo
                 </Link>
             </div>
@@ -144,7 +144,7 @@ export default function AdminClassroomPage({ params }: { params: Promise<{ id: s
     }
 
     return (
-        <div className="flex flex-col h-screen overflow-hidden font-exo transition-colors duration-500 bg-slate-900 text-white classroom-theme">
+        <div className="flex flex-col h-screen overflow-hidden font-montserrat transition-colors duration-500 bg-slate-900 text-white classroom-theme">
             <style jsx global>{`
                 .scrollbar-hide::-webkit-scrollbar {
                     display: none;
@@ -160,14 +160,14 @@ export default function AdminClassroomPage({ params }: { params: Promise<{ id: s
                 <div className="flex items-center w-1/4">
                     <Link href="/admin/all-courses" className="flex items-center gap-3 text-slate-400 hover:text-white transition-colors group">
                         <ChevronLeft size={20} />
-                        <span className="text-xs font-black uppercase tracking-widest group-hover:text-white transition-colors">
+                        <span className="text-sm font-bold uppercase tracking-tight group-hover:text-white transition-colors">
                             Voltar
                         </span>
                     </Link>
                 </div>
 
                 <div className="flex-1 flex justify-center items-center px-4">
-                    <h1 className="text-sm md:text-base font-bold font-exo tracking-tight text-center line-clamp-1 text-white">
+                    <h1 className="text-sm md:text-base font-bold font-montserrat tracking-tight text-center line-clamp-1 text-white">
                         {course?.title || 'Carregando...'}
                     </h1>
                 </div>
@@ -195,7 +195,7 @@ export default function AdminClassroomPage({ params }: { params: Promise<{ id: s
                             {currentLesson?.type === 'quiz' ? (
                                 <div className="w-full h-full rounded-2xl overflow-hidden border border-slate-700 bg-slate-800 flex flex-col items-center justify-center p-8">
                                     <HelpCircle size={64} className="text-[#1D5F31] mb-4" />
-                                    <h2 className="text-2xl font-black uppercase tracking-tighter text-white mb-2">
+                                    <h2 className="text-2xl font-bold uppercase tracking-tighter text-white mb-2">
                                         {currentLesson?.title || 'Questionário'}
                                     </h2>
                                     <p className="text-slate-400 font-medium">
@@ -213,7 +213,7 @@ export default function AdminClassroomPage({ params }: { params: Promise<{ id: s
                                 </div>
                             ) : (
                                 <div className="w-full h-full rounded-2xl overflow-hidden border border-slate-700 bg-slate-800 flex flex-col items-center justify-center">
-                                    <p className="text-slate-500 font-black uppercase tracking-widest text-xs">
+                                    <p className="text-slate-500 font-bold uppercase tracking-tight text-sm">
                                         Nenhum vídeo cadastrado
                                     </p>
                                 </div>
@@ -223,24 +223,24 @@ export default function AdminClassroomPage({ params }: { params: Promise<{ id: s
                                 <button
                                     onClick={goToPrevLesson}
                                     disabled={lessons.findIndex(l => l.id === currentLesson?.id) === 0}
-                                    className={`flex items-center gap-2 px-8 py-4 rounded-xl font-black font-exo uppercase tracking-tighter transition-all shadow-sm border ${lessons.findIndex(l => l.id === currentLesson?.id) === 0
+                                    className={`flex items-center gap-2 px-8 py-4 rounded-xl font-bold font-montserrat uppercase tracking-tighter transition-all shadow-sm border ${lessons.findIndex(l => l.id === currentLesson?.id) === 0
                                         ? 'bg-slate-800/50 text-slate-500 border-slate-800 cursor-not-allowed'
                                         : 'bg-slate-800 text-white hover:bg-slate-700 hover:border-white/20 border-slate-700'
                                         }`}
                                 >
                                     <ChevronLeft size={20} />
-                                    <span className="text-xs">Anterior</span>
+                                    <span className="text-sm">Anterior</span>
                                 </button>
 
                                 <button
                                     onClick={goToNextLesson}
                                     disabled={lessons.findIndex(l => l.id === currentLesson?.id) === lessons.length - 1}
-                                    className={`flex items-center gap-2 px-8 py-4 rounded-xl font-black font-exo uppercase tracking-tighter transition-all shadow-md ${lessons.findIndex(l => l.id === currentLesson?.id) === lessons.length - 1
+                                    className={`flex items-center gap-2 px-8 py-4 rounded-xl font-bold font-montserrat uppercase tracking-tighter transition-all shadow-md ${lessons.findIndex(l => l.id === currentLesson?.id) === lessons.length - 1
                                         ? 'bg-slate-800/50 text-slate-500 border-slate-800 cursor-not-allowed'
                                         : 'bg-green-600 text-white hover:bg-green-500 hover:scale-105 transition-all shadow-lg'
                                         }`}
                                 >
-                                    <span className="text-xs">Próxima Aula</span>
+                                    <span className="text-sm">Próxima Aula</span>
                                     <ChevronRight size={20} />
                                 </button>
                             </div>
@@ -252,7 +252,7 @@ export default function AdminClassroomPage({ params }: { params: Promise<{ id: s
                         <div className="max-w-[1440px] mx-auto">
                             <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
                                 <div className="flex items-center justify-between mb-4">
-                                    <h2 className="text-xl font-black uppercase tracking-tighter text-white">
+                                    <h2 className="text-xl font-bold uppercase tracking-tighter text-white">
                                         {currentLesson?.title}
                                     </h2>
                                     <div className="flex items-center gap-3">
@@ -261,7 +261,7 @@ export default function AdminClassroomPage({ params }: { params: Promise<{ id: s
                                             <button
                                                 onClick={() => handleSuspendLesson(currentLesson?.id)}
                                                 disabled={suspeningId === currentLesson?.id}
-                                                className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 border border-red-500/30 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all"
+                                                className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 border border-red-500/30 rounded-lg text-sm font-bold uppercase tracking-tight hover:bg-red-500 hover:text-white transition-all"
                                             >
                                                 {suspeningId === currentLesson?.id ? (
                                                     <Loader2 size={14} className="animate-spin" />
@@ -290,8 +290,8 @@ export default function AdminClassroomPage({ params }: { params: Promise<{ id: s
                 >
                     <div className="flex flex-col h-full">
                         <div className="p-8 border-b border-slate-800 bg-slate-900">
-                            <h3 className="text-[10px] font-black uppercase tracking-[4px] text-[#1D5F31] mb-1 font-exo">CONTEÚDO DO CURSO</h3>
-                            <p className="text-[11px] font-black uppercase truncate tracking-tight text-white font-exo">{course?.title}</p>
+                            <h3 className="text-sm font-bold uppercase tracking-tight text-[#1D5F31] mb-1 font-montserrat">CONTEÚDO DO CURSO</h3>
+                            <p className="text-sm font-bold uppercase truncate tracking-tight text-white font-montserrat">{course?.title}</p>
                         </div>
 
                         <div 
@@ -333,17 +333,17 @@ export default function AdminClassroomPage({ params }: { params: Promise<{ id: s
                                             ) : null}
                                         </div>
 
-                                        <div className="flex-1 min-w-0 font-exo">
-                                            <p className={`text-[13px] font-bold tracking-tight truncate ${currentLesson?.id === lesson.id
+                                        <div className="flex-1 min-w-0 font-montserrat">
+                                            <p className={`text-sm font-bold tracking-tight truncate ${currentLesson?.id === lesson.id
                                                 ? 'text-white'
                                                 : 'text-slate-400 group-hover:text-white'}`}>
                                                 {lesson.title}
                                             </p>
                                             <div className="flex items-center gap-2 mt-1">
                                                 {lesson.type === 'quiz' ? (
-                                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">QUESTIONÁRIO</span>
+                                                    <span className="text-sm font-bold text-slate-400 uppercase tracking-tight leading-none">QUESTIONÁRIO</span>
                                                 ) : (
-                                                    <span className="text-[9px] font-black text-slate-200 uppercase tracking-widest leading-none">VÍDEO AULA</span>
+                                                    <span className="text-sm font-bold text-slate-200 uppercase tracking-tight leading-none">VÍDEO AULA</span>
                                                 )}
                                                 <span className={`flex h-1 w-1 rounded-full ${
                                                     lesson.status === 'APROVADO' ? 'bg-green-500' : 

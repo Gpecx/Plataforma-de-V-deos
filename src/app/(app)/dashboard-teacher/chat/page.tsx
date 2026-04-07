@@ -159,7 +159,7 @@ export default function TeacherChatPage() {
             <div className="h-screen flex items-center justify-center bg-white">
                 <div className="flex flex-col items-center gap-4">
                     <Loader2 className="animate-spin text-black" size={48} />
-                    <p className="text-xs font-black uppercase tracking-widest text-black animate-pulse">
+                    <p className="text-xs font-bold uppercase tracking-widest text-black animate-pulse">
                         Carregando Conversas...
                     </p>
                 </div>
@@ -168,7 +168,7 @@ export default function TeacherChatPage() {
     }
 
     return (
-        <div className="h-[calc(100vh-40px)] bg-transparent flex flex-col overflow-hidden font-exo animate-in fade-in duration-500">
+        <div className="h-[calc(100vh-40px)] bg-transparent flex flex-col overflow-hidden font-montserrat animate-in fade-in duration-500">
             <div className="max-w-full w-full mx-auto flex flex-col flex-1 pt-4 pb-2 px-4 gap-6 overflow-hidden">
 
                 {/* Page Header */}
@@ -184,7 +184,7 @@ export default function TeacherChatPage() {
                             <div className="flex items-center gap-2 mb-1">
 
                             </div>
-                            <h1 className="text-3xl font-black tracking-tighter uppercase text-black leading-none">
+                            <h1 className="text-2xl font-bold tracking-tighter uppercase text-black leading-none max-w-xl">
                                 Central de <span className="text-[#1D5F31]">Mensagens</span>
                             </h1>
                         </div>
@@ -194,7 +194,7 @@ export default function TeacherChatPage() {
                 <div className="flex flex-1 gap-8 overflow-hidden">
                     {/* Student List Sidebar */}
                     <aside className="w-80 shrink-0 hidden lg:flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar">
-                        <div className="text-[10px] font-black uppercase tracking-[4px] text-black px-4 mb-2">CONVERSAS ATIVAS</div>
+                        <div className="text-[10px] font-bold uppercase tracking-[4px] text-black px-4 mb-2">CONVERSAS ATIVAS</div>
                         {students.length > 0 ? (
                             students.map(student => (
                                 <button
@@ -202,20 +202,20 @@ export default function TeacherChatPage() {
                                     onClick={() => setSelectedStudent(student)}
                                     className={`flex items-center gap-5 p-6 rounded-[24px] border transition-all duration-300 group ${selectedStudent?.id === student.id ? 'bg-black border-black shadow-xl shadow-black/10' : 'bg-white border-black hover:border-black/50 hover:bg-gray-50'}`}
                                 >
-                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center font-black text-xs shrink-0 transition-all ${selectedStudent?.id === student.id ? 'bg-white text-black shadow-inner' : 'bg-black text-white'}`}>
+                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-xs shrink-0 transition-all ${selectedStudent?.id === student.id ? 'bg-white text-black shadow-inner' : 'bg-black text-white'}`}>
                                         {student.initials}
                                     </div>
                                     <div className="min-w-0 text-left">
-                                        <h4 className={`font-black uppercase text-xs tracking-tight truncate mb-1 ${selectedStudent?.id === student.id ? 'text-white' : 'text-black'}`}>
+                                        <h4 className={`font-bold uppercase text-xs tracking-tight truncate mb-1 ${selectedStudent?.id === student.id ? 'text-white' : 'text-black'}`}>
                                             {student.name}
                                         </h4>
-                                        <p className={`text-[9px] font-bold uppercase tracking-widest truncate italic ${selectedStudent?.id === student.id ? 'text-white/70' : 'text-gray-500'}`}>{student.course}</p>
+                                        <p className={`text-[9px] font-bold uppercase tracking-widest truncate  ${selectedStudent?.id === student.id ? 'text-white/70' : 'text-gray-500'}`}>{student.course}</p>
                                     </div>
                                 </button>
                             ))
                         ) : (
                             <div className="p-8 bg-white border border-black rounded-[24px] text-center">
-                                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Nenhuma conversa encontrada</p>
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Nenhuma conversa encontrada</p>
                             </div>
                         )}
                     </aside>
@@ -226,20 +226,20 @@ export default function TeacherChatPage() {
                             <>
                                 {/* Chat Header */}
                                 <div className="flex items-center gap-6 px-10 py-6 border-b border-black/10 bg-white">
-                                    <div className="w-12 h-12 rounded-full bg-black flex items-center justify-center text-white font-black text-sm">
+                                    <div className="w-12 h-12 rounded-full bg-black flex items-center justify-center text-white font-bold text-sm">
                                         {selectedStudent.initials}
                                     </div>
                                     <div>
-                                        <h3 className="font-black uppercase tracking-tighter text-lg text-black">{selectedStudent.name}</h3>
+                                        <h3 className="font-bold uppercase tracking-tighter text-lg text-black">{selectedStudent.name}</h3>
                                         <div className="flex items-center gap-2 mt-1">
                                             <div className={`w-1.5 h-1.5 rounded-full ${selectedStudent.status === 'online' ? 'bg-[#1D5F31]' : 'bg-gray-300'}`}></div>
-                                            <span className={`text-[10px] font-black uppercase tracking-[3px] ${selectedStudent.status === 'online' ? 'text-[#1D5F31]' : 'text-gray-500'}`}>
+                                            <span className={`text-[10px] font-bold uppercase tracking-[3px] ${selectedStudent.status === 'online' ? 'text-[#1D5F31]' : 'text-gray-500'}`}>
                                                 {selectedStudent.status === 'online' ? 'Conectado agora' : 'Desconectado'}
                                             </span>
                                         </div>
                                     </div>
                                     <div className="ml-auto flex items-center gap-4">
-                                        <div className="hidden xl:flex items-center gap-3 text-[9px] font-black uppercase tracking-[2px] text-black bg-gray-50 px-5 py-2.5 rounded-xl border border-black">
+                                        <div className="hidden xl:flex items-center gap-3 text-[9px] font-bold uppercase tracking-[2px] text-black bg-gray-50 px-5 py-2.5 rounded-xl border border-black">
                                             <GraduationCap size={16} className="text-[#1D5F31]" />
                                             {selectedStudent.course}
                                         </div>
@@ -254,7 +254,7 @@ export default function TeacherChatPage() {
                                             className={`flex gap-5 ${msg.role === 'teacher' ? 'flex-row-reverse' : 'flex-row'} animate-in fade-in slide-in-from-bottom-4 duration-500`}
                                         >
                                             {/* Avatar */}
-                                            <div className={`w-10 h-10 rounded-full shrink-0 flex items-center justify-center font-black text-[10px] mt-1 shadow-sm ${msg.role === 'student' ? 'bg-black text-white' : 'bg-[#1D5F31] text-white border-2 border-white'}`}>
+                                            <div className={`w-10 h-10 rounded-full shrink-0 flex items-center justify-center font-bold text-[10px] mt-1 shadow-sm ${msg.role === 'student' ? 'bg-black text-white' : 'bg-[#1D5F31] text-white border-2 border-white'}`}>
                                                 {msg.role === 'student' ? selectedStudent.initials : 'EU'}
                                             </div>
 
@@ -263,7 +263,7 @@ export default function TeacherChatPage() {
                                                 <div className={`px-8 py-5 rounded-[24px] text-sm font-medium leading-relaxed ${msg.role === 'student' ? 'bg-white border border-black text-black rounded-tl-none shadow-none' : 'bg-black text-white rounded-tr-none shadow-none'}`}>
                                                     {msg.content}
                                                 </div>
-                                                <span className="text-[9px] font-black uppercase tracking-widest text-gray-500 px-3">{msg.time}</span>
+                                                <span className="text-[9px] font-bold uppercase tracking-widest text-gray-500 px-3">{msg.time}</span>
                                             </div>
                                         </div>
                                     ))}
@@ -283,7 +283,7 @@ export default function TeacherChatPage() {
                                                 onKeyDown={handleKey}
                                                 placeholder="Digite sua resposta aqui..."
                                                 rows={1}
-                                                className="flex-1 bg-transparent outline-none resize-none font-bold text-sm text-black placeholder:text-gray-400 placeholder:font-black max-h-40"
+                                                className="flex-1 bg-transparent outline-none resize-none font-bold text-sm text-black placeholder:text-gray-400 placeholder:font-bold max-h-40"
                                                 style={{ lineHeight: '1.6' }}
                                             />
                                         </div>
@@ -295,7 +295,7 @@ export default function TeacherChatPage() {
                                             <Send size={22} strokeWidth={3} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                                         </button>
                                     </div>
-                                    <p className="text-[10px] font-black uppercase tracking-[4px] text-center text-gray-400 mt-6 italic">PowerPlay Creator Ecosystem • Secure Mentorship</p>
+                                    <p className="text-[10px] font-bold uppercase tracking-[4px] text-center text-gray-400 mt-6 ">PowerPlay Creator Ecosystem • Secure Mentorship</p>
                                 </div>
                             </>
                         ) : (
@@ -304,8 +304,8 @@ export default function TeacherChatPage() {
                                     <Users size={32} />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-black uppercase tracking-tighter text-black">Selecione uma Mentoria</h3>
-                                    <p className="text-[11px] font-bold uppercase tracking-[3px] text-gray-400 mt-2 italic">Aguardando interação com aluno real</p>
+                                    <h3 className="text-xl font-bold uppercase tracking-tighter text-black">Selecione uma Mentoria</h3>
+                                    <p className="text-[11px] font-bold uppercase tracking-[3px] text-gray-400 mt-2 ">Aguardando interação com aluno real</p>
                                 </div>
                             </div>
                         )}

@@ -40,18 +40,18 @@ export function MotivationalBanner() {
 
                 {/* Content - Forçando o Branco */}
                 <div className="relative z-20 h-full flex flex-col justify-center p-8 md:p-16 space-y-4 items-start text-left">
-                    <h3 className="text-4xl md:text-6xl font-black tracking-tight !text-white uppercase leading-[0.95] max-w-2xl drop-shadow-2xl">
+                    <h3 className="text-3xl md:text-5xl font-bold tracking-tighter !text-white uppercase leading-[0.95] max-w-2xl drop-shadow-2xl">
                         Foco, Disciplina <br />
                         e Execução.
                     </h3>
-                    <p className="!text-white/90 text-lg md:text-xl font-medium max-w-lg drop-shadow-md">
+                    <p className="!text-white/90 text-sm md:text-base font-medium max-w-lg drop-shadow-md">
                         Grandes conquistas começam com pequenos hábitos diários.
                     </p>
 
                     {/* Detalhe da marca PowerPlay */}
                     <div className="flex items-center gap-3 pt-4">
 
-                        <span className="!text-white/60 text-[10px] font-black uppercase tracking-[4px]">
+                        <span className="!text-white/60 text-[10px] font-bold uppercase tracking-[4px]">
 
                         </span>
                     </div>

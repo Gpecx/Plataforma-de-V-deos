@@ -26,14 +26,14 @@ export function ProfileForm({ initialFullName, initialCpf }: ProfileFormProps) {
                         <div className="absolute inset-0 bg-black/5 opacity-0 group-hover/avatar:opacity-100 transition-opacity" />
                     </div>
                     <div>
-                        <h2 className="text-xl font-black tracking-tighter uppercase text-[#1a1a1a] leading-tight">Informações Básicas</h2>
+                        <h2 className="text-xl font-bold tracking-tighter uppercase text-[#1a1a1a] leading-tight">Informações Básicas</h2>
                         <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[2px]">Como você aparece para os instrutores e colegas.</p>
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-8 max-w-2xl">
                     <div className="space-y-2">
-                        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 px-1">
                             Nome Completo
                         </label>
                         <input
@@ -47,7 +47,7 @@ export function ProfileForm({ initialFullName, initialCpf }: ProfileFormProps) {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 px-1">
+                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 px-1">
                             CPF ou CNPJ
                         </label>
                         <input
@@ -81,7 +81,7 @@ export function ProfileForm({ initialFullName, initialCpf }: ProfileFormProps) {
                 <button
                     type="submit"
                     disabled={isPending}
-                    className="flex items-center justify-center gap-3 w-full md:w-auto px-12 h-14 bg-[#1D5F31] border border-black text-white font-black uppercase tracking-[2px] rounded-xl hover:bg-[#154724] transition-all active:scale-[0.98] disabled:opacity-50 group"
+                    className="flex items-center justify-center gap-3 w-full md:w-auto px-12 h-14 bg-[#1D5F31] border border-black text-white font-bold uppercase tracking-[2px] rounded-xl hover:bg-[#154724] transition-all active:scale-[0.98] disabled:opacity-50 group"
                 >
                     <Save size={20} className={`${isPending ? 'animate-pulse' : ''} group-hover:scale-110 transition-transform`} />
                     {isPending ? 'Salvando...' : 'Salvar Alterações'}

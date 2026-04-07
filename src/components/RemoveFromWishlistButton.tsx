@@ -31,7 +31,7 @@ export default function RemoveFromWishlistButton({ courseId, onRemoved }: Remove
             whileTap={{ scale: 0.95 }}
             onClick={handleRemove}
             disabled={isLoading}
-            className="flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-200 text-red-600 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-red-100 hover:border-red-300 transition-all"
+            className="flex items-center gap-2 px-4 py-2 bg-red-50 border border-red-200 text-red-600 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-red-100 hover:border-red-300 transition-all"
         >
             {isLoading ? (
                 <Loader2 size={14} className="animate-spin" />

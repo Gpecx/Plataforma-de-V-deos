@@ -64,6 +64,7 @@ const config: Config = {
             },
             fontFamily: {
                 exo: ["var(--font-exo)", "sans-serif"],
+                montserrat: ["var(--font-montserrat)", "sans-serif"],
             },
         },
     },

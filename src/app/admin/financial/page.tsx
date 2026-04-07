@@ -81,7 +81,7 @@ export default function AdminFinancialPage() {
     }
 
     if (loading || !settings) return (
-        <div className="max-w-[1600px] mx-auto p-8 md:p-16 font-exo pb-64">
+        <div className="max-w-[1600px] mx-auto p-8 md:p-16 font-montserrat pb-64">
             <header className="mb-8 animate-pulse">
                 <div className="flex items-center gap-3 mb-4">
                     <div className="h-[1px] w-10 bg-slate-200" />
@@ -103,12 +103,12 @@ export default function AdminFinancialPage() {
     )
 
     return (
-        <div className="max-w-[1600px] mx-auto p-8 md:p-16 font-exo pb-64 animate-in fade-in duration-1000">
+        <div className="max-w-[1600px] mx-auto p-8 md:p-16 font-montserrat pb-64 animate-in fade-in duration-1000">
             <header className="mb-8 flex flex-col items-center text-center">
                 <div className="flex items-center gap-3 mb-4">
 
                 </div>
-                <h1 className="text-5xl font-[900] tracking-tighter uppercase leading-none !text-[#000000] text-center">
+                <h1 className="text-3xl font-bold tracking-tighter uppercase leading-none !text-[#000000] text-center max-w-2xl">
                     <span className="text-[#1D5F31]">Configurações Estratégicas</span>
                 </h1>
                 <p className="!text-[#000000] font-bold text-[11px] tracking-widest uppercase mt-4 max-w-2xl leading-tight">
@@ -121,7 +121,7 @@ export default function AdminFinancialPage() {
                 <div className="xl:col-span-4 lg:col-span-12">
                     <Card className="rounded-md border border-black/20 shadow-sm bg-white overflow-hidden sticky top-32">
                         <CardHeader className="p-8 border-b border-black/20">
-                            <CardTitle className="text-xs font-black uppercase tracking-wider !text-[#000000] flex items-center gap-3">
+                            <CardTitle className="text-xs font-bold uppercase tracking-wider !text-[#000000] flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center border border-black/20">
                                     <Percent size={14} className="text-[#000000]" strokeWidth={3} />
                                 </div>
@@ -131,15 +131,15 @@ export default function AdminFinancialPage() {
                         </CardHeader>
                         <CardContent className="p-8 space-y-8">
                             <div className="space-y-4">
-                                <Label className="text-[10px] font-black uppercase tracking-wider !text-[#000000]">Aliquota de Desconto (%)</Label>
+                                <Label className="text-[10px] font-bold uppercase tracking-wider !text-[#000000]">Aliquota de Desconto (%)</Label>
                                 <div className="relative group">
                                     <Input
                                         type="number"
                                         value={settings.platformTax}
                                         onChange={(e) => setSettings({ ...settings, platformTax: Number(e.target.value) })}
-                                        className="bg-slate-50 border border-black/20 rounded-xl h-16 text-3xl font-black !text-[#000000] px-8 focus:border-[#000000]/30 focus:bg-white transition-all shadow-inner"
+                                        className="bg-slate-50 border border-black/20 rounded-xl h-16 text-3xl font-bold !text-[#000000] px-8 focus:border-[#000000]/30 focus:bg-white transition-all shadow-inner"
                                     />
-                                    <div className="absolute right-8 top-1/2 -translate-y-1/2 !text-[#000000] font-black text-xl">%</div>
+                                    <div className="absolute right-8 top-1/2 -translate-y-1/2 !text-[#000000] font-bold text-xl">%</div>
                                 </div>
                                 {/*</div>
                             <div className="p-6 bg-slate-50 rounded-xl border border-black/20 border-dashed">*/}
@@ -159,7 +159,7 @@ export default function AdminFinancialPage() {
                                 <ShieldCheck className="text-[#000000]" size={24} strokeWidth={2.5} />
                             </div>
                             <div>
-                                <h2 className="text-base font-black uppercase tracking-wider !text-[#000000]">Catálogo de Assinaturas</h2>
+                                <h2 className="text-base font-bold uppercase tracking-wider !text-[#000000]">Catálogo de Assinaturas</h2>
                                 <p className="text-[10px] !text-[#000000] font-bold uppercase tracking-widest">Estruturas de Acesso Recorrente</p>
                             </div>
                         </div>
@@ -176,7 +176,7 @@ export default function AdminFinancialPage() {
                                         <Input
                                             value={plan.name}
                                             onChange={(e) => updatePlan(pIdx, 'name', e.target.value)}
-                                            className="bg-transparent border-none text-xl font-black uppercase tracking-tighter !text-[#000000] p-0 h-auto focus-visible:ring-0 placeholder:text-black/40"
+                                            className="bg-transparent border-none text-xl font-bold uppercase tracking-tighter !text-[#000000] p-0 h-auto focus-visible:ring-0 placeholder:text-black/40"
                                             placeholder="NOME DO PLANO"
                                         />
                                     </div>
@@ -187,14 +187,14 @@ export default function AdminFinancialPage() {
                                 <CardContent className="p-8 grid grid-cols-1 md:grid-cols-2 gap-12">
                                     <div className="space-y-8">
                                         <div className="space-y-4">
-                                            <Label className="text-[10px] font-black uppercase tracking-wider !text-[#000000]">Mensalidade Nominal (BRL)</Label>
+                                            <Label className="text-[10px] font-bold uppercase tracking-wider !text-[#000000]">Mensalidade Nominal (BRL)</Label>
                                             <div className="relative group">
                                                 <DollarSign size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-black group-hover:text-[#1D5F31] transition-colors" />
                                                 <Input
                                                     type="number"
                                                     value={plan.price}
                                                     onChange={(e) => updatePlan(pIdx, 'price', e.target.value)}
-                                                    className="bg-slate-50 border border-black/20 rounded-2xl h-16 pl-14 text-lg !text-[#000000] font-mono font-black focus:border-[#1D5F31]/30 focus:bg-white transition-all shadow-inner"
+                                                    className="bg-slate-50 border border-black/20 rounded-2xl h-16 pl-14 text-lg !text-[#000000] font-mono font-bold focus:border-[#1D5F31]/30 focus:bg-white transition-all shadow-inner"
                                                 />
                                             </div>
                                         </div>
@@ -206,12 +206,12 @@ export default function AdminFinancialPage() {
                                                 }`}
                                         >
                                             <div className={`w-3 h-3 rounded-full ${plan.active ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
-                                            <span className="text-[10px] font-black uppercase tracking-wider">Status: {plan.active ? 'ATIVO NO MERCADO' : 'EM MODO RASCUNHO'}</span>
+                                            <span className="text-[10px] font-bold uppercase tracking-wider">Status: {plan.active ? 'ATIVO NO MERCADO' : 'EM MODO RASCUNHO'}</span>
                                         </div>
                                     </div>
 
                                     <div className="space-y-6">
-                                        <Label className="text-[10px] font-black uppercase tracking-wider !text-[#000000] flex items-center justify-between">
+                                        <Label className="text-[10px] font-bold uppercase tracking-wider !text-[#000000] flex items-center justify-between">
                                             Vantagens Competitivas
                                             <span className="text-[8px] !text-[#000000] font-bold">{plan.features.length} ITENS</span>
                                         </Label>

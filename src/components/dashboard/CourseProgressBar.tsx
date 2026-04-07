@@ -13,10 +13,10 @@ export function CourseProgressBar({ completedLessons, totalLessons }: CourseProg
     return (
         <div className="w-full space-y-2">
             <div className="flex items-center justify-between">
-                <span className="text-[12px] font-black uppercase tracking-widest text-slate-500">
+                <span className="text-[12px] font-bold uppercase tracking-widest text-slate-500">
                     Progresso
                 </span>
-                <span className="text-[12px] font-black uppercase tracking-widest text-[#1D5F31]">
+                <span className="text-[12px] font-bold uppercase tracking-widest text-[#1D5F31]">
                     {progress}%
                 </span>
             </div>

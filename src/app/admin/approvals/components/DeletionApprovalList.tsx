@@ -126,13 +126,13 @@ export default function DeletionApprovalList({ pendingCourses, pendingLessons, t
     }
 
     return (
-        <div className="space-y-12 animate-in fade-in duration-700 font-exo">
+        <div className="space-y-12 animate-in fade-in duration-700 font-montserrat">
             {/* Courses Section */}
             {courses.length > 0 && (
                 <div className="space-y-6">
                     <div className="flex items-center gap-3">
                         <LayoutGrid size={18} className="text-[#1D5F31]" />
-                        <h2 className="text-[11px] font-black uppercase tracking-wider !text-[#000000]">
+                        <h2 className="text-[11px] font-bold uppercase tracking-wider !text-[#000000]">
                             Cursos para Exclusão ({courses.length})
                         </h2>
                     </div>
@@ -146,7 +146,7 @@ export default function DeletionApprovalList({ pendingCourses, pendingLessons, t
                                 <div className="absolute top-4 left-4 z-20">
                                     <div className="flex items-center gap-2 bg-red-50 backdrop-blur-md border border-red-200 px-3 py-1 rounded-full shadow-sm">
                                         <AlertTriangle size={12} className="text-red-500" />
-                                        <span className="text-[8px] font-black uppercase tracking-wider text-red-600">SOLICITADO EXCLUSÃO</span>
+                                        <span className="text-[8px] font-bold uppercase tracking-wider text-red-600">SOLICITADO EXCLUSÃO</span>
                                     </div>
                                 </div>
 
@@ -167,7 +167,7 @@ export default function DeletionApprovalList({ pendingCourses, pendingLessons, t
 
                                 <div className="p-6 flex flex-col flex-1">
                                     <div className="flex-1 mb-4">
-                                        <h3 className="text-base font-black uppercase tracking-tighter leading-tight mb-2 !text-[#000000] group-hover:text-red-600 transition-colors">
+                                        <h3 className="text-base font-bold uppercase tracking-tighter leading-tight mb-2 !text-[#000000] group-hover:text-red-600 transition-colors">
                                             {course.title}
                                         </h3>
                                         <div className="flex items-center gap-2.5 mb-4">
@@ -219,7 +219,7 @@ export default function DeletionApprovalList({ pendingCourses, pendingLessons, t
                 <div className="space-y-6">
                     <div className="flex items-center gap-3">
                         <PlaySquare size={18} className="text-[#1D5F31]" />
-                        <h2 className="text-[11px] font-black uppercase tracking-wider !text-[#000000]">
+                        <h2 className="text-[11px] font-bold uppercase tracking-wider !text-[#000000]">
                             Aulas para Exclusão ({lessons.length})
                         </h2>
                     </div>
@@ -233,7 +233,7 @@ export default function DeletionApprovalList({ pendingCourses, pendingLessons, t
                                 <div className="absolute top-4 left-4 z-20">
                                     <div className="flex items-center gap-2 bg-red-50 backdrop-blur-md border border-red-200 px-3 py-1 rounded-full shadow-sm">
                                         <AlertTriangle size={12} className="text-red-500" />
-                                        <span className="text-[8px] font-black uppercase tracking-wider text-red-600">SOLICITADO EXCLUSÃO</span>
+                                        <span className="text-[8px] font-bold uppercase tracking-wider text-red-600">SOLICITADO EXCLUSÃO</span>
                                     </div>
                                 </div>
 
@@ -262,7 +262,7 @@ export default function DeletionApprovalList({ pendingCourses, pendingLessons, t
 
                                 <div className="p-6 flex flex-col flex-1">
                                     <div className="flex-1 mb-4">
-                                        <h3 className="text-base font-black uppercase tracking-tighter leading-tight mb-2 !text-[#000000] group-hover:text-red-600 transition-colors">
+                                        <h3 className="text-base font-bold uppercase tracking-tighter leading-tight mb-2 !text-[#000000] group-hover:text-red-600 transition-colors">
                                             {lesson.title}
                                         </h3>
                                         <div className="flex items-center gap-2.5 mb-4">

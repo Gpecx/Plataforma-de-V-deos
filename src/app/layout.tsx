@@ -1,4 +1,4 @@
-import { Exo } from 'next/font/google'
+import { Exo, Montserrat } from 'next/font/google'
 import "./globals.css"
 import { ToastNotification } from '@/components/ui/ToastNotification'
 import { BrandingProvider } from '@/context/BrandingContext'
@@ -9,6 +9,12 @@ const exo = Exo({
   subsets: ['latin'],
   weight: ['400', '700', '900'],
   variable: '--font-exo'
+})
+
+const montserrat = Montserrat({
+  subsets: ['latin'],
+  weight: ['400', '700', '800', '900'],
+  variable: '--font-montserrat'
 })
 
 export default async function RootLayout({
@@ -27,8 +33,8 @@ export default async function RootLayout({
   } catch { }
 
   return (
-    <html lang="pt-br" className={exo.variable}>
-      <body className="font-exo antialiased">
+    <html lang="pt-br" className={`${exo.variable} ${montserrat.variable}`}>
+      <body className="font-montserrat antialiased">
         <BrandingProvider value={branding}>
           <CartStoreSynchronizer />
           <ToastNotification />

@@ -11,23 +11,23 @@ export default async function AllCoursesPage() {
     const getStatusBadge = (status: string) => {
         switch (status) {
             case 'APROVADO':
-                return <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-green-600 bg-green-50 px-3 py-1 rounded-none border border-green-200" style={{ color: '#16a34a' }}>APROVADO</span>
+                return <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-green-600 bg-green-50 px-3 py-1 rounded-none border border-green-200" style={{ color: '#16a34a' }}>APROVADO</span>
             case 'PENDENTE':
-                return <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 px-3 py-1 rounded-none border border-amber-200" style={{ color: '#d97706' }}>PENDENTE</span>
+                return <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-amber-600 bg-amber-50 px-3 py-1 rounded-none border border-amber-200" style={{ color: '#d97706' }}>PENDENTE</span>
             case 'REJEITADO':
-                return <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-red-600 bg-red-50 px-3 py-1 rounded-none border border-red-200" style={{ color: '#dc2626' }}>REJEITADO</span>
+                return <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-red-600 bg-red-50 px-3 py-1 rounded-none border border-red-200" style={{ color: '#dc2626' }}>REJEITADO</span>
             case 'SOLICITADO_EXCLUSAO':
-                return <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-slate-600 bg-slate-100 px-3 py-1 rounded-none border border-slate-300" style={{ color: '#475569' }}>EXCLUSÃO SOLICITADA</span>
+                return <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-slate-600 bg-slate-100 px-3 py-1 rounded-none border border-slate-300" style={{ color: '#475569' }}>EXCLUSÃO SOLICITADA</span>
             default:
-                return <span className="text-[10px] font-black uppercase tracking-widest text-slate-500" style={{ color: '#64748b' }}>{status}</span>
+                return <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500" style={{ color: '#64748b' }}>{status}</span>
         }
     }
 
     return (
-        <div className="p-8 lg:p-12 space-y-8 min-h-screen font-exo" style={{ color: '#0f172a', backgroundColor: '#fff' }}>
+        <div className="p-8 lg:p-12 space-y-8 min-h-screen font-montserrat" style={{ color: '#0f172a', backgroundColor: '#fff' }}>
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
                 <div>
-                    <h1 className="text-4xl font-black uppercase tracking-tighter text-[#1D5F31]" style={{ color: '#1D5F31' }}>
+                    <h1 className="text-4xl font-bold uppercase tracking-tighter text-[#1D5F31]" style={{ color: '#1D5F31' }}>
                         Catálogo Global
                     </h1>
                     <p className="text-[10px] font-bold uppercase tracking-[4px] text-slate-600 mt-2" style={{ color: '#475569' }}>
@@ -41,12 +41,12 @@ export default async function AllCoursesPage() {
                     <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-slate-900 text-white" style={{ backgroundColor: '#0f172a' }}>
-                                <th className="p-6 text-[10px] font-black uppercase tracking-wider" style={{ color: '#fff' }}>Curso</th>
-                                <th className="p-6 text-[10px] font-black uppercase tracking-wider" style={{ color: '#fff' }}>Professor</th>
-                                <th className="p-6 text-[10px] font-black uppercase tracking-wider" style={{ color: '#fff' }}>Categoria</th>
-                                <th className="p-6 text-[10px] font-black uppercase tracking-wider" style={{ color: '#fff' }}>Status</th>
-                                <th className="p-6 text-[10px] font-black uppercase tracking-wider text-right" style={{ color: '#fff' }}>Preço</th>
-                                <th className="p-6 text-[10px] font-black uppercase tracking-wider text-right" style={{ color: '#fff' }}>Ação</th>
+                                <th className="p-6 text-[10px] font-bold uppercase tracking-wider" style={{ color: '#fff' }}>Curso</th>
+                                <th className="p-6 text-[10px] font-bold uppercase tracking-wider" style={{ color: '#fff' }}>Professor</th>
+                                <th className="p-6 text-[10px] font-bold uppercase tracking-wider" style={{ color: '#fff' }}>Categoria</th>
+                                <th className="p-6 text-[10px] font-bold uppercase tracking-wider" style={{ color: '#fff' }}>Status</th>
+                                <th className="p-6 text-[10px] font-bold uppercase tracking-wider text-right" style={{ color: '#fff' }}>Preço</th>
+                                <th className="p-6 text-[10px] font-bold uppercase tracking-wider text-right" style={{ color: '#fff' }}>Ação</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -55,7 +55,7 @@ export default async function AllCoursesPage() {
                                     <td colSpan={6} className="p-16 text-center">
                                         <div className="flex flex-col items-center gap-4">
                                             <BookOpen size={48} className="text-slate-300" style={{ color: '#cbd5e1' }} />
-                                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400" style={{ color: '#94a3b8' }}>
+                                            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400" style={{ color: '#94a3b8' }}>
                                                 Nenhum curso encontrado
                                             </p>
                                         </div>
@@ -76,7 +76,7 @@ export default async function AllCoursesPage() {
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <h3 className="font-black uppercase text-sm text-slate-900 leading-tight max-w-[300px] truncate" style={{ color: '#0f172a' }}>
+                                                    <h3 className="font-bold uppercase text-sm text-slate-900 leading-tight max-w-[300px] truncate" style={{ color: '#0f172a' }}>
                                                         {course.title}
                                                     </h3>
                                                     <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wider mt-1 truncate max-w-[300px]" style={{ color: '#64748b' }}>
@@ -94,7 +94,7 @@ export default async function AllCoursesPage() {
                                             </div>
                                         </td>
                                         <td className="p-6">
-                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 bg-slate-100 px-3 py-1.5 rounded-none border border-slate-200" style={{ backgroundColor: '#f1f5f9', color: '#475569', borderColor: '#e2e8f0' }}>
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-600 bg-slate-100 px-3 py-1.5 rounded-none border border-slate-200" style={{ backgroundColor: '#f1f5f9', color: '#475569', borderColor: '#e2e8f0' }}>
                                                 {course.category || 'N/A'}
                                             </span>
                                         </td>
@@ -102,7 +102,7 @@ export default async function AllCoursesPage() {
                                             {getStatusBadge(course.status)}
                                         </td>
                                         <td className="p-6 text-right">
-                                            <span className="text-sm font-black text-slate-900" style={{ color: '#0f172a' }}>
+                                            <span className="text-sm font-bold text-slate-900" style={{ color: '#0f172a' }}>
                                                 R$ {Number(course.price || 0).toFixed(2)}
                                             </span>
                                         </td>
@@ -111,7 +111,7 @@ export default async function AllCoursesPage() {
                                                 <CourseDeleteButton courseId={String(course.id)} courseTitle={course.title} />
                                                 <Link
                                                     href={`/admin/classroom/${String(course.id)}`}
-                                                    className="inline-flex items-center gap-2 px-6 py-3 text-white text-[10px] font-black uppercase tracking-widest transition-all rounded-lg active:scale-95"
+                                                    className="inline-flex items-center gap-2 px-6 py-3 text-white text-[10px] font-bold uppercase tracking-widest transition-all rounded-lg active:scale-95"
                                                     style={{ backgroundColor: '#1D5F31' }}
                                                 >
                                                     Acessar Sala

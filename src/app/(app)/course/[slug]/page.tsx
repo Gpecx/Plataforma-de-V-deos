@@ -91,7 +91,7 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
     const totalLessons = lessons?.length || 0
 
     return (
-        <div className="min-h-screen bg-transparent text-[#061629] font-exo">
+        <div className="min-h-screen bg-transparent text-[#061629] font-montserrat">
             <Suspense fallback={null}>
                 <Navbar light={true} />
             </Suspense>
@@ -103,19 +103,19 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                     <div className="pb-6 space-y-4">
                         <Link
                             href="/course"
-                            className="inline-flex items-center gap-2 mt-4 text-[#061629] hover:text-[#1D5F31] transition text-[10px] font-black uppercase tracking-[3px]"
+                            className="inline-flex items-center gap-2 mt-4 text-[#061629] hover:text-[#1D5F31] transition text-[10px] font-bold uppercase tracking-[3px]"
                         >
                             <ArrowLeft size={14} />
                             Voltar ao Catálogo
                         </Link>
 
                         <div className="flex items-center gap-3">
-                            <span className="inline-block bg-[#1D5F31] text-white text-[9px] font-black px-3 py-1.5 uppercase tracking-[3px] rounded-xl no-theme-override">
+                            <span className="inline-block bg-[#1D5F31] text-white text-[9px] font-bold px-3 py-1.5 uppercase tracking-[3px] rounded-xl no-theme-override">
                                 {course.tag || "PREMIUM"}
                             </span>
                         </div>
 
-                        <h1 className="text-4xl md:text-6xl font-black tracking-tighter text-[#061629] leading-[0.85] uppercase max-w-5xl">
+                        <h1 className="text-3xl md:text-5xl lg:text-[3.25rem] font-bold tracking-tighter text-[#061629] leading-[0.85] uppercase max-w-3xl">
                             {course.title}
                         </h1>
                     </div>
@@ -135,13 +135,13 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                         <div className="lg:col-span-4 flex flex-col space-y-6">
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-px bg-[#1D5F31]" />
-                                <span className="text-[10px] font-black uppercase tracking-[4px] text-[#1D5F31]">
+                                <span className="text-[10px] font-bold uppercase tracking-[4px] text-[#1D5F31]">
                                     Detalhes da Formação
                                 </span>
                             </div>
 
                             <div className="space-y-6">
-                                <h3 className="text-lg font-black text-[#061629] uppercase tracking-tight flex items-center gap-2">
+                                <h3 className="text-lg font-bold text-[#061629] uppercase tracking-tight flex items-center gap-2">
                                     <Info size={18} className="text-[#1D5F31]" />
                                     Sobre este treinamento
                                 </h3>
@@ -162,7 +162,7 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                                         <div className="text-[#1D5F31] mt-0.5">{item.icon}</div>
                                         <div className="flex flex-col">
                                             <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest mb-1">{item.label}</span>
-                                            <span className="text-sm font-black text-[#061629] uppercase tracking-tighter leading-none">{item.text}</span>
+                                            <span className="text-sm font-bold text-[#061629] uppercase tracking-tighter leading-none">{item.text}</span>
                                         </div>
                                     </div>
                                 ))}
@@ -190,9 +190,9 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                         <div className="space-y-4">
                             <div className="flex items-center gap-3">
                                 <div className="w-12 h-px bg-[#1D5F31]" />
-                                <span className="text-[10px] font-black uppercase tracking-[4px] text-[#1D5F31]">Cronograma</span>
+                                <span className="text-[10px] font-bold uppercase tracking-[4px] text-[#1D5F31]">Cronograma</span>
                             </div>
-                            <h2 className="text-3xl md:text-5xl font-black text-[#061629] uppercase tracking-tighter">Grade <br className="hidden md:block"/> Curricular</h2>
+                            <h2 className="text-2xl md:text-3xl font-bold text-[#061629] uppercase tracking-tighter max-w-xl">Grade <br className="hidden md:block"/> Curricular</h2>
                         </div>
                         <p className="text-slate-500 text-sm max-w-md font-medium uppercase tracking-widest leading-loose">
                             Explore os módulos desenhados para levar seu conhecimento ao nível máximo de performance técnica.
@@ -205,7 +205,7 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                                 <div className="bg-[#FFFFFF] rounded-none border-l-4 border-l-[#1D5F31] p-5 border-y border-r border-[#E2E8F0]">
                                     <div className="flex items-center gap-4">
                                         <FileText className="text-[#1D5F31] shrink-0" size={24} />
-                                        <span className="font-bold font-exo text-[#1a1a1a] text-base">
+                                        <span className="font-bold font-montserrat text-[#1a1a1a] text-base">
                                             Conteúdo programático em atualização por nossa equipe técnica.
                                         </span>
                                     </div>
@@ -215,8 +215,8 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                                     <div key={index} className="bg-[#FFFFFF] rounded-none border-l-4 border-l-[#1D5F31] p-5 transition-all duration-300 hover:translate-x-1 hover:shadow-sm border-y border-r border-[#E2E8F0] flex items-center gap-4 group cursor-default">
                                         <PlayCircle className="text-[#1D5F31] shrink-0 opacity-80 group-hover:opacity-100 transition-opacity" size={24} />
                                         <div className="flex flex-col">
-                                            <span className="text-[10px] font-black uppercase text-[#1D5F31] tracking-widest mb-1">MÓDULO {(index + 1).toString().padStart(2, '0')}</span>
-                                            <span className="font-bold font-exo text-[#1a1a1a] text-base tracking-tight leading-snug">
+                                            <span className="text-[10px] font-bold uppercase text-[#1D5F31] tracking-widest mb-1">MÓDULO {(index + 1).toString().padStart(2, '0')}</span>
+                                            <span className="font-bold font-montserrat text-[#1a1a1a] text-base tracking-tight leading-snug">
                                                 {topic}
                                             </span>
                                         </div>

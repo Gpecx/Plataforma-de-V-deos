@@ -85,16 +85,16 @@ export default async function TeacherDashboard() {
 
 
     return (
-        <div className="min-h-screen bg-transparent font-exo pb-24 pt-12 relative animate-in fade-in duration-500">
+        <div className="min-h-screen bg-transparent font-montserrat pb-24 pt-12 relative animate-in fade-in duration-500">
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center px-8 mb-12 gap-6">
                 <div>
-                    <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-slate-900 uppercase leading-none">
+                    <h1 className="text-2xl md:text-3xl font-bold tracking-tighter text-slate-900 uppercase leading-none max-w-xl">
                         Bem-vindo, <span className="text-[#1D5F31]">{profile?.full_name?.split(' ')[0] || 'Professor'}!</span>
                     </h1>
-                    <p className="text-slate-900 mt-3 font-black uppercase text-[10px] tracking-[3px]">Gerencie seu império de conhecimento hoje.</p>
+                    <p className="text-slate-900 mt-3 font-bold uppercase text-[10px] tracking-[3px]">Gerencie seu império de conhecimento hoje.</p>
                 </div>
                 <Link href="/dashboard-teacher/courses/new">
-                    <button className="flex items-center gap-3 bg-[#1D5F31] text-white font-black uppercase tracking-widest px-10 py-5 rounded-2xl hover:opacity-90 transition shadow-xl shadow-[#1D5F31]/20 shrink-0 active:scale-95">
+                    <button className="flex items-center gap-3 bg-[#1D5F31] text-white font-bold uppercase tracking-widest px-10 py-5 rounded-2xl hover:opacity-90 transition shadow-xl shadow-[#1D5F31]/20 shrink-0 active:scale-95">
                         <Plus size={20} strokeWidth={3} /> Criar Novo Curso
                     </button>
                 </Link>
@@ -108,8 +108,8 @@ export default async function TeacherDashboard() {
                             <div className={`p-4 w-14 h-14 rounded-2xl bg-slate-50 border border-black/20 mb-6 flex items-center justify-center transition-transform group-hover:scale-110 ${metric.color}`}>
                                 <metric.icon size={24} />
                             </div>
-                            <p className="text-slate-900 text-[10px] font-black uppercase tracking-[3px] mb-1">{metric.label}</p>
-                            <h3 className="text-3xl font-black tracking-tighter text-slate-900">{metric.value}</h3>
+                            <p className="text-slate-900 text-[10px] font-bold uppercase tracking-[3px] mb-1">{metric.label}</p>
+                            <h3 className="text-3xl font-bold tracking-tighter text-slate-900">{metric.value}</h3>
                             {'subtext' in metric && metric.subtext && (
                                 <p className="text-[9px] text-slate-500 font-medium mt-1">{metric.subtext}</p>
                             )}
@@ -125,12 +125,12 @@ export default async function TeacherDashboard() {
                                 <TrendingUp size={24} className="text-[#1D5F31]" />
                             </div>
                             <div>
-                                <h2 className="text-2xl font-black uppercase tracking-tighter text-slate-900">Desempenho de Vendas</h2>
-                                <p className="text-slate-900 text-[9px] font-black tracking-[3px] uppercase">Análise dos últimos 7 dias de operação</p>
+                                <h2 className="text-2xl font-bold uppercase tracking-tighter text-slate-900">Desempenho de Vendas</h2>
+                                <p className="text-slate-900 text-[9px] font-bold tracking-[3px] uppercase">Análise dos últimos 7 dias de operação</p>
                             </div>
                         </div>
                         <div className="bg-slate-50 px-6 py-3 rounded-xl border border-slate-100">
-                            <span className="text-[10px] font-black uppercase tracking-widest text-[#1D5F31]">Live Analytics</span>
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-[#1D5F31]">Live Analytics</span>
                         </div>
                     </div>
                     <div className="h-[300px] w-full">
@@ -142,13 +142,13 @@ export default async function TeacherDashboard() {
                 <section className="space-y-10">
                     <div className="flex justify-between items-end border-b border-black/20 pb-6">
                         <div>
-                            <h2 className="text-2xl font-black uppercase tracking-tighter text-slate-900 flex items-center gap-3">
+                            <h2 className="text-2xl font-bold uppercase tracking-tighter text-slate-900 flex items-center gap-3">
                                 <Edit size={24} className="text-[#1D5F31]" />
                                 Meus Cursos
                             </h2>
-                            <p className="text-slate-900 text-[9px] font-black tracking-[3px] uppercase mt-1">Edite e publique seus treinamentos</p>
+                            <p className="text-slate-900 text-[9px] font-bold tracking-[3px] uppercase mt-1">Edite e publique seus treinamentos</p>
                         </div>
-                        <Link href="/dashboard-teacher/courses" className="text-[11px] text-slate-900 hover:text-[#1D5F31] font-black uppercase tracking-[3px] bg-white px-6 py-3 rounded-xl border border-black/30 shadow-sm transition-all hover:shadow-md">
+                        <Link href="/dashboard-teacher/courses" className="text-[11px] text-slate-900 hover:text-[#1D5F31] font-bold uppercase tracking-[3px] bg-white px-6 py-3 rounded-xl border border-black/30 shadow-sm transition-all hover:shadow-md">
                             Ver todos os cursos
                         </Link>
                     </div>
@@ -159,14 +159,14 @@ export default async function TeacherDashboard() {
                                 <div className="h-44 bg-slate-100 overflow-hidden relative">
                                     <img src={curso.image_url} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={curso.title} />
                                     <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/20 shadow-sm">
-                                        <span className="text-[8px] font-black text-slate-900 tracking-widest uppercase">Ativo</span>
+                                        <span className="text-[8px] font-bold text-slate-900 tracking-widest uppercase">Ativo</span>
                                     </div>
                                 </div>
                                 <div className="p-6 flex-grow flex flex-col">
-                                    <h3 className="font-black text-lg mb-6 tracking-tight text-slate-900 line-clamp-2 uppercase leading-tight group-hover:text-[#1D5F31] transition-colors">{curso.title}</h3>
+                                    <h3 className="font-bold text-lg mb-6 tracking-tight text-slate-900 line-clamp-2 uppercase leading-tight group-hover:text-[#1D5F31] transition-colors">{curso.title}</h3>
                                     <div className="mt-auto flex items-center gap-3">
                                         <Link href={`/dashboard-teacher/courses/${curso.id}/edit`} className="flex-1">
-                                            <button className="w-full bg-slate-900 text-white font-black uppercase text-[10px] tracking-widest py-4 rounded-xl hover:bg-[#1D5F31] transition-all shadow-md active:scale-95">Editar</button>
+                                            <button className="w-full bg-slate-900 text-white font-bold uppercase text-[10px] tracking-widest py-4 rounded-xl hover:bg-[#1D5F31] transition-all shadow-md active:scale-95">Editar</button>
                                         </Link>
                                         <Link href={`/dashboard-teacher/chat?course=${curso.id}`} className="p-4 bg-slate-50 text-slate-900 hover:text-[#1D5F31] hover:bg-white border border-black/20 rounded-xl transition-all shadow-sm">
                                             <MessageSquare size={16} />
@@ -179,9 +179,9 @@ export default async function TeacherDashboard() {
                                 <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
                                     <Plus size={32} className="text-slate-300" />
                                 </div>
-                                <h3 className="text-xl font-black uppercase tracking-tighter text-slate-900 mb-2">Seu catálogo está vazio</h3>
-                                <p className="text-slate-900 text-xs font-black uppercase tracking-[3px]">Comece a criar seu primeiro curso agora mesmo.</p>
-                                <Link href="/dashboard-teacher/courses/new" className="inline-block mt-8 bg-[#1D5F31] text-white px-10 py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-[#1D5F31]/10 hover:opacity-90 transition">
+                                <h3 className="text-xl font-bold uppercase tracking-tighter text-slate-900 mb-2">Seu catálogo está vazio</h3>
+                                <p className="text-slate-900 text-xs font-bold uppercase tracking-[3px]">Comece a criar seu primeiro curso agora mesmo.</p>
+                                <Link href="/dashboard-teacher/courses/new" className="inline-block mt-8 bg-[#1D5F31] text-white px-10 py-5 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-xl shadow-[#1D5F31]/10 hover:opacity-90 transition">
                                     Criar Curso
                                 </Link>
                             </div>

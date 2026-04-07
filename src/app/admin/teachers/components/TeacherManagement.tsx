@@ -74,7 +74,7 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                             <GraduationCap className="text-[#1D5F31]" size={24} strokeWidth={2.5} />
                         </div>
                         <div>
-                            <h2 className="text-xl font-black uppercase tracking-tighter !text-[#1D5F31] leading-none">Gestão de Professores</h2>
+                            <h2 className="text-xl font-bold uppercase tracking-tighter !text-[#1D5F31] leading-none">Gestão de Professores</h2>
                             <p className="text-[10px] font-bold !text-[#1D5F31] uppercase tracking-widest mt-1">Controle de Acessos</p>
                         </div>
                     </div>
@@ -86,7 +86,7 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             /* Background levemente escurecido para o texto branco não sumir */
-                            className="w-full bg-slate-100 border-2 border-slate-200 rounded-xl pl-12 pr-4 py-3 text-[11px] text-[#000000] focus:border-[#1D5F31] focus:bg-white outline-none transition-all font-black uppercase tracking-wider placeholder:text-[#64748b]"
+                            className="w-full bg-slate-100 border-2 border-slate-200 rounded-xl pl-12 pr-4 py-3 text-[11px] text-[#000000] focus:border-[#1D5F31] focus:bg-white outline-none transition-all font-bold uppercase tracking-wider placeholder:text-[#64748b]"
                         />
                     </div>
                 </div>
@@ -94,7 +94,7 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                 <div className="overflow-hidden">
                     <table className="w-full text-left border-separate border-spacing-y-3">
                         <thead>
-                            <tr className="text-[11px] font-black uppercase tracking-widest text-[#1D5F31]">
+                            <tr className="text-[11px] font-bold uppercase tracking-widest text-[#1D5F31]">
                                 <th className="pb-4 px-4">Institucional</th>
                                 <th className="pb-4 px-4">Status</th>
                                 <th className="pb-4 px-4 text-right">Ações</th>
@@ -110,7 +110,7 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                                     <td className="py-4 px-4 rounded-l-xl border-y border-l border-slate-200 group-hover:border-[#1D5F31]">
                                         <div className="flex flex-col">
                                             {/* Nome em Preto Sólido */}
-                                            <span className="font-black text-[#000000] uppercase tracking-tight text-[13px] group-hover:text-[#1D5F31] transition-colors">
+                                            <span className="font-bold text-[#000000] uppercase tracking-tight text-[13px] group-hover:text-[#1D5F31] transition-colors">
                                                 {teacher.full_name || 'Sem Nome'}
                                             </span>
                                             {/* Email em Cinza Escuro (Slate-700) sem opacidade */}
@@ -122,7 +122,7 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                                     <td className="py-4 px-4 border-y border-slate-200 group-hover:border-[#1D5F31]">
                                         <button
                                             onClick={(e) => handleToggleStatus(teacher.id, teacher.ativo ?? true, e)}
-                                            className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${teacher.ativo !== false
+                                            className={`px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all ${teacher.ativo !== false
                                                 ? 'bg-[#1D5F31] text-white'
                                                 : 'bg-rose-600 text-white'
                                                 }`}
@@ -149,7 +149,7 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                         <Users className="text-white" size={24} strokeWidth={2} />
                     </div>
                     <div>
-                        <h2 className="text-xl font-black uppercase tracking-tighter !text-[#1D5F31]">
+                        <h2 className="text-xl font-bold uppercase tracking-tighter !text-[#1D5F31]">
                             {selectedTeacher ? `Matrículas: ${selectedTeacher.full_name?.split(' ')[0]}` : 'Detalhes do Instrutor'}
                         </h2>
                         <p className="text-[10px] font-bold !text-[#1D5F31] uppercase tracking-widest mt-1">Auditória de Alunos</p>
@@ -160,7 +160,7 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                     {loading ? (
                         <div className="flex-grow flex flex-col items-center justify-center py-20">
                             <div className="w-12 h-12 border-4 border-[#1D5F31] border-t-transparent rounded-full animate-spin mb-4" />
-                            <span className="text-[11px] font-black uppercase tracking-widest text-[#000000]">Buscando na base...</span>
+                            <span className="text-[11px] font-bold uppercase tracking-widest text-[#000000]">Buscando na base...</span>
                         </div>
                     ) : selectedTeacher ? (
                         <div className="space-y-3 max-h-[650px] overflow-y-auto pr-2 custom-scrollbar">
@@ -168,11 +168,11 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                                 students.map((student) => (
                                     <div key={student.id} className="bg-slate-50 p-5 rounded-xl border border-slate-200 hover:border-[#1D5F31] transition-all flex justify-between items-center group">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-lg bg-[#1D5F31] flex items-center justify-center text-white font-black text-sm shadow-md">
+                                            <div className="w-10 h-10 rounded-lg bg-[#1D5F31] flex items-center justify-center text-white font-bold text-sm shadow-md">
                                                 {student.full_name?.charAt(0)}
                                             </div>
                                             <div>
-                                                <h4 className="font-black text-[13px] uppercase tracking-tight text-[#000000]">{student.full_name}</h4>
+                                                <h4 className="font-bold text-[13px] uppercase tracking-tight text-[#000000]">{student.full_name}</h4>
                                                 <p className="text-[11px] text-[#334155] font-bold tracking-tight">{student.email}</p>
                                             </div>
                                         </div>
@@ -183,14 +183,14 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                                 ))
                             ) : (
                                 <div className="text-center py-20 px-10">
-                                    <p className="text-xs font-black uppercase text-[#000000] tracking-wider">Nenhum aluno encontrado</p>
+                                    <p className="text-xs font-bold uppercase text-[#000000] tracking-wider">Nenhum aluno encontrado</p>
                                 </div>
                             )}
                         </div>
                     ) : (
                         <div className="flex-grow flex flex-col items-center justify-center py-20 text-center">
                             <Users size={40} className="text-slate-300 mb-4" />
-                            <p className="text-xs font-black uppercase tracking-widest text-[#000000] max-w-[200px] leading-relaxed">
+                            <p className="text-xs font-bold uppercase tracking-widest text-[#000000] max-w-[200px] leading-relaxed">
                                 Selecione um professor para visualizar as turmas
                             </p>
                         </div>

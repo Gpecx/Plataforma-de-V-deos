@@ -52,7 +52,7 @@ export default function TagInput({ tags, onChange, maxTags = 5, placeholder = "D
                 {tags.map((tag, index) => (
                     <span
                         key={index}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#1D5F31] text-white text-[10px] font-black uppercase tracking-widest rounded-none"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#1D5F31] text-white text-[10px] font-bold uppercase tracking-widest rounded-none"
                     >
                         {tag}
                         <button
@@ -75,7 +75,7 @@ export default function TagInput({ tags, onChange, maxTags = 5, placeholder = "D
                 disabled={tags.length >= maxTags}
                 className="bg-white border-2 border-black focus:border-black focus:ring-black h-12 rounded-none text-sm font-medium transition-all text-black placeholder:text-black/50"
             />
-            <p className="text-[9px] text-black/60 font-black uppercase tracking-widest">
+            <p className="text-[9px] text-black/60 font-bold uppercase tracking-widest">
                 {tags.length}/{maxTags} tags • Pressione Enter ou vírgula para adicionar
             </p>
         </div>

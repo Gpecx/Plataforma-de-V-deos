@@ -74,7 +74,7 @@ export default function InstructorProfile({
     }
 
     return (
-        <div className="max-w-7xl mx-auto px-6 pt-4 pb-12 md:pt-6 md:pb-24 font-exo">
+        <div className="max-w-7xl mx-auto px-6 pt-4 pb-12 md:pt-6 md:pb-24 font-montserrat">
 
             {/* Layout principal: GRID de 2 colunas */}
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-12 lg:gap-16 items-start">
@@ -83,10 +83,10 @@ export default function InstructorProfile({
                 <div className="min-w-0 space-y-12">
                     {/* Identidade */}
                     <div className="space-y-4">
-                        <span className="text-[#1D5F31] text-[10px] font-black uppercase tracking-[5px] block">
+                        <span className="text-[#1D5F31] text-[10px] font-bold uppercase tracking-[5px] block">
                             INSTRUTOR ORIGINAL POWERPLAY
                         </span>
-                        <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-slate-900 leading-none uppercase">
+                        <h1 className="text-4xl md:text-5xl font-bold tracking-tighter text-slate-900 leading-none uppercase">
                             {instructor.full_name}
                         </h1>
                         <p className="text-lg font-bold text-slate-500 tracking-tight uppercase">
@@ -97,28 +97,28 @@ export default function InstructorProfile({
                     {/* Stats */}
                     <div className="flex flex-wrap gap-x-12 gap-y-6">
                         <div className="space-y-1">
-                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[2px]">Total de Alunos</p>
+                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[2px]">Total de Alunos</p>
                             <div className="flex items-center gap-2">
                                 <Users size={16} className="text-[#1D5F31]" />
-                                <span className="text-2xl font-black text-slate-800 tracking-tighter">
+                                <span className="text-2xl font-bold text-slate-800 tracking-tighter">
                                     {stats.totalStudents.toLocaleString()}
                                 </span>
                             </div>
                         </div>
                         <div className="space-y-1">
-                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[2px]">Avaliações</p>
+                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[2px]">Avaliações</p>
                             <div className="flex items-center gap-2">
                                 <Star size={16} className="text-yellow-500 fill-yellow-500" />
-                                <span className="text-2xl font-black text-slate-800 tracking-tighter">
+                                <span className="text-2xl font-bold text-slate-800 tracking-tighter">
                                     {stats.totalReviews.toLocaleString()}
                                 </span>
                             </div>
                         </div>
                         <div className="space-y-1 border-l border-slate-100 pl-12 hidden md:block">
-                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[2px]">Nota Média</p>
+                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[2px]">Nota Média</p>
                             <div className="flex items-center gap-2">
                                 <Star size={16} className="text-yellow-500" />
-                                <span className="text-2xl font-black text-slate-800 tracking-tighter">
+                                <span className="text-2xl font-bold text-slate-800 tracking-tighter">
                                     {stats.averageRating.toFixed(1)}
                                 </span>
                             </div>
@@ -127,7 +127,7 @@ export default function InstructorProfile({
 
                     {/* Bio */}
                     <div className="space-y-4 pt-4">
-                        <h3 className="text-xl font-black text-slate-900 uppercase tracking-tighter border-l-4 border-[#1D5F31] pl-4">
+                        <h3 className="text-xl font-bold text-slate-900 uppercase tracking-tighter border-l-4 border-[#1D5F31] pl-4">
                             Sobre mim
                         </h3>
                         <p className="text-slate-500 text-base leading-relaxed font-medium">
@@ -138,10 +138,10 @@ export default function InstructorProfile({
                     {/* Cursos */}
                     <div className="space-y-8 pt-8">
                         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                            <h3 className="text-xl font-black text-slate-900 uppercase tracking-tighter">
+                            <h3 className="text-xl font-bold text-slate-900 uppercase tracking-tighter">
                                 Meus Cursos ({stats.totalCourses})
                             </h3>
-                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-[2px]">
+                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-[2px]">
                                 LANÇAMENTOS RECENTES
                             </span>
                         </div>
@@ -165,25 +165,25 @@ export default function InstructorProfile({
                                                 <BookOpen size={32} />
                                             </div>
                                         )}
-                                        <div className="absolute top-2 right-2 bg-white/95 backdrop-blur-sm border border-slate-100 text-[#1D5F31] px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-widest shadow-sm">
+                                        <div className="absolute top-2 right-2 bg-white/95 backdrop-blur-sm border border-slate-100 text-[#1D5F31] px-2 py-0.5 rounded-full text-[7px] font-bold uppercase tracking-widest shadow-sm">
                                             {course.tag || 'PREMIUM'}
                                         </div>
                                     </div>
                                     <div className="p-4 flex-grow flex flex-col justify-between">
                                         <div className="space-y-1">
-                                            <p className="text-[7px] font-black text-[#1D5F31] uppercase tracking-[2px]">
+                                            <p className="text-[7px] font-bold text-[#1D5F31] uppercase tracking-[2px]">
                                                 {course.category || 'Módulo'}
                                             </p>
-                                            <h4 className="text-xs font-black text-slate-800 leading-tight group-hover:text-[#1D5F31] transition-colors line-clamp-2 uppercase tracking-tighter">
+                                            <h4 className="text-xs font-bold text-slate-800 leading-tight group-hover:text-[#1D5F31] transition-colors line-clamp-2 uppercase tracking-tighter">
                                                 {course.title}
                                             </h4>
                                         </div>
                                         <div className="mt-4 pt-3 border-t border-slate-50 flex items-center justify-between">
                                             <div>
-                                                <span className="text-[7px] text-slate-400 uppercase font-black tracking-widest leading-none block mb-1">
+                                                <span className="text-[7px] text-slate-400 uppercase font-bold tracking-widest leading-none block mb-1">
                                                     Acesso
                                                 </span>
-                                                <span className="text-sm font-black text-slate-900 leading-none tracking-tighter">
+                                                <span className="text-sm font-bold text-slate-900 leading-none tracking-tighter">
                                                     R$ {Number(course.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 0 })}
                                                 </span>
                                             </div>
@@ -201,7 +201,7 @@ export default function InstructorProfile({
                                 <Button
                                     onClick={handleLoadMore}
                                     disabled={isLoadingMore}
-                                    className="bg-slate-900 text-white hover:bg-slate-800 h-12 px-10 text-[10px] font-black uppercase tracking-[3px] rounded-xl transition-all shadow-xl active:scale-95"
+                                    className="bg-slate-900 text-white hover:bg-slate-800 h-12 px-10 text-[10px] font-bold uppercase tracking-[3px] rounded-xl transition-all shadow-xl active:scale-95"
                                 >
                                     {isLoadingMore ? (
                                         <>
@@ -240,7 +240,7 @@ export default function InstructorProfile({
 
                         {/* Redes sociais */}
                         <div className="space-y-4 w-full text-center">
-                            <h2 className="text-[10px] font-black uppercase tracking-[3px] text-slate-400">
+                            <h2 className="text-[10px] font-bold uppercase tracking-[3px] text-slate-400">
                                 Redes & Links
                             </h2>
                             <div className="flex flex-wrap justify-center gap-3">

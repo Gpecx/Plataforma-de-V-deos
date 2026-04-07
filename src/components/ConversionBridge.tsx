@@ -52,7 +52,7 @@ export function ConversionBridge({ redirectTo, onShowLogin }: ConversionBridgePr
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
-                        className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter uppercase text-[var(--foreground)] mb-4"
+                        className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tighter uppercase text-[var(--foreground)] mb-4 max-w-2xl"
                     >
                         Você está a um passo de <span className="text-[#28b828]">transformar</span> sua carreira
                     </motion.h1>
@@ -76,7 +76,7 @@ export function ConversionBridge({ redirectTo, onShowLogin }: ConversionBridgePr
                     >
                         <Link
                             href={registerUrl as any}
-                            className="w-full flex items-center justify-center gap-3 bg-[#28b828] hover:bg-[#28b828] text-white font-black uppercase tracking-[3px] h-14 rounded-xl shadow-lg transition-all hover:scale-[1.01] active:scale-[0.99]"
+                            className="w-full flex items-center justify-center gap-3 bg-[#28b828] hover:bg-[#28b828] text-white font-bold uppercase tracking-[3px] h-14 rounded-xl shadow-lg transition-all hover:scale-[1.01] active:scale-[0.99]"
                         >
                             Quero me inscrever agora
                             <ArrowRight size={18} />
@@ -84,7 +84,7 @@ export function ConversionBridge({ redirectTo, onShowLogin }: ConversionBridgePr
 
                         <button
                             onClick={onShowLogin}
-                            className="w-full flex items-center justify-center gap-3 bg-white border-2 border-[#061629] text-[#061629] font-black uppercase tracking-[3px] h-14 rounded-xl transition-all hover:bg-[#f0f0f0] hover:border-[#1D5F31]"
+                            className="w-full flex items-center justify-center gap-3 bg-white border-2 border-[#061629] text-[#061629] font-bold uppercase tracking-[3px] h-14 rounded-xl transition-all hover:bg-[#f0f0f0] hover:border-[#1D5F31]"
                         >
                             <GraduationCap size={18} className="text-[#061629]" />
                             Já tenho cadastro

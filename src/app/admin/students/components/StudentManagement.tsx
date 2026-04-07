@@ -88,7 +88,7 @@ export default function StudentManagement({ initialStudents }: StudentManagement
     )
 
     return (
-        <div className="space-y-6 font-exo">
+        <div className="space-y-6 font-montserrat">
             {/* Search Card */}
             <div className="p-6 rounded-xl border-2" style={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0' }}>
                 <div className="relative max-w-xl">
@@ -112,21 +112,21 @@ export default function StudentManagement({ initialStudents }: StudentManagement
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr style={{ backgroundColor: '#0f172a' }}>
-                            <th className="p-6 text-[10px] font-black uppercase tracking-wider text-left" style={{ color: '#fff' }}>Institucional</th>
-                            <th className="p-6 text-[10px] font-black uppercase tracking-wider text-left" style={{ color: '#fff' }}>
+                            <th className="p-6 text-[10px] font-bold uppercase tracking-wider text-left" style={{ color: '#fff' }}>Institucional</th>
+                            <th className="p-6 text-[10px] font-bold uppercase tracking-wider text-left" style={{ color: '#fff' }}>
                                 <div className="flex items-center gap-2">
                                     <BookOpen size={14} />
                                     CURSOS
                                 </div>
                             </th>
-                            <th className="p-6 text-[10px] font-black uppercase tracking-wider text-left" style={{ color: '#fff' }}>
+                            <th className="p-6 text-[10px] font-bold uppercase tracking-wider text-left" style={{ color: '#fff' }}>
                                 <div className="flex items-center gap-2">
                                     <Clock size={14} />
                                     TEMPO
                                 </div>
                             </th>
-                            <th className="p-6 text-[10px] font-black uppercase tracking-wider text-left" style={{ color: '#fff' }}>Status</th>
-                            <th className="p-6 text-[10px] font-black uppercase tracking-wider text-right" style={{ color: '#fff' }}>Ação</th>
+                            <th className="p-6 text-[10px] font-bold uppercase tracking-wider text-left" style={{ color: '#fff' }}>Status</th>
+                            <th className="p-6 text-[10px] font-bold uppercase tracking-wider text-right" style={{ color: '#fff' }}>Ação</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -156,7 +156,7 @@ export default function StudentManagement({ initialStudents }: StudentManagement
                                                 <UserIcon size={20} style={{ color: '#1D5F31' }} />
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className="font-black uppercase tracking-tight text-sm" style={{ color: '#0f172a' }}>
+                                                <span className="font-bold uppercase tracking-tight text-sm" style={{ color: '#0f172a' }}>
                                                     {student.full_name || 'N/A'}
                                                 </span>
                                                 <span className="text-[10px] font-bold uppercase tracking-wider mt-1" style={{ color: '#64748b' }}>
@@ -177,7 +177,7 @@ export default function StudentManagement({ initialStudents }: StudentManagement
                                     </td>
                                     <td className="p-6">
                                         <div 
-                                            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider"
+                                            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-[9px] font-bold uppercase tracking-wider"
                                             style={{ 
                                                 backgroundColor: student.ativo !== false ? '#dcfce7' : '#fee2e2',
                                                 color: student.ativo !== false ? '#166534' : '#991b1b'

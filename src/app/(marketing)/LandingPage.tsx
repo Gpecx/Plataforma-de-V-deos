@@ -77,7 +77,7 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
         return (
             <div className="fixed inset-0 z-[999] bg-[#061629] flex flex-col items-center justify-center gap-4">
                 <Loader2 className="animate-spin text-[#1D5F31]" size={48} />
-                <p className="text-white font-exo font-black uppercase tracking-[0.2em] text-sm">
+                <p className="text-white font-exo font-bold uppercase tracking-[0.2em] text-sm">
                     PowerPlay — Carregando sua experiência...
                 </p>
             </div>
@@ -129,7 +129,7 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                     <h1
                         style={{
                             fontSize: "clamp(2.2rem, 6vw, 5rem)",
-                            fontWeight: 900,
+                            fontWeight: 800,
                             fontStyle: "normal",
                             color: "#fff",
                             lineHeight: 1.05,
@@ -139,8 +139,8 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                             textShadow: "0 4px 30px rgba(0,0,0,0.7)",
                         }}
                     >
-                        DOMINE A TECNOLOGIA.<br />
-                        <span style={{ color: "#ffffff" }}>CRIE O FUTURO.</span>
+                        DOMINE A TECNOLOGIA<br />
+                        <span style={{ color: "#ffffff" }}>CRIE O FUTURO</span>
                     </h1>
 
                     {/* Subtítulo */}
@@ -235,7 +235,7 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                         letterSpacing: "0.02em",
                     }}
                 >
-                    Junte-se a <span style={{ color: "#ffffff", fontWeight: 900 }}>milhares de profissionais</span> que já transformaram suas carreiras.
+                    Junte-se a <span style={{ color: "#ffffff", fontWeight: 800 }}>milhares de profissionais</span> que já transformaram suas carreiras.
                 </p>
             </div>
 
@@ -252,7 +252,7 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                     <h2
                         style={{
                             fontSize: "clamp(1.3rem, 2.5vw, 2rem)",
-                            fontWeight: 900,
+                            fontWeight: 800,
                             fontStyle: "normal",
                             color: "#fff",
                             textTransform: "uppercase",
@@ -329,7 +329,7 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                     <h2
                         style={{
                             fontSize: "clamp(1.5rem, 3vw, 2.5rem)",
-                            fontWeight: 900,
+                            fontWeight: 800,
                             fontStyle: "normal",
                             color: "#fff",
                             textTransform: "uppercase",
@@ -450,7 +450,7 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                                                 <h2
                                                     style={{
                                                         fontSize: "clamp(2rem, 4vw, 3.5rem)",
-                                                        fontWeight: 900,
+                                                        fontWeight: 800,
                                                         fontStyle: "normal",
                                                         color: "#fff",
                                                         lineHeight: 1.1,
@@ -496,7 +496,7 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to right, rgba(0,0,0,0.9), transparent)", display: "flex", alignItems: "center" }}>
                             <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "0 2rem" }}>
                                 <div style={{ maxWidth: "520px", display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-                                    <h2 style={{ fontSize: "clamp(2rem, 4vw, 3.2rem)", fontWeight: 900, fontStyle: "normal", color: "#fff", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+                                    <h2 style={{ fontSize: "clamp(2rem, 4vw, 3.2rem)", fontWeight: 800, fontStyle: "normal", color: "#fff", textTransform: "uppercase", letterSpacing: "-0.02em", lineHeight: 1.1 }}>
                                         Potencialize <br />seu Futuro
                                     </h2>
                                     <p style={{ color: "#ffffff", fontSize: "1.05rem", fontWeight: 500 }}>
@@ -534,7 +534,7 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                         style={{
                             textAlign: "center",
                             fontSize: "clamp(1.3rem, 2.5vw, 2rem)",
-                            fontWeight: 900,
+                            fontWeight: 800,
                             fontStyle: "normal",
                             color: "#fff",
                             textTransform: "uppercase",
@@ -575,7 +575,7 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                                 >
                                     <Icon size={32} />
                                 </div>
-                                <h3 style={{ color: "#f1f5f9", fontWeight: 900, fontSize: "1.1rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                                <h3 style={{ color: "#f1f5f9", fontWeight: 800, fontSize: "1.1rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                                     {title}
                                 </h3>
                                 <p style={{ color: "#ffffff", fontSize: "0.9rem", lineHeight: 1.7, maxWidth: "260px" }}>

@@ -29,7 +29,7 @@ const MOCK_COURSES = [
 export default function TestPage() {
     return (
         <main className="min-h-screen bg-[#0a140e] p-12">
-            <h1 className="text-4xl font-black text-white mb-12 border-l-4 border-[#1D5F31] pl-6 uppercase tracking-tighter">
+            <h1 className="text-4xl font-bold text-white mb-12 border-l-4 border-[#1D5F31] pl-6 uppercase tracking-tighter">
                 Expandable Card <span className="text-[#1D5F31]">Demo</span>
             </h1>
 
@@ -44,7 +44,7 @@ export default function TestPage() {
 
             {/* Espaçador para testar scroll locking */}
             <div className="h-[200vh] mt-24 border-t border-white/10 flex items-center justify-center">
-                <p className="text-white/20 uppercase font-black tracking-widest">Role para baixo (Teste de Bloqueio de Scroll)</p>
+                <p className="text-white/20 uppercase font-bold tracking-widest">Role para baixo (Teste de Bloqueio de Scroll)</p>
             </div>
         </main>
     )

@@ -45,7 +45,7 @@ export default async function MyListPage() {
     const wishlistCourses = allCourses.filter(c => wishlistCourseIds.includes(c.id) && !purchasedCourseIds.includes(c.id))
 
     return (
-        <div className="min-h-screen bg-slate-50 font-exo relative flex flex-col">
+        <div className="min-h-screen bg-slate-50 font-montserrat relative flex flex-col">
             <div className="px-6 md:px-12 pt-6 w-full">
                 <div className="relative max-w-[1600px] mx-auto rounded-3xl overflow-hidden shadow-xl min-h-[300px] md:min-h-[350px] flex items-center">
                     <img
@@ -57,7 +57,7 @@ export default async function MyListPage() {
                     <div className="relative z-20 w-full px-8 md:px-16 py-12">
                         <Link
                             href="/dashboard-student"
-                            className="inline-flex items-center gap-2 !text-white hover:!text-white/80 transition-colors mb-8 text-[10px] font-black uppercase tracking-[0.2em] bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 hover:bg-black/60"
+                            className="inline-flex items-center gap-2 !text-white hover:!text-white/80 transition-colors mb-8 text-[10px] font-bold uppercase tracking-[0.2em] bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 hover:bg-black/60"
                         >
                             <ArrowLeft size={14} />
                             Voltar ao Dashboard
@@ -67,7 +67,7 @@ export default async function MyListPage() {
                                 <Heart size={32} className="text-[#00c853] fill-[#00c853] filter drop-shadow-md" />
                             </div>
                             <div>
-                                <h1 className="text-3xl md:text-5xl lg:text-6xl font-black uppercase tracking-tighter !text-white drop-shadow-2xl">
+                                <h1 className="text-2xl md:text-3xl font-bold uppercase tracking-tighter !text-white drop-shadow-2xl max-w-xl">
                                     Minha Lista
                                 </h1>
                                 <p className="!text-white text-sm md:text-base font-bold mt-2 flex items-center gap-2 tracking-wide drop-shadow-lg">
@@ -86,7 +86,7 @@ export default async function MyListPage() {
                         <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-6">
                             <Heart size={40} className="text-slate-400" />
                         </div>
-                        <h2 className="text-xl font-black uppercase tracking-tighter text-black mb-3">
+                        <h2 className="text-xl font-bold uppercase tracking-tighter text-black mb-3">
                             Nenhum curso favoritado
                         </h2>
                         <p className="text-slate-500 font-medium mb-8 max-w-md mx-auto">
@@ -94,7 +94,7 @@ export default async function MyListPage() {
                         </p>
                         <Link
                             href="/course"
-                            className="inline-flex items-center gap-2 bg-[#1D5F31] text-white px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
+                            className="inline-flex items-center gap-2 bg-[#1D5F31] text-white px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
                         >
                             <GraduationCap size={18} />
                             Explorar Cursos
@@ -114,7 +114,7 @@ export default async function MyListPage() {
                                     />
                                     {hasPurchased ? (
                                         <div className="absolute top-4 left-4 bg-[#1D5F31] px-3 py-1.5 rounded-lg z-10">
-                                            <span className="text-[8px] font-black text-white tracking-widest uppercase flex items-center gap-1">
+                                            <span className="text-[8px] font-bold text-white tracking-widest uppercase flex items-center gap-1">
                                                 <BookOpen size={10} />
                                                 Já Possui
                                             </span>
@@ -122,7 +122,7 @@ export default async function MyListPage() {
                                     ) : (
                                         <>
                                             <div className="absolute top-4 left-4 bg-[#1D5F31]/90 backdrop-blur-md px-3 py-1.5 rounded-lg z-10">
-                                                <span className="text-[8px] font-black text-white tracking-widest uppercase flex items-center gap-1">
+                                                <span className="text-[8px] font-bold text-white tracking-widest uppercase flex items-center gap-1">
                                                     <Heart size={10} className="fill-white" />
                                                     Favorito
                                                 </span>
@@ -144,15 +144,15 @@ export default async function MyListPage() {
                                 </div>
 
                                 <div className="p-6 flex-grow flex flex-col">
-                                    <h3 className="font-black text-base mb-2 !text-black uppercase leading-tight line-clamp-2 group-hover:text-[#1D5F31] transition-colors">{curso.title}</h3>
-                                    <p className="!text-black text-[10px] font-black uppercase line-clamp-2 mb-6">
+                                    <h3 className="font-bold text-base mb-2 !text-black uppercase leading-tight line-clamp-2 group-hover:text-[#1D5F31] transition-colors">{curso.title}</h3>
+                                    <p className="!text-black text-[10px] font-bold uppercase line-clamp-2 mb-6">
                                         {curso.description || 'Domine esta habilidade com o método PowerPlay.'}
                                     </p>
 
                                     <div className="mt-auto pt-4 border-t border-black flex items-center justify-between mb-4">
                                         <div className="flex flex-col">
                                             <span className="text-[8px] font-bold !text-black uppercase tracking-tighter">Investimento</span>
-                                            <span className="!text-black font-black text-xl tracking-tight">
+                                            <span className="!text-black font-bold text-xl tracking-tight">
                                                 R$ {Number(curso.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                             </span>
                                         </div>

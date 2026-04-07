@@ -75,9 +75,9 @@ export default function Logo({ className = '', variant = 'horizontal', href = '/
     if (variant === 'text-only') {
         return (
             <Link href={href as any} className={`hover:scale-105 transition-transform duration-500 outline-none ${className}`}>
-                <span className={`text-2xl font-black tracking-tighter uppercase`} style={{ color: primaryColor }}>
+                <span className={`text-2xl font-bold tracking-tighter uppercase font-exo`} style={{ color: primaryColor }}>
                     POWER <span style={{ color: primaryColor }}>PLAY</span>
-                </span>
+</span>
             </Link>
         )
     }

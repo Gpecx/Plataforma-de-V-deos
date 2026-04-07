@@ -87,7 +87,7 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
     }
 
     return (
-        <div className="space-y-10 animate-in fade-in duration-700 font-exo">
+        <div className="space-y-10 animate-in fade-in duration-700 font-montserrat">
             {/* Grid de Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {courses.map((course) => (
@@ -98,7 +98,7 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
                         <div className="absolute top-4 left-4 z-20">
                             <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md border border-black/10 px-3 py-1 rounded-full shadow-sm">
                                 <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
-                                <span className="text-[8px] font-black uppercase tracking-wider !text-[#000000]">PENDENTE</span>
+                                <span className="text-[8px] font-bold uppercase tracking-wider !text-[#000000]">PENDENTE</span>
                             </div>
                         </div>
 
@@ -119,7 +119,7 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
 
                         <div className="p-8 flex flex-col flex-1">
                             <div className="flex-1">
-                                <h3 className="text-lg font-black uppercase tracking-tighter leading-tight mb-2 !text-[#000000] group-hover:text-[#1D5F31] transition-colors">
+                                <h3 className="text-lg font-bold uppercase tracking-tighter leading-tight mb-2 !text-[#000000] group-hover:text-[#1D5F31] transition-colors">
                                     {course.title}
                                 </h3>
                                 <div className="flex items-center gap-2.5 mb-6">
@@ -201,7 +201,7 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
                                         <div className="w-1 h-1 rounded-full bg-[#1D5F31]"></div>
                                         <span className="text-[10px] font-bold uppercase tracking-wider text-[#1D5F31]">DETALHES DA AUDITORIA</span>
                                     </div>
-                                    <h3 className="text-3xl font-black uppercase tracking-tighter leading-tight !text-[#000000]">{reviewingCourse.title}</h3>
+                                    <h3 className="text-3xl font-bold uppercase tracking-tighter leading-tight !text-[#000000]">{reviewingCourse.title}</h3>
                                     <p className="text-[12px] !text-[#000000] mt-6 leading-tight font-bold uppercase tracking-wider">
                                         {reviewingCourse.subtitle || 'Nenhum subtítulo fornecido pelo instrutor.'}
                                     </p>

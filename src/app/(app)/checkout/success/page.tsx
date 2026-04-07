@@ -9,7 +9,7 @@ import Footer from '@/components/Footer'
 
 function CheckoutSuccessContent() {
     return (
-        <div className="min-h-screen bg-white font-exo flex flex-col">
+        <div className="min-h-screen bg-white font-montserrat flex flex-col">
             <Navbar />
 
             <main className="flex-grow relative overflow-hidden flex flex-col">
@@ -41,14 +41,14 @@ function CheckoutSuccessContent() {
                         {/* Main Content: High Contrast Typography - FORCE WHITE */}
                         <div className="space-y-6 drop-shadow-md">
                             <div className="space-y-2">
-                                <h1 className="text-5xl md:text-6xl font-bold tracking-tighter leading-tight uppercase italic drop-shadow-xl !text-white">
+                                <h1 className="text-3xl md:text-5xl font-bold tracking-tighter leading-tight uppercase drop-shadow-xl !text-white max-w-2xl">
                                     PARABÉNS! <br />
                                     <span className="text-[#1D5F31]">SEU TREINAMENTO FOI LIBERADO</span>
                                 </h1>
                                 <div className="w-24 h-1.5 bg-[#1D5F31] mx-auto rounded-full"></div>
                             </div>
 
-                            <p className="text-xl md:text-2xl font-medium max-w-lg mx-auto leading-relaxed !text-white">
+                            <p className="text-sm md:text-base font-medium max-w-lg mx-auto leading-relaxed !text-white">
                                 Tudo pronto! Seu acesso já está ativo. <br />
                                 Enviamos os detalhes para o seu e-mail, mas você pode começar agora mesmo.
                             </p>
@@ -60,7 +60,7 @@ function CheckoutSuccessContent() {
                                 <motion.button
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
-                                    className="w-full bg-[#1D5F31] text-white py-7 rounded-[24px] font-bold uppercase italic tracking-[4px] shadow-2xl shadow-[#1D5F31]/40 flex items-center justify-center gap-4 group text-lg"
+                                    className="w-full bg-[#1D5F31] text-white py-7 rounded-[24px] font-bold uppercase  tracking-[4px] shadow-2xl shadow-[#1D5F31]/40 flex items-center justify-center gap-4 group text-lg"
                                 >
                                     <GraduationCap size={28} />
                                     Bons Estudos
@@ -69,7 +69,7 @@ function CheckoutSuccessContent() {
                             </Link>
                         </div>
 
-                        <p className="text-[12px] font-bold uppercase tracking-[5px] !text-white/80 pt-8 italic drop-shadow-sm">
+                        <p className="text-[12px] font-bold uppercase tracking-[5px] !text-white/80 pt-8  drop-shadow-sm">
                             Plataforma de Elite PowerPlay
                         </p>
                     </div>
@@ -84,7 +84,7 @@ function CheckoutSuccessContent() {
 export default function CheckoutSuccessPage() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen bg-white font-exo flex items-center justify-center">
+            <div className="min-h-screen bg-white font-montserrat flex items-center justify-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1D5F31]"></div>
             </div>
         }>

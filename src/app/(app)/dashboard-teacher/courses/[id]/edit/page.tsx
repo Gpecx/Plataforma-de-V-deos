@@ -134,7 +134,7 @@ function SortableLesson({ lesson, onDelete, onSelect, isSelected, onTitleChange,
                 </div>
                 <div>
                     <input
-                        className="bg-transparent border-none focus:outline-none text-base font-black tracking-tight w-full text-black placeholder:text-black/40 mb-1"
+                        className="bg-transparent border-none focus:outline-none text-base font-bold tracking-tight w-full text-black placeholder:text-black/40 mb-1"
                         value={lesson.title}
                         placeholder={lesson.type === 'quiz' ? 'Título do Quiz' : 'Título da Aula Digital'}
                         onClick={(e) => e.stopPropagation()}
@@ -148,7 +148,7 @@ function SortableLesson({ lesson, onDelete, onSelect, isSelected, onTitleChange,
                         ) : (
                             <div className={`w-1.5 h-1.5 rounded-xl ${lesson.type === 'quiz' ? 'bg-[#1D5F31]' : (lesson.video_url ? 'bg-[#1D5F31]' : 'bg-slate-700')}`}></div>
                         )}
-                        <span className={`text-[9px] font-black uppercase tracking-[2px] ${
+                        <span className={`text-[9px] font-bold uppercase tracking-[2px] ${
                             lesson.status === 'REJEITADO' ? 'text-red-500' : 
                             lesson.status === 'SOLICITADO_EXCLUSAO' ? 'text-red-500' : 'text-black/60'
                         }`}>
@@ -247,7 +247,7 @@ function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons,
                     </button>
                     <div>
                         <input
-                            className="bg-transparent border-none focus:outline-none text-xl font-black uppercase tracking-tighter w-full text-black"
+                            className="bg-transparent border-none focus:outline-none text-xl font-bold uppercase tracking-tighter w-full text-black"
                             value={module.title}
                             onChange={() => { }} // TODO: Implementar edição de título do módulo se necessário
                         />
@@ -258,7 +258,7 @@ function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons,
                     {canDeleteModule && (
                         <button
                             onClick={onDeleteModule}
-                            className="flex items-center gap-2 px-4 py-3 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl text-[9px] font-black uppercase tracking-[3px] transition-all border border-transparent hover:border-red-500/30"
+                            className="flex items-center gap-2 px-4 py-3 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl text-[9px] font-bold uppercase tracking-[3px] transition-all border border-transparent hover:border-red-500/30"
                         >
                             <Trash2 size={16} />
                             Excluir Módulo
@@ -266,14 +266,14 @@ function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons,
                     )}
                     <button
                         onClick={onAddLesson}
-                        className="flex items-center gap-3 px-6 py-3 bg-[#1D5F31] text-white rounded-xl text-[9px] font-black uppercase tracking-[3px] hover:bg-[#1D5F31]/90 transition-all border-none"
+                        className="flex items-center gap-3 px-6 py-3 bg-[#1D5F31] text-white rounded-xl text-[9px] font-bold uppercase tracking-[3px] hover:bg-[#1D5F31]/90 transition-all border-none"
                     >
                         <Plus size={16} />
                         Adicionar Aula
                     </button>
                     <button
                         onClick={onAddQuiz}
-                        className="flex items-center gap-3 px-6 py-3 bg-slate-800 text-white rounded-xl text-[9px] font-black uppercase tracking-[3px] hover:bg-slate-700 transition-all border-none"
+                        className="flex items-center gap-3 px-6 py-3 bg-slate-800 text-white rounded-xl text-[9px] font-bold uppercase tracking-[3px] hover:bg-slate-700 transition-all border-none"
                     >
                         <HelpCircle size={16} />
                         Adicionar Quiz
@@ -308,8 +308,8 @@ function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons,
                 {module.lessons.length === 0 && (
                     <div className="py-16 border-2 border-dashed border-[#1D5F31]/30/30/30 rounded-xl flex flex-col items-center justify-center text-slate-500 bg-white/50">
                         <Video size={48} className="mb-4 opacity-20" />
-                        <p className="text-[10px] font-black uppercase tracking-[3px]">Crie sua primeira entrega</p>
-                        <p className="text-[9px] mt-2 font-medium italic">ESTE MÓDULO ESTÁ EM BRANCO</p>
+                        <p className="text-[10px] font-bold uppercase tracking-[3px]">Crie sua primeira entrega</p>
+                        <p className="text-[9px] mt-2 font-medium ">ESTE MÓDULO ESTÁ EM BRANCO</p>
                     </div>
                 )}
             </div>
@@ -355,7 +355,7 @@ function VideoUpload({ onUploadComplete }: { onUploadComplete: (url: string) => 
                     <UploadCloud size={28} strokeWidth={2.5} />
                 </div>
                 <div className="text-center">
-                    <p className="font-black uppercase tracking-tight text-lg text-black leading-none">Arraste seu conteúdo</p>
+                    <p className="font-bold uppercase tracking-tight text-lg text-black leading-none">Arraste seu conteúdo</p>
                     <p className="text-[9px] text-black/60 font-bold uppercase tracking-[3px] mt-2">OU CLIQUE PARA SELECIONAR MP4</p>
                 </div>
             </div>
@@ -364,7 +364,7 @@ function VideoUpload({ onUploadComplete }: { onUploadComplete: (url: string) => 
                 <div className="bg-white border border-[#1D5F31]/20 p-6 rounded-xl flex items-center gap-6 animate-pulse">
                     <Loader2 className="animate-spin text-[#1D5F31]" size={28} />
                     <div>
-                        <span className="text-[10px] font-black uppercase text-[#1D5F31] tracking-[4px] block mb-1">Upload Estratégico em Curso</span>
+                        <span className="text-[10px] font-bold uppercase text-[#1D5F31] tracking-[4px] block mb-1">Upload Estratégico em Curso</span>
                         <span className="text-[9px] text-black/60 font-bold uppercase tracking-widest">Sincronizando com Servidores Firebase...</span>
                     </div>
                 </div>
@@ -411,7 +411,7 @@ function CourseImageUpload({ currentImageUrl, onUploadComplete }: { currentImage
                         <img src={currentImageUrl} alt="Capa do Curso" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity" />
                         <div className="relative z-10 flex flex-col items-center gap-3 bg-white/80 backdrop-blur-md px-6 py-3 rounded-xl border border-[#1D5F31]/20 opacity-0 group-hover:opacity-100 transition-all">
                             <UploadCloud size={20} className="text-[#1D5F31]" />
-                            <span className="text-[9px] font-black uppercase tracking-widest text-[#1D5F31]">Trocar Capa</span>
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-[#1D5F31]">Trocar Capa</span>
                         </div>
                     </>
                 ) : (
@@ -419,7 +419,7 @@ function CourseImageUpload({ currentImageUrl, onUploadComplete }: { currentImage
                         <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center text-slate-500 border border-[#1D5F31]/20">
                             <UploadCloud size={28} />
                         </div>
-                        <span className="text-[9px] font-black uppercase tracking-[3px] text-black/60">Carregar Arte</span>
+                        <span className="text-[9px] font-bold uppercase tracking-[3px] text-black/60">Carregar Arte</span>
                     </>
                 )}
             </div>
@@ -427,7 +427,7 @@ function CourseImageUpload({ currentImageUrl, onUploadComplete }: { currentImage
             {isUploading && (
                 <div className="flex items-center gap-3 text-[#1D5F31] px-2 animate-pulse">
                     <Loader2 className="animate-spin" size={16} />
-                    <span className="text-[9px] font-black uppercase tracking-widest">Processando Imagem...</span>
+                    <span className="text-[9px] font-bold uppercase tracking-widest">Processando Imagem...</span>
                 </div>
             )}
         </div>
@@ -608,20 +608,20 @@ export default function CourseBuilder() {
 
     if (loading) {
         return (
-            <div className="h-screen bg-transparent flex items-center justify-center font-exo">
+            <div className="h-screen bg-transparent flex items-center justify-center font-montserrat">
                 <Loader2 className="animate-spin text-[#1D5F31]" size={48} />
             </div>
         )
     }
 
     return (
-        <div className="px-4 pb-8 md:px-8 md:pb-12 pt-2 md:pt-4 min-h-screen bg-transparent text-black font-exo">
+        <div className="px-4 pb-8 md:px-8 md:pb-12 pt-2 md:pt-4 min-h-screen bg-transparent text-black font-montserrat">
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6 px-2">
                 <div className="flex-grow">
 
                     <div className="flex items-center gap-3 mb-2">
                         <input
-                            className="bg-transparent border-none focus:outline-none text-3xl font-black tracking-tighter uppercase w-full py-1 transition-all placeholder:text-black/40 text-black"
+                            className="bg-transparent border-none focus:outline-none text-3xl font-bold tracking-tighter uppercase w-full py-1 transition-all placeholder:text-black/40 text-black"
                             placeholder="TÍTULO DO CURSO"
                             value={courseTitle}
                             onChange={(e) => setCourseTitle(e.target.value)}
@@ -633,7 +633,7 @@ export default function CourseBuilder() {
                                     ? 'bg-red-50 border-red-300'
                                     : 'bg-amber-50 border-amber-300'
                         }`}>
-                            <span className={`text-[10px] font-black uppercase tracking-widest ${
+                            <span className={`text-[10px] font-bold uppercase tracking-widest ${
                                 course?.status === 'APROVADO' ? 'text-[#1D5F31]' : 
                                 course?.status === 'REJEITADO' ? 'text-red-600' : 'text-amber-700'
                             }`}>
@@ -648,7 +648,7 @@ export default function CourseBuilder() {
                     <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
                         <div className="flex items-center gap-2 mb-2">
                             <AlertCircle size={16} className="text-red-500" />
-                            <span className="text-[10px] font-black uppercase text-red-600 tracking-widest">Curso Rejeitado - Feedback do Admin</span>
+                            <span className="text-[10px] font-bold uppercase text-red-600 tracking-widest">Curso Rejeitado - Feedback do Admin</span>
                         </div>
                         <p className="text-sm text-red-700">{course.motivoRejeicao}</p>
                     </div>
@@ -657,14 +657,14 @@ export default function CourseBuilder() {
                 <div className="flex items-center gap-4 bg-white p-3 rounded-xl border border-[#1D5F31]/20 shrink-0">
                     <button
                         onClick={() => router.push('/dashboard-teacher/courses')}
-                        className="px-8 py-4 bg-[#061629] border-none rounded-xl text-[10px] font-black uppercase tracking-[4px] text-white hover:bg-[#061629]/90 transition-all font-exo"
+                        className="px-8 py-4 bg-[#061629] border-none rounded-xl text-[10px] font-bold uppercase tracking-[4px] text-white hover:bg-[#061629]/90 transition-all font-montserrat"
                     >
                         Cancelar
                     </button>
                     <button
                         onClick={handleSave}
                         disabled={isSaving}
-                        className={`flex items-center gap-3 font-black uppercase text-[10px] tracking-[4px] px-8 py-4 rounded-xl transition-all border-2 disabled:opacity-50 ${showSuccess ? 'bg-[#1D5F31] border-none text-white' : 'bg-[#1D5F31] border-none text-white hover:bg-[#1D5F31]/90'}`}
+                        className={`flex items-center gap-3 font-bold uppercase text-[10px] tracking-[4px] px-8 py-4 rounded-xl transition-all border-2 disabled:opacity-50 ${showSuccess ? 'bg-[#1D5F31] border-none text-white' : 'bg-[#1D5F31] border-none text-white hover:bg-[#1D5F31]/90'}`}
                     >
                         {isSaving ? <Loader2 className="animate-spin" size={18} /> : (showSuccess ? <CheckCircle2 size={18} strokeWidth={3} /> : <Save size={18} strokeWidth={3} />)}
                         {isSaving ? 'Processando...' : (showSuccess ? 'Salvo com Sucesso' : 'Salvar Projeto')}
@@ -677,7 +677,7 @@ export default function CourseBuilder() {
                 <div className="lg:col-span-2 space-y-12">
                     <div className="flex items-center justify-between pb-6 border-b-2 border-[#1D5F31]">
                         <div>
-                            <h2 className="text-xl font-black uppercase tracking-tighter flex items-center gap-3 text-black leading-none">
+                            <h2 className="text-xl font-bold uppercase tracking-tighter flex items-center gap-3 text-black leading-none">
                                 <FileText size={20} className="text-[#1D5F31]" />
                                 Arquitetura do Treinamento
                             </h2>
@@ -685,7 +685,7 @@ export default function CourseBuilder() {
                         </div>
                         <button
                             onClick={() => setModules([...modules, { id: Date.now().toString(), title: `MÓDULO DE APRENDIZADO ${modules.length + 1}`, lessons: [] }])}
-                            className="text-[10px] font-black uppercase tracking-[4px] text-white bg-[#061629] hover:bg-[#061629]/90 px-6 py-3 rounded-xl border-none transition-all"
+                            className="text-[10px] font-bold uppercase tracking-[4px] text-white bg-[#061629] hover:bg-[#061629]/90 px-6 py-3 rounded-xl border-none transition-all"
                         >
                             + Novo Módulo
                         </button>
@@ -782,7 +782,7 @@ export default function CourseBuilder() {
                     {/* Novo Studio de Multimídia (Coluna Principal) */}
                     <div className="pt-12 border-t-2 border-[#1D5F31]">
                         <div className="mb-8">
-                            <h3 className="text-[10px] font-black uppercase tracking-[5px] text-[#1D5F31] mb-1 italic">Studio de Multimídia</h3>
+                            <h3 className="text-[10px] font-bold uppercase tracking-[5px] text-[#1D5F31] mb-1 ">Studio de Multimídia</h3>
                             <p className="text-[9px] font-bold uppercase tracking-[2px] text-black/60">Gerenciamento dinâmico de vídeo aulas</p>
                         </div>
 
@@ -790,9 +790,9 @@ export default function CourseBuilder() {
                             <div className="space-y-8 bg-white p-8 rounded-xl border border-[#1D5F31]/20 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-8 border-b-2 border-[#1D5F31]">
                                     <div className="space-y-2 flex-grow">
-                                        <span className="text-[9px] font-black uppercase text-[#1D5F31] tracking-[3px]">Título da Aula Digital</span>
+                                        <span className="text-[9px] font-bold uppercase text-[#1D5F31] tracking-[3px]">Título da Aula Digital</span>
                                         <input
-                                            className="bg-transparent border-none focus:outline-none text-2xl font-black uppercase tracking-tight text-black w-full"
+                                            className="bg-transparent border-none focus:outline-none text-2xl font-bold uppercase tracking-tight text-black w-full"
                                             value={selectedLesson.title}
                                             onChange={(e) => {
                                                 const newTitle = e.target.value
@@ -803,7 +803,7 @@ export default function CourseBuilder() {
                                                 })))
                                             }}
                                         />
-                                        <span className="text-[9px] font-black uppercase text-[#1D5F31] tracking-[3px]">Descrição da Aula</span>
+                                        <span className="text-[9px] font-bold uppercase text-[#1D5F31] tracking-[3px]">Descrição da Aula</span>
                                         <textarea
                                             className="bg-transparent border-none focus:outline-none text-sm text-black/70 w-full mt-1 resize-none"
                                             placeholder="Descreva o que o aluno aprenderá nesta aula..."
@@ -821,7 +821,7 @@ export default function CourseBuilder() {
                                             <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
                                                 <div className="flex items-center gap-2 mb-2">
                                                     <AlertCircle size={16} className="text-red-500" />
-                                                    <span className="text-[10px] font-black uppercase text-red-600 tracking-widest">Feedback do Admin</span>
+                                                    <span className="text-[10px] font-bold uppercase text-red-600 tracking-widest">Feedback do Admin</span>
                                                 </div>
                                                 <p className="text-sm text-red-700">{selectedLesson.motivoRejeicao}</p>
                                             </div>
@@ -867,7 +867,7 @@ export default function CourseBuilder() {
                                                             className="w-full h-full object-contain"
                                                         />
                                                         <div className="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            <div className="bg-white/80 backdrop-blur-md px-4 py-2 rounded-xl border border-[#1D5F31]/20 text-[10px] font-black uppercase text-[#1D5F31] tracking-widest flex items-center gap-2">
+                                                            <div className="bg-white/80 backdrop-blur-md px-4 py-2 rounded-xl border border-[#1D5F31]/20 text-[10px] font-bold uppercase text-[#1D5F31] tracking-widest flex items-center gap-2">
                                                                 <span className="w-2 h-2 rounded-xl bg-[#1D5F31] animate-pulse"></span>
                                                                 Conteúdo Ativo
                                                             </div>
@@ -881,7 +881,7 @@ export default function CourseBuilder() {
                                                                     <CheckCircle2 size={20} />
                                                                 </div>
                                                                 <div>
-                                                                    <span className="text-[10px] font-black uppercase text-[#1D5F31] tracking-[2px] block mb-1">Upload Processado com Sucesso</span>
+                                                                    <span className="text-[10px] font-bold uppercase text-[#1D5F31] tracking-[2px] block mb-1">Upload Processado com Sucesso</span>
                                                                     <p className="text-[11px] text-black/60 font-medium truncate max-w-[400px]">{selectedLesson.video_url}</p>
                                                                 </div>
                                                             </div>
@@ -910,7 +910,7 @@ export default function CourseBuilder() {
                                                                 }
                                                             }}
                                                             disabled={isDeletingVideo}
-                                                            className="w-full md:w-auto flex items-center justify-center gap-3 px-8 py-5 bg-red-500/10 text-red-500 rounded-xl text-xs font-black uppercase tracking-[3px] hover:bg-red-500/20 transition-all border-2 border-red-500/20 disabled:opacity-50 group"
+                                                            className="w-full md:w-auto flex items-center justify-center gap-3 px-8 py-5 bg-red-500/10 text-red-500 rounded-xl text-xs font-bold uppercase tracking-[3px] hover:bg-red-500/20 transition-all border-2 border-red-500/20 disabled:opacity-50 group"
                                                         >
                                                             {isDeletingVideo ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} className="group-hover:scale-110 transition-transform" />}
                                                             {isDeletingVideo ? 'Processando Exclusão...' : 'Substituir Conteúdo'}
@@ -930,7 +930,7 @@ export default function CourseBuilder() {
                                 <div className="w-24 h-24 bg-white rounded-xl flex items-center justify-center text-[#1D5F31] mb-8 border border-[#1D5F31]/20 relative z-10 group-hover:scale-105 transition-transform duration-500">
                                     <Video size={48} />
                                 </div>
-                                <p className="text-[11px] text-black/60 font-black uppercase tracking-[4px] leading-relaxed max-w-[280px] mx-auto relative z-10">
+                                <p className="text-[11px] text-black/60 font-bold uppercase tracking-[4px] leading-relaxed max-w-[280px] mx-auto relative z-10">
                                     Selecione uma aula na arquitetura para gerenciar seu conteúdo digital.
                                 </p>
                             </div>
@@ -941,10 +941,10 @@ export default function CourseBuilder() {
                 {/* Lado Direito: Configurações e Capa */}
                 <aside className="space-y-12">
                     <section className="bg-white p-8 rounded-xl border border-[#1D5F31]/20 relative overflow-hidden group">
-                        <h3 className="text-[10px] font-black uppercase tracking-[5px] text-[#1D5F31] mb-10 italic relative z-10">Configurações Base</h3>
+                        <h3 className="text-[10px] font-bold uppercase tracking-[5px] text-[#1D5F31] mb-10  relative z-10">Configurações Base</h3>
                         <div className="space-y-8 relative z-10">
                             <div className="space-y-4">
-                                <label className="text-[9px] font-black uppercase tracking-[3px] text-black/60 px-1">Subtítulo Estratégico</label>
+                                <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Subtítulo Estratégico</label>
                                 <input
                                     type="text"
                                     value={courseSubtitle}
@@ -955,7 +955,7 @@ export default function CourseBuilder() {
                             </div>
 
                             <div className="space-y-4">
-                                <label className="text-[9px] font-black uppercase tracking-[3px] text-black/60 px-1">Descrição Completa</label>
+                                <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Descrição Completa</label>
                                 <textarea
                                     value={courseDescription}
                                     onChange={(e) => setCourseDescription(e.target.value)}
@@ -965,7 +965,7 @@ export default function CourseBuilder() {
                             </div>
 
                             <div className="space-y-4">
-                                <label className="text-[9px] font-black uppercase tracking-[3px] text-black/60 px-1">Categoria</label>
+                                <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Categoria</label>
                                 <select
                                     value={courseCategory}
                                     onChange={(e) => setCourseCategory(e.target.value)}
@@ -977,17 +977,17 @@ export default function CourseBuilder() {
                             </div>
 
                             <div className="space-y-4">
-                                <label className="text-[9px] font-black uppercase tracking-[3px] text-black/60 px-1">Carga Horária (h)</label>
+                                <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Carga Horária (h)</label>
                                 <input
                                     type="number"
                                     value={courseDuration}
                                     onChange={(e) => setCourseDuration(Number(e.target.value))}
-                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-xl px-6 py-4 focus:border-[#1D5F31] outline-none font-black text-xl text-black transition-all"
+                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-xl px-6 py-4 focus:border-[#1D5F31] outline-none font-bold text-xl text-black transition-all"
                                 />
                             </div>
 
                             <div className="space-y-4">
-                                <label className="text-[9px] font-black uppercase tracking-[3px] text-black/60 px-1">Tags para Busca</label>
+                                <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Tags para Busca</label>
                                 <TagInput
                                     tags={courseTags}
                                     onChange={(tags) => setCourseTags(tags)}
@@ -997,21 +997,21 @@ export default function CourseBuilder() {
                             </div>
 
                             <div className="space-y-4">
-                                <label className="text-[9px] font-black uppercase tracking-[3px] text-black/60 px-1">Valor do Investimento</label>
+                                <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Valor do Investimento</label>
                                 <div className="relative group">
-                                    <span className="absolute left-8 top-1/2 -translate-y-1/2 text-black font-black text-2xl group-focus-within:text-[#1D5F31] transition-colors">R$</span>
+                                    <span className="absolute left-8 top-1/2 -translate-y-1/2 text-black font-bold text-2xl group-focus-within:text-[#1D5F31] transition-colors">R$</span>
                                     <input
                                         type="text"
                                         value={coursePrice}
                                         onChange={(e) => setCoursePrice(e.target.value)}
-                                        className="w-full bg-white border border-[#1D5F31]/20 rounded-xl pl-24 pr-8 py-5 focus:border-[#1D5F31] outline-none font-black text-2xl text-black transition-all"
+                                        className="w-full bg-white border border-[#1D5F31]/20 rounded-xl pl-24 pr-8 py-5 focus:border-[#1D5F31] outline-none font-bold text-2xl text-black transition-all"
                                     />
                                 </div>
                             </div>
 
                             <div className="space-y-4">
                                 <div>
-                                    <label className="text-[9px] font-black uppercase tracking-[3px] text-black/60 px-1">Conteúdo Programático (Grade)</label>
+                                    <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Conteúdo Programático (Grade)</label>
                                     <p className="text-[8px] text-black/70 font-bold uppercase tracking-widest px-1 mt-1">
                                         Adicione os tópicos estratégicos do treinamento.
                                     </p>
@@ -1045,7 +1045,7 @@ export default function CourseBuilder() {
                                     <button
                                         type="button"
                                         onClick={() => setCourseCurriculum([...courseCurriculum, ''])}
-                                        className="w-full flex justify-center items-center h-12 bg-[#1D5F31]/10 text-black font-black uppercase text-[9px] tracking-[3px] rounded-none border-2 border-dashed border-[#1D5F31]/30/30/30/50 hover:border-[#1D5F31] hover:bg-[#1D5F31]/20 transition-all text-center mt-2"
+                                        className="w-full flex justify-center items-center h-12 bg-[#1D5F31]/10 text-black font-bold uppercase text-[9px] tracking-[3px] rounded-none border-2 border-dashed border-[#1D5F31]/30/30/30/50 hover:border-[#1D5F31] hover:bg-[#1D5F31]/20 transition-all text-center mt-2"
                                     >
                                         <Plus size={14} className="mr-2" />
                                         Adicionar Tópico
@@ -1056,10 +1056,10 @@ export default function CourseBuilder() {
                     </section>
 
                     <section>
-                        <h3 className="text-[10px] font-black uppercase tracking-[5px] text-black/60 mb-6 px-1 italic">Vídeo de Apresentação (Intro)</h3>
+                        <h3 className="text-[10px] font-bold uppercase tracking-[5px] text-black/60 mb-6 px-1 ">Vídeo de Apresentação (Intro)</h3>
                         <div className="bg-white p-6 rounded-xl border border-[#1D5F31]/20 space-y-6">
                             <div className="space-y-4">
-                                <label className="text-[9px] font-black uppercase tracking-[3px] text-black/60 px-1">Upload ou Link</label>
+                                <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Upload ou Link</label>
                                 <div className={`
                                     relative h-32 rounded-xl border-2 border-dashed transition-all flex flex-col items-center justify-center overflow-hidden cursor-pointer
                                     ${courseIntroVideo && !courseIntroVideo.includes('youtube.com') && !courseIntroVideo.includes('vimeo.com')
@@ -1070,12 +1070,12 @@ export default function CourseBuilder() {
                                     ) : courseIntroVideo && !courseIntroVideo.includes('youtube.com') && !courseIntroVideo.includes('vimeo.com') ? (
                                         <div className="flex flex-col items-center gap-1">
                                             <Check size={16} className="text-[#1D5F31]" />
-                                            <span className="text-[8px] font-black text-[#1D5F31]">VÍDEO CARREGADO</span>
+                                            <span className="text-[8px] font-bold text-[#1D5F31]">VÍDEO CARREGADO</span>
                                         </div>
                                     ) : (
                                         <div className="text-center">
                                             <UploadCloud size={20} className="mx-auto text-slate-200 mb-2" />
-                                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">SUBIR MP4</span>
+                                            <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">SUBIR MP4</span>
                                         </div>
                                     )}
                                     {!isUploadingIntro && (
@@ -1099,7 +1099,7 @@ export default function CourseBuilder() {
                             </div>
 
                             <div className="space-y-4">
-                                <label className="text-[9px] font-black uppercase tracking-[3px] text-black/60 px-1">Ou Link Externo</label>
+                                <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Ou Link Externo</label>
                                 <input
                                     type="text"
                                     value={courseIntroVideo}
@@ -1107,13 +1107,13 @@ export default function CourseBuilder() {
                                     placeholder="Link YouTube/Vimeo"
                                     className="w-full bg-white border border-[#1D5F31]/20 rounded-xl px-4 py-3 focus:border-[#1D5F31] outline-none text-xs text-black transition-all"
                                 />
-                                <p className="text-[8px] text-[#1D5F31] font-black uppercase tracking-widest">Máximo 5 minutos recomendados para conversão.</p>
+                                <p className="text-[8px] text-[#1D5F31] font-bold uppercase tracking-widest">Máximo 5 minutos recomendados para conversão.</p>
                             </div>
                         </div>
                     </section>
 
                     <section>
-                        <h3 className="text-[10px] font-black uppercase tracking-[5px] text-black/60 mb-6 px-1 italic">Capa do Produto</h3>
+                        <h3 className="text-[10px] font-bold uppercase tracking-[5px] text-black/60 mb-6 px-1 ">Capa do Produto</h3>
                         <div className="bg-white p-3 rounded-xl border border-[#1D5F31]/20">
                             <CourseImageUpload
                                 currentImageUrl={courseImage}

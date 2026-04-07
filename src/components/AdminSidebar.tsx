@@ -138,7 +138,7 @@ export default function AdminSidebar() {
                             />
                             <div className="flex flex-col">
                                 <span className={cn(
-                                    "text-xs font-black uppercase tracking-widest",
+                                    "text-xs font-bold uppercase tracking-widest",
                                     isActive ? "text-[#1D5F31]" : "!text-[#000000] group-hover:text-[#1D5F31]"
                                 )}>
                                     {item.title}
@@ -167,7 +167,7 @@ export default function AdminSidebar() {
                     <DropdownMenuTrigger asChild>
                         <button
                             disabled={isLoggingOut}
-                            className="flex items-center gap-3 !text-[#000000] hover:!text-[#1D5F31] transition-colors uppercase font-black text-[10px] tracking-widest group disabled:opacity-50 w-full"
+                            className="flex items-center gap-3 !text-[#000000] hover:!text-[#1D5F31] transition-colors uppercase font-bold text-[10px] tracking-widest group disabled:opacity-50 w-full"
                         >
                             {isLoggingOut ? (
                                 <Loader2 className="animate-spin" size={16} />

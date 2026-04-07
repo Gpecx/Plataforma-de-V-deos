@@ -31,7 +31,7 @@ export const PasswordForm = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Senha Atual */}
                 <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-[2px] text-slate-400 px-1">Senha Atual</label>
+                    <label className="text-[10px] font-bold uppercase tracking-[2px] text-slate-400 px-1">Senha Atual</label>
                     <div className="relative group">
                         <Input
                             {...register("currentPassword")}
@@ -50,7 +50,7 @@ export const PasswordForm = () => {
 
                 {/* Nova Senha */}
                 <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-[2px] text-slate-400 px-1">Nova Senha</label>
+                    <label className="text-[10px] font-bold uppercase tracking-[2px] text-slate-400 px-1">Nova Senha</label>
                     <div className="relative group">
                         <Input
                             {...register("newPassword")}
@@ -69,7 +69,7 @@ export const PasswordForm = () => {
 
                 {/* Confirmar Nova Senha */}
                 <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-[2px] text-slate-400 px-1">Confirmar Senha</label>
+                    <label className="text-[10px] font-bold uppercase tracking-[2px] text-slate-400 px-1">Confirmar Senha</label>
                     <div className="relative group">
                         <Input
                             {...register("confirmPassword")}
@@ -92,7 +92,7 @@ export const PasswordForm = () => {
                     type="submit"
                     disabled={isLoading}
                     variant="outline"
-                    className="border-slate-100 text-slate-400 hover:bg-slate-50 hover:text-slate-900 h-14 px-8 rounded-2xl font-black uppercase tracking-[2px] text-[10px] transition-all gap-3 overflow-hidden group/btn"
+                    className="border-slate-100 text-slate-400 hover:bg-slate-50 hover:text-slate-900 h-14 px-8 rounded-2xl font-bold uppercase tracking-[2px] text-[10px] transition-all gap-3 overflow-hidden group/btn"
                 >
                     {isLoading ? (
                         <Loader2 className="animate-spin text-[#1D5F31]" size={18} />

@@ -20,14 +20,14 @@ export default function ContactPage() {
             <Suspense fallback={null}>
                 <Navbar light={true} />
             </Suspense>
-            <div className="pt-32 pb-20 px-4 md:px-8 font-exo">
+            <div className="pt-32 pb-20 px-4 md:px-8 font-montserrat">
                 <div className="w-full max-w-7xl mx-auto">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
 
                         {/* Lado Esquerdo: Texto e Informações */}
                         <div className="flex flex-col justify-between space-y-12 bg-white p-8 md:p-12 rounded-2xl shadow-sm border border-black">
                             <div>
-                                <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase leading-none mb-6 text-slate-900">
+                                <h1 className="text-3xl md:text-5xl font-bold tracking-tighter uppercase leading-none mb-6 text-slate-900 max-w-2xl">
                                     VAMOS <span className="text-[#1D5F31]">CONVERSAR?</span>
                                 </h1>
                                 <p className="text-slate-600 text-lg font-medium max-w-md leading-relaxed">
@@ -42,8 +42,8 @@ export default function ContactPage() {
                                         <Mail className="text-[#1D5F31]" size={24} />
                                     </div>
                                     <div>
-                                        <p className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 mb-1">E-mail</p>
-                                        <p className="text-lg font-black tracking-tight text-slate-900">comercial@gpecx.com</p>
+                                        <p className="text-[10px] font-bold uppercase tracking-[3px] text-slate-400 mb-1">E-mail</p>
+                                        <p className="text-lg font-bold tracking-tight text-slate-900">comercial@gpecx.com</p>
                                     </div>
                                 </div>
 
@@ -52,8 +52,8 @@ export default function ContactPage() {
                                         <Phone className="text-[#1D5F31]" size={24} />
                                     </div>
                                     <div>
-                                        <p className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 mb-1">Telefone</p>
-                                        <p className="text-lg font-black tracking-tight text-slate-900">(19) 99913-2414</p>
+                                        <p className="text-[10px] font-bold uppercase tracking-[3px] text-slate-400 mb-1">Telefone</p>
+                                        <p className="text-lg font-bold tracking-tight text-slate-900">(19) 99913-2414</p>
                                     </div>
                                 </div>
 
@@ -62,8 +62,8 @@ export default function ContactPage() {
                                         <MapPin className="text-[#1D5F31]" size={24} />
                                     </div>
                                     <div>
-                                        <p className="text-[10px] font-black uppercase tracking-[3px] text-slate-400 mb-1">Endereço</p>
-                                        <p className="text-lg font-black tracking-tight text-slate-900">Campinas, São Paulo</p>
+                                        <p className="text-[10px] font-bold uppercase tracking-[3px] text-slate-400 mb-1">Endereço</p>
+                                        <p className="text-lg font-bold tracking-tight text-slate-900">Campinas, São Paulo</p>
                                     </div>
                                 </div>
                             </div>
@@ -73,7 +73,7 @@ export default function ContactPage() {
                         <div className="bg-white p-8 md:p-12 rounded-2xl shadow-xl border border-black relative overflow-hidden flex flex-col justify-center">
                             <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
                                 <div className="space-y-2">
-                                    <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-slate-900">Nome Completo</Label>
+                                    <Label htmlFor="name" className="text-[10px] font-bold uppercase tracking-widest text-slate-900">Nome Completo</Label>
                                     <Input
                                         id="name"
                                         placeholder="COMO PODEMOS TE CHAMAR?"
@@ -84,7 +84,7 @@ export default function ContactPage() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
-                                        <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-slate-900">E-mail</Label>
+                                        <Label htmlFor="email" className="text-[10px] font-bold uppercase tracking-widest text-slate-900">E-mail</Label>
                                         <Input
                                             id="email"
                                             type="email"
@@ -94,7 +94,7 @@ export default function ContactPage() {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="phone" className="text-[10px] font-black uppercase tracking-widest text-slate-900">Telefone</Label>
+                                        <Label htmlFor="phone" className="text-[10px] font-bold uppercase tracking-widest text-slate-900">Telefone</Label>
                                         <Input
                                             id="phone"
                                             placeholder="(00) 00000-0000"
@@ -104,7 +104,7 @@ export default function ContactPage() {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor="message" className="text-[10px] font-black uppercase tracking-widest text-slate-900">Mensagem</Label>
+                                    <Label htmlFor="message" className="text-[10px] font-bold uppercase tracking-widest text-slate-900">Mensagem</Label>
                                     <textarea
                                         id="message"
                                         placeholder="EM QUE PODEMOS AJUDAR?"
@@ -116,7 +116,7 @@ export default function ContactPage() {
 
                                 <button
                                     type="submit"
-                                    className="w-full h-16 bg-[#1D5F31] border border-black hover:bg-[#164a26] text-white font-black uppercase italic tracking-[3px] rounded-lg transition-all shadow-lg shadow-green-900/10 flex items-center justify-center gap-3 disabled:opacity-50"
+                                    className="w-full h-16 bg-[#1D5F31] border border-black hover:bg-[#164a26] text-white font-bold uppercase  tracking-[3px] rounded-lg transition-all shadow-lg shadow-green-900/10 flex items-center justify-center gap-3 disabled:opacity-50"
                                     disabled={isSubmitted}
                                 >
                                     {isSubmitted ? (

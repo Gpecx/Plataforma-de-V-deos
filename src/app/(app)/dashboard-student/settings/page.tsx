@@ -82,16 +82,16 @@ export default function SettingsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-transparent font-exo p-4 md:p-8 lg:p-12">
+        <div className="min-h-screen bg-transparent font-montserrat p-4 md:p-8 lg:p-12">
             <div className="max-w-4xl mx-auto space-y-10">
 
                 {/* Header da Página */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div>
-                        <h1 className="text-4xl font-black uppercase !text-black tracking-tighter">Configurações</h1>
+                        <h1 className="text-2xl md:text-3xl font-bold uppercase !text-black tracking-tighter max-w-4xl">Configurações</h1>
                         <p className="!text-black text-xs uppercase tracking-[3px] mt-1 font-bold">Gerencie sua conta e fluxos de pagamento</p>
                     </div>
-                    <Link href="/dashboard-student" className="flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-slate-600 hover:text-slate-900 bg-white px-6 py-3.5 rounded-xl border border-black transition-all shadow-sm hover:shadow-md active:scale-95 w-fit">
+                    <Link href="/dashboard-student" className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-slate-600 hover:text-slate-900 bg-white px-6 py-3.5 rounded-xl border border-black transition-all shadow-sm hover:shadow-md active:scale-95 w-fit">
                         <ArrowLeft size={16} /> Voltar ao Painel
                     </Link>
                 </div>
@@ -102,14 +102,14 @@ export default function SettingsPage() {
                         <div className="flex items-center gap-5 mb-8">
                             <div className="w-14 h-14 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-[#1D5F31] shadow-sm"><Lock size={24} /></div>
                             <div>
-                                <h2 className="font-black uppercase text-xl !text-black tracking-tight">Segurança</h2>
+                                <h2 className="font-bold uppercase text-xl !text-black tracking-tight">Segurança</h2>
                                 <p className="text-[10px] !text-black uppercase tracking-[2px] font-bold">Proteção e acesso à conta</p>
                             </div>
                         </div>
                         <form onSubmit={handleUpdatePassword} className="space-y-6">
                             {needsReauth && (
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-900 ml-1">Senha Atual para Confirmação</label>
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-900 ml-1">Senha Atual para Confirmação</label>
                                     <Input 
                                         type="password" 
                                         value={currentPassword} 
@@ -121,7 +121,7 @@ export default function SettingsPage() {
                             )}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-900 ml-1">Nova Senha</label>
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-900 ml-1">Nova Senha</label>
                                     <Input 
                                         type="password" 
                                         value={newPassword} 
@@ -131,7 +131,7 @@ export default function SettingsPage() {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-900 ml-1">Confirmar Senha</label>
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-900 ml-1">Confirmar Senha</label>
                                     <Input 
                                         type="password" 
                                         value={confirmPassword} 
@@ -141,7 +141,7 @@ export default function SettingsPage() {
                                     />
                                 </div>
                             </div>
-                            <Button type="submit" className="bg-[#1D5F31] border border-black hover:opacity-90 text-white font-black uppercase rounded-xl h-14 px-10 shadow-lg shadow-[#1D5F31]/10 transition-all active:scale-95">Atualizar Senha</Button>
+                            <Button type="submit" className="bg-[#1D5F31] border border-black hover:opacity-90 text-white font-bold uppercase rounded-xl h-14 px-10 shadow-lg shadow-[#1D5F31]/10 transition-all active:scale-95">Atualizar Senha</Button>
                         </form>
                     </section>
 
@@ -150,13 +150,13 @@ export default function SettingsPage() {
                         <div className="flex items-center gap-5 mb-8">
                             <div className="w-14 h-14 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-[#1D5F31] shadow-sm"><CreditCard size={24} /></div>
                             <div>
-                                <h2 className="font-black uppercase text-xl !text-black tracking-tight">Dados Bancários</h2>
+                                <h2 className="font-bold uppercase text-xl !text-black tracking-tight">Dados Bancários</h2>
                                 <p className="text-[10px] !text-black uppercase tracking-[2px] font-bold">Informações para reembolsos</p>
                             </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-900 ml-1">Chave PIX</label>
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-900 ml-1">Chave PIX</label>
                                 <Input 
                                     value={pixKey} 
                                     onChange={(e) => setPixKey(e.target.value)} 
@@ -165,7 +165,7 @@ export default function SettingsPage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-900 ml-1">Instituição Bancária</label>
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-900 ml-1">Instituição Bancária</label>
                                 <Input 
                                     value={bank} 
                                     onChange={(e) => setBank(e.target.value)} 
@@ -174,7 +174,7 @@ export default function SettingsPage() {
                                 />
                             </div>
                         </div>
-                        <Button className="bg-white border border-black text-[#1D5F31] hover:bg-slate-50 font-black uppercase rounded-xl h-14 px-10 transition-all active:scale-95 shadow-sm">Salvar Preferências</Button>
+                        <Button className="bg-white border border-black text-[#1D5F31] hover:bg-slate-50 font-bold uppercase rounded-xl h-14 px-10 transition-all active:scale-95 shadow-sm">Salvar Preferências</Button>
                     </section>
 
                     {/* Zona de Perigo */}
@@ -182,7 +182,7 @@ export default function SettingsPage() {
                         <div className="flex items-center gap-5 mb-6">
                             <div className="w-14 h-14 bg-white border border-red-100 rounded-2xl flex items-center justify-center text-red-500 shadow-sm"><Trash2 size={24} /></div>
                             <div>
-                                <h2 className="font-black uppercase text-xl text-red-600 tracking-tight">Zona de Perigo</h2>
+                                <h2 className="font-bold uppercase text-xl text-red-600 tracking-tight">Zona de Perigo</h2>
                                 <p className="text-[10px] text-red-400 uppercase tracking-[2px] font-bold">Ações irreversíveis</p>
                             </div>
                         </div>

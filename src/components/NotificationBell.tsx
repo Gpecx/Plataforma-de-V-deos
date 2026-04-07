@@ -180,7 +180,7 @@ export function NotificationBell({
                 <Bell size={20} />
                 {unread > 0 && (
                     <span className={cn(
-                        "absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full !text-white text-[11px] font-black flex items-center justify-center border-2",
+                        "absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 rounded-full !text-white text-[11px] font-bold flex items-center justify-center border-2",
                         light ? "border-white" : "border-[#061629]"
                     )} style={{ backgroundColor: accent }}>
                         {unread > 99 ? '99+' : unread}
@@ -193,18 +193,18 @@ export function NotificationBell({
                     {/* Header com contraste corrigido */}
                     <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
                         <div>
-                            <h3 className="font-black uppercase tracking-tighter text-base text-slate-900">
+                            <h3 className="font-bold uppercase tracking-tighter text-base text-slate-900">
                                 {isTeacher ? 'Painel de Alertas' : 'Notificações'}
                             </h3>
                             {unread > 0 && (
-                                <p className="text-[9px] font-black uppercase tracking-[3px] mt-0.5 text-slate-500">
+                                <p className="text-[9px] font-bold uppercase tracking-[3px] mt-0.5 text-slate-500">
                                     {unread} novas interações
                                 </p>
                             )}
                         </div>
                         <div className="flex items-center gap-3">
                             {unread > 0 && (
-                                <button onClick={markAllRead} className="flex items-center gap-1.5 text-[8px] font-black uppercase tracking-[2px] text-slate-600 hover:text-slate-900 transition px-3 py-1.5 border border-slate-200 hover:border-slate-400 rounded-lg">
+                                <button onClick={markAllRead} className="flex items-center gap-1.5 text-[8px] font-bold uppercase tracking-[2px] text-slate-600 hover:text-slate-900 transition px-3 py-1.5 border border-slate-200 hover:border-slate-400 rounded-lg">
                                     <CheckCheck size={12} /> Limpar
                                 </button>
                             )}
@@ -221,7 +221,7 @@ export function NotificationBell({
                         ) : notifications.length === 0 ? (
                             <div className="py-16 text-center">
                                 <Bell size={40} className="mx-auto text-slate-200 mb-4" />
-                                <p className="text-[10px] font-black uppercase text-slate-400 tracking-[4px]">Tudo em dia!</p>
+                                <p className="text-[10px] font-bold uppercase text-slate-400 tracking-[4px]">Tudo em dia!</p>
                             </div>
                         ) : (
                             notifications.map((notif) => (
@@ -245,13 +245,13 @@ export function NotificationBell({
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <p className={cn(
-                                            "text-sm font-black uppercase tracking-tight leading-tight mb-1",
+                                            "text-sm font-bold uppercase tracking-tight leading-tight mb-1",
                                             notif.read ? "text-slate-500" : "text-slate-900"
                                         )}>
                                             {notif.title}
                                         </p>
                                         <p className={cn(
-                                            "text-[11px] truncate italic",
+                                            "text-[11px] truncate ",
                                             notif.read ? "text-slate-400" : "text-slate-600"
                                         )}>
                                             {notif.subtitle}
@@ -265,7 +265,7 @@ export function NotificationBell({
 
                     {/* Footer */}
                     <div className="px-6 py-4 border-t border-slate-100 bg-slate-50/50">
-                        <button onClick={() => { setOpen(false); router.push(isTeacher ? '/dashboard-teacher/analytics' : '/dashboard-student/chat') }} className="w-full text-[9px] font-black uppercase tracking-[3px] py-3 border border-slate-200 rounded-xl hover:border-[#1D5F31] text-slate-500 hover:text-[#1D5F31] transition-all bg-white shadow-sm">
+                        <button onClick={() => { setOpen(false); router.push(isTeacher ? '/dashboard-teacher/analytics' : '/dashboard-student/chat') }} className="w-full text-[9px] font-bold uppercase tracking-[3px] py-3 border border-slate-200 rounded-xl hover:border-[#1D5F31] text-slate-500 hover:text-[#1D5F31] transition-all bg-white shadow-sm">
                             {isTeacher ? 'Ver relatório de vendas' : 'Ver todas as mensagens'}
                         </button>
                     </div>

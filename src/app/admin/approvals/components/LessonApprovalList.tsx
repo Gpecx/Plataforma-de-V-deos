@@ -104,15 +104,15 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
     }
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-700 font-exo">
+        <div className="space-y-6 animate-in fade-in duration-700 font-montserrat">
             <div className="overflow-x-auto rounded-xl border-2" style={{ borderColor: '#e2e8f0', backgroundColor: '#fff' }}>
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr style={{ backgroundColor: '#0f172a' }}>
-                            <th className="p-6 text-[10px] font-black uppercase tracking-wider text-left" style={{ color: '#fff' }}>Aula</th>
-                            <th className="p-6 text-[10px] font-black uppercase tracking-wider text-left" style={{ color: '#fff' }}>Curso</th>
-                            <th className="p-6 text-[10px] font-black uppercase tracking-wider text-left" style={{ color: '#fff' }}>Professor</th>
-                            <th className="p-6 text-[10px] font-black uppercase tracking-wider text-right" style={{ color: '#fff' }}>Ação</th>
+                            <th className="p-6 text-[10px] font-bold uppercase tracking-wider text-left" style={{ color: '#fff' }}>Aula</th>
+                            <th className="p-6 text-[10px] font-bold uppercase tracking-wider text-left" style={{ color: '#fff' }}>Curso</th>
+                            <th className="p-6 text-[10px] font-bold uppercase tracking-wider text-left" style={{ color: '#fff' }}>Professor</th>
+                            <th className="p-6 text-[10px] font-bold uppercase tracking-wider text-right" style={{ color: '#fff' }}>Ação</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -132,7 +132,7 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
                                             )}
                                         </div>
                                         <div>
-                                            <h3 className="font-black uppercase tracking-tight text-sm" style={{ color: '#0f172a' }}>{lesson.title}</h3>
+                                            <h3 className="font-bold uppercase tracking-tight text-sm" style={{ color: '#0f172a' }}>{lesson.title}</h3>
                                             <p className="text-[10px] font-bold uppercase tracking-wider mt-1" style={{ color: '#64748b' }}>
                                                 {lesson.type === 'quiz' ? 'QUESTIONÁRIO' : 'VÍDEO-AULA'}
                                             </p>
@@ -197,13 +197,13 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
                                     {reviewingLesson.type === 'quiz' && reviewingLesson.quizData?.questions ? (
                                         <div className="w-full h-full p-8 overflow-y-auto bg-white">
                                             <div className="max-w-2xl mx-auto space-y-6">
-                                                <h3 className="text-xl font-black uppercase tracking-tighter text-slate-900 mb-6">
+                                                <h3 className="text-xl font-bold uppercase tracking-tighter text-slate-900 mb-6">
                                                     {reviewingLesson.quizData.title || reviewingLesson.title}
                                                 </h3>
                                                 {reviewingLesson.quizData.questions.map((question, qIndex) => (
                                                     <div key={qIndex} className="bg-slate-50 border border-slate-200 rounded-xl p-6">
                                                         <div className="flex items-start gap-3 mb-4">
-                                                            <span className="bg-slate-900 text-white text-xs font-black px-3 py-1 rounded-lg">
+                                                            <span className="bg-slate-900 text-white text-xs font-bold px-3 py-1 rounded-lg">
                                                                 {qIndex + 1}
                                                             </span>
                                                             <p className="font-bold text-slate-900 flex-1">{question.text}</p>
@@ -256,7 +256,7 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
                                         <div className="w-1 h-1 rounded-full bg-[#1D5F31]"></div>
                                         <span className="text-[10px] font-bold uppercase tracking-wider text-[#1D5F31]">DETALHES DA UNIDADE</span>
                                     </div>
-                                    <h3 className="text-3xl font-black uppercase tracking-tighter leading-tight !text-[#000000]">{reviewingLesson.title}</h3>
+                                    <h3 className="text-3xl font-bold uppercase tracking-tighter leading-tight !text-[#000000]">{reviewingLesson.title}</h3>
                                     <div className="mt-8 p-6 bg-black/5 rounded-xl border border-black/10">
                                         <p className="text-[9px] !text-[#000000] font-bold uppercase tracking-wider mb-1">VINCULADA AO CURSO</p>
                                         <p className="text-[12px] !text-[#000000] font-bold uppercase tracking-wider leading-tight">{reviewingLesson.course_title}</p>

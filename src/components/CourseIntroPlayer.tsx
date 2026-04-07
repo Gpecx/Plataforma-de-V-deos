@@ -23,7 +23,7 @@ export function CourseIntroPlayer({ videoUrl, thumbnail }: CourseIntroPlayerProp
                     <div className="p-2 bg-black/50 border border-[#00FF00] text-white rounded-full">
                         <PlayCircle size={20} />
                     </div>
-                    <span className="text-white text-xs font-black uppercase tracking-widest">Aprenda com quem faz na prática</span>
+                    <span className="text-white text-xs font-bold uppercase tracking-widest">Aprenda com quem faz na prática</span>
                 </div>
             </div>
         )
@@ -70,7 +70,7 @@ export function CourseIntroPlayer({ videoUrl, thumbnail }: CourseIntroPlayerProp
                     <div className="p-2 bg-black/50 border border-[#00FF00] text-white rounded-full">
                         <PlayCircle size={20} />
                     </div>
-                    <span className="text-white text-xs font-black uppercase tracking-widest text-[#00FF00]">Assistir Apresentação</span>
+                    <span className="text-white text-xs font-bold uppercase tracking-widest text-[#00FF00]">Assistir Apresentação</span>
                 </div>
             </div>
         )

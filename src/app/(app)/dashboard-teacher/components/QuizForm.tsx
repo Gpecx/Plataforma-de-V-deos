@@ -74,13 +74,13 @@ export default function QuizForm({ initialData, onSave, isAdmin = false }: QuizF
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8 font-exo">
+    <form onSubmit={handleSubmit} className="space-y-8 font-montserrat">
       {/* Quiz Header - Glassmorphism Slate */}
       <div className="bg-slate-900/90 backdrop-blur-xl border border-slate-700/50 p-8 rounded-none shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 left-0 w-1 h-full bg-[#1D5F31]" />
         <div className="space-y-6">
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-400">Título do Quiz</label>
+            <label className="text-[10px] font-bold uppercase tracking-[3px] text-slate-400">Título do Quiz</label>
             <input
               type="text"
               value={title}
@@ -91,7 +91,7 @@ export default function QuizForm({ initialData, onSave, isAdmin = false }: QuizF
             />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-400">Descrição</label>
+            <label className="text-[10px] font-bold uppercase tracking-[3px] text-slate-400">Descrição</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -105,14 +105,14 @@ export default function QuizForm({ initialData, onSave, isAdmin = false }: QuizF
       {/* Questions Section */}
       <div className="space-y-6">
         <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-          <h2 className="text-2xl font-black uppercase tracking-tighter text-slate-900 flex items-center gap-3">
+          <h2 className="text-2xl font-bold uppercase tracking-tighter text-slate-900 flex items-center gap-3">
             <HelpCircle size={24} className="text-[#1D5F31]" />
             Questões
           </h2>
           <button
             type="button"
             onClick={addQuestion}
-            className="flex items-center gap-2 bg-[#1D5F31] text-white px-6 py-3 rounded-none font-black uppercase tracking-widest text-[10px] hover:bg-[#164a26] transition-all active:scale-95 shadow-lg"
+            className="flex items-center gap-2 bg-[#1D5F31] text-white px-6 py-3 rounded-none font-bold uppercase tracking-widest text-[10px] hover:bg-[#164a26] transition-all active:scale-95 shadow-lg"
           >
             <Plus size={16} strokeWidth={3} /> Adicionar Questão
           </button>
@@ -130,7 +130,7 @@ export default function QuizForm({ initialData, onSave, isAdmin = false }: QuizF
               >
                 <div className="absolute top-0 left-0 w-full h-1 bg-slate-100 group-hover:bg-[#1D5F31] transition-colors" />
                 <div className="flex justify-between items-start mb-6">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
                     Questão {qIndex + 1}
                   </span>
                   <button
@@ -144,7 +144,7 @@ export default function QuizForm({ initialData, onSave, isAdmin = false }: QuizF
 
                 <div className="space-y-6">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-500">Enunciado</label>
+                    <label className="text-[10px] font-bold uppercase tracking-[3px] text-slate-500">Enunciado</label>
                     <input
                       type="text"
                       value={q.text}
@@ -156,7 +156,7 @@ export default function QuizForm({ initialData, onSave, isAdmin = false }: QuizF
                   </div>
 
                   <div className="space-y-4">
-                    <label className="text-[10px] font-black uppercase tracking-[3px] text-slate-500 block">Opções de Resposta</label>
+                    <label className="text-[10px] font-bold uppercase tracking-[3px] text-slate-500 block">Opções de Resposta</label>
                     {q.options?.map((opt, oIndex) => (
                       <div key={oIndex} className="flex items-center gap-3">
                         <input
@@ -191,7 +191,7 @@ export default function QuizForm({ initialData, onSave, isAdmin = false }: QuizF
                     <button
                       type="button"
                       onClick={() => addOption(qIndex)}
-                      className="text-[10px] font-black uppercase tracking-widest text-[#1D5F31] hover:underline flex items-center gap-1"
+                      className="text-[10px] font-bold uppercase tracking-widest text-[#1D5F31] hover:underline flex items-center gap-1"
                     >
                       <Plus size={12} /> Adicionar Opção
                     </button>
@@ -207,7 +207,7 @@ export default function QuizForm({ initialData, onSave, isAdmin = false }: QuizF
       <div className="flex justify-end pt-8 sticky bottom-8">
         <button
           type="submit"
-          className="flex items-center gap-3 bg-slate-900 text-white px-12 py-5 rounded-none font-black uppercase tracking-[3px] hover:bg-black transition-all active:scale-95 shadow-2xl group"
+          className="flex items-center gap-3 bg-slate-900 text-white px-12 py-5 rounded-none font-bold uppercase tracking-[3px] hover:bg-black transition-all active:scale-95 shadow-2xl group"
         >
           <Save size={20} className="group-hover:scale-110 transition-transform" />
           {isAdmin ? 'Publicar Quiz' : 'Enviar para Aprovação'}

@@ -99,7 +99,7 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
     const dynamicCategories = Array.from(new Set(filteredCourses.map(c => c.category || "Lançamentos"))).sort();
 
     return (
-        <div className="min-h-screen bg-white text-black font-exo">
+        <div className="min-h-screen bg-white text-black font-montserrat">
             <Navbar light={true} />
 
             <BannerWrapper>
@@ -111,7 +111,7 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
                         </div>
                     ))}
 
-                    <div className="relative z-20 h-full flex flex-col justify-center px-8 md:px-12 lg:px-16 space-y-6 max-w-4xl pt-16 pb-12">
+                    <div className="relative z-20 h-full flex flex-col justify-center px-8 md:px-12 lg:px-16 space-y-6 max-w-3xl pt-16 pb-12">
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={isLoggedIn ? 'logged-in' : 'logged-out'}
@@ -122,11 +122,11 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
                                 className="flex items-center gap-3"
                             >
                                 {isLoggedIn ? (
-                                    <span className="bg-[#1D5F31] !text-white text-[9px] font-black px-3 py-1 w-fit uppercase tracking-[2px] shadow-lg shadow-[#1D5F31]/20">
+                                    <span className="bg-[#1D5F31] !text-white text-sm font-bold px-3 py-1 w-fit uppercase tracking-tight shadow-lg shadow-[#1D5F31]/20">
                                         OLÁ, {firstName.toUpperCase()}!
                                     </span>
                                 ) : (
-                                    <span className="bg-[#1D5F31] !text-white text-[9px] font-black px-3 py-1 w-fit uppercase tracking-[2px] shadow-lg shadow-[#1D5F31]/20">
+                                    <span className="bg-[#1D5F31] !text-white text-sm font-bold px-3 py-1 w-fit uppercase tracking-tight shadow-lg shadow-[#1D5F31]/20">
                                         CURSOS EXCLUSIVOS
                                     </span>
                                 )}
@@ -140,7 +140,7 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -10 }}
                                 transition={{ duration: 0.3, delay: 0.1 }}
-                                className="text-5xl md:text-7xl font-black tracking-tighter leading-[0.9] !text-white"
+                                className="text-3xl md:text-5xl lg:text-[3.25rem] font-bold tracking-tighter leading-[0.9] !text-white max-w-2xl"
                             >
                                 {isLoggedIn ? "CONTINUE SUA EVOLUÇÃO" : displaySlides[currentSlide]?.title}
                             </motion.h1>
@@ -152,7 +152,7 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -10 }}
                                 transition={{ duration: 0.3, delay: 0.2 }}
-                                className="text-xl !text-white max-w-xl font-medium leading-relaxed"
+                                className="text-sm md:text-base !text-white max-w-lg font-medium leading-relaxed"
                             >
                                 {isLoggedIn
                                     ? "Sua jornada não para aqui. Explore novos conteúdos exclusivos da nossa curadoria."
@@ -182,9 +182,9 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
             <div className="relative z-30 px-6 md:px-12 mt-16 mb-10">
                 <div className="flex items-center gap-4 mb-2">
                     <div className="w-12 h-[2px] bg-[#1D5F31]"></div>
-                    <span className="text-[10px] font-black uppercase tracking-[4px] text-[#1D5F31]">Explorar</span>
+                    <span className="text-sm font-bold uppercase tracking-tight text-[#1D5F31]">Explorar</span>
                 </div>
-                <h2 className="text-3xl md:text-4xl font-black tracking-tighter text-black">
+                <h2 className="text-2xl md:text-3xl font-bold tracking-tighter text-black">
                     {searchQuery ? `RESULTADOS PARA: ${searchQuery.toUpperCase()}` : "CATÁLOGO DE FORMAÇÃO"}
                 </h2>
             </div>
@@ -198,7 +198,7 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
                         </div>
                         <p className="text-lg font-bold text-slate-500 uppercase tracking-[3px]">Nenhum treinamento encontrado.</p>
                         <Link href="/course">
-                            <Button variant="outline" className="border-[#1D5F31] text-slate-400 font-black uppercase tracking-widest text-xs h-12 hover:bg-[#1D5F31]/20">
+                            <Button variant="outline" className="border-[#1D5F31] text-slate-400 font-bold uppercase tracking-tight text-sm h-12 hover:bg-[#1D5F31]/20">
                                 Ver todos os cursos
                             </Button>
                         </Link>
@@ -211,11 +211,11 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
                         return (
                             <div key={category} className="space-y-10">
                                 <div className="flex items-end justify-between border-b border-[#1D5F31] pb-6">
-                                    <h2 className="text-2xl font-black uppercase tracking-tighter flex items-center gap-3 group cursor-pointer text-black">
+                                    <h2 className="text-xl md:text-2xl font-bold uppercase tracking-tighter flex items-center gap-3 group cursor-pointer text-black">
                                         {category}
-                                        <ChevronRight className="text-[#1D5F31] w-6 h-6 opacity-40 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                                        <ChevronRight className="text-[#1D5F31] w-5 h-5 md:w-6 md:h-6 opacity-40 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
                                     </h2>
-                                    <span className="text-slate-500 text-[11px] font-black uppercase tracking-[2px] mb-1">
+                                    <span className="text-slate-500 text-sm font-bold uppercase tracking-tight mb-1">
                                         {coursesInCategory.length} Módulos Disponíveis
                                     </span>
                                 </div>
@@ -237,18 +237,18 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
                                                     courseId={course.id} 
                                                     isPurchased={profile?.cursos_comprados?.includes(course.id)} 
                                                 />
-                                                <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm border border-slate-200 text-[#1D5F31] px-2 py-0.5 text-[8px] font-black uppercase tracking-widest rounded-md z-10">
+                                                <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm border border-slate-200 text-[#1D5F31] px-2 py-0.5 text-sm font-bold uppercase tracking-tight rounded-md z-10">
                                                     {course.tag || "TREINAMENTO"}
                                                 </div>
                                             </div>
                                             <div className="p-6 flex-grow flex flex-col space-y-4">
-                                                <h3 className="text-xs font-bold text-black leading-tight group-hover:text-[#1D5F31] transition-colors line-clamp-2">
+                                                <h3 className="text-sm font-bold text-black leading-tight group-hover:text-[#1D5F31] transition-colors line-clamp-2">
                                                     {course.title}
                                                 </h3>
                                                 <div className="mt-auto pt-3 border-t border-slate-100 flex items-center justify-between">
                                                     <div className="flex flex-col">
-                                                        <span className="text-[8px] text-black uppercase font-bold tracking-widest leading-none mb-0.5" style={{ color: '#000000' }}>Investimento</span>
-                                                        <span className="text-sm font-black text-black leading-none" style={{ color: '#000000' }}>
+                                                        <span className="text-sm text-black uppercase font-bold tracking-tight leading-none mb-1" style={{ color: '#000000' }}>Investimento</span>
+                                                        <span className="text-sm font-bold text-black leading-none" style={{ color: '#000000' }}>
                                                             R$ {Number(course.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                                         </span>
                                                     </div>
@@ -279,7 +279,7 @@ export default function CoursesClient({ initialCourses, heroBanners }: CoursesCl
             <div className="min-h-screen bg-white flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
                     <Loader2 className="animate-spin text-[#1D5F31]" size={40} />
-                    <p className="text-sm font-black uppercase tracking-[3px] text-slate-500">Preparando Cursos...</p>
+                    <p className="text-sm font-bold uppercase tracking-tight text-slate-500">Preparando Cursos...</p>
                 </div>
             </div>
         }>

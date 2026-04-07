@@ -28,26 +28,26 @@ export default function NewQuizPage() {
 
     toast.success('Quiz enviado para aprovação!', {
       description: 'O administrador revisará seu quiz em breve.',
-      className: 'bg-slate-900 border-slate-800 text-white rounded-none font-exo',
+      className: 'bg-slate-900 border-slate-800 text-white rounded-none font-montserrat',
     });
 
     router.push('/dashboard-teacher');
   };
 
   return (
-    <div className="min-h-screen bg-transparent font-exo pb-24 pt-12 relative animate-in fade-in duration-500 max-w-5xl mx-auto">
+    <div className="min-h-screen bg-transparent font-montserrat pb-24 pt-12 relative animate-in fade-in duration-500 max-w-5xl mx-auto">
       <header className="px-8 mb-12">
         <Link 
           href="/dashboard-teacher" 
-          className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors text-[10px] font-black uppercase tracking-[3px] mb-6 group"
+          className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-900 transition-colors text-[10px] font-bold uppercase tracking-[3px] mb-6 group"
         >
           <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
           Voltar ao Painel
         </Link>
-        <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-slate-900 uppercase leading-none">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tighter text-slate-900 uppercase leading-none max-w-xl">
           Criar Novo <span className="text-[#1D5F31]">Quiz</span>
         </h1>
-        <p className="text-slate-900 mt-3 font-black uppercase text-[10px] tracking-[3px]">
+        <p className="text-slate-900 mt-3 font-bold uppercase text-[10px] tracking-[3px]">
           Defina as questões e submeta para validação da equipe administrativa.
         </p>
       </header>

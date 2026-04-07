@@ -60,7 +60,7 @@ export default function CourseModal({ course, isOpen, onClose }: CourseModalProp
                         <div className="absolute inset-0 bg-gradient-to-t from-[#061629] via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-[#061629]" />
                         
                         <div className="absolute top-8 left-8 z-20">
-                            <span className="bg-[#1D5F31] text-white text-[10px] font-black px-3 py-1.5 rounded-xl uppercase tracking-[3px] shadow-xl">
+                            <span className="bg-[#1D5F31] text-white text-[10px] font-bold px-3 py-1.5 rounded-xl uppercase tracking-[3px] shadow-xl">
                                 {course.tag || "PREMIUM"}
                             </span>
                         </div>
@@ -70,12 +70,12 @@ export default function CourseModal({ course, isOpen, onClose }: CourseModalProp
                     <div className="p-8 md:p-12 md:w-2/5 flex flex-col justify-center bg-[#061629]">
                         <div className="flex items-center gap-3 mb-6">
                             <div className="w-10 h-px bg-[#1D5F31]" />
-                            <span className="text-[10px] font-black uppercase tracking-[4px] text-[#1D5F31]">
+                            <span className="text-[10px] font-bold uppercase tracking-[4px] text-[#1D5F31]">
                                 Detalhes do Curso
                             </span>
                         </div>
 
-                        <h2 className="text-3xl md:text-4xl font-black uppercase mb-6 tracking-tighter leading-[0.9]">
+                        <h2 className="text-3xl md:text-4xl font-bold uppercase mb-6 tracking-tighter leading-[0.9]">
                             <span className="text-white !text-white" style={{ color: 'white' }}>{course.title}</span>
                         </h2>
 
@@ -85,7 +85,7 @@ export default function CourseModal({ course, isOpen, onClose }: CourseModalProp
                                 <Link 
                                     href={`/professor/${course.teacher_id}` as any}
                                     onClick={onClose}
-                                    className="text-[9px] font-black text-[#1D5F31] uppercase tracking-[2px] hover:underline leading-none"
+                                    className="text-[9px] font-bold text-[#1D5F31] uppercase tracking-[2px] hover:underline leading-none"
                                 >
                                     {course.teacher_name}
                                 </Link>
@@ -108,7 +108,7 @@ export default function CourseModal({ course, isOpen, onClose }: CourseModalProp
                                     <div className="text-[#1D5F31] mt-0.5">{item.icon}</div>
                                     <div className="flex flex-col">
                                         <span className="text-[9px] uppercase font-bold text-slate-500 tracking-widest mb-0.5">{item.label}</span>
-                                        <span className="text-[11px] font-black text-white uppercase tracking-tighter">{item.text}</span>
+                                        <span className="text-[11px] font-bold text-white uppercase tracking-tighter">{item.text}</span>
                                     </div>
                                 </div>
                             ))}

@@ -158,7 +158,7 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                 }}
             >
                 <nav className={cn(
-                    "flex items-center justify-between px-6 md:px-12 py-5 font-exo w-full",
+                    "flex items-center justify-between px-6 md:px-12 py-5 font-montserrat w-full",
                     light ? "text-slate-900" : "text-white"
                 )}>
                     {/* Left: Logo + Desktop Nav */}
@@ -166,7 +166,7 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                         <Logo className="h-14" light={light} href={isLoggedIn ? (isTeacherMode || userProfile?.role === 'teacher' || userProfile?.role === 'admin' ? '/dashboard-teacher/courses' : '/course') : '/'} />
                         {isTeacherMode && (
                             <span className={cn(
-                                "hidden sm:inline ml-1 text-[8px] px-2 py-0.5 rounded-xl font-black tracking-widest uppercase",
+                                "hidden sm:inline ml-1 text-[8px] px-2 py-0.5 rounded-xl font-bold tracking-widest uppercase",
                                 light ? "bg-slate-100 text-slate-600" : "bg-slate-900 text-white"
                             )}>Painel</span>
                         )}
@@ -177,19 +177,19 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                                 <Link
                                     key={link.href}
                                     href={link.href as any}
-                                    className={cn(
-                                        "transition-colors duration-200 text-[13px] font-black uppercase tracking-[0.2em] px-4 py-2 font-exo",
-                                        pathname === link.href
-                                            ? 'text-[#1D5F31] font-bold'
-                                            : light ? 'text-slate-400 hover:!text-[#1D5F31]' : 'text-white/70 hover:!text-[#1D5F31]'
-                                    )}
+                                        className={cn(
+                                            "transition-colors duration-200 text-[13px] font-medium uppercase tracking-tight px-4 py-2 font-montserrat",
+                                            pathname === link.href
+                                                ? 'text-black font-bold border-b-2 border-[#1D5F31]'
+                                                : light ? 'text-slate-400 hover:text-black' : 'text-white/60 hover:text-white'
+                                        )}
                                 >
                                     {link.label}
                                 </Link>
                             ))}
                             {userProfile?.role === 'admin' && (
                                 <>
-                                    <Link href="/admin/dashboard" className="text-[10px] font-black uppercase tracking-[0.2em] text-[#22c55e] border border-[#22c55e]/30 px-3 py-2 rounded-xl hover:bg-[#22c55e]/10 transition-all duration-300 ml-2">
+                                    <Link href="/admin/dashboard" className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#22c55e] border border-[#22c55e]/30 px-3 py-2 rounded-xl hover:bg-[#22c55e]/10 transition-all duration-300 ml-2">
                                         Painel Admin
                                     </Link>
                                 </>
@@ -279,7 +279,7 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                                 <ShoppingCart size={20} />
                                 {mounted && items.length > 0 && (
                                     <span className={cn(
-                                        "absolute -top-1.5 -right-2 min-w-[20px] h-5 px-1 rounded-full bg-[#1D5F31] !text-white text-[11px] font-black flex items-center justify-center border-2",
+                                        "absolute -top-1.5 -right-2 min-w-[20px] h-5 px-1 rounded-full bg-[#1D5F31] !text-white text-[11px] font-bold flex items-center justify-center border-2",
                                         light ? "border-white" : "border-[#061629]"
                                     )}>
                                         {items.length > 99 ? '99+' : items.length}
@@ -292,13 +292,13 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                         {!isLoggedIn && (
                             <div className="flex items-center gap-3">
                                 {!isHomePage && (
-                                    <Link href="/contact" className={cn("transition text-xs font-black uppercase tracking-widest", light ? "text-slate-600 hover:text-slate-900" : "text-white/70 hover:text-white")}>
+                                    <Link href="/contact" className={cn("transition text-xs font-bold uppercase tracking-widest", light ? "text-slate-600 hover:text-slate-900" : "text-white/70 hover:text-white")}>
                                         Contato
                                     </Link>
                                 )}
                                 <Link href="/login">
                                     <button className={cn(
-                                        "text-[10px] font-black uppercase tracking-widest px-4 md:px-6 py-2 rounded-full transition-all duration-300",
+                                        "text-[10px] font-bold uppercase tracking-widest px-4 md:px-6 py-2 rounded-full transition-all duration-300",
                                         light 
                                             ? "bg-[#1D5F31] text-white hover:brightness-110 shadow-md"
                                             : "bg-transparent border border-[#39FF14] text-white shadow-[0_0_10px_rgba(57,255,20,0.3)] hover:shadow-[0_0_15px_rgba(57,255,20,0.4)] hover:bg-[#39FF14]/10"
@@ -307,7 +307,7 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                                     </button>
                                 </Link>
                                 <Link href="/register" className={isHomePage ? 'hidden' : ''}>
-                                    <button className={`text-[10px] font-black uppercase tracking-widest px-3 md:px-4 py-2 rounded-xl transition-all ${'bg-[#1D5F31] text-white hover:brightness-110'}`}>
+                                    <button className={`text-[10px] font-bold uppercase tracking-widest px-3 md:px-4 py-2 rounded-xl transition-all ${'bg-[#1D5F31] text-white hover:brightness-110'}`}>
                                         Inscreva-se
                                     </button>
                                 </Link>
@@ -334,7 +334,7 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                                         light ? "bg-slate-50" : "bg-white/5"
                                     )}>
                                         <p className={cn(
-                                            "font-black uppercase tracking-tighter text-sm line-clamp-1",
+                                            "font-bold uppercase tracking-tighter text-sm line-clamp-1",
                                             light ? "text-slate-900" : "text-white"
                                         )}>
                                             {isTeacherMode || userProfile?.role === 'teacher' || userProfile?.role === 'admin' ? 'PROFESSOR POWERPLAY' : 'ESTUDANTE POWERPLAY'}
@@ -346,7 +346,7 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                                             {userProfile?.full_name || 'Membro PowerPlay'}
                                         </p>
                                         <p className={cn(
-                                            "text-[9px] font-black uppercase tracking-[2px] mt-2",
+                                            "text-[9px] font-bold uppercase tracking-[2px] mt-2",
                                             light ? "text-slate-600" : "text-white/70"
                                         )}>
                                             Registrado em {formatDate(userProfile?.created_at || null)}
@@ -359,10 +359,10 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                                                 {userProfile?.role === 'admin' && (
                                                     <>
                                                         <DropdownMenuItem onSelect={() => router.push("/admin/dashboard")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-[#1D5F31]/20 text-[#22c55e] transition-colors outline-none focus:bg-[#1D5F31]/20 border border-[#1D5F31]/30 mb-1 bg-[#1D5F31]/10">
-                                                            <ShieldAlert size={18} className="text-[#22c55e]" /><span className="text-[11px] font-black uppercase tracking-widest leading-none">Acessar Painel Admin</span>
+                                                            <ShieldAlert size={18} className="text-[#22c55e]" /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Acessar Painel Admin</span>
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem onSelect={() => router.push("/dashboard-student")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-[#1D5F31]/20 text-[#1D5F31] transition-colors outline-none focus:bg-[#1D5F31]/20 border border-[#1D5F31]/30 mb-1">
-                                                            <GraduationCap size={18} className="text-[#1D5F31]" /><span className="text-[11px] font-black uppercase tracking-widest leading-none">Modo Aluno</span>
+                                                            <GraduationCap size={18} className="text-[#1D5F31]" /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Modo Aluno</span>
                                                         </DropdownMenuItem>
 
                                                     </>
@@ -429,7 +429,7 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                                         className="flex items-center gap-4 px-4 py-4 rounded-xl cursor-pointer hover:bg-red-50 text-red-500 transition-colors outline-none focus:bg-red-50 group mb-1"
                                     >
                                         <LogOut size={18} className="group-hover:scale-110 transition-transform" />
-                                        <span className="text-[12px] font-black uppercase tracking-[2px]">Encerrar Sessão</span>
+                                        <span className="text-[12px] font-bold uppercase tracking-[2px]">Encerrar Sessão</span>
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
@@ -467,10 +467,10 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                                 href={link.href as any}
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className={cn(
-                                    "flex items-center px-4 py-3 rounded-xl font-bold text-sm tracking-tight transition-colors",
+                                    "flex items-center px-4 py-3 rounded-none text-sm tracking-tight transition-colors font-medium",
                                     pathname === link.href
-                                        ? 'text-[#1D5F31] font-bold'
-                                        : light ? 'text-slate-600 hover:!text-[#1D5F31]' : 'text-white hover:!text-[#1D5F31]'
+                                        ? 'text-[#1D5F31] font-bold border-l-4 border-[#1D5F31]'
+                                        : light ? 'text-slate-500' : 'text-white/70'
                                 )}
                             >
                                 {link.label}
@@ -493,7 +493,7 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                                 <div className="flex gap-2">
                                     <Link href="/login" className="flex-1" onClick={() => setIsMobileMenuOpen(false)}>
                                         <button className={cn(
-                                            "w-full text-[10px] font-black uppercase tracking-widest px-4 py-2.5 rounded-full transition-all duration-300",
+                                            "w-full text-[10px] font-bold uppercase tracking-widest px-4 py-2.5 rounded-full transition-all duration-300",
                                             light 
                                                 ? "bg-[#1D5F31] text-white hover:brightness-110 shadow-md"
                                                 : "bg-transparent border border-[#39FF14] text-white shadow-[0_0_10px_rgba(57,255,20,0.3)] hover:shadow-[0_0_15px_rgba(57,255,20,0.4)] hover:bg-[#39FF14]/10"
@@ -502,7 +502,7 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                                         </button>
                                     </Link>
                                     <Link href="/register" className={`flex-1 ${isHomePage ? 'hidden' : ''}`} onClick={() => setIsMobileMenuOpen(false)}>
-                                        <button className="w-full text-[10px] font-black uppercase tracking-widest px-4 py-2.5 rounded-xl transition bg-[#1D5F31] text-white hover:brightness-110">Inscreva-se</button>
+                                        <button className="w-full text-[10px] font-bold uppercase tracking-widest px-4 py-2.5 rounded-xl transition bg-[#1D5F31] text-white hover:brightness-110">Inscreva-se</button>
                                     </Link>
                                 </div>
                             </div>

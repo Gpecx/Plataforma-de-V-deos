@@ -10,7 +10,7 @@ export default function MarketingLayout({
 }) {
     return (
         <AuthProvider>
-            <div className="flex flex-col min-h-screen bg-transparent">
+            <div className="flex flex-col min-h-screen bg-transparent font-exo">
                 <Suspense fallback={null}>
                     <Navbar />
                 </Suspense>

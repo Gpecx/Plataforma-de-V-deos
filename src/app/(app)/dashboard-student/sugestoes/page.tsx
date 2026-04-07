@@ -18,12 +18,12 @@ export default function SugestoesPage() {
     }
 
     return (
-        <div className="min-h-screen bg-transparent font-exo text-slate-900 p-6 md:p-12">
+        <div className="min-h-screen bg-transparent font-montserrat text-slate-900 p-6 md:p-12">
             {/* Aumentei a largura máxima para preencher melhor a tela */}
             <div className="max-w-5xl mx-auto mt-10">
                 <Link
                     href="/dashboard-student"
-                    className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-[#1D5F31] transition-colors mb-8 outline-none group"
+                    className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:text-[#1D5F31] transition-colors mb-8 outline-none group"
                 >
                     <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
                     Voltar ao Painel
@@ -33,7 +33,7 @@ export default function SugestoesPage() {
                 <div className="bg-white border border-black shadow-sm rounded-xl overflow-hidden">
                     <div className="p-8 md:p-16">
                         <div className="mb-12">
-                            <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tighter text-[#1a1a1a] mb-6">
+                            <h1 className="text-2xl md:text-3xl font-bold uppercase tracking-tighter text-[#1a1a1a] mb-6 max-w-2xl">
                                 MELHORIAS & <span className="text-[#1D5F31]">SUGESTÕES</span>
                             </h1>
                             <p className="text-xs md:text-sm font-bold uppercase tracking-widest text-slate-500 leading-relaxed max-w-2xl">
@@ -44,7 +44,7 @@ export default function SugestoesPage() {
                         {!isSubmitted ? (
                             <form onSubmit={handleSubmit} className="space-y-8">
                                 <div className="space-y-4">
-                                    <label className="text-xs font-black uppercase tracking-[2px] text-[#1D5F31] ml-1">
+                                    <label className="text-xs font-bold uppercase tracking-[2px] text-[#1D5F31] ml-1">
                                         Como podemos melhorar sua experiência?
                                     </label>
                                     {/* Removido rounded-[40px] e ajustado foco */}
@@ -61,7 +61,7 @@ export default function SugestoesPage() {
                                 {/* Botão Retangular com efeito de brilho PowerPlay */}
                                 <button
                                     type="submit"
-                                    className="w-full h-20 bg-[#1D5F31] hover:bg-[#00e602] border border-black text-white font-black uppercase tracking-[4px] rounded-xl transition-all flex items-center justify-center gap-4 active:scale-[0.99] py-6 shadow-lg shadow-[#1D5F31]/10"
+                                    className="w-full h-20 bg-[#1D5F31] hover:bg-[#00e602] border border-black text-white font-bold uppercase tracking-[4px] rounded-xl transition-all flex items-center justify-center gap-4 active:scale-[0.99] py-6 shadow-lg shadow-[#1D5F31]/10"
                                 >
                                     <Send size={20} strokeWidth={3} />
                                     ENVIAR AGORA
@@ -72,7 +72,7 @@ export default function SugestoesPage() {
                                 <div className="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center text-[#1D5F31] mb-8">
                                     <CheckCircle2 size={48} strokeWidth={2.5} />
                                 </div>
-                                <h2 className="text-2xl font-black uppercase tracking-tighter text-[#1a1a1a] mb-4">SUGESTÃO RECEBIDA!</h2>
+                                <h2 className="text-2xl font-bold uppercase tracking-tighter text-[#1a1a1a] mb-4">SUGESTÃO RECEBIDA!</h2>
                                 <p className="text-xs font-bold uppercase tracking-widest text-slate-500 max-w-md">
                                     Obrigado, guerreiro! Recebemos sua mensagem e nossa equipe vai analisar com carinho para as próximas atualizações.
                                 </p>

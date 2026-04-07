@@ -47,7 +47,7 @@ export function ConfirmDeleteModal({ isOpen, onClose, onConfirm, loading = false
                                     <AlertTriangle size={32} />
                                 </div>
                                 <div className="space-y-2">
-                                    <h2 className="text-2xl font-black tracking-tighter uppercase text-slate-900 leading-none">
+                                    <h2 className="text-2xl font-bold tracking-tighter uppercase text-slate-900 leading-none">
                                         Excluir <span className="text-red-500">Conta?</span>
                                     </h2>
                                     <p className="text-slate-400 text-[10px] font-bold uppercase tracking-[3px]">Esta ação é irreversível.</p>
@@ -58,7 +58,7 @@ export function ConfirmDeleteModal({ isOpen, onClose, onConfirm, loading = false
                                 <p className="text-xs font-bold text-red-600 uppercase tracking-wider leading-relaxed text-center">
                                     Ao confirmar, você perderá acesso definitivo a:
                                 </p>
-                                <ul className="text-[10px] font-black uppercase tracking-widest text-red-500/80 space-y-2 flex flex-col items-center">
+                                <ul className="text-[10px] font-bold uppercase tracking-widest text-red-500/80 space-y-2 flex flex-col items-center">
                                     <li>• Todos os seus treinamentos</li>
                                     <li>• Certificados emitidos</li>
                                     <li>• Histórico de aprendizado</li>
@@ -69,7 +69,7 @@ export function ConfirmDeleteModal({ isOpen, onClose, onConfirm, loading = false
                                 <Button
                                     onClick={onConfirm}
                                     disabled={loading}
-                                    className="w-full bg-red-500 hover:bg-red-600 text-white h-14 rounded-2xl font-black uppercase tracking-[2px] transition-all flex items-center justify-center gap-3 shadow-lg shadow-red-200"
+                                    className="w-full bg-red-500 hover:bg-red-600 text-white h-14 rounded-2xl font-bold uppercase tracking-[2px] transition-all flex items-center justify-center gap-3 shadow-lg shadow-red-200"
                                 >
                                     {loading ? (
                                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -81,7 +81,7 @@ export function ConfirmDeleteModal({ isOpen, onClose, onConfirm, loading = false
                                 <button
                                     onClick={onClose}
                                     disabled={loading}
-                                    className="w-full h-14 rounded-2xl font-black uppercase tracking-[2px] text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all"
+                                    className="w-full h-14 rounded-2xl font-bold uppercase tracking-[2px] text-slate-400 hover:text-slate-900 hover:bg-slate-50 transition-all"
                                 >
                                     Cancelar
                                 </button>
