@@ -85,20 +85,20 @@ export default function AllCoursesClient({ courses, teachers }: AllCoursesClient
     }, [teachers, searchTerm])
 
     return (
-        <div className="p-8 lg:p-12 space-y-8 min-h-screen font-montserrat" style={{ color: '#0f172a', backgroundColor: '#fff' }}>
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="space-y-8 min-h-screen font-montserrat admin-page">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-4">
                 <div>
-                    <h1 className="text-4xl font-bold uppercase tracking-tighter text-[#1D5F31]">
-                        Catálogo Global
+                    <h1 className="text-4xl font-bold uppercase tracking-tighter">
+                        CATÁLOGO GLOBAL
                     </h1>
-                    <p className="text-[10px] font-bold uppercase tracking-[4px] text-slate-600 mt-2">
+                    <p className="text-[10px] font-bold uppercase tracking-[4px] mt-2">
                         Auditoria completa de todos os cursos
                     </p>
                 </div>
             </div>
 
             {/* Filtros */}
-            <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
+            <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center mb-6">
                 {/* Busca por curso */}
                 <div className="relative flex-1 max-w-md">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -107,7 +107,7 @@ export default function AllCoursesClient({ courses, teachers }: AllCoursesClient
                         placeholder="Buscar curso..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-12 pr-4 py-3 bg-white border-2 border-slate-200 rounded-none text-sm font-medium focus:border-[#1D5F31] focus:outline-none transition-colors"
+                        className="w-full pl-12 pr-4 py-3 bg-white border-2 border-slate-200 rounded-lg text-sm font-medium focus:border-[#1D5F31] focus:ring-2 focus:ring-green-700/20 focus:outline-none transition-colors"
                     />
                 </div>
 
@@ -125,7 +125,7 @@ export default function AllCoursesClient({ courses, teachers }: AllCoursesClient
                             }}
                             onFocus={() => setShowTeacherDropdown(true)}
                             onBlur={() => setTimeout(() => setShowTeacherDropdown(false), 200)}
-                            className="w-full pl-12 pr-10 py-3 bg-white border-2 border-slate-200 rounded-none text-sm font-medium focus:border-[#1D5F31] focus:outline-none transition-colors cursor-pointer"
+                            className="w-full pl-12 pr-10 py-3 bg-white border-2 border-slate-200 rounded-lg text-sm font-medium focus:border-[#1D5F31] focus:ring-2 focus:ring-green-700/20 focus:outline-none transition-colors cursor-pointer"
                             readOnly
                         />
                         {selectedTeacher && (
@@ -143,7 +143,7 @@ export default function AllCoursesClient({ courses, teachers }: AllCoursesClient
 
                     {/* Dropdown de Professores */}
                     {showTeacherDropdown && (
-                        <div className="absolute z-50 w-full mt-1 bg-white border-2 border-slate-200 max-h-60 overflow-y-auto shadow-lg">
+                        <div className="absolute z-50 w-full mt-1 bg-white border-2 border-slate-200 rounded-lg max-h-60 overflow-y-auto shadow-lg">
                             {teachers.length === 0 ? (
                                 <div className="p-3 text-sm text-slate-500 text-center">
                                     Nenhum professor encontrado

@@ -96,6 +96,21 @@ h1,h2,h3,h4,h5,h6 {
   line-height: 1.1;
 }
 
+/* Admin pages override - títulos escuros */
+.admin-page h1,
+.admin-page h2,
+.admin-page h3,
+.admin-page h4,
+.admin-page h5,
+.admin-page h6 {
+  color: #0f172a !important;
+}
+
+.admin-page p,
+.admin-page span {
+  color: #334155 !important;
+}
+
 p {
   color: #94a3b8;
 }
