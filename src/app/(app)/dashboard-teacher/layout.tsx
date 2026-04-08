@@ -1,6 +1,8 @@
 import ScrollToTop from '@/components/ScrollToTop'
 import { getServerSession } from '@/lib/auth-utils'
 import { redirect } from 'next/navigation'
+import { adminDb } from '@/lib/firebase-admin'
+import { TeacherStatusGuard } from './components/TeacherStatusGuard'
 
 export default async function TeacherLayout({
     children,
@@ -16,6 +18,30 @@ export default async function TeacherLayout({
     // Apenas professores ou admins podem acessar esta área
     if (session.role !== 'teacher' && session.role !== 'admin') {
         redirect('/dashboard-student')
+    }
+
+    // Buscar status do professor
+    let teacherStatus = 'approved'
+    let profileData: any = null
+    try {
+        const profileDoc = await adminDb.collection('profiles').doc(session.uid).get()
+        profileData = profileDoc.data()
+        teacherStatus = profileData?.teacher_status || 'approved'
+    } catch (error) {
+        console.error('Error fetching teacher status:', error)
+    }
+
+    // Se pending ou rejected, mostrar tela de status
+    if (teacherStatus === 'pending' || teacherStatus === 'rejected') {
+        return (
+            <div className="flex flex-col">
+                <ScrollToTop />
+                <TeacherStatusGuard 
+                    status={teacherStatus} 
+                    userName={profileData?.full_name || profileData?.name || ''}
+                />
+            </div>
+        )
     }
 
     return (

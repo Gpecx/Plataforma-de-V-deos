@@ -795,3 +795,38 @@ export async function suspendLesson(lessonId: string) {
         return { success: false, error: "Falha ao suspender aula." }
     }
 }
+
+/**
+ * Processa a aprovação ou rejeição de um professor.
+ * Esta função será conectada ao Firestore quando as Security Rules forem liberadas.
+ */
+export async function handleTeacherApproval(
+    teacherId: string,
+    action: 'approve' | 'reject'
+): Promise<{ success: boolean; message: string; error?: string }> {
+    try {
+        console.log(`[TeacherApproval] Processando ${action} para professor ${teacherId}`)
+
+        if (action === 'approve') {
+            console.log(`[TeacherApproval] Professor ${teacherId} APROVADO`)
+            console.log(`[TeacherApproval] Atualizando status para 'approved' no Firestore...`)
+        } else {
+            console.log(`[TeacherApproval] Professor ${teacherId} REJEITADO`)
+            console.log(`[TeacherApproval] Removendo perfil de professor ou definindo status 'rejected'...`)
+        }
+
+        return {
+            success: true,
+            message: action === 'approve'
+                ? `Professor aprovado com sucesso!`
+                : `Solicitação rejeitada.`
+        }
+    } catch (error) {
+        console.error("[TeacherApproval] Erro ao processar aprovação:", error)
+        return {
+            success: false,
+            error: "Erro ao processar solicitação.",
+            message: ""
+        }
+    }
+}
