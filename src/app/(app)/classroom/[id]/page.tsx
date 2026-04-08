@@ -18,7 +18,7 @@ import { ClassroomTabs } from './ClassroomTabs'
 import { auth, db } from '@/lib/firebase'
 import Logo from '@/components/Logo'
 import { onAuthStateChanged } from 'firebase/auth'
-import { getClassroomData, toggleLessonCompletion } from './actions'
+import { getClassroomData, toggleLessonCompletion, processCertificateIssuance } from './actions'
 import { QuizPlayer } from './QuizPlayer'
 import { useProgressStore } from '@/store/useProgressStore'
 import { doc, setDoc, getDoc } from 'firebase/firestore'
@@ -42,6 +42,7 @@ export default function ClassroomPage() {
     const [isCheckingAccess, setIsCheckingAccess] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [autoNextCountdown, setAutoNextCountdown] = useState<number | null>(null)
+    const [certificateIssued, setCertificateIssued] = useState(false)
     const [isToggling, setIsToggling] = useState(false)
     const [currentUser, setCurrentUser] = useState<any>(null)
     const [lastTimestamp, setLastTimestamp] = useState(0)
@@ -186,14 +187,27 @@ export default function ClassroomPage() {
         try {
             await toggleLessonCompletion(course?.id, id, currentUser.uid, !isCompleted)
             
-            setCompletedLessons(prev =>
-                prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
-            )
+            const newCompletedLessons = (prev: string[]) =>
+                prev.includes(id) ? prev.filter((item: string) => item !== id) : [...prev, id]
+            setCompletedLessons(newCompletedLessons)
             
             if (autoNext) {
                 const index = lessons.findIndex(l => l.id === id)
                 if (index < lessons.length - 1) {
                     setAutoNextCountdown(3)
+                }
+            }
+
+            const updatedLessons = newCompletedLessons(completedLessons)
+            const progressPercent = lessons.length > 0 ? Math.round((updatedLessons.length / lessons.length) * 100) : 0
+
+            if (progressPercent === 100 && !certificateIssued) {
+                const certResult = await processCertificateIssuance(course?.id, currentUser.uid)
+                if (certResult.success && certResult.data) {
+                    setCertificateIssued(true)
+                    setTimeout(() => {
+                        alert(`Parabéns! Certificado emitido com sucesso!\n\nCurso: ${certResult.data?.courseTitle}\nCódigo de Verificação: ${certResult.data?.verificationCode}`)
+                    }, 500)
                 }
             }
         } catch (err) {

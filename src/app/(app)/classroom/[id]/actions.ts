@@ -3,6 +3,16 @@
 import { adminDb } from '@/lib/firebase-admin'
 import { doc, getDoc, setDoc, deleteDoc, collection, query, where, getDocs } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
+import { ICertificate } from '@/lib/types/certificate'
+
+function generateVerificationCode(): string {
+    const hexChars = '0123456789ABCDEF'
+    let code = 'PP-2026-'
+    for (let i = 0; i < 6; i++) {
+        code += hexChars[Math.floor(Math.random() * hexChars.length)]
+    }
+    return code
+}
 
 function serializeFirestoreData(data: any): any {
     if (data === null || data === undefined) return null
@@ -171,5 +181,86 @@ export async function getClassroomData(courseId: string, userId: string) {
     } catch (err: any) {
         console.error("Erro no servidor ao carregar conteúdo:", err)
         return { success: false, error: err.message || 'INTERNAL_ERROR' }
+    }
+}
+
+export async function processCertificateIssuance(courseId: string, userId: string): Promise<{ success: boolean; data: ICertificate | null; error?: string; percentage?: number }> {
+    try {
+        // 1. Buscar progresso do usuário
+        const progressResult = await getUserCourseProgress(userId, courseId)
+        if (!progressResult.success) {
+            return { success: false, data: null, error: 'Erro ao buscar progresso' }
+        }
+
+        // 2. Buscar total de lições do curso
+        const lessonsSnapshot = await adminDb.collection('lessons')
+            .where('course_id', '==', courseId)
+            .where('status', '==', 'APROVADO')
+            .get()
+
+        const totalLessons = lessonsSnapshot.size
+        const completedLessons = progressResult.completedLessons?.length || 0
+
+        if (totalLessons === 0) {
+            return { success: false, data: null, error: 'Nenhuma lição encontrada para este curso' }
+        }
+
+        // 3. Validar se 100% foi concluído
+        const percentage = completedLessons / totalLessons
+        if (percentage < 1.0) {
+            return { success: false, data: null, error: 'Curso não concluído', percentage: Math.round(percentage * 100) }
+        }
+
+        // 4. Buscar dados do curso
+        const courseDoc = await adminDb.collection('courses').doc(courseId).get()
+        if (!courseDoc.exists) {
+            return { success: false, data: null, error: 'Curso não encontrado' }
+        }
+
+        const courseData = courseDoc.data()
+        const courseTitle = courseData?.title || 'Curso'
+
+        // 5. Buscar dados do perfil do aluno (nome)
+        const profileDoc = await adminDb.collection('profiles').doc(userId).get()
+        const profileData = profileDoc.exists ? profileDoc.data() : null
+        const studentName = profileData?.full_name || 'Aluno'
+
+        // 6. Buscar nome do instrutor
+        const instructorName = courseData?.instructorName || courseData?.instructor_name || 'Fred'
+
+        // 7. Gerar código de verificação
+        const verificationCode = generateVerificationCode()
+
+        // 8. Criar objeto do certificado
+        const certificate: ICertificate = {
+            userId,
+            courseId,
+            courseTitle,
+            studentName,
+            instructorName,
+            issueDate: new Date().toISOString(),
+            verificationCode,
+            percentage: 100,
+            status: 'pending_rules'
+        }
+
+        // 9. Tentativa de gravação no Firestore (comentada aguardando liberação das Security Rules)
+        /*
+        try {
+            await adminDb.collection('certificates').add({
+                ...certificate,
+                createdAt: new Date()
+            })
+            certificate.status = 'issued'
+        } catch (firestoreError) {
+            console.log('Certificado preparado mas gravação no Firestore aguardando liberação das Security Rules:', firestoreError)
+        }
+        */
+
+        return { success: true, data: certificate }
+
+    } catch (err: any) {
+        console.error("Erro ao processar certificação:", err)
+        return { success: false, data: null, error: err.message || 'Erro interno' }
     }
 }

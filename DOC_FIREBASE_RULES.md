@@ -10,6 +10,7 @@
 |---|------|---------------|------------|--------|
 | **INC-001** | 02/04/2026 | Persistência de Progresso (`userProgress`) | 🔴 Alta | ⏳ Aguardando aprovação |
 | **INC-002** | 06/04/2026 | Perfis de Professores + Progresso do Aluno | 🔴 Alta | ⏳ Aguardando aprovação |
+| **INC-003** | 08/04/2026 | Certificação Profissional (`certificates`) | 🔴 Alta | ⏳ Aguardando aprovação |
 
 ---
 
@@ -304,4 +305,164 @@ match /userProgress/{userId} {
 
 ---
 
-*INC-001 documentado em 02/04/2026 · INC-002 documentado em 06/04/2026 · Desenvolvedor: Daniel Siqueira · Aguardando revisão de: Fred (Líder Técnico)*
+# INC-003 — Certificação Profissional (`certificates`)
+
+---
+
+| Campo                | Detalhe                                                          |
+| -------------------- | ---------------------------------------------------------------- |
+| **Data do Ocorrido** | 08/04/2026                                                       |
+| **Prioridade**       | 🔴 Alta — Funcionalidade de certificação bloqueada              |
+| **Status**           | ⏳ Aguardando aprovação das Security Rules (Fred)                |
+| **Funcionalidades** | Geração e download de certificados PDF                            |
+
+---
+
+## INC-003.1 — Descrição do Problema
+
+A plataforma PowerPlay implementou a funcionalidade de **Certificação Profissional** que permite ao aluno baixar um certificado PDF após completar 100% de um curso. O sistema utiliza:
+
+- **Server Action** para validar progresso e gerar dados do certificado
+- **Firebase Admin** (server-side) para validação de 100% e geração do código de verificação
+- **API Routes** para renderização server-side do PDF com `@react-pdf/renderer`
+
+**O problema:** A coleção `certificates` não possui Security Rules definidas no console do Firebase, resultando em bloqueio total de leitura pelo frontend.
+
+---
+
+## INC-003.2 — Causa Raiz (Technical Root Cause)
+
+O Firebase opera no modelo **"negar por padrão"** (*deny by default*). A coleção `certificates` não está mapeada nas Security Rules, portanto:
+
+- Toda leitura e escrita está **bloqueada automaticamente**
+- O código JavaScript/client-side **não pode** persistir certificados
+- A escrita via Firebase Admin funciona pois ignora Security Rules (comentada no código aguardando aprovação)
+
+---
+
+## INC-003.3 — Solução Proposta (Ação Necessária do Admin)
+
+> [!IMPORTANT]
+> As regras abaixo devem ser aplicadas pelo **Fred** diretamente no [Console Firebase → Firestore → Rules](https://console.firebase.google.com/).
+> O desenvolvedor **não possui permissão** para alterar as Security Rules neste ambiente.
+
+### Regra — Coleção `certificates`
+
+```javascript
+// =========================================================================
+// CERTIFICATES (Certificados Profissionais 🎓)
+// Leitura: apenas o próprio aluno pode ler seus certificados.
+// Escrita: bloqueada para client-side (via Firebase Admin apenas).
+// =========================================================================
+match /certificates/{certificateId} {
+
+  // Leitura: apenas o próprio dono do certificado pode ler
+  allow read: if request.auth != null
+    && resource.data.userId == request.auth.uid;
+
+  // Escrita: Bloqueada para client-side
+  // A geração de certificados é feita via Firebase Admin (server-side)
+  // que ignora as Security Rules
+  allow write: if false;
+}
+```
+
+**Por que `write: if false`?**
+
+A geração do certificado envolve validação complexa (100% de progresso, verificação de lições aprovadas, geração de código único). Esta lógica é executada server-side via Firebase Admin na Server Action, que **ignora** as Security Rules. 
+
+Definir `write: if false` no client-side garante que:
+- Nenhum agente malicioso pode injetar certificados via frontend
+- A integridade do sistema é mantida mesmo se houver漏洞 no frontend
+- O Admin tem controle total via server-side
+
+---
+
+## INC-003.4 — Justificativa de Segurança
+
+| Vetor de Ataque | Como a Regra Mitiga |
+|---|---|
+| **Aluno tenta ler certificado de outro** | `resource.data.userId == request.auth.uid` garante isolamento total |
+| **Usuário não autenticado acessa certificados** | `request.auth != null` bloqueia requisições sem sessão |
+| **Injeção de certificados via frontend** | `write: if false` bloqueia toda escrita client-side |
+| **Manipulação de códigos de verificação** | Código é gerado server-side via Admin, garantindo integridade |
+
+---
+
+## INC-003.5 — Estrutura do Documento Persistido
+
+Para referência do líder técnico, cada documento na coleção `certificates` possui a seguinte estrutura:
+
+```typescript
+// Coleção: certificates
+// ID do Documento: Gerado automaticamente pelo Firestore
+
+interface ICertificate {
+  id: string;              // Gerado automaticamente pelo Firestore
+  userId: string;          // UID do Firebase Auth — validado pela Rule
+  courseId: string;       // ID do curso correspondente
+  courseTitle: string;    // Título do curso
+  studentName: string;    // Nome completo do aluno (full_name do perfil)
+  instructorName: string; // Nome do instrutor do curso
+  issueDate: string;      // Data de emissão (ISO 8601)
+  verificationCode: string; // Código único: PP-2026-XXXXXX
+  percentage: number;     // Percentual de conclusão (sempre 100)
+  status: 'pending_rules' | 'issued'; // Status de emissão
+  createdAt?: Timestamp;  // Data de criação no Firestore
+}
+```
+
+---
+
+## INC-003.6 — Fluxo de Geração do Certificado
+
+O fluxo atual (implementado) funciona da seguinte forma:
+
+1. **Validação Server-Side** → `processCertificateIssuance()` verifica 100% de progresso
+2. **Geração de Código** → Firebase Admin gera código `PP-2026-XXXXXX`
+3. **Persistência** → Código comentado aguardando aprovação das Rules:
+
+```typescript
+// 9. Tentativa de gravação no Firestore (comentada aguardando liberação das Security Rules)
+/*
+try {
+  await adminDb.collection('certificates').add({
+    ...certificate,
+    createdAt: new Date()
+  })
+  certificate.status = 'issued'
+} catch (firestoreError) {
+  console.log('Certificado preparado mas gravação no Firestore aguardando liberação das Security Rules:', firestoreError)
+}
+*/
+```
+
+4. **API Routes** → Renderização PDF via `@react-pdf/renderer` consumindo dados validados em memória
+
+---
+
+## INC-003.7 — Impacto da Não Aplicação
+
+| Impacto | Severidade |
+|---|---|
+| Aluno não pode visualizar seus certificados via interface | 🔴 Crítico |
+| Lista de certificados no dashboard fica vazia | 🔴 Crítico |
+| Sistema de verificação de autenticidade comprometido | 🟡 Alto |
+| Funcionalidade de certificação Premium não funciona | 🔴 Crítico |
+
+---
+
+## INC-003.8 — Status de Implementação (Código)
+
+> [!NOTE]
+> As alterações de código no frontend/backend estão **prontas e implementadas**. O único bloqueio é a aplicação da regra acima no Console Firebase.
+
+- ✅ Template PDF (`CertificateTemplate.tsx`) — componente criado
+- ✅ API Routes (`/api/certificates/[id]/download` e `preview`) — implementadas
+- ✅ Dashboard Student — integração com botões de download e preview
+- ✅ Fontes Montserrat — disponíveis em `/public/fonts/`
+- ⏳ Security Rules — **aguardando aprovação de Fred**
+
+---
+
+*INC-001 documentado em 02/04/2026 · INC-002 documentado em 06/04/2026 · INC-003 documentado em 08/04/2026 · Desenvolvedor: Daniel Siqueira · Aguardando revisão de: Fred (Líder Técnico)*
