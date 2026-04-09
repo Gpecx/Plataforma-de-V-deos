@@ -14,6 +14,8 @@ export async function getSessionUser() {
         const uid = decodedToken.uid
         const tokenRole = decodedToken.role
 
+        const userRecord = await adminAuth.getUser(uid)
+
         const profileDoc = await adminDb.collection('profiles').doc(uid).get()
         const profileData = profileDoc.data()
 
@@ -22,7 +24,8 @@ export async function getSessionUser() {
         return {
             uid: uid,
             email: decodedToken.email,
-            role: activeRole
+            role: activeRole,
+            emailVerified: userRecord.emailVerified || false
         }
     } catch (error) {
         console.error('getSessionUser Error:', error)

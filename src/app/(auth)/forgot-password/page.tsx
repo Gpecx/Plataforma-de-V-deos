@@ -1,32 +1,34 @@
 "use client"
 
 import { useState } from "react";
-import { sendPasswordResetEmail } from "firebase/auth";
-import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, KeyRound, Loader2, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
+import { resetPasswordAction } from "./actions";
+import { toast } from "sonner";
 
 export default function ForgotPasswordPage() {
     const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
-    const [error, setError] = useState("");
 
     const handleReset = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        setError("");
 
         try {
-            // Chamada direta do SDK do Firebase Cliente
-            await sendPasswordResetEmail(auth, email);
-            setIsSubmitted(true);
-        } catch (err: any) {
+            const result = await resetPasswordAction(email);
+            
+            if (result.success) {
+                setIsSubmitted(true);
+                toast.success("E-mail de recuperação enviado! Verifique sua caixa de entrada.");
+            } else {
+                toast.error(result.error || "Não foi possível enviar o e-mail. Verifique se o endereço está correto.");
+            }
+        } catch (err) {
             console.error(err);
-            // Mensagem genérica para segurança, mas informativa para o usuário
-            setError("Não foi possível enviar o e-mail. Verifique se o endereço está correto.");
+            toast.error("Erro interno. Tente novamente.");
         } finally {
             setLoading(false);
         }
@@ -63,7 +65,6 @@ export default function ForgotPasswordPage() {
                                     placeholder="EXEMPLO@POWERPLAY.COM"
                                     className="bg-[#061629] border-2 border-[#1D5F31] text-white rounded-xl h-16 font-bold text-xs uppercase tracking-widest px-8 focus:border-[#1D5F31] focus:ring-0"
                                 />
-                                {error && <p className="text-red-500 text-[10px] font-bold uppercase tracking-widest">{error}</p>}
                             </div>
 
                             <Button

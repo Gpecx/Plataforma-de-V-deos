@@ -10,6 +10,8 @@ interface AuthContextType {
     profile: any | null
     role: 'student' | 'teacher' | 'admin' | null
     loading: boolean
+    isMfaPending: boolean
+    setMfaPending: (pending: boolean) => void
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -17,6 +19,8 @@ const AuthContext = createContext<AuthContextType>({
     profile: null,
     role: null,
     loading: true,
+    isMfaPending: false,
+    setMfaPending: () => {},
 })
 
 export const useAuth = () => useContext(AuthContext)
@@ -26,12 +30,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [profile, setProfile] = useState<any | null>(null)
     const [role, setRole] = useState<'student' | 'teacher' | 'admin' | null>(null)
     const [loading, setLoading] = useState(true)
+    const [isMfaPending, setIsMfaPending] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('mfa_pending') === 'true'
+        }
+        return false
+    })
+
+    const setMfaPending = (pending: boolean) => {
+        setIsMfaPending(pending)
+        if (typeof window !== 'undefined') {
+            if (pending) {
+                localStorage.setItem('mfa_pending', 'true')
+            } else {
+                localStorage.removeItem('mfa_pending')
+            }
+        }
+    }
 
     useEffect(() => {
         const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
             setUser(currentUser)
-
-            if (currentUser) {
+            
+            // Se o MFA estiver pendente, não carregamos o perfil ainda para evitar erros de permissão
+            if (currentUser && !isMfaPending) {
                 // Escutar mudanças no perfil em tempo real
                 const profileRef = doc(db, 'profiles', currentUser.uid)
                 const unsubscribeProfile = onSnapshot(profileRef, (docSnap) => {
@@ -60,10 +82,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         })
 
         return () => unsubscribeAuth()
-    }, [])
+    }, [isMfaPending])
 
     return (
-        <AuthContext.Provider value={{ user, profile, role, loading }}>
+        <AuthContext.Provider value={{ user, profile, role, loading, isMfaPending, setMfaPending }}>
             {children}
         </AuthContext.Provider>
     )

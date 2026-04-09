@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { auth } from '@/lib/firebase'
-import { onAuthStateChanged, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth'
+import { onAuthStateChanged, updatePassword, EmailAuthProvider, reauthenticateWithCredential, multiFactor, TotpMultiFactorGenerator, TotpSecret } from 'firebase/auth'
 import { useRouter } from 'next/navigation'
-import { Settings, DollarSign, Bell, Shield, Wallet, Save, Key, Trash2 } from 'lucide-react'
+import { Settings, DollarSign, Bell, Shield, Wallet, Save, Key, Trash2, ShieldCheck } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useCartStore } from '@/store/useCartStore'
@@ -24,17 +24,22 @@ export default function TeacherSettingsPage() {
     const [isUpdatingPassword, setIsUpdatingPassword] = useState(false)
     const [needsReauth, setNeedsReauth] = useState(false)
 
+    const [showMFAEnroll, setShowMFAEnroll] = useState(false)
+    const [mfaSecret, setMfaSecret] = useState<TotpSecret | null>(null)
+    const [mfaCode, setMfaCode] = useState("")
+    const [isEnrollingMFA, setIsEnrollingMFA] = useState(false)
+    const [mfaError, setMfaError] = useState("")
+    const [isMFAActive, setIsMFAActive] = useState(false)
+
     const showNotification = useCartStore(state => state.showNotification)
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
                 setUser(user)
+                setIsMFAActive(multiFactor(user).enrolledFactors.length > 0)
             }
             setLoading(false)
-            // if (!user) {
-            //     router.push('/login')
-            // } 
         })
         return () => unsubscribe()
     }, [router])
@@ -81,6 +86,68 @@ export default function TeacherSettingsPage() {
             }
         } finally {
             setIsUpdatingPassword(false)
+        }
+    }
+
+    const handleStartMFAEnroll = async () => {
+        if (!user.emailVerified) {
+            showNotification('Verifique seu e-mail antes de ativar o 2FA.', 'error')
+            return
+        }
+
+        try {
+            const secret = await TotpMultiFactorGenerator.generateSecret(user)
+            setMfaSecret(secret)
+            setShowMFAEnroll(true)
+        } catch (error) {
+            console.error("MFA Secret Generation Error:", error)
+            showNotification('Erro ao gerar segredo do 2FA. Tente reautenticar.', 'error')
+        }
+    }
+
+    const handleConfirmMFAEnroll = async () => {
+        if (!mfaSecret || mfaCode.length < 6) return
+
+        setIsEnrollingMFA(true)
+        setMfaError("")
+        try {
+            const assertion = TotpMultiFactorGenerator.assertionForEnrollment(mfaSecret, mfaCode)
+            console.log("Tentando inscrever Professor no MFA...")
+            await multiFactor(user).enroll(assertion, 'Authenticator App')
+            
+            // Força a atualização do token e recarga
+            console.log("Inscrição enviada (Teacher). Sincronizando...")
+            await user.getIdToken(true)
+            await reload(user)
+            
+            const factors = multiFactor(auth.currentUser!).enrolledFactors
+            console.log("MFA Inscribed (Teacher)! Fatores detectados:", factors)
+
+            setIsMFAActive(factors.length > 0)
+            setShowMFAEnroll(false)
+            setMfaSecret(null)
+            setMfaCode("")
+            showNotification('2FA ativado com sucesso!', 'success')
+        } catch (error: any) {
+            console.error("MFA Enrollment Error (Teacher):", error)
+            setMfaError("Código inválido. Tente novamente.")
+        } finally {
+            setIsEnrollingMFA(false)
+        }
+    }
+
+    const handleDisableMFA = async () => {
+        if (!confirm("Tem certeza que deseja desativar o 2FA?")) return
+
+        try {
+            const mfaUser = multiFactor(user)
+            const enrollment = mfaUser.enrolledFactors[0]
+            await mfaUser.unenroll(enrollment)
+            setIsMFAActive(false)
+            showNotification('2FA desativado.', 'info')
+        } catch (error) {
+            console.error("MFA Unenroll Error:", error)
+            showNotification('Erro ao desativar 2FA.', 'error')
         }
     }
 
@@ -246,6 +313,63 @@ export default function TeacherSettingsPage() {
                             </div>
                         </div>
                     </form>
+
+                    <div className="mt-12 pt-10 border-t border-slate-100 relative z-10">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                            <div className="space-y-1">
+                                <h3 className="font-bold uppercase text-lg !text-black flex items-center gap-2">
+                                    <ShieldCheck size={20} className="text-[#1D5F31]" />
+                                    Autenticação em Duas Etapas (2FA)
+                                </h3>
+                                <p className="text-sm font-medium tracking-tight text-slate-500">Aumente a segurança do seu workspace de instrutor.</p>
+                            </div>
+                            
+                            {isMFAActive ? (
+                                <Button onClick={handleDisableMFA} variant="outline" className="border-red-200 text-red-600 hover:bg-red-50 font-bold uppercase rounded-xl h-14 px-8 transition-all">Desativar 2FA</Button>
+                            ) : (
+                                <Button onClick={handleStartMFAEnroll} variant="outline" className="border-black text-[#1D5F31] hover:bg-slate-50 font-bold uppercase rounded-xl h-14 px-8 transition-all">Ativar 2FA</Button>
+                            )}
+                        </div>
+
+                        {showMFAEnroll && mfaSecret && (
+                            <div className="mt-8 p-6 bg-slate-50 border border-slate-100 rounded-2xl animate-in zoom-in-95 duration-200">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                                    <div className="flex flex-col items-center justify-center p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
+                                        <img 
+                                            src={`https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(mfaSecret.generateQrCodeUrl(user.email!, 'PowerPlay Teacher'))}&size=200x200`} 
+                                            alt="QR Code 2FA" 
+                                            className="w-[180px] h-[180px]"
+                                        />
+                                        <p className="text-[9px] font-bold text-slate-400 mt-4 uppercase tracking-widest text-center">Escaneie com seu App de Autenticação</p>
+                                    </div>
+                                    
+                                    <div className="space-y-6">
+                                        <div className="space-y-1.5">
+                                            <label className="text-sm font-bold uppercase tracking-tight text-slate-900 px-1">Código de Confirmação</label>
+                                            <Input 
+                                                value={mfaCode}
+                                                onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))}
+                                                maxLength={6}
+                                                className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-400 font-bold text-center text-xl tracking-widest focus:border-[#1D5F31]" 
+                                                placeholder="000000" 
+                                            />
+                                            {mfaError && <p className="text-[10px] font-bold text-red-600 uppercase mt-1 px-1">{mfaError}</p>}
+                                        </div>
+                                        <div className="flex flex-col gap-3">
+                                            <Button 
+                                                onClick={handleConfirmMFAEnroll}
+                                                disabled={isEnrollingMFA || mfaCode.length < 6}
+                                                className="bg-[#1D5F31] text-white font-bold uppercase rounded-xl h-14 transition-all w-full"
+                                            >
+                                                {isEnrollingMFA ? 'Processando...' : 'Confirmar e Ativar'}
+                                            </Button>
+                                            <button onClick={() => setShowMFAEnroll(false)} className="text-[10px] font-bold uppercase text-slate-500 hover:text-black transition-colors">Cancelar Setup</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
                 </section>
 
                 {/* Zona de Perigo - rounded-xl */}

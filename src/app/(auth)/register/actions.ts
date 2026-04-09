@@ -61,6 +61,7 @@ export async function createProfile(data: CreateProfileData) {
             cpf_cnpj: sanitizedCpfCnpj,
             cep: sanitizedCep,
             id: data.uid,
+            mfaEnabled: true, // Padronização PowerPlay: MFA Ativado por padrão
             created_at: new Date()
         })
         return { success: true }

@@ -14,6 +14,10 @@ export default async function AdminLayout({
         redirect('/dashboard-student')
     }
 
+    if (!user.emailVerified) {
+        redirect('/verify-email')
+    }
+
     return (
         <div className="min-h-screen relative overflow-hidden text-slate-900" style={{ background: '#ffffff' }}>
             <div className="fixed inset-0 bg-white -z-10" />

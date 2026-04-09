@@ -4,7 +4,7 @@ import { useState, useMemo, Suspense, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { auth } from '@/lib/firebase'
-import { createUserWithEmailAndPassword, updateProfile as firebaseUpdateProfile } from 'firebase/auth'
+import { createUserWithEmailAndPassword, updateProfile as firebaseUpdateProfile, sendEmailVerification } from 'firebase/auth'
 import { createProfile, getAddressByCep } from './actions'
 import Logo from '@/components/Logo'
 import { ArrowRight, AlertCircle } from 'lucide-react'
@@ -232,6 +232,8 @@ function RegisterForm() {
                 displayName: fullName
             })
 
+            await sendEmailVerification(user)
+
             const result = await createProfile({
                 uid: user.uid,
                 email,
@@ -253,7 +255,7 @@ function RegisterForm() {
                 throw new Error(result.error)
             }
 
-            const idToken = await user.getIdToken()
+            const idToken = await user.getIdToken(true)
             const sessionRes = await fetch('/api/auth/session', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -268,9 +270,9 @@ function RegisterForm() {
             router.refresh()
 
             if (role === 'teacher') {
-                router.push('/dashboard-teacher')
+                router.push('/verify-email')
             } else {
-                router.push('/dashboard-student')
+                router.push('/verify-email')
             }
         } catch (error: any) {
             console.error('Erro no cadastro:', error)
@@ -410,6 +412,11 @@ function RegisterForm() {
                                             variants={inputVariants}
                                             custom={2.1}
                                         />
+                                        {cpfCnpjTouched && !isCpfCnpjValid && (
+                                            <p className="text-red-500 text-[9px] font-bold uppercase tracking-widest mt-1">
+                                                {personType === 'CPF' ? 'CPF inválido' : 'CNPJ inválido'}
+                                            </p>
+                                        )}
                                     </div>
                                     <div className="col-span-12 md:col-span-5 space-y-1">
                                         <label className={labelClass}>Data de Nascimento</label>

@@ -11,10 +11,13 @@ import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ArrowRight } from "lucide-react"
 import { auth, db } from "@/lib/firebase"
-import { signInWithEmailAndPassword } from "firebase/auth"
-import { doc, getDoc } from "firebase/firestore"
+import { signInWithEmailAndPassword, reload } from "firebase/auth"
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore"
 import Logo from "@/components/Logo"
 import { ConversionBridge } from "@/components/ConversionBridge"
+import MFAChallenge from "@/components/MFAChallenge"
+import { useAuth } from "@/context/AuthProvider"
+import { updateDoc } from "firebase/firestore"
 
 const loginSchema = z.object({
     email: z.string().email("E-mail inválido"),
@@ -28,6 +31,9 @@ function LoginContent() {
     const isCourseRedirect = redirectTo.startsWith('/course') || redirectTo.startsWith('/classroom') || redirectTo.startsWith('/cart')
     const [showLogin, setShowLogin] = useState(!isCourseRedirect)
     const [mounted, setMounted] = useState(false)
+    const [isMFAStep, setIsMFAStep] = useState(false)
+    const [mfaEmail, setMfaEmail] = useState("")
+    const { setMfaPending } = useAuth()
 
     useEffect(() => {
         setMounted(true)
@@ -39,11 +45,82 @@ function LoginContent() {
     })
 
     async function onSubmit(values: z.infer<typeof loginSchema>) {
+        console.log("Iniciando login para:", values.email)
         try {
             const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password)
             const user = userCredential.user
+            console.log("Login de e-mail/senha bem sucedido. Verificando MFA...")
 
-            const idToken = await user.getIdToken()
+            // Interceptação MFA Customizada
+            // Pequeno atraso para garantir que as permissões do Auth propaguem para o Firestore
+            await new Promise(resolve => setTimeout(resolve, 500));
+            const profileRef = doc(db, 'profiles', user.uid);
+            const profileDoc = await getDoc(profileRef);
+            const profileData = profileDoc.data();
+
+            if (profileData?.mfaEnabled) {
+                console.log("MFA Habilitado! Garantindo transição false → true no gatilho...");
+                
+                // CORREÇÃO: Resetar para false ANTES de ativar.
+                // Se o campo já era 'true' (tentativa anterior sem limpeza), o Firestore
+                // não detectaria mudança, e o PIN não seria gerado.
+                await updateDoc(profileRef, { mfaCodeRequested: false });
+                
+                // Pequeno delay para garantir que a escrita anterior chegou ao Firestore
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                // Agora ativa o gatilho com transição garantida: false → true
+                await updateDoc(profileRef, { mfaCodeRequested: true });
+
+                // Bloqueia o estado global e mostra o desafio
+                setMfaPending(true);
+                setMfaEmail(user.email || "");
+                setIsMFAStep(true);
+                return;
+            }
+
+            console.log("MFA não habilitado. Seguindo com o login...");
+            setMfaPending(false);
+            await handleLoginSuccess(user);
+        } catch (error: any) {
+            console.log("Erro no login:", error.code)
+            /* 
+            // MFA Nativo Comentado conforme requisito
+            if (error.code === 'auth/multi-factor-auth-required') {
+                const resolver = getMultiFactorResolver(auth, error)
+                setMfaResolver(resolver)
+                setIsMFAStep(true)
+                return
+            }
+            */
+            handleLoginError(error)
+        }
+    }
+
+    async function onVerifyMFA() {
+        // A lógica de verificação foi movida para dentro do componente MFAChallenge.tsx
+        // pois ele agora valida diretamente contra o Firestore.
+        // O MFAChallenge chamará handleLoginSuccess após validar o PIN.
+        const user = auth.currentUser
+        if (user) {
+            await handleLoginSuccess(user)
+        }
+    }
+
+    async function handleLoginSuccess(user: any) {
+        try {
+            await reload(user)
+            console.log('Email verified:', user.emailVerified)
+
+            if (!user.emailVerified) {
+                await auth.signOut()
+                router.push('/verify-email')
+                return
+            }
+
+            console.log('Redirecting to dashboard...')
+
+            const idToken = await user.getIdToken(true)
             const sessionRes = await fetch("/api/auth/session", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -52,6 +129,12 @@ function LoginContent() {
             });
 
             if (!sessionRes.ok) {
+                const errorData = await sessionRes.json()
+                if (errorData.error === "EMAIL_NOT_VERIFIED") {
+                    await auth.signOut()
+                    router.push('/verify-email')
+                    return
+                }
                 throw new Error("session_creation_failed");
             }
 
@@ -72,16 +155,22 @@ function LoginContent() {
             } else {
                 router.push('/course')
             }
-        } catch (error: any) {
-            console.error("Erro ao entrar:", error)
-            let errorMessage = "Erro ao fazer login. Tente novamente";
-            if (error.message === "session_creation_failed") {
-                errorMessage = "Erro ao iniciar sessão. Tente novamente.";
-            } else if (error.message) {
-                errorMessage = "Erro ao entrar: " + error.message;
-            }
-            alert(errorMessage)
+        } catch (error) {
+            handleLoginError(error)
         }
+    }
+
+    function handleLoginError(error: any) {
+        console.error("Erro ao entrar:", error)
+        let errorMessage = "Erro ao fazer login. Tente novamente";
+        if (error.message === "session_creation_failed") {
+            errorMessage = "Erro ao iniciar sessão. Tente novamente.";
+        } else if (error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+            errorMessage = "E-mail ou senha incorretos.";
+        } else if (error.message) {
+            errorMessage = "Erro ao entrar: " + error.message;
+        }
+        alert(errorMessage)
     }
 
     if (!mounted) {
@@ -126,57 +215,65 @@ function LoginContent() {
                         </div>
                     </div>
 
-                    {/* Form Section (Compact) */}
+                    {/* Content Section (Compact) */}
                     <div className="w-full">
-                        <Form {...form}>
-                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-                                <FormField
-                                    control={form.control}
-                                    name="email"
-                                    render={({ field }) => (
-                                        <FormItem className="space-y-1.5">
-                                            <FormLabel className="text-[10px] font-bold uppercase tracking-widest text-green-200 ml-1">E-mail de acesso</FormLabel>
-                                            <FormControl>
-                                                <Input
-                                                    className="bg-[#153b1b] border-[#266d35] focus:border-slate-800 focus:ring-0 rounded-xl h-14 text-sm font-bold text-[var(--foreground)] placeholder:text-green-700 transition-all shadow-none px-5"
-                                                    placeholder="SEU@EMAIL.COM"
-                                                    {...field}
-                                                />
-                                            </FormControl>
-                                            <FormMessage className="text-[9px] uppercase font-bold text-red-600" />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="password"
-                                    render={({ field }) => (
-                                        <FormItem className="space-y-1.5">
-                                            <div className="flex items-center justify-between ml-1">
-                                                <FormLabel className="text-[10px] font-bold uppercase tracking-widest text-green-200">Senha</FormLabel>
-                                                <Link href="/forgot-password" title="Esqueceu a senha?" className="text-[9px] font-bold uppercase tracking-widest hover:underline text-green-200">Recuperar senha</Link>
-                                            </div>
-                                            <FormControl>
-                                                <Input
-                                                    className="bg-[#153b1b] border-[#266d35] focus:border-slate-800 focus:ring-0 rounded-xl h-14 text-sm font-bold text-[var(--foreground)] placeholder:text-green-700 transition-all shadow-none px-5"
-                                                    type="password"
-                                                    placeholder="••••••••"
-                                                    {...field}
-                                                />
-                                            </FormControl>
-                                            <FormMessage className="text-[9px] uppercase font-bold text-red-600" />
-                                        </FormItem>
-                                    )}
-                                />
-                                <Button
-                                    type="submit"
-                                    className="w-full font-bold uppercase tracking-[4px] h-14 rounded-xl shadow-lg transition-all flex items-center justify-center gap-4 bg-[#1D5F31] hover:bg-[#28b828] text-white hover:scale-[1.01] active:scale-[0.99] group mt-2"
-                                >
-                                    ENTRAR AGORA
-                                    <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                                </Button>
-                            </form>
-                        </Form>
+                        {isMFAStep ? (
+                            <MFAChallenge 
+                                email={mfaEmail}
+                                onVerify={onVerifyMFA} 
+                                onCancel={() => setIsMFAStep(false)} 
+                            />
+                        ) : (
+                            <Form {...form}>
+                                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+                                    <FormField
+                                        control={form.control}
+                                        name="email"
+                                        render={({ field }) => (
+                                            <FormItem className="space-y-1.5">
+                                                <FormLabel className="text-[10px] font-bold uppercase tracking-widest text-green-200 ml-1">E-mail de acesso</FormLabel>
+                                                <FormControl>
+                                                    <Input
+                                                        className="bg-[#153b1b] border-[#266d35] focus:border-slate-800 focus:ring-0 rounded-xl h-14 text-sm font-bold text-[var(--foreground)] placeholder:text-green-700 transition-all shadow-none px-5"
+                                                        placeholder="SEU@EMAIL.COM"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage className="text-[9px] uppercase font-bold text-red-600" />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="password"
+                                        render={({ field }) => (
+                                            <FormItem className="space-y-1.5">
+                                                <div className="flex items-center justify-between ml-1">
+                                                    <FormLabel className="text-[10px] font-bold uppercase tracking-widest text-green-200">Senha</FormLabel>
+                                                    <Link href="/forgot-password" title="Esqueceu a senha?" className="text-[9px] font-bold uppercase tracking-widest hover:underline text-green-200">Recuperar senha</Link>
+                                                </div>
+                                                <FormControl>
+                                                    <Input
+                                                        className="bg-[#153b1b] border-[#266d35] focus:border-slate-800 focus:ring-0 rounded-xl h-14 text-sm font-bold text-[var(--foreground)] placeholder:text-green-700 transition-all shadow-none px-5"
+                                                        type="password"
+                                                        placeholder="••••••••"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <FormMessage className="text-[9px] uppercase font-bold text-red-600" />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <Button
+                                        type="submit"
+                                        className="w-full font-bold uppercase tracking-[4px] h-14 rounded-xl shadow-lg transition-all flex items-center justify-center gap-4 bg-[#1D5F31] hover:bg-[#28b828] text-white hover:scale-[1.01] active:scale-[0.99] group mt-2"
+                                    >
+                                        ENTRAR AGORA
+                                        <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                    </Button>
+                                </form>
+                            </Form>
+                        )}
 
                         {/* Footer Links (Closer) */}
                         <div className="mt-12 pt-8 border-t border-slate-100 text-center">

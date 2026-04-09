@@ -26,6 +26,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const decodedToken = await adminAuth.verifyIdToken(idToken);
     const { uid } = decodedToken;
 
+    // (Maneuver) Permite a criação da sessão mesmo sem e-mail verificado para que o 
+    // usuário possa acessar a rota /verify-email com estado autenticado.
+    // O bloqueio de acesso a áreas restritas continuará sendo feito nos layouts/middleware.
+
     // Generate a unique session identifier
     const sessionId = crypto.randomUUID();
 
