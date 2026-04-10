@@ -96,6 +96,10 @@ export async function GET(
       return new NextResponse(validation.error || 'Certificado inválido', { status: 400 })
     }
 
+    if (!validation.certificate) {
+      return new NextResponse('Dados do certificado não encontrados', { status: 404 })
+    }
+
     const pdfStream = await renderToStream(
       <CertificateTemplate certificate={validation.certificate} />
     )

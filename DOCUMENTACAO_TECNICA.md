@@ -457,5 +457,17 @@ A aplicação utiliza o **App Router** do Next.js, onde a maioria das rotas são
 
 ---
 
+#### 🛠️ Bug Fixes e Estabilidade
+
+**1. Correção de Erro de Tipo no Build (Certificados)**
+- **Arquivos**: `src/app/api/certificates/[id]/download/route.tsx`, `src/app/api/certificates/[id]/preview/route.tsx`
+- Adicionada guard clause para garantir que `validation.certificate` não seja `undefined` ao ser passado para o template PDF, resolvendo erro fatal de compilação na Vercel.
+
+**2. Correção de Importação de 'reload'**
+- **Arquivos**: `src/app/(app)/dashboard-student/settings/page.tsx`, `src/app/(app)/dashboard-teacher/settings/page.tsx`
+- Adicionado import ausente da função `reload` do Firebase Auth para garantir atualização de tokens e sincronização de dados do usuário no cliente após ativação de MFA.
+
+---
+
 **Última Atualização:** 10 de Abril de 2026
 **Status do Documento:** Versão 2.0 (MFA Customizado + Certificados PDF + Gestão de Instrutores + Exportação CSV + Hardening de Bypass MFA)
