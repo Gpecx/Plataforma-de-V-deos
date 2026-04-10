@@ -15,6 +15,7 @@ import {
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { parseFirebaseDate } from '@/lib/date-utils'
+import { AnalyticsExportButton } from '../components/AnalyticsExportButton'
 
 export default async function FinancialDashboardPage() {
     const cookieStore = cookies()
@@ -30,15 +31,24 @@ export default async function FinancialDashboardPage() {
 
     const teacherId = decodedToken.uid
 
+    // Buscamos o perfil do professor para o nome no relatório
+    const teacherDoc = await adminDb.collection('profiles').doc(teacherId).get()
+    const teacherName = teacherDoc.data()?.full_name || 'Professor'
+
     // 1. Buscamos os cursos deste professor
     const coursesSnapshot = await adminDb.collection('courses')
         .where('teacher_id', '==', teacherId)
         .get()
 
     const courses = coursesSnapshot.docs.reduce((acc, doc) => {
-        acc[doc.id] = { id: doc.id, ...doc.data() }
+        const data = doc.data()
+        acc[doc.id] = { 
+            id: doc.id, 
+            title: data.title,
+            price: data.price
+        }
         return acc
-    }, {} as any)
+    }, {} as Record<string, any>)
     const courseIds = Object.keys(courses)
 
     if (courseIds.length === 0) {
@@ -59,14 +69,17 @@ export default async function FinancialDashboardPage() {
 
     const enrollmentSnapshots = await Promise.all(enrollmentPromises)
     const enrollments = enrollmentSnapshots.flatMap(snap =>
-        snap.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }))
+        snap.docs.map(doc => {
+            const data = doc.data()
+            return {
+                id: doc.id,
+                course_id: data.course_id,
+                user_id: data.user_id,
+                created_at: parseFirebaseDate(data.created_at)?.toISOString() || new Date().toISOString()
+            }
+        })
     ).sort((a: any, b: any) => {
-        const dateA = parseFirebaseDate(a.created_at)?.getTime() || 0
-        const dateB = parseFirebaseDate(b.created_at)?.getTime() || 0
-        return (dateB as any) - (dateA as any)
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     })
 
     // 3. Buscamos perfis dos alunos envolvidos
@@ -128,9 +141,11 @@ export default async function FinancialDashboardPage() {
                 </div>
 
                 <div className="flex gap-4">
-                    <Button variant="outline" className="border border-black/20 text-slate-600 font-bold uppercase text-[10px] tracking-widest px-6 hover:bg-slate-50 transition-colors bg-white rounded-xl shadow-none">
-                        <Download size={14} className="mr-2" /> Relatório CSV
-                    </Button>
+                    <AnalyticsExportButton 
+                        enrollments={enrollments} 
+                        courses={courses} 
+                        teacherName={teacherName} 
+                    />
                     <Button className="bg-[#1D5F31] text-white font-bold uppercase text-xs tracking-widest px-8 shadow-none border-2 border-[#1D5F31] hover:bg-[#1D5F31]/90 transition-all rounded-xl">
                         Solicitar Saque
                     </Button>

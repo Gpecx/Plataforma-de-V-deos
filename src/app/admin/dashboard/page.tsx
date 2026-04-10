@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import RevenueChart from './components/RevenueChart'
 import TaxSettings from './components/TaxSettings'
+import { AdminFinanceExportButton } from './components/AdminFinanceExportButton'
 
 export default async function AdminDashboardPage() {
     const data = await getFinancialData()
@@ -57,11 +58,14 @@ export default async function AdminDashboardPage() {
                 {/* Main Content: Table com bordas pretas sutis */}
                 <div className="lg:col-span-2 space-y-8">
                     <div className="bg-white p-10 rounded-[32px] border border-black/20">
-                        <div className="flex items-center justify-between mb-12">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
                             <h2 className="text-xl font-bold uppercase tracking-tighter !text-[#000000]">Histórico de Pagamentos</h2>
-                            <div className="flex items-center gap-4 bg-slate-50 px-5 py-2 rounded-xl border border-black/20">
-                                <Search size={16} className="!text-[#000000]" />
-                                <span className="text-sm font-bold !text-[#000000] uppercase tracking-tight">{data.payments.length} Transações</span>
+                            <div className="flex items-center gap-4">
+                                <AdminFinanceExportButton payments={data.payments} />
+                                <div className="flex items-center gap-3 bg-slate-50 px-5 py-2 rounded-xl border border-black/20">
+                                    <Search size={16} className="!text-[#000000]" />
+                                    <span className="text-sm font-bold !text-[#000000] uppercase tracking-tight">{data.payments.length} Transações</span>
+                                </div>
                             </div>
                         </div>
 
@@ -69,6 +73,7 @@ export default async function AdminDashboardPage() {
                             <table className="w-full text-left">
                                 <thead>
                                     <tr className="border-b-2 border-black/20 text-sm font-bold !text-[#000000] uppercase tracking-tight">
+                                        <th className="pb-6 px-4">Data</th>
                                         <th className="pb-6 px-4">Curso</th>
                                         <th className="pb-6 px-4">Professor</th>
                                         <th className="pb-6 px-4">Bruto</th>
@@ -79,6 +84,9 @@ export default async function AdminDashboardPage() {
                                 <tbody className="divide-y divide-black/10">
                                     {data.payments.map((p: any) => (
                                         <tr key={p.id} className="group hover:bg-slate-50 transition-colors">
+                                            <td className="py-6 px-4 text-xs font-bold !text-[#000000] opacity-60">
+                                                {p.date ? new Date(p.date).toLocaleDateString('pt-BR') : '---'}
+                                            </td>
                                             <td className="py-6 px-4">
                                                 <div className="text-sm font-bold !text-[#000000] uppercase truncate max-w-[180px]">
                                                     {p.courseName}

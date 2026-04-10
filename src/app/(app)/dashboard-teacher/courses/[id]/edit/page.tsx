@@ -266,14 +266,14 @@ function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons,
                     )}
                     <button
                         onClick={onAddLesson}
-                        className="flex items-center gap-3 px-6 py-3 bg-[#1D5F31] text-white rounded-xl text-[9px] font-bold uppercase tracking-[3px] hover:bg-[#1D5F31]/90 transition-all border-none"
+                        className="flex items-center gap-2 px-4 py-3 bg-[#1D5F31] text-white rounded-xl text-[9px] font-bold uppercase tracking-[3px] hover:bg-[#1D5F31]/90 transition-all border-none"
                     >
                         <Plus size={16} />
                         Adicionar Aula
                     </button>
                     <button
                         onClick={onAddQuiz}
-                        className="flex items-center gap-3 px-6 py-3 bg-slate-800 text-white rounded-xl text-[9px] font-bold uppercase tracking-[3px] hover:bg-slate-700 transition-all border-none"
+                        className="flex items-center gap-2 px-4 py-3 bg-slate-800 text-white rounded-xl text-[9px] font-bold uppercase tracking-[3px] hover:bg-slate-700 transition-all border-none"
                     >
                         <HelpCircle size={16} />
                         Adicionar Quiz
