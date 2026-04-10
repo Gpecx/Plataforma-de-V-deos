@@ -591,6 +591,18 @@ function RegisterForm() {
                                 </span>
                             </motion.button>
 
+                            <motion.button
+                                type="button"
+                                onClick={() => router.push('/register/be-a-teacher')}
+                                className="w-full flex items-center justify-center gap-3 py-5 text-white bg-transparent border border-[#28b828] font-bold uppercase tracking-[3px] text-sm rounded-xl transition-all hover:bg-white/5 hover:border-[#34d834] hover:text-[#34d834] active:scale-[0.98]"
+                                initial="hidden"
+                                animate="visible"
+                                variants={fadeUp}
+                                custom={5}
+                            >
+                                Seja um Professor PowerPlay
+                            </motion.button>
+
                             <div className="pt-6 border-t border-white/5 text-center">
                                 <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-loose">
                                     Ao se cadastrar, você concorda com nossos <br />
