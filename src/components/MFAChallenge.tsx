@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ShieldCheck, ArrowRight, Loader2 } from "lucide-react"
@@ -19,6 +19,26 @@ export default function MFAChallenge({ email, onVerify, onCancel }: MFAChallenge
     const [code, setCode] = useState("")
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
+
+    const isVerifiedRef = useRef(false)
+    const isCancelledRef = useRef(false)
+
+    useEffect(() => {
+        const handleUnload = () => {
+            if (!isVerifiedRef.current && !isCancelledRef.current && auth.currentUser) {
+                auth.signOut().catch(console.error);
+            }
+        };
+
+        window.addEventListener('beforeunload', handleUnload);
+        window.addEventListener('popstate', handleUnload);
+
+        return () => {
+            window.removeEventListener('beforeunload', handleUnload);
+            window.removeEventListener('popstate', handleUnload);
+            // Removido force signOut no unmount para não quebrar no React Strict Mode
+        };
+    }, [setMfaPending]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -84,6 +104,7 @@ export default function MFAChallenge({ email, onVerify, onCancel }: MFAChallenge
             }
 
             // Redirecionamento (O cleanup do Firestore agora é feito no Backend pelo verifyMfaCode)
+            isVerifiedRef.current = true;
             setMfaPending(false)
             await onVerify()
         } catch (err: unknown) {
@@ -104,6 +125,7 @@ export default function MFAChallenge({ email, onVerify, onCancel }: MFAChallenge
                 mfaCodeRequested: false
             }).catch(() => {});
         }
+        isCancelledRef.current = true;
         setMfaPending(false)
         onCancel()
     }

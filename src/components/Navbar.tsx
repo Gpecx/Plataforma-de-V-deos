@@ -41,6 +41,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { useAuth } from '@/context/AuthProvider'
 
 interface NavbarProps {
     transparent?: boolean
@@ -51,6 +52,7 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
     const pathname = usePathname()
     const router = useRouter()
     const searchParams = useSearchParams()
+    const { isMfaPending } = useAuth()
     // ... (no changes in inner hooks)
     const [userProfile, setUserProfile] = useState<{ full_name: string | null, role: string | null, created_at: any } | null>(null)
     const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -120,9 +122,11 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
         pathname.startsWith('/instructor') ||
         pathname.startsWith('/painel-professor')
 
+    const isEffectivelyLoggedIn = isLoggedIn && !isMfaPending;
+
     const studentLinks = [
         { href: '/course', label: 'Cursos' },
-        ...(isLoggedIn ? [
+        ...(isEffectivelyLoggedIn ? [
             { href: '/dashboard-student', label: 'Meu Aprendizado' },
             { href: '/dashboard-student/my-list', label: 'Favoritos' },
             { href: '/dashboard-student/settings', label: 'Configurações' },
@@ -131,10 +135,12 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
     ]
 
     const teacherLinks = [
-        { href: '/dashboard-teacher', label: 'Dashboard' },
-        { href: '/dashboard-teacher/courses', label: 'Meus Cursos' },
-        { href: '/dashboard-teacher/analytics', label: 'Desempenho' },
-        { href: '/dashboard-teacher/settings', label: 'Configurações' },
+        ...(isEffectivelyLoggedIn ? [
+            { href: '/dashboard-teacher', label: 'Dashboard' },
+            { href: '/dashboard-teacher/courses', label: 'Meus Cursos' },
+            { href: '/dashboard-teacher/analytics', label: 'Desempenho' },
+            { href: '/dashboard-teacher/settings', label: 'Configurações' },
+        ] : []),
     ]
 
     const navLinks = isTeacherMode ? teacherLinks : studentLinks
@@ -163,8 +169,8 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                 )}>
                     {/* Left: Logo + Desktop Nav */}
                     <div className="flex items-center gap-6 lg:gap-10">
-                        <Logo className="h-14" light={light} href={isLoggedIn ? (isTeacherMode || userProfile?.role === 'teacher' || userProfile?.role === 'admin' ? '/dashboard-teacher/courses' : '/course') : '/'} />
-                        {isTeacherMode && (
+                        <Logo className="h-14" light={light} href={isEffectivelyLoggedIn ? (isTeacherMode || userProfile?.role === 'teacher' || userProfile?.role === 'admin' ? '/dashboard-teacher/courses' : '/course') : '/'} />
+                        {isTeacherMode && isEffectivelyLoggedIn && (
                             <span className={cn(
                                 "hidden sm:inline ml-1 text-[8px] px-2 py-0.5 rounded-xl font-bold tracking-widest uppercase",
                                 light ? "bg-slate-100 text-slate-600" : "bg-slate-900 text-white"
@@ -187,7 +193,7 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                                     {link.label}
                                 </Link>
                             ))}
-                            {userProfile?.role === 'admin' && (
+                            {userProfile?.role === 'admin' && isEffectivelyLoggedIn && (
                                 <>
                                     <Link href="/admin/dashboard" className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#22c55e] border border-[#22c55e]/30 px-3 py-2 rounded-xl hover:bg-[#22c55e]/10 transition-all duration-300 ml-2">
                                         Painel Admin
@@ -260,7 +266,7 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                         </div>
 
                         {/* Notifications */}
-                        {isLoggedIn && (
+                        {isEffectivelyLoggedIn && (
                             <div className="flex items-center justify-center">
                                 <NotificationBell
                                     accent={isTeacherMode ? '#1D5F31' : '#1D5F31'}
@@ -271,7 +277,7 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                         )}
 
                         {/* Cart */}
-                        {isLoggedIn && !isTeacherMode && (
+                        {isEffectivelyLoggedIn && !isTeacherMode && (
                             <Link href="/cart" className={cn(
                                 "transition cursor-pointer relative flex items-center justify-center",
                                 light ? "text-slate-900 hover:text-[#1D5F31]" : "text-white hover:opacity-70"
@@ -289,7 +295,7 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                         )}
 
                         {/* Auth: Not logged in (desktop) */}
-                        {!isLoggedIn && (
+                        {!isEffectivelyLoggedIn && (
                             <div className="flex items-center gap-3">
                                 {!isHomePage && (
                                     <Link href="/contact" className={cn("transition text-xs font-bold uppercase tracking-widest", light ? "text-slate-600 hover:text-slate-900" : "text-white/70 hover:text-white")}>
@@ -315,7 +321,7 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                         )}
 
                         {/* User Dropdown (logged in) */}
-                        {isLoggedIn ? (
+                        {isEffectivelyLoggedIn ? (
                             <DropdownMenu modal={false}>
                                 <DropdownMenuTrigger asChild>
                                     <div className={cn(
@@ -477,7 +483,7 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                             </Link>
                         ))}
 
-                        {!isLoggedIn && (
+                        {!isEffectivelyLoggedIn && (
                             <div className={cn(
                                 "pt-3 space-y-2 border-t mt-3",
                                 light ? "border-slate-100" : "border-white/10"

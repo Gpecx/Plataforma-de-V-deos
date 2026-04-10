@@ -221,7 +221,10 @@ function LoginContent() {
                             <MFAChallenge 
                                 email={mfaEmail}
                                 onVerify={onVerifyMFA} 
-                                onCancel={() => setIsMFAStep(false)} 
+                                onCancel={async () => {
+                                    await auth.signOut()
+                                    router.push('/')
+                                }} 
                             />
                         ) : (
                             <Form {...form}>

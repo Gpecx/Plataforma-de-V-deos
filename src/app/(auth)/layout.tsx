@@ -1,3 +1,5 @@
+import { AuthProvider } from '@/context/AuthProvider'
+
 export default function AuthLayout({
   children,
 }: {
@@ -5,7 +7,9 @@ export default function AuthLayout({
 }) {
   return (
     <div className="min-h-screen bg-transparent font-montserrat">
-      {children}
+      <AuthProvider>
+        {children}
+      </AuthProvider>
     </div>
   )
 }

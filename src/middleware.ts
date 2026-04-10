@@ -24,8 +24,9 @@ export function middleware(request: NextRequest) {
 
     // Para rotas protegidas: verifica apenas a existência do cookie no Edge Runtime
     const token = request.cookies.get('session')?.value
+    const isMfaPending = request.cookies.get('mfa_pending')?.value === 'true'
 
-    if (!token) {
+    if (isMfaPending || !token) {
         const loginUrl = new URL('/login', request.url)
         loginUrl.searchParams.set('redirectTo', pathname)
         return NextResponse.redirect(loginUrl)

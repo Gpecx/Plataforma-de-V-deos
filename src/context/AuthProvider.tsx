@@ -42,8 +42,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (typeof window !== 'undefined') {
             if (pending) {
                 localStorage.setItem('mfa_pending', 'true')
+                document.cookie = "mfa_pending=true; path=/; max-age=3600; samesite=lax"
             } else {
                 localStorage.removeItem('mfa_pending')
+                document.cookie = "mfa_pending=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
             }
         }
     }

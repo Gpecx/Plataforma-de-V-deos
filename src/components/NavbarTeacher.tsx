@@ -20,9 +20,11 @@ import {
     Menu,
     ShieldAlert,
     GraduationCap,
+import {
     Heart
 } from 'lucide-react'
 import { NotificationBell } from '@/components/NotificationBell'
+import { useAuth } from '@/context/AuthProvider'
 
 import {
     DropdownMenu,
@@ -40,6 +42,8 @@ export default function NavbarTeacher() {
     const [mounted, setMounted] = useState(false)
     const [isSearchOpen, setIsSearchOpen] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
+    const { isMfaPending } = useAuth()
+    const isEffectivelyLoggedIn = isLoggedIn && !isMfaPending
 
     useEffect(() => {
         setMounted(true)
@@ -148,7 +152,7 @@ export default function NavbarTeacher() {
                     </div>
 
                     {/* Notifications */}
-                    {isLoggedIn && (
+                    {isEffectivelyLoggedIn && (
                         <NotificationBell
                             accent="#1D5F31"
                             isTeacher={true}
@@ -157,7 +161,7 @@ export default function NavbarTeacher() {
                     )}
 
                     {/* Logged In User Avatar Dropdown */}
-                    {isLoggedIn && (
+                    {isEffectivelyLoggedIn && (
                         <DropdownMenu modal={false}>
                             <DropdownMenuTrigger asChild>
                                 <button className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold transition-all outline-none hover:scale-105 bg-slate-900 shadow-sm overflow-hidden border-2 border-transparent hover:border-slate-200 relative">
