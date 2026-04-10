@@ -317,7 +317,7 @@ function RegisterForm() {
                         </div>
                         <div className="flex flex-col items-center">
                             <h2 className="text-2xl md:text-3xl font-bold tracking-tighter uppercase text-white">Alta Performance</h2>
-                            <p className="font-bold uppercase text-[9px] tracking-[4px] mt-2 text-white">Crie sua conta industrial</p>
+                            <p className="font-bold uppercase text-[9px] tracking-[4px] mt-2 text-white">Crie sua conta</p>
                         </div>
                     </motion.div>
 
@@ -332,7 +332,7 @@ function RegisterForm() {
                                 variants={fadeUp}
                                 custom={1}
                             >
-                                <span className={sectionTitleClass}>Grupo 1: Dados de Acesso</span>
+                                <span className={sectionTitleClass}>Dados de Acesso</span>
                                 <div className="space-y-4">
                                     <motion.div variants={inputVariants} custom={1.1} className="space-y-1">
                                         <label className={labelClass}>Nome Completo</label>
@@ -379,7 +379,7 @@ function RegisterForm() {
                                 variants={fadeUp}
                                 custom={2}
                             >
-                                <span className={sectionTitleClass}>Grupo 2: Identificação</span>
+                                <span className={sectionTitleClass}>Identificação</span>
                                 <div className="grid grid-cols-12 gap-4">
                                     <div className="col-span-12 md:col-span-7 space-y-1">
                                         <div className="flex justify-between items-center mb-1">
@@ -443,7 +443,7 @@ function RegisterForm() {
                                 variants={fadeUp}
                                 custom={3}
                             >
-                                <span className={sectionTitleClass}>Grupo 3: Endereço (Otimizado)</span>
+                                <span className={sectionTitleClass}>Endereço</span>
                                 <div className="space-y-4">
                                     {/* Linha 1: CEP e Rua */}
                                     <div className="grid grid-cols-12 gap-2">
