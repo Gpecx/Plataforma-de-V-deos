@@ -1,7 +1,7 @@
 "use client"
 
 import { auth } from '@/lib/firebase'
-import { onAuthStateChanged, updatePassword, EmailAuthProvider, reauthenticateWithCredential, multiFactor, TotpMultiFactorGenerator, TotpSecret } from 'firebase/auth'
+import { onAuthStateChanged, updatePassword, EmailAuthProvider, reauthenticateWithCredential, multiFactor, TotpMultiFactorGenerator, TotpSecret, reload } from 'firebase/auth'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { Lock, CreditCard, Trash2, ArrowLeft, Save, Key, ShieldCheck } from 'lucide-react'

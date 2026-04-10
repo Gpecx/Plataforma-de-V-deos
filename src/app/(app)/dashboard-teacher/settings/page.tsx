@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { auth } from '@/lib/firebase'
-import { onAuthStateChanged, updatePassword, EmailAuthProvider, reauthenticateWithCredential, multiFactor, TotpMultiFactorGenerator, TotpSecret } from 'firebase/auth'
+import { onAuthStateChanged, updatePassword, EmailAuthProvider, reauthenticateWithCredential, multiFactor, TotpMultiFactorGenerator, TotpSecret, reload } from 'firebase/auth'
 import { useRouter } from 'next/navigation'
 import { Settings, DollarSign, Bell, Shield, Wallet, Save, Key, Trash2, ShieldCheck } from 'lucide-react'
 import { Input } from '@/components/ui/input'
