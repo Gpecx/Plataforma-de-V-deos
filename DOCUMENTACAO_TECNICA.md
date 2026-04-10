@@ -461,7 +461,8 @@ A aplicação utiliza o **App Router** do Next.js, onde a maioria das rotas são
 
 **1. Correção de Erro de Tipo no Build (Certificados)**
 - **Arquivos**: `src/app/api/certificates/[id]/download/route.tsx`, `src/app/api/certificates/[id]/preview/route.tsx`
-- Adicionada guard clause para garantir que `validation.certificate` não seja `undefined` ao ser passado para o template PDF, resolvendo erro fatal de compilação na Vercel.
+- Adicionada guard clause para garantir que `validation.certificate` não seja `undefined` ao ser passado para o template PDF.
+- Corrigido erro de atribuição de tipos no stream de PDF: implementada conversão explícita de `string | Buffer` para `Uint8Array` durante a coleta de chunks (`Buffer.from` para strings), resolvendo falha de compilação na Vercel.
 
 **2. Correção de Importação de 'reload'**
 - **Arquivos**: `src/app/(app)/dashboard-student/settings/page.tsx`, `src/app/(app)/dashboard-teacher/settings/page.tsx`

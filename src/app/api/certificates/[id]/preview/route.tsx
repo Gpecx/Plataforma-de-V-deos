@@ -106,7 +106,7 @@ export async function GET(
 
     const chunks: Uint8Array[] = []
     for await (const chunk of pdfStream) {
-      chunks.push(chunk)
+      chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk)
     }
     const pdfBuffer = Buffer.concat(chunks)
 
