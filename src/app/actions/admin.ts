@@ -56,10 +56,14 @@ export async function getAllTeachers() {
             .where('role', '==', 'teacher')
             .get()
             
-        const teachers = teachersSnap.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }))
+        const teachers = teachersSnap.docs.map(doc => {
+            const data = doc.data()
+            return {
+                id: doc.id,
+                ...data,
+                created_at: data.created_at?.toDate ? data.created_at.toDate().toISOString() : null
+            }
+        })
 
         return JSON.parse(JSON.stringify(teachers))
     } catch (error) {
@@ -828,5 +832,73 @@ export async function handleTeacherApproval(
             error: "Erro ao processar solicitação.",
             message: ""
         }
+    }
+}
+
+/**
+ * Bane um professor (muda teacher_status para 'banned').
+ */
+export async function banTeacher(teacherId: string): Promise<{ success: boolean; message: string; error?: string }> {
+    try {
+        const profileRef = adminDb.collection('profiles').doc(teacherId)
+        const profileDoc = await profileRef.get()
+        
+        if (!profileDoc.exists) {
+            return { success: false, error: "Professor não encontrado.", message: "" }
+        }
+
+        await profileRef.update({
+            teacher_status: 'banned',
+            updated_at: new Date()
+        })
+
+        await adminDb.collection('notifications').add({
+            user_id: teacherId,
+            type: 'teacher_banned',
+            title: 'Conta Banida',
+            message: 'Sua conta de professor foi banida por um administrador. Entre em contato para mais informações.',
+            read: false,
+            created_at: new Date()
+        })
+
+        revalidatePath('/admin/teachers')
+        return { success: true, message: "Professor banido com sucesso.", error: "" }
+    } catch (error) {
+        console.error("[banTeacher] Erro ao banir professor:", error)
+        return { success: false, error: "Erro ao banir professor.", message: "" }
+    }
+}
+
+/**
+ * Reativa um professor banned (muda teacher_status para 'active').
+ */
+export async function reactivateTeacher(teacherId: string): Promise<{ success: boolean; message: string; error?: string }> {
+    try {
+        const profileRef = adminDb.collection('profiles').doc(teacherId)
+        const profileDoc = await profileRef.get()
+        
+        if (!profileDoc.exists) {
+            return { success: false, error: "Professor não encontrado.", message: "" }
+        }
+
+        await profileRef.update({
+            teacher_status: 'active',
+            updated_at: new Date()
+        })
+
+        await adminDb.collection('notifications').add({
+            user_id: teacherId,
+            type: 'teacher_reactivated',
+            title: 'Conta Reativada',
+            message: ' Sua conta de professor foi reativada por um administrador. Bem-vindo de volta!',
+            read: false,
+            created_at: new Date()
+        })
+
+        revalidatePath('/admin/teachers')
+        return { success: true, message: "Professor reativado com sucesso.", error: "" }
+    } catch (error) {
+        console.error("[reactivateTeacher] Erro ao reativar professor:", error)
+        return { success: false, error: "Erro ao reativar professor.", message: "" }
     }
 }

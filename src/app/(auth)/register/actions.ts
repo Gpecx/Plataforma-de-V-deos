@@ -62,8 +62,9 @@ export async function createProfile(data: CreateProfileData) {
             cpf_cnpj: sanitizedCpfCnpj,
             cep: sanitizedCep,
             id: data.uid,
-            mfaEnabled: true, // Padronização PowerPlay: MFA Ativado por padrão
-            created_at: new Date()
+            mfaEnabled: true,
+            created_at: new Date(),
+            teacher_status: data.role === 'teacher' ? 'active' : undefined
         }
 
         // Firestore nao aceita undefined
