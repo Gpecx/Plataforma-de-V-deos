@@ -18,6 +18,7 @@ interface CreateProfileData {
     bairro?: string
     cidade?: string
     estado?: string
+    teacher_application_data?: any
 }
 
 function sanitize(value: string): string {
@@ -56,14 +57,23 @@ export async function createProfile(data: CreateProfileData) {
         const sanitizedCpfCnpj = sanitize(data.cpf_cnpj)
         const sanitizedCep = data.cep ? sanitize(data.cep) : undefined
 
-        await adminDb.collection('profiles').doc(data.uid).set({
+        const payload: any = {
             ...data,
             cpf_cnpj: sanitizedCpfCnpj,
             cep: sanitizedCep,
             id: data.uid,
             mfaEnabled: true, // Padronização PowerPlay: MFA Ativado por padrão
             created_at: new Date()
+        }
+
+        // Firestore nao aceita undefined
+        Object.keys(payload).forEach(key => {
+            if (payload[key] === undefined) {
+                delete payload[key]
+            }
         })
+
+        await adminDb.collection('profiles').doc(data.uid).set(payload)
         return { success: true }
     } catch (error) {
         console.error('Error creating profile:', error)

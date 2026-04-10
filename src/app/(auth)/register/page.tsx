@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, Suspense, useRef } from 'react'
+import { useState, useMemo, Suspense, useRef, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { auth } from '@/lib/firebase'
@@ -135,6 +135,28 @@ function RegisterForm() {
     const [role, setRole] = useState<'student' | 'teacher'>('student')
     const [loading, setLoading] = useState(false)
     const [cpfCnpjTouched, setCpfCnpjTouched] = useState(false)
+    const [teacherData, setTeacherData] = useState<any>(null)
+    const [isTeacherFlow, setIsTeacherFlow] = useState(false)
+
+    useEffect(() => {
+        const stored = localStorage.getItem('powerplay_teacher_quiz')
+        const isTeacherParam = searchParams.get('type') === 'teacher'
+
+        if (stored && isTeacherParam) {
+            try {
+                const parsed = JSON.parse(stored)
+                setTeacherData(parsed)
+                setRole('teacher')
+                setIsTeacherFlow(true)
+            } catch (e) {
+                console.error('Failed to parse teacher data', e)
+                setIsTeacherFlow(false)
+            }
+        } else {
+            setIsTeacherFlow(false)
+            setRole('student')
+        }
+    }, [searchParams])
 
     // Novos estados de endereço
     const [cep, setCep] = useState('')
@@ -248,7 +270,8 @@ function RegisterForm() {
                 complemento,
                 bairro,
                 cidade,
-                estado
+                estado,
+                ...(teacherData ? { teacher_application_data: teacherData } : {})
             })
 
             if (!result.success) {
@@ -268,6 +291,10 @@ function RegisterForm() {
             }
 
             router.refresh()
+
+            if (teacherData) {
+                localStorage.removeItem('powerplay_teacher_quiz')
+            }
 
             if (role === 'teacher') {
                 router.push('/verify-email')
@@ -316,8 +343,12 @@ function RegisterForm() {
                             <Logo variant="vertical" className="scale-110" />
                         </div>
                         <div className="flex flex-col items-center">
-                            <h2 className="text-2xl md:text-3xl font-bold tracking-tighter uppercase text-white">Alta Performance</h2>
-                            <p className="font-bold uppercase text-[9px] tracking-[4px] mt-2 text-white">Crie sua conta</p>
+                            <h2 className="text-2xl md:text-3xl font-bold tracking-tighter uppercase text-white">
+                                {isTeacherFlow ? 'CADASTRO DE INSTRUTOR' : 'ALTA PERFORMANCE'}
+                            </h2>
+                            <p className="font-bold uppercase text-[9px] tracking-[4px] mt-2 text-white">
+                                {isTeacherFlow ? 'FINALIZE SEU CADASTRO - POWERPLAY' : 'Crie sua conta'}
+                            </p>
                         </div>
                     </motion.div>
 
@@ -593,7 +624,7 @@ function RegisterForm() {
 
                             <motion.button
                                 type="button"
-                                onClick={() => router.push('/register/be-a-teacher')}
+                                onClick={() => router.push('/register/be-a-teacher' as any)}
                                 className="w-full flex items-center justify-center gap-3 py-5 text-white bg-transparent border border-[#28b828] font-bold uppercase tracking-[3px] text-sm rounded-xl transition-all hover:bg-white/5 hover:border-[#34d834] hover:text-[#34d834] active:scale-[0.98]"
                                 initial="hidden"
                                 animate="visible"
