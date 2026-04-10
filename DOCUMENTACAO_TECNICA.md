@@ -326,5 +326,136 @@ A aplicação utiliza o **App Router** do Next.js, onde a maioria das rotas são
 
 ---
 
-**Última Atualização:** 06 de Abril de 2026
-**Status do Documento:** Versão 1.6 (Endurecimento de Segurança + Busca Global + Tags + Wishlist + Progresso Dinâmico)
+### 07 de Abril de 2026
+
+#### 🔒 Segurança — Autenticação em Dois Fatores (MFA Customizado)
+
+**1. Implementação do Sistema MFA via E-mail (Custom Flow)**
+- **Arquivos**: `src/components/MFAChallenge.tsx` (novo), `src/app/(auth)/login/page.tsx`, `src/context/AuthProvider.tsx`, `functions/src/index.ts`
+- Substituição do TOTP nativo do Firebase por um sistema MFA customizado baseado em código de 6 dígitos enviado por e-mail via `nodemailer` + Gmail SMTP.
+- Cloud Function `sendMfaEmail` implementada: triggera na escrita de `mfaCodeRequested: true` no perfil e envia o PIN com TTL de 15 minutos.
+- **Fluxo de autenticação revisado:**
+  1. Usuário faz login com e-mail/senha (Firebase Auth).
+  2. Sistema verifica `mfaEnabled` no perfil Firestore.
+  3. Se `true`, aciona o gatilho e exibe o componente `MFAChallenge`.
+  4. O PIN é validado diretamente contra `mfa_auth_temp` no Firestore.
+  5. Somente após PIN confirmado a sessão oficial é criada via `/api/auth/session`.
+- `AuthProvider.tsx` atualizado com estado `isMfaPending` e função `setMfaPending` sincronizando `localStorage`.
+
+**2. Verificação de E-mail Obrigatória**
+- **Arquivos**: `src/app/(auth)/verify-email/page.tsx` (novo), `src/app/(auth)/verify-email/actions.ts` (novo)
+- Implementação de página dedicada `/verify-email` com botão de reenvio e instruções visuais.
+- Fluxo de registro passa a verificar `user.emailVerified` antes de redirecionar; caso não verificado, redireciona para `/verify-email`.
+- Estilização no padrão "Industrial Clean" (bordas `rounded-md`, paleta verde/cinza escuro).
+
+**3. Recuperação de Senha**
+- **Arquivos**: `src/app/(auth)/forgot-password/page.tsx`, `src/app/(auth)/forgot-password/actions.ts`
+- Server Action implementada para disparar o e-mail de reset via Firebase Auth.
+- Feedback visual de sucesso após envio do link.
+
+**4. Configurações de 2FA nas Páginas de Perfil**
+- **Arquivos**: `src/app/(app)/dashboard-student/settings/page.tsx`, `src/app/(app)/dashboard-teacher/settings/page.tsx`
+- Interface de toggle para ativar/desativar o MFA por perfil, gravando o campo `mfaEnabled` no Firestore.
+
+---
+
+### 08 de Abril de 2026
+
+#### 📄 Funcionalidade — Geração de Certificados PDF
+
+**1. Template de Certificado com `@react-pdf/renderer`**
+- **Novos arquivos**: `src/app/api/certificates/[id]/download/route.tsx`, `src/app/api/certificates/[id]/preview/route.tsx`, `src/components/certificates/CertificateTemplate.tsx`
+- Template PDFs com fontes Montserrat (Bold e Regular) carregadas localmente (`/public/fonts/`).
+- Dois endpoints de API: `/download` (força download) e `/preview` (stream no navegador).
+- Server Action criada para validar elegibilidade (`markCertificateIssued`).
+- Integração com o dashboard do aluno: botão de download com estado de carregamento e feedback visual.
+
+**2. Schema de Tipos — `ICertificate`**
+- **Arquivo**: `src/lib/types/certificate.ts`
+- Interface unificada com campos: `studentName`, `courseName`, `courseId`, `completionDate`, `instructorName`, `courseDuration`.
+
+**3. Regras Firestore — INC-003 (Certificados)**
+- **Arquivo**: `DOC_FIREBASE_RULES.md`
+- Documentado novo incidente e regras para a coleção `certificates`.
+- Apenas o criador pode ler o próprio certificado; escrita restrita a funções administrativas.
+
+---
+
+### 09 de Abril de 2026
+
+#### ⚙️ Back-end — Correção de Fluxo de Sessão e Registro
+
+**1. Correção: Criação de Sessão para Usuários Não Verificados**
+- **Arquivo**: `src/app/api/auth/session/route.ts`
+- Ajuste para permitir que usuários recém-registrados obtenham um cookie de sessão temporário, mesmo antes da verificação de e-mail, para navegação no fluxo de verificação.
+
+**2. Correção: Refresh de ID Token no Pós-Registro**
+- **Arquivo**: `src/app/(auth)/register/actions.ts`
+- Adicionado `user.getIdToken(true)` imediatamente após o registro para garantir que o token reflita o estado mais recente antes da criação da sessão.
+
+**3. Cloud Functions — Consolidação do MFA**
+- **Arquivo**: `functions/src/index.ts`
+- Função `sendMfaEmail` estabilizada com tratamento de erro e limpeza de dados temporários (`mfa_auth_temp`) após expiração.
+- Configuração de `nodemailer` com transporte SMTP (Gmail) + credenciais via variáveis de ambiente.
+
+---
+
+### 10 de Abril de 2026
+
+#### 🧑‍💼 Funcionalidade — Fluxo de Cadastro e Gestão de Instrutores (Modelo Udemy)
+
+**1. Nova Página de Cadastro de Instrutor**
+- **Arquivo**: `src/app/(auth)/register/be-a-teacher/page.tsx` (novo)
+- Fluxo separado `/register/be-a-teacher` com formulário de qualificação (quiz de onboarding).
+- Respostas salvas em `profiles.teacherRegistrationData`.
+
+**2. Auto-aprovação de Instrutores (Modelo Udemy)**
+- **Arquivo**: `src/app/(auth)/register/actions.ts`, `src/app/actions/admin.ts`
+- Novo instrutor é auto-aprovado no cadastro com `status: 'ATIVO'` e `role: 'teacher'`.
+- Admin não vê mais fila de aprovação — fluxo migrou para ban/reativação.
+
+**3. Painel Admin — Gestão de Instrutores Refatorada**
+- **Arquivo**: `src/app/admin/teachers/components/TeacherManagement.tsx`
+- Interface substituída: fila de aprovação ➜ lista de gerenciamento com ações de **Banir** e **Reativar**.
+- Exibição de dados do quiz, perfil completo e histórico de registro de cada instrutor.
+
+---
+
+#### 📊 Funcionalidade — Exportação de Relatórios Financeiros (CSV)
+
+**1. Botão de Exportação CSV — Dashboard do Professor**
+- **Novo arquivo**: `src/app/(app)/dashboard-teacher/analytics/components/AnalyticsExportButton.tsx`
+- Exporta: data da venda, título do curso, repasse do professor e valor bruto.
+- Compatível com Excel (separador `;`, encoding UTF-8 com BOM).
+
+**2. Botão de Exportação CSV Global — Admin**
+- **Novo arquivo**: `src/app/admin/dashboard/components/AdminFinanceExportButton.tsx`
+- Agrega dados de todas as vendas: valor bruto, lucro da plataforma e repasse a cada instrutor.
+- Server Action `getAllSalesForExport` implementada em `src/app/actions/admin.ts`.
+
+---
+
+#### 🔒 Segurança — Bloqueio Rigoroso de Bypass Visual no MFA
+
+**Vulnerabilidade Identificada e Corrigida: MFA Navigation Bypass**
+
+> O usuário conseguia usar o botão "Voltar" do navegador para visualizar rotas protegidas (`/course`, `/dashboard`) com estado visual de logado antes de concluir o segundo fator.
+
+**Arquivos modificados:** `src/middleware.ts`, `src/context/AuthProvider.tsx`, `src/components/MFAChallenge.tsx`, `src/components/Navbar.tsx`, `src/components/NavbarTeacher.tsx`, `src/app/(auth)/layout.tsx`
+
+**Camadas de proteção implementadas:**
+
+| Camada | Mecanismo |
+|---|---|
+| **Edge Middleware** | Detecta cookie `mfa_pending=true` e força redirecionamento para `/login` antes de renderizar qualquer rota protegida. |
+| **AuthProvider** | `setMfaPending()` agora sincroniza tanto o `localStorage` quanto um Cookie real (`document.cookie`), tornando a flag acessível no servidor (Edge). |
+| **MFAChallenge** | Listeners de `beforeunload` e `popstate` disparam `auth.signOut()` silenciosamente se o usuário tentar fechar ou navegar para fora antes de concluir o PIN. |
+| **Navbar / NavbarTeacher** | Calculam `isEffectivelyLoggedIn = isLoggedIn && !isMfaPending`. Enquanto o MFA estiver pendente, toda a interface de usuário logado (dropdown, notificações, carrinho) é suprimida. |
+| **Auth Layout** | `src/app/(auth)/layout.tsx` agora envolve o `AuthProvider`, garantindo que o contexto MFA funcione corretamente nas páginas de login. |
+
+**Regra de negócio:** Se o usuário abandonar o fluxo de MFA (Voltar, fechar aba, recarregar), o sistema interpreta como desistência e encerra a sessão temporária.
+
+---
+
+**Última Atualização:** 10 de Abril de 2026
+**Status do Documento:** Versão 2.0 (MFA Customizado + Certificados PDF + Gestão de Instrutores + Exportação CSV + Hardening de Bypass MFA)
