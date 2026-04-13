@@ -90,7 +90,7 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
             <section
                 className="hero-section"
                 style={{
-                    backgroundImage: "url('/images/hero-bg1.png')",
+                    backgroundImage: "url('/images/hero-bg.png')",
                     backgroundSize: "cover",
                     backgroundPosition: "center"
                 }}
