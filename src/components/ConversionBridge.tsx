@@ -52,9 +52,10 @@ export function ConversionBridge({ redirectTo, onShowLogin }: ConversionBridgePr
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
-                        className="text-2xl md:text-3xl lg:text-4xl font-bold tracking-tighter uppercase text-[var(--foreground)] mb-4 max-w-2xl"
+                        className="text-3xl md:text-4xl lg:text-5xl font-black tracking-tighter uppercase text-white mb-6 max-w-2xl leading-[1.1]"
                     >
-                        Você está a um passo de <span className="text-[#28b828]">transformar</span> sua carreira
+                        Você está a um passo de <br />
+                        <span className="text-[#2ecc71]">transformar</span> sua carreira
                     </motion.h1>
 
                     {/* Subtitle */}
@@ -62,9 +63,10 @@ export function ConversionBridge({ redirectTo, onShowLogin }: ConversionBridgePr
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
-                        className="text-lg text-green-200/80 font-medium mb-10 max-w-[400px] mx-auto"
+                        className="text-base md:text-lg text-white/70 font-medium mb-12 max-w-[450px] mx-auto leading-relaxed"
                     >
-                        Tenha acesso imediato aos melhores conteúdos e comece sua jornada de evolução hoje.
+                        Tenha acesso imediato aos melhores conteúdos e <br className="hidden md:block" />
+                        comece sua jornada de evolução hoje.
                     </motion.p>
 
                     {/* CTA Buttons */}

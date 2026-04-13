@@ -28,7 +28,7 @@ function LoginContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const redirectTo = searchParams.get("redirectTo") || searchParams.get("next") || ""
-    const isCourseRedirect = redirectTo.startsWith('/course') || redirectTo.startsWith('/classroom') || redirectTo.startsWith('/cart')
+    const isCourseRedirect = redirectTo.startsWith('/course') || redirectTo.startsWith('/classroom') || redirectTo.startsWith('/cart') || redirectTo.startsWith('/dashboard-student')
     const [showLogin, setShowLogin] = useState(!isCourseRedirect)
     const [mounted, setMounted] = useState(false)
     const [isMFAStep, setIsMFAStep] = useState(false)

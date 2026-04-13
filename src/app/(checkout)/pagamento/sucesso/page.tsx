@@ -66,10 +66,6 @@ export default async function SucessoPagamentoPage({ searchParams }: SuccessPage
                     </p>
 
                     <div className="bg-white border-[3px] border-slate-900 p-8 md:p-12 mb-10 text-left relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-2 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-widest">
-                            {payment.billingType}
-                        </div>
-
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                             {/* Lado Esquerdo: Info Principal */}
                             <div className="space-y-6">
@@ -157,13 +153,13 @@ export default async function SucessoPagamentoPage({ searchParams }: SuccessPage
                     <div className="flex flex-col md:flex-row gap-4 justify-center">
                         <Link
                             href="/dashboard-student"
-                            className="px-10 py-5 bg-slate-900 text-white font-bold uppercase  tracking-[3px] hover:bg-slate-800 transition-all text-sm"
+                            className="px-10 py-5 bg-[#061629] !text-white font-bold uppercase tracking-[3px] hover:bg-[#061629]/90 transition-all text-sm rounded-xl"
                         >
                             IR PARA MEUS CURSOS →
                         </Link>
                         <Link
                             href="/course"
-                            className="px-10 py-5 border-[3px] border-slate-900 text-slate-900 font-bold uppercase  tracking-[3px] hover:bg-slate-50 transition-all text-sm"
+                            className="px-10 py-5 bg-[#1D5F31] !text-white font-bold uppercase tracking-[3px] hover:bg-[#1D5F31]/90 transition-all text-sm rounded-xl"
                         >
                             CONTINUAR COMPRANDO
                         </Link>
