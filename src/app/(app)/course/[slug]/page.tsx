@@ -14,8 +14,7 @@ import {
     Info,
     FileText,
 } from "lucide-react"
-import { CourseIntroPlayer } from "@/components/CourseIntroPlayer"
-import { CourseActionButton } from "@/components/CourseActionButton"
+import { CourseHeroClient } from "./CourseHeroClient"
 import { adminDb } from "@/lib/firebase-admin"
 import { getProfile } from "@/app/(app)/dashboard-student/actions"
 import { getSessionUser } from "@/app/actions/auth"
@@ -91,99 +90,15 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
     const totalLessons = lessons?.length || 0
 
     return (
-        <div className="min-h-screen bg-transparent text-[#061629] font-montserrat">
-            <Suspense fallback={null}>
-                <Navbar light={true} />
-            </Suspense>
+        <div className="min-h-screen bg-gradient-to-br from-[#061629] via-[#0A2E16] to-[#1D5F31] bg-fixed text-white font-montserrat">
+            <CourseHeroClient
+                course={course}
+                isAdmin={isAdmin}
+                hasAccess={hasAccess}
+                purchasedCourseIds={profile?.cursos_comprados || []}
+            />
 
-            {/* HERO & VIDEO SECTION - BORDAS QUADRADAS E ALINHAMENTO RIGOROSO */}
-            <section className="relative pt-4 md:pt-6 pb-0 overflow-hidden">
-                <div className="max-w-[1600px] mx-auto w-full px-6 md:px-12">
-                    {/* INFO E TÍTULO */}
-                    <div className="pb-6 space-y-4">
-                        <Link
-                            href="/course"
-                            className="inline-flex items-center gap-2 mt-4 text-[#061629] hover:text-[#1D5F31] transition text-[10px] font-bold uppercase tracking-[3px]"
-                        >
-                            <ArrowLeft size={14} />
-                            Voltar ao Catálogo
-                        </Link>
-
-                        <div className="flex items-center gap-3">
-                            <span className="inline-block bg-[#1D5F31] text-white text-[9px] font-bold px-3 py-1.5 uppercase tracking-[3px] rounded-xl no-theme-override">
-                                {course.tag || "PREMIUM"}
-                            </span>
-                        </div>
-
-                        <h1 className="text-3xl md:text-5xl lg:text-[3.25rem] font-bold tracking-tighter text-[#061629] leading-[0.85] uppercase max-w-3xl">
-                            {course.title}
-                        </h1>
-                    </div>
-
-                    <div className="grid lg:grid-cols-12 gap-12 items-start pb-24">
-                        {/* LADO ESQUERDO: VÍDEO */}
-                        <div className="lg:col-span-8 flex flex-col">
-                            <div className="w-full bg-black/40 aspect-video shadow-2xl border border-[#1D5F31]/20 overflow-hidden relative group rounded-xl">
-                                <CourseIntroPlayer
-                                    videoUrl={course.intro_video_url}
-                                    thumbnail={course.image_url}
-                                />
-                            </div>
-                        </div>
-
-                        {/* LADO DIREITO: INFORMAÇÕES DO CURSO */}
-                        <div className="lg:col-span-4 flex flex-col space-y-6">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-px bg-[#1D5F31]" />
-                                <span className="text-[10px] font-bold uppercase tracking-[4px] text-[#1D5F31]">
-                                    Detalhes da Formação
-                                </span>
-                            </div>
-
-                            <div className="space-y-6">
-                                <h3 className="text-lg font-bold text-[#061629] uppercase tracking-tight flex items-center gap-2">
-                                    <Info size={18} className="text-[#1D5F31]" />
-                                    Sobre este treinamento
-                                </h3>
-                                <p className="text-slate-600 text-sm leading-relaxed font-medium line-clamp-6">
-                                    {course.description || 'Explore técnicas avançadas e domine o mercado com este treinamento exclusivo da PowerPlay. Conteúdo focado em performance e resultados reais.'}
-                                </p>
-                            </div>
-
-                            {/* Info Grid Minimalista */}
-                            <div className="grid grid-cols-2 gap-y-8 gap-x-4 py-8 border-y border-white/10">
-                                {[
-                                    { icon: <Clock size={16} />, label: "Duração", text: `${course.duration || 12} Horas` },
-                                    { icon: <Globe size={16} />, label: "Idioma", text: "Português" },
-                                    { icon: <PlayCircle size={16} />, label: "Aulas", text: `${totalLessons} Práticas` },
-                                    { icon: <ShieldCheck size={16} />, label: "Certificado", text: "Incluso" },
-                                ].map((item, i) => (
-                                    <div key={i} className="flex gap-3 items-start">
-                                        <div className="text-[#1D5F31] mt-0.5">{item.icon}</div>
-                                        <div className="flex flex-col">
-                                            <span className="text-[10px] uppercase font-bold text-slate-500 tracking-widest mb-1">{item.label}</span>
-                                            <span className="text-sm font-bold text-[#061629] uppercase tracking-tighter leading-none">{item.text}</span>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className="pt-4">
-                                <CourseActionButton
-                                    courseId={course.id}
-                                    courseTitle={course.title}
-                                    coursePrice={course.price || 0}
-                                    courseImageUrl={course.image_url}
-                                    isAdmin={isAdmin}
-                                    purchasedCourseIds={profile?.cursos_comprados || []}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* CURRÍCULO ESTILO INDUSTRIAL */}
+            {/* CURRÍCULO ESTILO INDUSTRIAL / STREAMING */}
             <section className="py-24 px-6 md:px-12 bg-transparent border-t border-white/5">
                 <div className="max-w-[1600px] mx-auto">
                     <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
@@ -192,9 +107,9 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                                 <div className="w-12 h-px bg-[#1D5F31]" />
                                 <span className="text-[10px] font-bold uppercase tracking-[4px] text-[#1D5F31]">Cronograma</span>
                             </div>
-                            <h2 className="text-2xl md:text-3xl font-bold text-[#061629] uppercase tracking-tighter max-w-xl">Grade <br className="hidden md:block"/> Curricular</h2>
+                            <h2 className="text-2xl md:text-3xl font-bold text-white uppercase tracking-tighter max-w-xl">Grade <br className="hidden md:block"/> Curricular</h2>
                         </div>
-                        <p className="text-slate-500 text-sm max-w-md font-medium uppercase tracking-widest leading-loose">
+                        <p className="text-white/60 text-sm max-w-md font-medium uppercase tracking-widest leading-loose">
                             Explore os módulos desenhados para levar seu conhecimento ao nível máximo de performance técnica.
                         </p>
                     </div>
@@ -202,21 +117,21 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                     <div className="grid lg:grid-cols-12 gap-0">
                         <div className="lg:col-span-8 space-y-3">
                             {(!course.curriculum || course.curriculum.length === 0) ? (
-                                <div className="bg-[#FFFFFF] rounded-none border-l-4 border-l-[#1D5F31] p-5 border-y border-r border-[#E2E8F0]">
+                                <div className="bg-[#0f172a]/50 backdrop-blur-md rounded-md border-l-4 border-l-[#1D5F31] p-5 border border-white/5">
                                     <div className="flex items-center gap-4">
                                         <FileText className="text-[#1D5F31] shrink-0" size={24} />
-                                        <span className="font-bold font-montserrat text-[#1a1a1a] text-base">
+                                        <span className="font-bold font-montserrat text-white/90 text-base">
                                             Conteúdo programático em atualização por nossa equipe técnica.
                                         </span>
                                     </div>
                                 </div>
                             ) : (
                                 course.curriculum.map((topic: string, index: number) => (
-                                    <div key={index} className="bg-[#FFFFFF] rounded-none border-l-4 border-l-[#1D5F31] p-5 transition-all duration-300 hover:translate-x-1 hover:shadow-sm border-y border-r border-[#E2E8F0] flex items-center gap-4 group cursor-default">
+                                    <div key={index} className="bg-[#0f172a]/50 backdrop-blur-md rounded-md border-l-4 border-l-[#1D5F31] p-5 transition-all duration-300 hover:bg-[#1e293b]/50 border border-white/5 flex items-center gap-4 group cursor-default">
                                         <PlayCircle className="text-[#1D5F31] shrink-0 opacity-80 group-hover:opacity-100 transition-opacity" size={24} />
                                         <div className="flex flex-col">
                                             <span className="text-[10px] font-bold uppercase text-[#1D5F31] tracking-widest mb-1">MÓDULO {(index + 1).toString().padStart(2, '0')}</span>
-                                            <span className="font-bold font-montserrat text-[#1a1a1a] text-base tracking-tight leading-snug">
+                                            <span className="font-bold font-montserrat text-white/90 text-base tracking-tight leading-snug">
                                                 {topic}
                                             </span>
                                         </div>

@@ -100,7 +100,6 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
 
     return (
         <div className="min-h-screen bg-white text-black font-montserrat">
-            <Navbar light={true} />
 
             <BannerWrapper>
                 <div className="relative aspect-[21/9] md:aspect-[32/10]">
@@ -193,7 +192,7 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
             <div className="px-6 md:px-12 relative z-30 space-y-16 pb-32">
                 {filteredCourses.length === 0 ? (
                     <div className="text-center py-20 bg-white border border-slate-200 rounded-xl shadow-sm space-y-6">
-                        <div className="w-20 h-20 bg-[#1D5F31]/20 flex items-center justify-center mx-auto">
+                        <div className="w-20 h-20 bg-[#1D5F31]/20 flex items-center justify-center mx-auto rounded-full">
                             <Info size={32} className="text-slate-700" />
                         </div>
                         <p className="text-lg font-bold text-slate-500 uppercase tracking-[3px]">Nenhum treinamento encontrado.</p>
