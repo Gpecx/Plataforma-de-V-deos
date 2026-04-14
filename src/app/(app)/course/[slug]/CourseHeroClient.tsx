@@ -63,13 +63,13 @@ export function CourseHeroClient({ course, isAdmin, hasAccess, purchasedCourseId
 
                 {/* POWERPLAY ATMOSPHERIC GRADIENT — Title 'inside' the light, Tone down green */}
                 {/* Camada 1: Base de legibilidade (Grounding) */}
-                <div className="absolute inset-0 bg-gradient-to-t from-[#041E10] via-transparent to-transparent opacity-95 pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#041E10] via-[#041E10]/40 to-transparent opacity-90 pointer-events-none" />
                 
                 {/* Camada 2: Brilho Radial (Spotlight no Título) */}
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_40%,rgba(29,95,49,0.3),transparent_70%)] pointer-events-none" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_40%,rgba(29,95,49,0.15),transparent_70%)] pointer-events-none" />
                 
                 {/* Camada 3: Transição de Identidade (To Bottom Right) — Subtle accent */}
-                <div className="absolute inset-0 bg-gradient-to-br from-[#041E10]/80 via-transparent to-[#1D5F31]/40 pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-br from-[#041E10]/50 via-transparent to-[#1D5F31]/10 pointer-events-none" />
             </div>
 
             <div className="relative z-10 max-w-[1600px] mx-auto w-full px-6 md:px-12 transition-all duration-700">

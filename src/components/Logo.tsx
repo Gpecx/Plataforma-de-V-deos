@@ -20,22 +20,33 @@ export default function Logo({ className = '', variant = 'horizontal', href = '/
 
     const PowerPlayLogo = () => (
         <svg
-            viewBox="0 0 280 60"
+            viewBox="0 0 300 60"
             className="h-full w-auto"
             xmlns="http://www.w3.org/2000/svg"
         >
             {/* Circle with Lightning Bolt */}
-            <circle cx="30" cy="30" r="22" fill="none" stroke="#22c55e" strokeWidth="3" />
-            <circle cx="30" cy="30" r="18" fill="#22c55e" fillOpacity="0.1" />
+            {/* Play Triangle - Increased Size */}
             <path
-                d="M32 18L24 32H30L28 42L36 28H30L32 18Z"
+                d="M2 2L60 30L2 58Z"
+                fill="none"
+                stroke="#22c55e"
+                strokeWidth="4"
+                strokeLinejoin="round"
+            />
+            <path
+                d="M2 2L60 30L2 58Z"
+                fill="#22c55e"
+                fillOpacity="0.1"
+            />
+            <path
+                d="M25 14L13 33H21L18 46L30 27H23L25 14Z"
                 fill="#22c55e"
                 className="animate-pulse"
             />
 
             {/* Text 'POWER' */}
             <text
-                x="65"
+                x="75"
                 y="42"
                 fontFamily="Exo, sans-serif"
                 fontSize="32"
@@ -48,7 +59,7 @@ export default function Logo({ className = '', variant = 'horizontal', href = '/
 
             {/* Text 'PLAY' */}
             <text
-                x="185"
+                x="195"
                 y="42"
                 fontFamily="Exo, sans-serif"
                 fontSize="32"
@@ -77,7 +88,7 @@ export default function Logo({ className = '', variant = 'horizontal', href = '/
             <Link href={href as any} className={`hover:scale-105 transition-transform duration-500 outline-none ${className}`}>
                 <span className={`text-2xl font-bold tracking-tighter uppercase font-exo`} style={{ color: primaryColor }}>
                     POWER <span style={{ color: primaryColor }}>PLAY</span>
-</span>
+                </span>
             </Link>
         )
     }
