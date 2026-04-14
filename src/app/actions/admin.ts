@@ -1,7 +1,8 @@
 'use server'
 
-import { adminDb } from '@/lib/firebase-admin'
+import { adminDb, adminAuth } from '@/lib/firebase-admin'
 import { revalidatePath } from 'next/cache'
+import { getSessionUser } from '@/app/actions/auth'
 import { parseFirebaseDate } from '@/lib/date-utils'
 
 /**
@@ -904,5 +905,67 @@ export async function reactivateTeacher(teacherId: string): Promise<{ success: b
     } catch (error) {
         console.error("[reactivateTeacher] Erro ao reativar professor:", error)
         return { success: false, error: "Erro ao reativar professor.", message: "" }
+    }
+}
+
+/**
+ * Promove um professor para a função de administrador.
+ * Requisitos: O chamador deve ser admin, o alvo deve ser teacher.
+ */
+export async function promoteTeacherToAdmin(teacherId: string): Promise<{ success: boolean; message: string; error?: string }> {
+    try {
+        // 1. Validar se o chamador é admin
+        const session = await getSessionUser()
+        if (!session || session.role !== 'admin') {
+            return { success: false, error: "Não autorizado. Apenas administradores podem realizar esta ação.", message: "" }
+        }
+
+        // 2. Buscar o perfil do professor alvo
+        const profileRef = adminDb.collection('profiles').doc(teacherId)
+        const profileDoc = await profileRef.get()
+        
+        if (!profileDoc.exists) {
+            return { success: false, error: "Usuário alvo não encontrado.", message: "" }
+        }
+
+        const profileData = profileDoc.data()
+        
+        // 3. Validar se a role atual é rigorosamente 'teacher'
+        if (profileData?.role !== 'teacher') {
+            return { success: false, error: "Apenas usuários com a função 'teacher' podem ser promovidos desta forma.", message: "" }
+        }
+
+        // 4. Atualizar Firestore para role 'admin'
+        await profileRef.update({
+            role: 'admin',
+            updated_at: new Date(),
+            promoted_at: new Date(),
+            promoted_by: session.uid
+        })
+
+        // 5. Atualizar Custom Claims no Firebase Auth para garantir consistência tokens/permissões
+        await adminAuth.setCustomUserClaims(teacherId, { role: 'admin' })
+
+        // 6. Criar notificação para o novo administrador
+        await adminDb.collection('notifications').add({
+            user_id: teacherId,
+            type: 'role_promoted',
+            title: 'Promoção a Administrador',
+            message: 'Parabéns! Sua conta foi promovida para a função de Administrador da plataforma.',
+            read: false,
+            created_at: new Date()
+        })
+
+        revalidatePath('/admin/teachers')
+        revalidatePath('/admin/dashboard')
+        
+        return { 
+            success: true, 
+            message: `Professor(a) ${profileData?.full_name || teacherId} promovido(a) a Administrador com sucesso.`, 
+            error: "" 
+        }
+    } catch (error) {
+        console.error("[promoteTeacherToAdmin] Erro ao promover professor:", error)
+        return { success: false, error: "Erro interno ao processar a promoção.", message: "" }
     }
 }

@@ -74,10 +74,11 @@ export default function SecureMuxPlayer({
 
   if (loading) {
     return (
-      <div className={`relative w-full aspect-video rounded-xl overflow-hidden bg-muted ${className}`}>
-        <Skeleton className="w-full h-full" />
-        <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-8 h-8 md:w-12 md:h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      <div className={`relative w-full aspect-video rounded-md overflow-hidden bg-slate-900 ${className}`}>
+        <Skeleton className="w-full h-full opacity-20" />
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
+            <div className="w-10 h-10 border-4 border-[#1D5F31] border-t-transparent rounded-full animate-spin"></div>
+            <span className="text-[10px] font-bold uppercase tracking-[4px] text-white/40">Sincronizando Player...</span>
         </div>
       </div>
     );
@@ -85,23 +86,30 @@ export default function SecureMuxPlayer({
 
   if (error || !token) {
     return (
-      <div className={`relative w-full aspect-video rounded-xl overflow-hidden bg-slate-900 border border-slate-800 flex flex-col items-center justify-center text-slate-400 p-6 text-center ${className}`}>
+      <div className={`relative w-full aspect-video rounded-md overflow-hidden bg-slate-900 border border-slate-800 flex flex-col items-center justify-center text-slate-400 p-6 text-center ${className}`}>
         <AlertCircle className="w-10 h-10 mb-4 text-red-500/80" />
-        <p className="text-sm md:text-base font-medium">{error || "Não foi possível carregar o player."}</p>
+        <p className="text-xs md:text-sm font-bold uppercase tracking-[2px]">{error || "Não foi possível autenticar o acesso ao vídeo."}</p>
+        <p className="text-[10px] mt-2 opacity-50 uppercase tracking-widest ">Erro de Autenticação Industrial</p>
       </div>
     );
   }
 
   return (
     <div 
-        className={`relative w-full aspect-video rounded-xl overflow-hidden bg-black shadow-lg ${className}`}
+        className={`relative w-full aspect-video rounded-md overflow-hidden bg-black shadow-2xl border border-white/5 ${className}`}
         onContextMenu={(e) => e.preventDefault()}
     >
       <MuxPlayer
         playbackId={playbackId}
         tokens={{ playback: token }}
+        metadata={{
+          video_id: playbackId,
+          video_title: `Curso ID: ${cursoId}`,
+          viewer_id: user?.uid,
+        }}
+        primaryColor="#1D5F31"
         nohotkeys
-        className="w-full h-full object-cover"
+        className="w-full h-full object-contain"
       />
     </div>
   );

@@ -11,20 +11,7 @@ interface VideoAuthRequest {
     playbackId: string
 }
 
-// ─── Instância do Mux ─────────────────────────────────────────────────────────
-// O SDK é inicializado com as chaves de assinatura JWT do Mux.
-// MUX_TOKEN_ID  : "Signing Key ID"  no painel Mux → Settings → Signing Keys
-// MUX_TOKEN_SECRET : "Private Key" (base64) correspondente
-function getMuxClient(): Mux {
-    const tokenId = process.env.MUX_TOKEN_ID
-    const tokenSecret = process.env.MUX_TOKEN_SECRET
-
-    if (!tokenId || !tokenSecret) {
-        throw new Error('MUX_TOKEN_ID ou MUX_TOKEN_SECRET não configurados nas variáveis de ambiente')
-    }
-
-    return new Mux({ tokenId, tokenSecret })
-}
+import { getMuxClient } from '@/lib/mux'
 
 // ─── Rota POST ────────────────────────────────────────────────────────────────
 
@@ -64,44 +51,63 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        // ── 3. Validação de Compra (Firestore) ───────────────────────────────
-        // Busca o perfil do usuário e verifica se o cursoId está em cursos_comprados.
-        // Esta é a trava de segurança principal: sem compra, sem token.
+        // ── 3. Validação de Acesso (Admin, Autor ou Aluno com Compra) ─────────
+        // Esta é a trava de segurança: admin sempre acessa, autor sempre acessa seu curso, 
+        // e alunos só acessam se tiverem comprado.
+        
+        // a) Busca o perfil do usuário para checar a ROLE
         const profileDoc = await adminDb.collection('profiles').doc(uid).get()
-
         if (!profileDoc.exists) {
-            return NextResponse.json(
-                { error: 'Perfil de usuário não encontrado' },
-                { status: 404 }
-            )
+            return NextResponse.json({ error: 'Perfil não encontrado' }, { status: 404 })
         }
-
         const profileData = profileDoc.data()
-        const cursos_comprados: string[] = profileData?.cursos_comprados ?? []
+        const isAdmin = profileData?.role === 'admin'
 
-        if (!cursos_comprados.includes(cursoId)) {
-            console.warn(`Mux Auth: Usuário ${uid} tentou acessar curso ${cursoId} sem ter comprado.`)
+        // b) Busca o curso para checar a AUTORIA
+        const courseDoc = await adminDb.collection('courses').doc(cursoId).get()
+        if (!courseDoc.exists) {
+            return NextResponse.json({ error: 'Curso não encontrado' }, { status: 404 })
+        }
+        const courseData = courseDoc.data()
+        const isAuthor = courseData?.teacher_id === uid
+
+        // c) Verifica permissão
+        const cursos_comprados: string[] = profileData?.cursos_comprados ?? []
+        const hasPurchased = cursos_comprados.includes(cursoId)
+
+        if (!isAdmin && !isAuthor && !hasPurchased) {
+            console.warn(`Mux Auth: Acesso Negado para usuário ${uid} no curso ${cursoId}`)
             return NextResponse.json(
-                { error: 'Acesso negado: você não adquiriu este curso' },
+                { error: 'Acesso negado: você não tem permissão para ver este conteúdo' },
                 { status: 403 }
             )
         }
 
+        console.log(`Mux Auth: Acesso liberado para ${uid} (Admin: ${isAdmin}, Autor: ${isAuthor}, Compra: ${hasPurchased})`)
+
         // ── 4. Geração do Token Mux (JWT assinado) ───────────────────────────
-        // Assina o token de reprodução para o playbackId especificado.
-        // expiration: 21600 segundos = 6 horas
-        // type: 'video' → token de reprodução de vídeo
+        // Assina o token de reprodução usando as Signing Keys configuradas.
         const mux = getMuxClient()
+        
+        const keyId = process.env.MUX_SIGNING_KEY_ID
+        const keySecret = process.env.MUX_SIGNING_KEY
+
+        if (!keyId || !keySecret) {
+            console.error('Mux Auth: Falha na assinatura - MUX_SIGNING_KEY_ID ou MUX_SIGNING_KEY ausentes.')
+            throw new Error('Configuração de segurança do Mux incompleta')
+        }
+
         const token = await mux.jwt.signPlaybackId(playbackId, {
+            keyId,
+            keySecret,
             type: 'video',
             expiration: '6h',
             params: {
-                // Vincula o token ao usuário solicitante para auditoria
-                sub: uid,
+                sub: uid, // Identificador do usuário
             },
         })
 
-        console.log(`Mux Auth: Token gerado para usuário ${uid}, curso ${cursoId}, playbackId ${playbackId}`)
+        console.log(`Mux Auth: Token assinado gerado para ${uid} (Curso: ${cursoId})`)
 
         // ── 5. Retorno ────────────────────────────────────────────────────────
         return NextResponse.json({ token }, { status: 200 })

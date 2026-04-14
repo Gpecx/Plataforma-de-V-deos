@@ -34,6 +34,8 @@ export async function createCourseAction(formData: any) {
             status: 'PENDENTE',
             image_url: formData.image_url || "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=2070",
             intro_video_url: formData.intro_video_url || '',
+            intro_video_mux_id: formData.intro_video_mux_id || '',
+            intro_video_playback_id: formData.intro_video_playback_id || '',
             curriculum: formData.curriculum || [],
             tags: formData.tags || [],
             created_at: new Date(),
@@ -51,7 +53,9 @@ export async function createCourseAction(formData: any) {
                 batch.set(lessonRef, {
                     course_id: courseId,
                     title: lesson.title,
-                    video_url: lesson.video_url,
+                    video_url: lesson.video_url || '',
+                    mux_upload_id: lesson.mux_upload_id || '',
+                    mux_playback_id: lesson.mux_playback_id || '',
                     position: index + 1,
                     description: lesson.description || '',
                     status: 'PENDENTE',
@@ -140,6 +144,8 @@ export async function updateCourseAction(courseId: string, formData: any) {
         if (formData.duration !== undefined) updateData.duration = Number(formData.duration)
         if (formData.image_url !== undefined) updateData.image_url = formData.image_url
         if (formData.intro_video_url !== undefined) updateData.intro_video_url = formData.intro_video_url
+        if (formData.intro_video_mux_id !== undefined) updateData.intro_video_mux_id = formData.intro_video_mux_id
+        if (formData.intro_video_playback_id !== undefined) updateData.intro_video_playback_id = formData.intro_video_playback_id
         if (formData.curriculum !== undefined) updateData.curriculum = formData.curriculum
         if (formData.tags !== undefined) updateData.tags = formData.tags
 
@@ -178,7 +184,9 @@ export async function updateCourseAction(courseId: string, formData: any) {
             const payload: any = {
                 course_id: courseId,
                 title: lesson.title,
-                video_url: lesson.video_url,
+                video_url: lesson.video_url || '',
+                mux_upload_id: lesson.mux_upload_id || '',
+                mux_playback_id: lesson.mux_playback_id || '',
                 position: index + 1,
                 description: lesson.description || '',
                 updated_at: new Date()

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import {
     DndContext,
     closestCenter,
@@ -48,8 +49,11 @@ import { useParams, useRouter } from 'next/navigation'
 import { useDropzone } from 'react-dropzone'
 import { auth, db } from '@/lib/firebase'
 import { doc, getDoc, collection, query, where, orderBy, getDocs } from 'firebase/firestore'
-import { uploadCourseImage, uploadCourseVideo } from "@/lib/storage-helpers"
+import { uploadCourseImage } from "@/lib/storage-helpers"
 import { updateCourseAction, deleteVideoAction, cancelLessonDeletionRequest } from "../../actions"
+import { getMuxUploadUrl, getMuxUploadStatus } from "@/app/actions/mux"
+import { toast } from 'sonner'
+import SecureMuxPlayer from "@/components/SecureMuxPlayer"
 import { onAuthStateChanged, User } from 'firebase/auth'
 import QuizForm from '@/app/(app)/dashboard-teacher/components/QuizForm'
 import TagInput from '@/components/ui/TagInput'
@@ -75,6 +79,8 @@ interface Lesson {
     id: string
     title: string
     video_url: string
+    mux_upload_id?: string
+    mux_playback_id?: string
     position: number
     description?: string
     status?: string
@@ -122,14 +128,14 @@ function SortableLesson({ lesson, onDelete, onSelect, isSelected, onTitleChange,
             ref={setNodeRef}
             style={style}
             onClick={onSelect}
-            className={`group flex items-center justify-between p-4 cursor-pointer border-2 rounded-xl transition-all duration-300 mb-3 ${isSelected ? 'bg-white border-[#1D5F31] ring-2 ring-[#1D5F31]/10' : 'bg-white border-[#1D5F31] hover:border-[#1D5F31]/50'
+            className={`group flex items-center justify-between p-4 cursor-pointer border-2 rounded-md transition-all duration-300 mb-3 ${isSelected ? 'bg-white border-[#1D5F31] ring-2 ring-[#1D5F31]/10' : 'bg-white border-[#1D5F31] hover:border-[#1D5F31]/50'
                 }`}
         >
             <div className="flex items-center gap-6">
                 <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-slate-500 hover:text-[#1D5F31] transition-colors p-1" onClick={(e) => e.stopPropagation()}>
                     <GripVertical size={20} />
                 </button>
-                <div className={`p-3 rounded-xl transition-colors ${isSelected ? 'bg-[#1D5F31]/10 text-[#1D5F31]' : 'bg-white text-slate-500'}`}>
+                <div className={`p-3 rounded-md transition-colors ${isSelected ? 'bg-[#1D5F31]/10 text-[#1D5F31]' : 'bg-white text-slate-500'}`}>
                     {lesson.type === 'quiz' ? <HelpCircle size={18} /> : <Video size={18} />}
                 </div>
                 <div>
@@ -146,15 +152,14 @@ function SortableLesson({ lesson, onDelete, onSelect, isSelected, onTitleChange,
                         ) : lesson.status === 'SOLICITADO_EXCLUSAO' ? (
                             <Clock size={14} className="text-red-500" />
                         ) : (
-                            <div className={`w-1.5 h-1.5 rounded-xl ${lesson.type === 'quiz' ? 'bg-[#1D5F31]' : (lesson.video_url ? 'bg-[#1D5F31]' : 'bg-slate-700')}`}></div>
+                            <div className={`w-1.5 h-1.5 rounded-md ${lesson.type === 'quiz' ? 'bg-[#1D5F31]' : (lesson.mux_playback_id || lesson.video_url ? 'bg-[#1D5F31]' : 'bg-slate-700')}`}></div>
                         )}
-                        <span className={`text-[9px] font-bold uppercase tracking-[2px] ${
-                            lesson.status === 'REJEITADO' ? 'text-red-500' : 
-                            lesson.status === 'SOLICITADO_EXCLUSAO' ? 'text-red-500' : 'text-black/60'
-                        }`}>
-                            {lesson.status === 'REJEITADO' ? 'REJEITADA' : 
-                             lesson.status === 'SOLICITADO_EXCLUSAO' ? 'REMOÇÃO SOLICITADA' : 
-                             (lesson.type === 'quiz' ? 'QUESTIONÁRIO' : (lesson.video_url ? 'VÍDEO ATIVO' : 'AGUARDANDO CONTEÚDO'))}
+                        <span className={`text-[9px] font-bold uppercase tracking-[2px] ${lesson.status === 'REJEITADO' ? 'text-red-500' :
+                                lesson.status === 'SOLICITADO_EXCLUSAO' ? 'text-red-500' : 'text-black/60'
+                            }`}>
+                            {lesson.status === 'REJEITADO' ? 'REJEITADA' :
+                                lesson.status === 'SOLICITADO_EXCLUSAO' ? 'REMOÇÃO SOLICITADA' :
+                                    (lesson.type === 'quiz' ? 'QUESTIONÁRIO' : (lesson.mux_playback_id ? 'VÍDEO MUX ATIVO' : (lesson.video_url ? 'VÍDEO ATIVO' : 'AGUARDANDO CONTEÚDO')))}
                         </span>
                     </div>
                 </div>
@@ -166,7 +171,7 @@ function SortableLesson({ lesson, onDelete, onSelect, isSelected, onTitleChange,
                             e.stopPropagation()
                             onResubmit()
                         }}
-                        className="p-3 text-amber-500 hover:text-amber-600 transition-all hover:bg-amber-50 rounded-xl"
+                        className="p-3 text-amber-500 hover:text-amber-600 transition-all hover:bg-amber-50 rounded-md"
                         title="Reenviar para aprovação"
                     >
                         <RotateCcw size={18} />
@@ -179,13 +184,13 @@ function SortableLesson({ lesson, onDelete, onSelect, isSelected, onTitleChange,
                                 e.stopPropagation()
                                 onCancel()
                             }}
-                            className="p-3 text-amber-500 hover:text-amber-600 transition-all hover:bg-amber-50 rounded-xl"
+                            className="p-3 text-amber-500 hover:text-amber-600 transition-all hover:bg-amber-50 rounded-md"
                             title="Cancelar solicitação de exclusão"
                         >
                             <XCircle size={18} />
                         </button>
                     ) : (
-                        <div className="p-3 text-red-400 rounded-xl" title="Aguardando aprovação de exclusão">
+                        <div className="p-3 text-red-400 rounded-md" title="Aguardando aprovação de exclusão">
                             <Clock size={18} />
                         </div>
                     )
@@ -195,7 +200,7 @@ function SortableLesson({ lesson, onDelete, onSelect, isSelected, onTitleChange,
                             e.stopPropagation()
                             onDelete()
                         }}
-                        className="p-3 text-slate-400 hover:text-red-500 transition-all hover:bg-red-500/10 rounded-xl"
+                        className="p-3 text-slate-400 hover:text-red-500 transition-all hover:bg-red-500/10 rounded-md"
                         title="Excluir aula"
                     >
                         <Trash2 size={18} />
@@ -238,7 +243,7 @@ function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons,
         <div
             ref={setNodeRef}
             style={style}
-            className="mb-8 bg-white border border-[#1D5F31]/20 rounded-xl overflow-hidden"
+            className="mb-8 bg-white border border-[#1D5F31]/20 rounded-md overflow-hidden"
         >
             <div className="p-6 flex items-center justify-between bg-white border-b-2 border-[#1D5F31]">
                 <div className="flex items-center gap-6">
@@ -258,7 +263,7 @@ function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons,
                     {canDeleteModule && (
                         <button
                             onClick={onDeleteModule}
-                            className="flex items-center gap-2 px-4 py-3 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl text-[9px] font-bold uppercase tracking-[3px] transition-all border border-transparent hover:border-red-500/30"
+                            className="flex items-center gap-2 px-4 py-3 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-md text-[9px] font-bold uppercase tracking-[3px] transition-all border border-transparent hover:border-red-500/30"
                         >
                             <Trash2 size={16} />
                             Excluir Módulo
@@ -266,14 +271,14 @@ function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons,
                     )}
                     <button
                         onClick={onAddLesson}
-                        className="flex items-center gap-2 px-4 py-3 bg-[#1D5F31] text-white rounded-xl text-[9px] font-bold uppercase tracking-[3px] hover:bg-[#1D5F31]/90 transition-all border-none"
+                        className="flex items-center gap-2 px-4 py-3 bg-[#1D5F31] text-white rounded-md text-[9px] font-bold uppercase tracking-[3px] hover:bg-[#1D5F31]/90 transition-all border-none"
                     >
                         <Plus size={16} />
                         Adicionar Aula
                     </button>
                     <button
                         onClick={onAddQuiz}
-                        className="flex items-center gap-2 px-4 py-3 bg-slate-800 text-white rounded-xl text-[9px] font-bold uppercase tracking-[3px] hover:bg-slate-700 transition-all border-none"
+                        className="flex items-center gap-2 px-4 py-3 bg-slate-800 text-white rounded-md text-[9px] font-bold uppercase tracking-[3px] hover:bg-slate-700 transition-all border-none"
                     >
                         <HelpCircle size={16} />
                         Adicionar Quiz
@@ -306,7 +311,7 @@ function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons,
                 </DndContext>
 
                 {module.lessons.length === 0 && (
-                    <div className="py-16 border-2 border-dashed border-[#1D5F31]/30/30/30 rounded-xl flex flex-col items-center justify-center text-slate-500 bg-white/50">
+                    <div className="py-16 border-2 border-dashed border-[#1D5F31]/30/30/30 rounded-md flex flex-col items-center justify-center text-slate-500 bg-white/50">
                         <Video size={48} className="mb-4 opacity-20" />
                         <p className="text-[10px] font-bold uppercase tracking-[3px]">Crie sua primeira entrega</p>
                         <p className="text-[9px] mt-2 font-medium ">ESTE MÓDULO ESTÁ EM BRANCO</p>
@@ -318,27 +323,88 @@ function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons,
 }
 
 // --- Video Upload Component ---
-function VideoUpload({ onUploadComplete }: { onUploadComplete: (url: string) => void }) {
+function VideoUpload({ onUploadComplete }: { onUploadComplete: (data: { url?: string, mux_upload_id?: string, mux_playback_id?: string }) => void }) {
     const [isUploading, setIsUploading] = useState(false)
+    const [progress, setProgress] = useState(0)
+    const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'processing' | 'ready'>('idle')
 
     const onDrop = async (acceptedFiles: File[]) => {
         if (acceptedFiles.length === 0) return
+
         setIsUploading(true)
+        setUploadStatus('uploading')
+        setProgress(0)
+
         try {
-            const videoUrl = await uploadCourseVideo(acceptedFiles[0])
-            onUploadComplete(videoUrl)
-            alert("Upload concluído com sucesso!")
+            // 1. Obter URL de upload do Mux
+            const response = await getMuxUploadUrl()
+            if (response.error || !response.url) {
+                throw new Error(response.error || "Erro ao gerar URL de upload")
+            }
+
+            const { url, id: uploadId } = response
+
+            // 2. Upload direto via XHR para acompanhar progresso
+            return new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest()
+                xhr.open('PUT', url)
+
+                xhr.upload.onprogress = (event) => {
+                    if (event.lengthComputable) {
+                        const percentComplete = (event.loaded / event.total) * 100
+                        setProgress(Math.round(percentComplete))
+                    }
+                }
+
+                xhr.onload = async () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        setUploadStatus('processing')
+                        // 3. Notificar o ID do upload
+                        onUploadComplete({ mux_upload_id: uploadId })
+
+                        // 4. Polling básico para obter o playbackId (opcional, mas bom pra UX)
+                        let attempts = 0
+                        const checkStatus = async () => {
+                            if (attempts > 30) {
+                                resolve(true)
+                                return
+                            }
+                            const statusRes = await getMuxUploadStatus(uploadId)
+                            if (statusRes.status === 'ready') {
+                                onUploadComplete({
+                                    mux_upload_id: uploadId,
+                                    mux_playback_id: statusRes.playback_id
+                                })
+                                setUploadStatus('ready')
+                                resolve(true)
+                            } else {
+                                attempts++
+                                setTimeout(checkStatus, 3000)
+                            }
+                        }
+                        checkStatus()
+                    } else {
+                        reject(new Error("Erro no upload para o Mux"))
+                    }
+                }
+
+                xhr.onerror = () => reject(new Error("Erro de rede durante o upload"))
+                xhr.send(acceptedFiles[0])
+            })
         } catch (error: any) {
-            alert(error.message)
+            toast.error(error.message)
         } finally {
-            setIsUploading(false)
+            if (uploadStatus !== 'processing') {
+                setIsUploading(false)
+            }
         }
     }
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
         accept: { 'video/*': [] },
-        multiple: false
+        multiple: false,
+        disabled: isUploading
     })
 
     return (
@@ -346,27 +412,56 @@ function VideoUpload({ onUploadComplete }: { onUploadComplete: (url: string) => 
             <div
                 {...getRootProps()}
                 className={`
-                    border-2 border-dashed rounded-xl p-12 transition-all duration-500 cursor-pointer flex flex-col items-center justify-center gap-4
-                    ${isDragActive ? 'border-[#1D5F31] bg-[#1D5F31]/5 ring-8 ring-[#1D5F31]/5' : 'border-[#1D5F31] hover:border-[#1D5F31]/30 bg-white'}
+                    border-2 border-dashed rounded-md p-12 transition-all duration-500 cursor-pointer flex flex-col items-center justify-center gap-4
+                    ${isDragActive ? 'border-slate-900 bg-slate-50' : 'border-slate-200 hover:border-slate-400 bg-white'}
+                    ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}
                 `}
             >
                 <input {...getInputProps()} />
-                <div className={`w-16 h-16 rounded-xl flex items-center justify-center transition-all duration-500 ${isDragActive ? 'bg-[#1D5F31] text-black' : 'bg-white text-slate-500 border border-[#1D5F31]'}`}>
-                    <UploadCloud size={28} strokeWidth={2.5} />
+                <div className="w-16 h-16 rounded-md flex items-center justify-center bg-slate-100 text-slate-900 border border-slate-900">
+                    {isUploading ? <Loader2 className="animate-spin" size={28} /> : <UploadCloud size={28} strokeWidth={2.5} />}
                 </div>
                 <div className="text-center">
-                    <p className="font-bold uppercase tracking-tight text-lg text-black leading-none">Arraste seu conteúdo</p>
-                    <p className="text-[9px] text-black/60 font-bold uppercase tracking-[3px] mt-2">OU CLIQUE PARA SELECIONAR MP4</p>
+                    <p className="font-black uppercase tracking-tighter text-lg text-slate-900 leading-none">
+                        {isUploading ? 'Transferindo Dados' : 'Arraste seu vídeo'}
+                    </p>
+                    <p className="text-[9px] text-slate-500 font-bold uppercase tracking-[3px] mt-2">
+                        {isUploading ? 'NÃO FECHE ESTA PÁGINA' : 'MP4, MOV OU MKV • PADRÃO INDUSTRIAL'}
+                    </p>
                 </div>
             </div>
 
             {isUploading && (
-                <div className="bg-white border border-[#1D5F31]/20 p-6 rounded-xl flex items-center gap-6 animate-pulse">
-                    <Loader2 className="animate-spin text-[#1D5F31]" size={28} />
-                    <div>
-                        <span className="text-[10px] font-bold uppercase text-[#1D5F31] tracking-[4px] block mb-1">Upload Estratégico em Curso</span>
-                        <span className="text-[9px] text-black/60 font-bold uppercase tracking-widest">Sincronizando com Servidores Firebase...</span>
+                <div className={`p-6 rounded-md shadow-sm border ${uploadStatus === 'processing' ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-900'}`}>
+                    <div className="flex justify-between items-center mb-4">
+                        <span className={`text-[10px] font-black uppercase tracking-[3px] ${uploadStatus === 'processing' ? 'text-white' : 'text-slate-900'}`}>
+                            {uploadStatus === 'uploading' ? `UPLOAD INDUSTRIAL: ${progress}%` : 'OTIMIZANDO VÍDEO PARA STREAMING...'}
+                        </span>
+                        <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-[#1D5F31] rounded-md animate-pulse" />
+                            <span className="text-[9px] font-bold uppercase text-[#1D5F31]">INFRA ATIVA</span>
+                        </div>
                     </div>
+
+                    {/* Barra de Progresso Industrial */}
+                    <div className={`w-full h-3 rounded-md overflow-hidden border ${uploadStatus === 'processing' ? 'bg-white/10 border-white/10' : 'bg-slate-100 border-slate-200'}`}>
+                        <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${uploadStatus === 'processing' ? 100 : progress}%` }}
+                            className={`h-full transition-all duration-300 ${uploadStatus === 'processing' ? 'bg-[#1D5F31]' : 'bg-slate-900'}`}
+                        />
+                    </div>
+
+                    <p className={`text-[9px] mt-3 font-bold uppercase tracking-widest ${uploadStatus === 'processing' ? 'text-slate-400' : 'text-slate-500'}`}>
+                        {uploadStatus === 'uploading' ? 'SINCRONIZANDO COM DATA CENTERS MUX' : 'GERANDO PLAYBACK ID DE ALTA PERFORMANCE'}
+                    </p>
+                </div>
+            )}
+
+            {uploadStatus === 'ready' && (
+                <div className="bg-[#1D5F31]/10 border border-[#1D5F31] p-4 rounded-md flex items-center gap-3">
+                    <CheckCircle2 className="text-[#1D5F31]" size={20} />
+                    <span className="text-[10px] font-bold uppercase text-[#1D5F31] tracking-widest">Vídeo Processado e Pronto</span>
                 </div>
             )}
         </div>
@@ -401,7 +496,7 @@ function CourseImageUpload({ currentImageUrl, onUploadComplete }: { currentImage
             <div
                 {...getRootProps()}
                 className={`
-                    relative group border-2 border-dashed rounded-xl overflow-hidden transition-all duration-500 cursor-pointer h-40 flex flex-col items-center justify-center gap-2
+                    relative group border-2 border-dashed rounded-md overflow-hidden transition-all duration-500 cursor-pointer h-40 flex flex-col items-center justify-center gap-2
                     ${isDragActive ? 'border-[#1D5F31] bg-[#1D5F31]/5' : 'border-[#1D5F31] hover:border-[#1D5F31]/30 bg-white'}
                 `}
             >
@@ -409,14 +504,14 @@ function CourseImageUpload({ currentImageUrl, onUploadComplete }: { currentImage
                 {currentImageUrl ? (
                     <>
                         <img src={currentImageUrl} alt="Capa do Curso" className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity" />
-                        <div className="relative z-10 flex flex-col items-center gap-3 bg-white/80 backdrop-blur-md px-6 py-3 rounded-xl border border-[#1D5F31]/20 opacity-0 group-hover:opacity-100 transition-all">
+                        <div className="relative z-10 flex flex-col items-center gap-3 bg-white/80 backdrop-blur-md px-6 py-3 rounded-md border border-[#1D5F31]/20 opacity-0 group-hover:opacity-100 transition-all">
                             <UploadCloud size={20} className="text-[#1D5F31]" />
                             <span className="text-[9px] font-bold uppercase tracking-widest text-[#1D5F31]">Trocar Capa</span>
                         </div>
                     </>
                 ) : (
                     <>
-                        <div className="w-14 h-14 bg-white rounded-xl flex items-center justify-center text-slate-500 border border-[#1D5F31]/20">
+                        <div className="w-14 h-14 bg-white rounded-md flex items-center justify-center text-slate-500 border border-[#1D5F31]/20">
                             <UploadCloud size={28} />
                         </div>
                         <span className="text-[9px] font-bold uppercase tracking-[3px] text-black/60">Carregar Arte</span>
@@ -458,8 +553,12 @@ export default function CourseBuilder() {
     const [coursePrice, setCoursePrice] = useState('0.00')
     const [courseImage, setCourseImage] = useState('')
     const [courseIntroVideo, setCourseIntroVideo] = useState('')
+    const [courseIntroVideoMuxId, setCourseIntroVideoMuxId] = useState('')
+    const [courseIntroVideoPlaybackId, setCourseIntroVideoPlaybackId] = useState('')
     const [courseCurriculum, setCourseCurriculum] = useState<string[]>([])
     const [isUploadingIntro, setIsUploadingIntro] = useState(false)
+    const [introUploadProgress, setIntroUploadProgress] = useState(0)
+    const [introUploadStatus, setIntroUploadStatus] = useState<'idle' | 'uploading' | 'processing' | 'ready'>('idle')
     const [courseTags, setCourseTags] = useState<string[]>([])
 
     // 1. Carrega dados do Firestore
@@ -483,6 +582,8 @@ export default function CourseBuilder() {
                         setCoursePrice(cData.price.toString().replace('.', ','))
                         setCourseImage(cData.image_url || '')
                         setCourseIntroVideo(cData.intro_video_url || '')
+                        setCourseIntroVideoMuxId(cData.intro_video_mux_id || '')
+                        setCourseIntroVideoPlaybackId(cData.intro_video_playback_id || '')
                         setCourseCurriculum(cData.curriculum || [])
                         setCourseTags(cData.tags || [])
 
@@ -585,6 +686,8 @@ export default function CourseBuilder() {
                 duration: courseDuration,
                 image_url: courseImage,
                 intro_video_url: courseIntroVideo,
+                intro_video_mux_id: courseIntroVideoMuxId,
+                intro_video_playback_id: courseIntroVideoPlaybackId,
                 curriculum: courseCurriculum,
                 lessons: allLessons,
                 status: newCourseStatus,
@@ -626,26 +729,24 @@ export default function CourseBuilder() {
                             value={courseTitle}
                             onChange={(e) => setCourseTitle(e.target.value)}
                         />
-                        <div className={`px-4 py-2 rounded-xl border shrink-0 ${
-                            course?.status === 'APROVADO' 
-                                ? 'bg-[#1D5F31]/10 border-[#1D5F31]/30' 
+                        <div className={`px-4 py-2 rounded-md border shrink-0 ${course?.status === 'APROVADO'
+                                ? 'bg-[#1D5F31]/10 border-[#1D5F31]/30'
                                 : course?.status === 'REJEITADO'
                                     ? 'bg-red-50 border-red-300'
                                     : 'bg-amber-50 border-amber-300'
-                        }`}>
-                            <span className={`text-[10px] font-bold uppercase tracking-widest ${
-                                course?.status === 'APROVADO' ? 'text-[#1D5F31]' : 
-                                course?.status === 'REJEITADO' ? 'text-red-600' : 'text-amber-700'
                             }`}>
-                                {course?.status === 'APROVADO' ? '✓ Aprovado' : 
-                                 course?.status === 'REJEITADO' ? '✕ Rejeitado' : '⏳ Pendente'}
+                            <span className={`text-[10px] font-bold uppercase tracking-widest ${course?.status === 'APROVADO' ? 'text-[#1D5F31]' :
+                                    course?.status === 'REJEITADO' ? 'text-red-600' : 'text-amber-700'
+                                }`}>
+                                {course?.status === 'APROVADO' ? '✓ Aprovado' :
+                                    course?.status === 'REJEITADO' ? '✕ Rejeitado' : '⏳ Pendente'}
                             </span>
                         </div>
                     </div>
                 </div>
 
                 {course?.status === 'REJEITADO' && course?.motivoRejeicao && (
-                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
                         <div className="flex items-center gap-2 mb-2">
                             <AlertCircle size={16} className="text-red-500" />
                             <span className="text-[10px] font-bold uppercase text-red-600 tracking-widest">Curso Rejeitado - Feedback do Admin</span>
@@ -654,17 +755,17 @@ export default function CourseBuilder() {
                     </div>
                 )}
 
-                <div className="flex items-center gap-4 bg-white p-3 rounded-xl border border-[#1D5F31]/20 shrink-0">
+                <div className="flex items-center gap-4 bg-white p-3 rounded-md border border-[#1D5F31]/20 shrink-0">
                     <button
                         onClick={() => router.push('/dashboard-teacher/courses')}
-                        className="px-8 py-4 bg-[#061629] border-none rounded-xl text-[10px] font-bold uppercase tracking-[4px] text-white hover:bg-[#061629]/90 transition-all font-montserrat"
+                        className="px-8 py-4 bg-[#061629] border-none rounded-md text-[10px] font-bold uppercase tracking-[4px] text-white hover:bg-[#061629]/90 transition-all font-montserrat"
                     >
                         Cancelar
                     </button>
                     <button
                         onClick={handleSave}
                         disabled={isSaving}
-                        className={`flex items-center gap-3 font-bold uppercase text-[10px] tracking-[4px] px-8 py-4 rounded-xl transition-all border-2 disabled:opacity-50 ${showSuccess ? 'bg-[#1D5F31] border-none text-white' : 'bg-[#1D5F31] border-none text-white hover:bg-[#1D5F31]/90'}`}
+                        className={`flex items-center gap-3 font-bold uppercase text-[10px] tracking-[4px] px-8 py-4 rounded-md transition-all border-2 disabled:opacity-50 ${showSuccess ? 'bg-[#1D5F31] border-none text-white' : 'bg-[#1D5F31] border-none text-white hover:bg-[#1D5F31]/90'}`}
                     >
                         {isSaving ? <Loader2 className="animate-spin" size={18} /> : (showSuccess ? <CheckCircle2 size={18} strokeWidth={3} /> : <Save size={18} strokeWidth={3} />)}
                         {isSaving ? 'Processando...' : (showSuccess ? 'Salvo com Sucesso' : 'Salvar Projeto')}
@@ -685,7 +786,7 @@ export default function CourseBuilder() {
                         </div>
                         <button
                             onClick={() => setModules([...modules, { id: Date.now().toString(), title: `MÓDULO DE APRENDIZADO ${modules.length + 1}`, lessons: [] }])}
-                            className="text-[10px] font-bold uppercase tracking-[4px] text-white bg-[#061629] hover:bg-[#061629]/90 px-6 py-3 rounded-xl border-none transition-all"
+                            className="text-[10px] font-bold uppercase tracking-[4px] text-white bg-[#061629] hover:bg-[#061629]/90 px-6 py-3 rounded-md border-none transition-all"
                         >
                             + Novo Módulo
                         </button>
@@ -758,11 +859,11 @@ export default function CourseBuilder() {
                                         }
                                     }}
                                     onAddQuiz={() => {
-                                        const newQuiz: Lesson = { 
-                                            id: `quiz-${Date.now()}`, 
-                                            title: 'Novo Questionário', 
-                                            video_url: '', 
-                                            position: module.lessons.length + 1, 
+                                        const newQuiz: Lesson = {
+                                            id: `quiz-${Date.now()}`,
+                                            title: 'Novo Questionário',
+                                            video_url: '',
+                                            position: module.lessons.length + 1,
                                             description: '',
                                             type: 'quiz',
                                             quizData: {
@@ -787,7 +888,7 @@ export default function CourseBuilder() {
                         </div>
 
                         {selectedLesson ? (
-                            <div className="space-y-8 bg-white p-8 rounded-xl border border-[#1D5F31]/20 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="space-y-8 bg-white p-8 rounded-md border border-[#1D5F31]/20 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-8 border-b-2 border-[#1D5F31]">
                                     <div className="space-y-2 flex-grow">
                                         <span className="text-[9px] font-bold uppercase text-[#1D5F31] tracking-[3px]">Título da Aula Digital</span>
@@ -818,7 +919,7 @@ export default function CourseBuilder() {
                                             }}
                                         />
                                         {selectedLesson.status === 'REJEITADO' && selectedLesson.motivoRejeicao && (
-                                            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl">
+                                            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
                                                 <div className="flex items-center gap-2 mb-2">
                                                     <AlertCircle size={16} className="text-red-500" />
                                                     <span className="text-[10px] font-bold uppercase text-red-600 tracking-widest">Feedback do Admin</span>
@@ -831,7 +932,7 @@ export default function CourseBuilder() {
 
                                 <div className="grid grid-cols-1 gap-10">
                                     {selectedLesson.type === 'quiz' ? (
-                                        <QuizForm 
+                                        <QuizForm
                                             initialData={selectedLesson.quizData}
                                             onSave={(quizData: {
                                                 id?: string
@@ -848,76 +949,104 @@ export default function CourseBuilder() {
                                         />
                                     ) : (
                                         <>
-                                            {!selectedLesson.video_url ? (
+                                            {(!selectedLesson.mux_playback_id && !selectedLesson.mux_upload_id && !selectedLesson.video_url) ? (
                                                 <div className="animate-in fade-in zoom-in duration-500">
-                                                    <VideoUpload onUploadComplete={(url) => {
-                                                        setSelectedLesson({ ...selectedLesson, video_url: url })
+                                                    <VideoUpload onUploadComplete={(data) => {
+                                                        const updatedLesson = {
+                                                            ...selectedLesson,
+                                                            video_url: data.url || '', // Limpa URL legada se estiver usando Mux
+                                                            mux_upload_id: data.mux_upload_id || selectedLesson.mux_upload_id,
+                                                            mux_playback_id: data.mux_playback_id || selectedLesson.mux_playback_id
+                                                        }
+                                                        setSelectedLesson(updatedLesson)
                                                         setModules(prev => prev.map(m => ({
                                                             ...m,
-                                                            lessons: m.lessons.map(l => l.id === selectedLesson.id ? { ...l, video_url: url } : l)
+                                                            lessons: m.lessons.map(l => l.id === selectedLesson.id ? updatedLesson : l)
                                                         })))
                                                     }} />
                                                 </div>
                                             ) : (
                                                 <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-right-4 duration-500">
-                                                    <div className="aspect-video w-full bg-black rounded-xl overflow-hidden border border-[#1D5F31]/20 group relative">
-                                                        <video
-                                                            src={selectedLesson.video_url}
-                                                            controls
-                                                            className="w-full h-full object-contain"
-                                                        />
-                                                        <div className="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            <div className="bg-white/80 backdrop-blur-md px-4 py-2 rounded-xl border border-[#1D5F31]/20 text-[10px] font-bold uppercase text-[#1D5F31] tracking-widest flex items-center gap-2">
-                                                                <span className="w-2 h-2 rounded-xl bg-[#1D5F31] animate-pulse"></span>
-                                                                Conteúdo Ativo
+                                                    <div className="aspect-video w-full bg-slate-900 rounded-md overflow-hidden border border-[#1D5F31]/20 group relative flex items-center justify-center">
+                                                        {selectedLesson.mux_playback_id ? (
+                                                            <SecureMuxPlayer 
+                                                                cursoId={params.id as string} 
+                                                                playbackId={selectedLesson.mux_playback_id} 
+                                                                className="w-full h-full"
+                                                            />
+                                                        ) : selectedLesson.mux_upload_id ? (
+                                                            <div className="flex flex-col items-center gap-4 text-white">
+                                                                <Loader2 className="animate-spin text-[#1D5F31]" size={40} />
+                                                                <div className="text-center">
+                                                                    <p className="font-black tracking-[4px] text-xs uppercase animate-pulse">OTIMIZANDO VÍDEO PARA STREAMING...</p>
+                                                                    <p className="text-[10px] text-slate-500 font-bold uppercase mt-2">PADRÃO INDUSTRIAL DE ALTA PERFORMANCE</p>
+                                                                </div>
                                                             </div>
-                                                        </div>
+                                                        ) : (
+                                                            <video
+                                                                src={selectedLesson.video_url}
+                                                                controls
+                                                                className="w-full h-full object-contain"
+                                                            />
+                                                        )}
+                                                        
+                                                        {(selectedLesson.mux_playback_id || selectedLesson.video_url) && (
+                                                            <div className="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                <div className="bg-white/80 backdrop-blur-md px-4 py-2 rounded-md border border-[#1D5F31]/20 text-[10px] font-bold uppercase text-[#1D5F31] tracking-widest flex items-center gap-2">
+                                                                    <span className="w-2 h-2 rounded-md bg-[#1D5F31] animate-pulse"></span>
+                                                                    Conteúdo Ativo
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                     </div>
 
                                                     <div className="flex flex-col md:flex-row gap-6 items-center">
-                                                        <div className="flex-1 p-6 bg-[#1D5F31]/10 rounded-xl border border-[#1D5F31]/20/20 w-full">
+                                                        <div className="flex-1 p-6 bg-[#1D5F31]/10 rounded-md border border-[#1D5F31]/20/20 w-full">
                                                             <div className="flex items-center gap-4">
-                                                                <div className="w-10 h-10 bg-[#1D5F31] rounded-xl flex items-center justify-center text-white">
+                                                                <div className="w-10 h-10 bg-[#1D5F31] rounded-md flex items-center justify-center text-white">
                                                                     <CheckCircle2 size={20} />
                                                                 </div>
                                                                 <div>
-                                                                    <span className="text-[10px] font-bold uppercase text-[#1D5F31] tracking-[2px] block mb-1">Upload Processado com Sucesso</span>
-                                                                    <p className="text-[11px] text-black/60 font-medium truncate max-w-[400px]">{selectedLesson.video_url}</p>
+                                                                    <span className="text-[10px] font-bold uppercase text-[#1D5F31] tracking-[2px] block mb-1">
+                                                                        {selectedLesson.mux_playback_id ? 'Infraestrutura Mux Consolidada' : 'Upload Concluído'}
+                                                                    </span>
+                                                                    <p className="text-[11px] text-black/60 font-medium truncate max-w-[400px]">
+                                                                        {selectedLesson.mux_playback_id || selectedLesson.video_url || 'Processando metadata industrial...'}
+                                                                    </p>
                                                                 </div>
                                                             </div>
                                                         </div>
 
                                                         <button
                                                             onClick={async () => {
-                                                                if (!confirm("Tem certeza que deseja apagar permanentemente este vídeo? Isso não pode ser desfeito.")) return
+                                                                if (!confirm("Substituir este conteúdo digital?")) return
 
                                                                 setIsDeletingVideo(true)
                                                                 try {
-                                                                    const result = await deleteVideoAction(selectedLesson.id, 'lessons', selectedLesson.video_url)
-                                                                    if (result.success) {
-                                                                        setSelectedLesson({ ...selectedLesson, video_url: '' })
-                                                                        setModules(prev => prev.map(m => ({
-                                                                            ...m,
-                                                                            lessons: m.lessons.map(l => l.id === selectedLesson.id ? { ...l, video_url: '' } : l)
-                                                                        })))
-                                                                    } else {
-                                                                        alert(result.error)
+                                                                    // Se for vídeo legado, deleta do Firebase. Se for Mux, apenas limpamos os IDs (deletar no Mux é via API e opcional aqui)
+                                                                    if (selectedLesson.video_url && !selectedLesson.mux_playback_id) {
+                                                                         await deleteVideoAction(selectedLesson.id, 'lessons', selectedLesson.video_url)
                                                                     }
+                                                                    
+                                                                    const updatedLesson = { ...selectedLesson, video_url: '', mux_upload_id: '', mux_playback_id: '' }
+                                                                    setSelectedLesson(updatedLesson)
+                                                                    setModules(prev => prev.map(m => ({
+                                                                        ...m,
+                                                                        lessons: m.lessons.map(l => l.id === selectedLesson.id ? updatedLesson : l)
+                                                                    })))
                                                                 } catch (error) {
-                                                                    alert("Houve um erro técnico ao tentar remover o vídeo.")
+                                                                    alert("Erro ao remover conteúdo.")
                                                                 } finally {
                                                                     setIsDeletingVideo(false)
                                                                 }
                                                             }}
                                                             disabled={isDeletingVideo}
-                                                            className="w-full md:w-auto flex items-center justify-center gap-3 px-8 py-5 bg-red-500/10 text-red-500 rounded-xl text-xs font-bold uppercase tracking-[3px] hover:bg-red-500/20 transition-all border-2 border-red-500/20 disabled:opacity-50 group"
+                                                            className="w-full md:w-auto flex items-center justify-center gap-3 px-8 py-5 bg-red-500/10 text-red-500 rounded-md text-xs font-bold uppercase tracking-[3px] hover:bg-red-500/20 transition-all border-2 border-red-500/20 disabled:opacity-50 group"
                                                         >
                                                             {isDeletingVideo ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} className="group-hover:scale-110 transition-transform" />}
-                                                            {isDeletingVideo ? 'Processando Exclusão...' : 'Substituir Conteúdo'}
+                                                            {isDeletingVideo ? 'Redefinindo...' : 'Substituir Conteúdo'}
                                                         </button>
                                                     </div>
-
-
                                                 </div>
                                             )}
                                         </>
@@ -925,9 +1054,9 @@ export default function CourseBuilder() {
                                 </div>
                             </div>
                         ) : (
-                            <div className="p-12 bg-white border border-[#1D5F31]/20 rounded-xl flex flex-col items-center justify-center text-center relative overflow-hidden group border-dashed">
+                            <div className="p-12 bg-white border border-[#1D5F31]/20 rounded-md flex flex-col items-center justify-center text-center relative overflow-hidden group border-dashed">
                                 <div className="absolute inset-0 bg-[#1D5F31]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
-                                <div className="w-24 h-24 bg-white rounded-xl flex items-center justify-center text-[#1D5F31] mb-8 border border-[#1D5F31]/20 relative z-10 group-hover:scale-105 transition-transform duration-500">
+                                <div className="w-24 h-24 bg-white rounded-md flex items-center justify-center text-[#1D5F31] mb-8 border border-[#1D5F31]/20 relative z-10 group-hover:scale-105 transition-transform duration-500">
                                     <Video size={48} />
                                 </div>
                                 <p className="text-[11px] text-black/60 font-bold uppercase tracking-[4px] leading-relaxed max-w-[280px] mx-auto relative z-10">
@@ -940,7 +1069,7 @@ export default function CourseBuilder() {
 
                 {/* Lado Direito: Configurações e Capa */}
                 <aside className="space-y-12">
-                    <section className="bg-white p-8 rounded-xl border border-[#1D5F31]/20 relative overflow-hidden group">
+                    <section className="bg-white p-8 rounded-md border border-[#1D5F31]/20 relative overflow-hidden group">
                         <h3 className="text-[10px] font-bold uppercase tracking-[5px] text-[#1D5F31] mb-10  relative z-10">Configurações Base</h3>
                         <div className="space-y-8 relative z-10">
                             <div className="space-y-4">
@@ -950,7 +1079,7 @@ export default function CourseBuilder() {
                                     value={courseSubtitle}
                                     onChange={(e) => setCourseSubtitle(e.target.value)}
                                     placeholder="Frase curta de impacto"
-                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-xl px-5 py-3 focus:border-[#1D5F31] outline-none text-sm text-black transition-all"
+                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-md px-5 py-3 focus:border-[#1D5F31] outline-none text-sm text-black transition-all"
                                 />
                             </div>
 
@@ -960,7 +1089,7 @@ export default function CourseBuilder() {
                                     value={courseDescription}
                                     onChange={(e) => setCourseDescription(e.target.value)}
                                     placeholder="O que o aluno vai aprender?"
-                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-xl px-6 py-4 focus:border-[#1D5F31] outline-none text-sm text-black transition-all min-h-[120px]"
+                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-md px-6 py-4 focus:border-[#1D5F31] outline-none text-sm text-black transition-all min-h-[120px]"
                                 />
                             </div>
 
@@ -969,7 +1098,7 @@ export default function CourseBuilder() {
                                 <select
                                     value={courseCategory}
                                     onChange={(e) => setCourseCategory(e.target.value)}
-                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-xl px-5 py-3 focus:border-[#1D5F31] outline-none text-sm text-black transition-all appearance-none"
+                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-md px-5 py-3 focus:border-[#1D5F31] outline-none text-sm text-black transition-all appearance-none"
                                 >
                                     <option value="" disabled>Escolha o nicho...</option>
                                     {CATEGORIES.map((cat: string) => <option key={cat} value={cat}>{cat}</option>)}
@@ -982,7 +1111,7 @@ export default function CourseBuilder() {
                                     type="number"
                                     value={courseDuration}
                                     onChange={(e) => setCourseDuration(Number(e.target.value))}
-                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-xl px-6 py-4 focus:border-[#1D5F31] outline-none font-bold text-xl text-black transition-all"
+                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-md px-6 py-4 focus:border-[#1D5F31] outline-none font-bold text-xl text-black transition-all"
                                 />
                             </div>
 
@@ -1004,7 +1133,7 @@ export default function CourseBuilder() {
                                         type="text"
                                         value={coursePrice}
                                         onChange={(e) => setCoursePrice(e.target.value)}
-                                        className="w-full bg-white border border-[#1D5F31]/20 rounded-xl pl-24 pr-8 py-5 focus:border-[#1D5F31] outline-none font-bold text-2xl text-black transition-all"
+                                        className="w-full bg-white border border-[#1D5F31]/20 rounded-md pl-24 pr-8 py-5 focus:border-[#1D5F31] outline-none font-bold text-2xl text-black transition-all"
                                     />
                                 </div>
                             </div>
@@ -1028,7 +1157,7 @@ export default function CourseBuilder() {
                                                     setCourseCurriculum(newCurriculum);
                                                 }}
                                                 placeholder={`Ex: Tópico ${idx + 1}`}
-                                                className="w-full bg-white border border-[#1D5F31]/20 rounded-none px-4 h-12 focus:border-[#28b828] outline-none text-sm text-black transition-all placeholder:text-black/40"
+                                                className="w-full bg-white border border-[#1D5F31]/20 rounded-md px-4 h-12 focus:border-[#28b828] outline-none text-sm text-black transition-all placeholder:text-black/40"
                                             />
                                             <button
                                                 type="button"
@@ -1036,7 +1165,7 @@ export default function CourseBuilder() {
                                                     const newCurriculum = courseCurriculum.filter((_, i) => i !== idx);
                                                     setCourseCurriculum(newCurriculum);
                                                 }}
-                                                className="w-12 h-12 text-slate-400 hover:text-red-500 hover:bg-red-500/10 border-2 border-transparent hover:border-red-500/30 rounded-none transition-all flex items-center justify-center shrink-0"
+                                                className="w-12 h-12 text-slate-400 hover:text-red-500 hover:bg-red-500/10 border-2 border-transparent hover:border-red-500/30 rounded-md transition-all flex items-center justify-center shrink-0"
                                             >
                                                 <Trash2 size={16} />
                                             </button>
@@ -1045,7 +1174,7 @@ export default function CourseBuilder() {
                                     <button
                                         type="button"
                                         onClick={() => setCourseCurriculum([...courseCurriculum, ''])}
-                                        className="w-full flex justify-center items-center h-12 bg-[#1D5F31]/10 text-black font-bold uppercase text-[9px] tracking-[3px] rounded-none border-2 border-dashed border-[#1D5F31]/30/30/30/50 hover:border-[#1D5F31] hover:bg-[#1D5F31]/20 transition-all text-center mt-2"
+                                        className="w-full flex justify-center items-center h-12 bg-[#1D5F31]/10 text-black font-bold uppercase text-[9px] tracking-[3px] rounded-md border-2 border-dashed border-[#1D5F31]/30/30/30/50 hover:border-[#1D5F31] hover:bg-[#1D5F31]/20 transition-all text-center mt-2"
                                     >
                                         <Plus size={14} className="mr-2" />
                                         Adicionar Tópico
@@ -1057,25 +1186,46 @@ export default function CourseBuilder() {
 
                     <section>
                         <h3 className="text-[10px] font-bold uppercase tracking-[5px] text-black/60 mb-6 px-1 ">Vídeo de Apresentação (Intro)</h3>
-                        <div className="bg-white p-6 rounded-xl border border-[#1D5F31]/20 space-y-6">
+                        <div className="bg-white p-6 rounded-md border border-[#1D5F31]/20 space-y-6">
                             <div className="space-y-4">
                                 <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Upload ou Link</label>
                                 <div className={`
-                                    relative h-32 rounded-xl border-2 border-dashed transition-all flex flex-col items-center justify-center overflow-hidden cursor-pointer
-                                    ${courseIntroVideo && !courseIntroVideo.includes('youtube.com') && !courseIntroVideo.includes('vimeo.com')
-                                        ? 'border-[#1D5F31] bg-[#1D5F31]/5' : 'border-[#1D5F31] bg-white hover:border-[#1D5F31]/30'}
+                                    relative aspect-video rounded-md border-2 border-dashed transition-all flex flex-col items-center justify-center overflow-hidden cursor-pointer
+                                    ${(courseIntroVideo || courseIntroVideoPlaybackId) ? 'border-[#1D5F31] bg-slate-900' : 'border-[#1D5F31] bg-white hover:border-[#1D5F31]/30'}
                                 `}>
                                     {isUploadingIntro ? (
-                                        <Loader2 className="animate-spin text-[#1D5F31]" size={20} />
-                                    ) : courseIntroVideo && !courseIntroVideo.includes('youtube.com') && !courseIntroVideo.includes('vimeo.com') ? (
+                                        <div className="w-full h-full flex flex-col items-center justify-center p-4">
+                                            <Loader2 className="animate-spin text-[#1D5F31] mb-2" size={32} />
+                                            <div className="w-full max-w-[150px] h-1.5 bg-white/10 rounded-md overflow-hidden border border-white/20">
+                                                <div
+                                                    className="h-full bg-[#1D5F31] transition-all"
+                                                    style={{ width: `${introUploadStatus === 'processing' ? 100 : introUploadProgress}%` }}
+                                                />
+                                            </div>
+                                            <span className="text-[8px] font-black uppercase text-white tracking-[4px] mt-3 text-center">
+                                                {introUploadStatus === 'uploading' ? `TRANSFERINDO ${introUploadProgress}%` : 'OTIMIZANDO VÍDEO PARA STREAMING...'}
+                                            </span>
+                                        </div>
+                                    ) : courseIntroVideoPlaybackId ? (
+                                        <div className="w-full h-full group relative">
+                                            <SecureMuxPlayer 
+                                                cursoId={params.id as string} 
+                                                playbackId={courseIntroVideoPlaybackId} 
+                                                className="w-full h-full"
+                                            />
+                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                <span className="text-[8px] font-black text-white uppercase tracking-[3px] border border-white/30 px-3 py-2">SUBSTITUIR INTRO</span>
+                                            </div>
+                                        </div>
+                                    ) : courseIntroVideo ? (
                                         <div className="flex flex-col items-center gap-1">
-                                            <Check size={16} className="text-[#1D5F31]" />
-                                            <span className="text-[8px] font-bold text-[#1D5F31]">VÍDEO CARREGADO</span>
+                                            <CheckCircle2 size={16} className="text-[#1D5F31]" />
+                                            <span className="text-[8px] font-black text-[#1D5F31] uppercase tracking-widest">URL ATIVA</span>
                                         </div>
                                     ) : (
-                                        <div className="text-center">
-                                            <UploadCloud size={20} className="mx-auto text-slate-200 mb-2" />
-                                            <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">SUBIR MP4</span>
+                                        <div className="text-center group-hover:scale-110 transition-transform">
+                                            <UploadCloud size={24} className="mx-auto text-slate-400 mb-2" />
+                                            <span className="text-[8px] font-black text-slate-900 uppercase tracking-[2px]">Subir Vídeo Industrial</span>
                                         </div>
                                     )}
                                     {!isUploadingIntro && (
@@ -1086,12 +1236,66 @@ export default function CourseBuilder() {
                                             onChange={async (e) => {
                                                 const file = e.target.files?.[0]
                                                 if (!file) return
+
                                                 setIsUploadingIntro(true)
+                                                setIntroUploadStatus('uploading')
+                                                setIntroUploadProgress(0)
+                                                // Limpa dados antigos ao começar novo upload
+                                                setCourseIntroVideo('')
+                                                setCourseIntroVideoPlaybackId('')
+
                                                 try {
-                                                    const url = await uploadCourseVideo(file)
-                                                    setCourseIntroVideo(url)
-                                                } catch (err) { alert("Erro no upload.") }
-                                                finally { setIsUploadingIntro(false) }
+                                                    const response = await getMuxUploadUrl()
+                                                    if (response.error || !response.url) throw new Error(response.error)
+
+                                                    const { url, id: uploadId } = response
+                                                    setCourseIntroVideoMuxId(uploadId)
+
+                                                    const xhr = new XMLHttpRequest()
+                                                    xhr.open('PUT', url)
+                                                    xhr.upload.onprogress = (evt) => {
+                                                        if (evt.lengthComputable) {
+                                                            const pct = (evt.loaded / evt.total) * 100
+                                                            setIntroUploadProgress(Math.round(pct))
+                                                        }
+                                                    }
+                                                    xhr.onload = async () => {
+                                                        if (xhr.status >= 200 && xhr.status < 300) {
+                                                            setIntroUploadStatus('processing')
+                                                            toast.success("Upload concluído. Sincronizando infraestrutura...")
+
+                                                            let attempts = 0
+                                                            const check = async () => {
+                                                                if (attempts > 40) {
+                                                                    setIsUploadingIntro(false)
+                                                                    return
+                                                                }
+                                                                const res = await getMuxUploadStatus(uploadId)
+                                                                if (res.status === 'ready') {
+                                                                    setCourseIntroVideoPlaybackId(res.playback_id || '')
+                                                                    setIntroUploadStatus('ready')
+                                                                    setIsUploadingIntro(false)
+                                                                    toast.success("PlayBack ID Ativo!")
+                                                                } else {
+                                                                    attempts++
+                                                                    setTimeout(check, 3000)
+                                                                }
+                                                            }
+                                                            check()
+                                                        } else {
+                                                            setIsUploadingIntro(false)
+                                                            toast.error("Erro na infra Mux")
+                                                        }
+                                                    }
+                                                    xhr.onerror = () => {
+                                                        setIsUploadingIntro(false)
+                                                        toast.error("Erro de conexão")
+                                                    }
+                                                    xhr.send(file)
+                                                } catch (err: any) {
+                                                    setIsUploadingIntro(false)
+                                                    toast.error(err.message)
+                                                }
                                             }}
                                         />
                                     )}
@@ -1105,7 +1309,7 @@ export default function CourseBuilder() {
                                     value={courseIntroVideo}
                                     onChange={(e) => setCourseIntroVideo(e.target.value)}
                                     placeholder="Link YouTube/Vimeo"
-                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-xl px-4 py-3 focus:border-[#1D5F31] outline-none text-xs text-black transition-all"
+                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-md px-4 py-3 focus:border-[#1D5F31] outline-none text-xs text-black transition-all"
                                 />
                                 <p className="text-[8px] text-[#1D5F31] font-bold uppercase tracking-widest">Máximo 5 minutos recomendados para conversão.</p>
                             </div>
@@ -1114,7 +1318,7 @@ export default function CourseBuilder() {
 
                     <section>
                         <h3 className="text-[10px] font-bold uppercase tracking-[5px] text-black/60 mb-6 px-1 ">Capa do Produto</h3>
-                        <div className="bg-white p-3 rounded-xl border border-[#1D5F31]/20">
+                        <div className="bg-white p-3 rounded-md border border-[#1D5F31]/20">
                             <CourseImageUpload
                                 currentImageUrl={courseImage}
                                 onUploadComplete={setCourseImage}

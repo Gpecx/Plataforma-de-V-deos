@@ -1,9 +1,9 @@
 "use client"
 
 import { useState, useMemo } from 'react'
-import { Users, BookOpen, GraduationCap, Search, ChevronRight, Check, X, Mail, Calendar, MapPin, Briefcase, Monitor } from 'lucide-react'
-import { getTeacherStudents, banTeacher, reactivateTeacher } from '@/app/actions/admin'
-import { AnimatePresence } from 'framer-motion'
+import { Users, BookOpen, GraduationCap, Search, ChevronRight, Check, X, Mail, Calendar, MapPin, Briefcase, Monitor, ShieldCheck, AlertTriangle } from 'lucide-react'
+import { getTeacherStudents, banTeacher, reactivateTeacher, promoteTeacherToAdmin } from '@/app/actions/admin'
+import { AnimatePresence, motion } from 'framer-motion'
 import { toast } from 'sonner'
 
 interface Teacher {
@@ -75,6 +75,7 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
     const [loading, setLoading] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
     const [processingId, setProcessingId] = useState<string | null>(null)
+    const [showPromoteModal, setShowPromoteModal] = useState(false)
 
     const bannedTeachers = useMemo(() => 
         initialTeachers.filter(t => t.teacher_status === 'banned'), 
@@ -151,6 +152,27 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
             }
         } catch (error) {
             toast.error('Erro ao reativar professor')
+        } finally {
+            setProcessingId(null)
+        }
+    }
+
+    const handlePromote = async () => {
+        if (!selectedTeacher) return
+        
+        setProcessingId(selectedTeacher.id)
+        try {
+            const result = await promoteTeacherToAdmin(selectedTeacher.id)
+            if (result.success) {
+                toast.success(result.message)
+                setShowPromoteModal(false)
+                setSelectedTeacher(null)
+                window.location.reload()
+            } else {
+                toast.error(result.error || 'Erro ao promover professor')
+            }
+        } catch (error) {
+            toast.error('Erro ao processar promoção')
         } finally {
             setProcessingId(null)
         }
@@ -334,7 +356,17 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                                     </div>
                                 )}
 
-                                <div className="mt-6 pt-6 border-t border-slate-200">
+                                <div className="mt-6 pt-6 border-t border-slate-200 space-y-4">
+                                    {/* Botão de Promoção - Estilo Industrial Clean */}
+                                    <button
+                                        onClick={() => setShowPromoteModal(true)}
+                                        disabled={processingId === selectedTeacher.id}
+                                        className="w-full flex items-center justify-center gap-3 px-4 py-4 bg-slate-900 text-white rounded-none hover:bg-black transition-all disabled:opacity-50 disabled:cursor-not-allowed font-bold text-[11px] uppercase tracking-[0.2em] border-2 border-slate-900 hover:border-black"
+                                    >
+                                        <ShieldCheck size={18} strokeWidth={2.5} />
+                                        Promover para Administrador
+                                    </button>
+
                                     <button
                                         onClick={() => handleBan(selectedTeacher.id)}
                                         disabled={processingId === selectedTeacher.id}
@@ -402,6 +434,69 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                     )}
                 </AnimatePresence>
             </div>
+
+            {/* Modal de Confirmação de Promoção (Framer Motion) */}
+            <AnimatePresence>
+                {showPromoteModal && selectedTeacher && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => !processingId && setShowPromoteModal(false)}
+                            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+                        />
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                            className="relative w-full max-w-md bg-white rounded-none border-t-8 border-slate-900 shadow-2xl p-8 overflow-hidden"
+                        >
+                            <div className="flex flex-col items-center text-center">
+                                <div className="w-16 h-16 bg-slate-100 rounded-none flex items-center justify-center mb-6 border-2 border-slate-900">
+                                    <AlertTriangle className="text-slate-900" size={32} />
+                                </div>
+                                <h3 className="text-xl font-black uppercase tracking-tighter text-slate-900 mb-2 leading-none">
+                                    Confirmação de Promoção
+                                </h3>
+                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-8">
+                                    Nível de Acesso: Segurança Máxima
+                                </p>
+                                
+                                <div className="bg-slate-50 border-l-4 border-slate-900 p-4 w-full mb-8 text-left">
+                                    <p className="text-xs text-slate-700 leading-relaxed font-bold uppercase tracking-tight">
+                                        Você está prestes a promover <span className="text-black underline">{selectedTeacher.full_name}</span> para Administrador Global.
+                                    </p>
+                                    <p className="text-[10px] text-slate-500 mt-2 font-bold uppercase">
+                                        Esta ação concederá controle total sobre a plataforma, incluindo finanças, usuários e conteúdos.
+                                    </p>
+                                </div>
+
+                                <div className="flex flex-col w-full gap-3">
+                                    <button
+                                        onClick={handlePromote}
+                                        disabled={processingId === selectedTeacher.id}
+                                        className="w-full py-4 bg-slate-900 text-white font-black text-[12px] uppercase tracking-[0.2em] rounded-none hover:bg-black transition-all flex items-center justify-center gap-2"
+                                    >
+                                        {processingId === selectedTeacher.id ? (
+                                            <span className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                                        ) : (
+                                            "Confirmar Elevação de Cargo"
+                                        )}
+                                    </button>
+                                    <button
+                                        onClick={() => setShowPromoteModal(false)}
+                                        disabled={processingId === selectedTeacher.id}
+                                        className="w-full py-4 bg-white text-slate-400 font-bold text-[11px] uppercase tracking-[0.2em] rounded-none hover:text-slate-900 transition-all"
+                                    >
+                                        Cancelar Operação
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     )
 }
