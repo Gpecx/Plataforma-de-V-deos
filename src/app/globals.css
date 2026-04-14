@@ -271,3 +271,18 @@ p {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
+
+/* === Mux Player Customization === */
+mux-player::part(captions) {
+  background-color: rgba(0, 0, 0, 0.6);
+  color: #ffffff;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-weight: 500;
+}
+
+mux-player::part(control-bar) {
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 0 10px;
+}

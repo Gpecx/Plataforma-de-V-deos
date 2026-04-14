@@ -5,11 +5,13 @@ import { approveLesson, rejectLesson } from '@/app/actions/admin'
 import { X, PlaySquare, AlertCircle, Loader2, HelpCircle, CheckCircle2, User } from 'lucide-react'
 import Logo from '@/components/Logo'
 import { Question } from '@/lib/types/quiz'
+import SecureMuxPlayer from '@/components/SecureMuxPlayer'
 
 interface Lesson {
     id: string
     title: string
-    video_url: string
+    video_url?: string | null
+    mux_playback_id?: string | null
     course_id: string
     course_title: string
     course_status: string
@@ -34,8 +36,9 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
     const [reviewingLesson, setReviewingLesson] = useState<Lesson | null>(null)
     const [rejectionReason, setRejectionReason] = useState('')
 
-    const isExternalVideo = (url: string) => {
-        return url?.includes('youtube.com') || url?.includes('youtu.be') || url?.includes('vimeo.com')
+    const isExternalVideo = (url: string | null | undefined) => {
+        if (!url) return false
+        return url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com')
     }
 
     const getEmbedUrl = (url: string) => {
@@ -229,14 +232,22 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
                                                 ))}
                                             </div>
                                         </div>
-                                    ) : isExternalVideo(reviewingLesson.video_url) ? (
+                                    ) : reviewingLesson.mux_playback_id ? (
+                                        <div className="p-1 w-full h-full flex mt-4 items-center justify-center">
+                                            <SecureMuxPlayer
+                                                cursoId={reviewingLesson.course_id}
+                                                playbackId={reviewingLesson.mux_playback_id}
+                                                className="w-full h-full aspect-video border-0 rounded-md"
+                                            />
+                                        </div>
+                                    ) : isExternalVideo(reviewingLesson.video_url || '') ? (
                                         <iframe
-                                            src={getEmbedUrl(reviewingLesson.video_url)}
+                                            src={getEmbedUrl(reviewingLesson.video_url || '')}
                                             className="w-full h-full aspect-video border-0"
                                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                                             allowFullScreen
                                         ></iframe>
-                                    ) : (
+                                    ) : reviewingLesson.video_url ? (
                                         <video
                                             src={reviewingLesson.video_url}
                                             controls
@@ -245,6 +256,10 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
                                             playsInline
                                             className="w-full h-full aspect-video object-contain"
                                         />
+                                    ) : (
+                                        <div className="w-full h-full flex flex-col items-center justify-center bg-slate-900 border-0 rounded-md text-slate-400">
+                                            <p>Vídeo não disponível.</p>
+                                        </div>
                                     )}
                                 </div>
                             </div>

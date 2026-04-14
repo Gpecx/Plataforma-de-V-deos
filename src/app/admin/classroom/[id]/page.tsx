@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { getAdminClassroomData, adminSuspendLesson } from './actions'
+import SecureMuxPlayer from '@/components/SecureMuxPlayer'
 
 const scrollbarHideStyle = {
     msOverflowStyle: 'none',
@@ -32,6 +33,26 @@ export default function AdminClassroomPage({ params }: { params: Promise<{ id: s
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [suspeningId, setSuspendingId] = useState<string | null>(null)
+
+    const isExternalVideo = (url: string | null | undefined) => {
+        if (!url) return false
+        return url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com')
+    }
+
+    const getEmbedUrl = (url: string) => {
+        if (!url) return ''
+        if (url.includes('youtube.com') || url.includes('youtu.be')) {
+            const videoId = url.includes('v=')
+                ? url.split('v=')[1].split('&')[0]
+                : url.split('/').pop()?.split('?')[0]
+            return `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`
+        }
+        if (url.includes('vimeo.com')) {
+            const videoId = url.split('/').pop()?.split('?')[0]
+            return `https://player.vimeo.com/video/${videoId}?title=0&byline=0&portrait=0`
+        }
+        return url
+    }
 
     useEffect(() => {
         async function loadData() {
@@ -201,6 +222,23 @@ export default function AdminClassroomPage({ params }: { params: Promise<{ id: s
                                     <p className="text-slate-400 font-medium">
                                         {currentLesson?.quizData?.questions?.length || 0} questões cadastradas
                                     </p>
+                                </div>
+                            ) : currentLesson?.mux_playback_id ? (
+                                <div className="relative w-full h-full rounded-2xl overflow-hidden border border-slate-100 shadow-2xl transition-all duration-500 bg-black">
+                                    <SecureMuxPlayer
+                                        cursoId={currentLesson.course_id}
+                                        playbackId={currentLesson.mux_playback_id}
+                                        className="w-full h-full border-0"
+                                    />
+                                </div>
+                            ) : isExternalVideo(currentLesson?.video_url) ? (
+                                <div className="relative w-full h-full rounded-2xl overflow-hidden border border-slate-100 shadow-2xl transition-all duration-500 bg-black">
+                                    <iframe
+                                        src={getEmbedUrl(currentLesson?.video_url || '')}
+                                        className="w-full h-full aspect-video border-0"
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                                        allowFullScreen
+                                    ></iframe>
                                 </div>
                             ) : currentLesson?.video_url ? (
                                 <div className="relative w-full h-full rounded-2xl overflow-hidden border border-slate-100 shadow-2xl transition-all duration-500 bg-black">

@@ -15,13 +15,13 @@ import {
 } from 'lucide-react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { ClassroomTabs } from './ClassroomTabs'
-import { auth, db } from '@/lib/firebase'
+import { auth } from '@/lib/firebase'
 import Logo from '@/components/Logo'
 import { onAuthStateChanged } from 'firebase/auth'
-import { getClassroomData, toggleLessonCompletion, processCertificateIssuance } from './actions'
+import { getClassroomData, toggleLessonCompletion, processCertificateIssuance, saveLessonProgress } from './actions'
 import { QuizPlayer } from './QuizPlayer'
 import { useProgressStore } from '@/store/useProgressStore'
-import { doc, setDoc, getDoc } from 'firebase/firestore'
+import SecureMuxPlayer from '@/components/SecureMuxPlayer'
 
 const scrollbarHideStyle = {
     msOverflowStyle: 'none',
@@ -50,6 +50,26 @@ export default function ClassroomPage() {
     const videoRef = useRef<HTMLVideoElement>(null)
     const saveProgressRef = useRef<NodeJS.Timeout | null>(null)
     const isMountedRef = useRef(true)
+
+    const isExternalVideo = (url: string | null | undefined) => {
+        if (!url) return false
+        return url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com')
+    }
+
+    const getEmbedUrl = (url: string) => {
+        if (!url) return ''
+        if (url.includes('youtube.com') || url.includes('youtu.be')) {
+            const videoId = url.includes('v=')
+                ? url.split('v=')[1].split('&')[0]
+                : url.split('/').pop()?.split('?')[0]
+            return `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`
+        }
+        if (url.includes('vimeo.com')) {
+            const videoId = url.split('/').pop()?.split('?')[0]
+            return `https://player.vimeo.com/video/${videoId}?title=0&byline=0&portrait=0`
+        }
+        return url
+    }
 
     const courseProgress = useProgressStore(state => state.courseProgress[params.id as string])
 
@@ -218,24 +238,10 @@ export default function ClassroomPage() {
     }
 
     const saveProgress = async (lessonId: string, timestamp: number) => {
-        if (!currentUser || !course) {
-            console.log('saveProgress: user or course missing', { currentUser: !!currentUser, course: !!course })
-            return
-        }
-
-        const progressId = `${currentUser.uid}_${course.id}`
-        console.log('saveProgress: saving', { progressId, lessonId, timestamp })
+        if (!currentUser || !course) return
 
         try {
-            const progressRef = doc(db, 'userProgress', progressId)
-            await setDoc(progressRef, {
-                userId: currentUser.uid,
-                courseId: course.id,
-                lastLessonId: lessonId,
-                lastTimestamp: timestamp,
-                updatedAt: new Date()
-            }, { merge: true })
-            console.log('saveProgress: success', { progressId })
+            await saveLessonProgress(course.id, lessonId, currentUser.uid, timestamp)
         } catch (err: any) {
             console.error('saveProgress: error', err?.message || err)
         }
@@ -352,6 +358,31 @@ export default function ClassroomPage() {
                                         quizData={currentLesson.quizData || {}}
                                         onComplete={() => toggleLessonStatus(currentLesson.id)}
                                     />
+                                ) : currentLesson?.mux_playback_id ? (
+                                    <SecureMuxPlayer
+                                        cursoId={course?.id}
+                                        playbackId={currentLesson.mux_playback_id}
+                                        startTime={lastTimestamp}
+                                        onTimeUpdate={(time) => {
+                                            const currentTime = Math.round(time)
+                                            if (currentTime > 0 && currentTime % 10 === 0) {
+                                                saveProgress(currentLesson.id, currentTime)
+                                            }
+                                        }}
+                                        onEnded={() => {
+                                            toggleLessonStatus(currentLesson?.id, true)
+                                        }}
+                                        className="w-full h-full"
+                                    />
+                                ) : isExternalVideo(currentLesson?.video_url) ? (
+                                    <div className="w-full h-full">
+                                        <iframe
+                                            src={getEmbedUrl(currentLesson?.video_url || '')}
+                                            className="w-full h-full aspect-video border-0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+                                            allowFullScreen
+                                        ></iframe>
+                                    </div>
                                 ) : (
                                     <>
                                         <video

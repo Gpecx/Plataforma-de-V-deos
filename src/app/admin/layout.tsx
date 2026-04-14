@@ -2,6 +2,7 @@ import { getSessionUser } from '@/app/actions/auth'
 import { redirect } from 'next/navigation'
 import AdminSidebar from '@/components/AdminSidebar'
 import AdminMainWrapper from '@/components/AdminMainWrapper'
+import { AuthProvider } from '@/context/AuthProvider'
 
 export default async function AdminLayout({
     children,
@@ -19,14 +20,16 @@ export default async function AdminLayout({
     }
 
     return (
-        <div className="min-h-screen relative overflow-hidden text-slate-900" style={{ background: '#ffffff' }}>
-            <div className="fixed inset-0 bg-white -z-10" />
-            <AdminSidebar />
+        <AuthProvider>
+            <div className="min-h-screen relative overflow-hidden text-slate-900" style={{ background: '#ffffff' }}>
+                <div className="fixed inset-0 bg-white -z-10" />
+                <AdminSidebar />
 
-            <AdminMainWrapper>
-                {children}
-            </AdminMainWrapper>
-        </div>
+                <AdminMainWrapper>
+                    {children}
+                </AdminMainWrapper>
+            </div>
+        </AuthProvider>
     )
 }
 

@@ -10,14 +10,20 @@ interface SecureMuxPlayerProps {
   cursoId: string;
   playbackId: string;
   className?: string; // Optional for external styling
+  startTime?: number;
+  onTimeUpdate?: (currentTime: number) => void;
+  onEnded?: () => void;
 }
 
 export default function SecureMuxPlayer({
   cursoId,
   playbackId,
   className = "",
+  startTime = 0,
+  onTimeUpdate,
+  onEnded,
 }: SecureMuxPlayerProps) {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -26,37 +32,61 @@ export default function SecureMuxPlayer({
     let isMounted = true;
 
     async function fetchPlaybackToken() {
-      if (!user) {
-        if (isMounted) setError("Usuário não autenticado.");
-        if (isMounted) setLoading(false);
-        return;
-      }
-
       try {
-        const idToken = await user.getIdToken();
+        if (authLoading) return;
+
+        if (!playbackId) {
+          if (isMounted) {
+            setError("ID de reprodução não encontrado.");
+            setLoading(false);
+          }
+          return;
+        }
+
+        if (isMounted) {
+          setLoading(true);
+          setError(null);
+        }
+
+        let idToken = null;
+        if (user) {
+            idToken = await user.getIdToken().catch(err => {
+                console.error("Erro ao obter idToken:", err);
+                return null;
+            });
+        }
+
+        const headers: HeadersInit = {
+            "Content-Type": "application/json",
+        };
+
+        if (idToken) {
+            headers["Authorization"] = `Bearer ${idToken}`;
+        }
+        
+        console.log(`[SecureMuxPlayer] Solicitando token de vídeo para Curso: ${cursoId}, Playback: ${playbackId}`);
         const response = await fetch("/api/videos/auth", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${idToken}`,
-          },
+          headers,
           body: JSON.stringify({ cursoId, playbackId }),
         });
 
         if (!response.ok) {
           if (response.status === 403 || response.status === 401) {
-             throw new Error("Você não tem acesso a este conteúdo.");
+             throw new Error("Você não tem acesso a este conteúdo. Verifique sua permissão.");
           }
           throw new Error("Erro ao carregar o vídeo.");
         }
 
         const data = await response.json();
+        
         if (isMounted && data.token) {
           setToken(data.token);
         } else if (isMounted) {
             throw new Error("Token não recebido da API.");
         }
       } catch (err: any) {
+        console.error("Erro no carregamento do player de vídeo:", err);
         if (isMounted) {
           setError(err.message || "Ocorreu um erro desconhecido.");
         }
@@ -70,15 +100,16 @@ export default function SecureMuxPlayer({
     return () => {
       isMounted = false;
     };
-  }, [user, cursoId, playbackId]);
+  }, [user, authLoading, cursoId, playbackId]);
+
 
   if (loading) {
     return (
       <div className={`relative w-full aspect-video rounded-md overflow-hidden bg-slate-900 ${className}`}>
         <Skeleton className="w-full h-full opacity-20" />
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-            <div className="w-10 h-10 border-4 border-[#1D5F31] border-t-transparent rounded-full animate-spin"></div>
-            <span className="text-[10px] font-bold uppercase tracking-[4px] text-white/40">Sincronizando Player...</span>
+            <div className="w-10 h-10 border-4 border-white/20 border-t-white rounded-full animate-spin"></div>
+            <span className="text-[10px] font-bold uppercase tracking-[4px] text-white/60">Sincronizando Player...</span>
         </div>
       </div>
     );
@@ -107,9 +138,25 @@ export default function SecureMuxPlayer({
           video_title: `Curso ID: ${cursoId}`,
           viewer_id: user?.uid,
         }}
-        primaryColor="#1D5F31"
+        primaryColor="#FFFFFF"
         nohotkeys
+        startTime={startTime}
+        onTimeUpdate={(e) => {
+            if (onTimeUpdate && e.target) {
+                onTimeUpdate((e.target as any).currentTime);
+            }
+        }}
+        onEnded={onEnded}
         className="w-full h-full object-contain"
+        style={{
+            "--controls-backdrop-color": "transparent",
+            "--media-control-button-icon-color": "#FFFFFF",
+            "--media-range-thumb-background": "#FFFFFF",
+            "--media-range-track-active-background": "#FFFFFF",
+            "--media-icon-color": "#FFFFFF",
+            "--media-current-time-color": "#FFFFFF",
+            "--media-duration-color": "#FFFFFF",
+        } as any}
       />
     </div>
   );

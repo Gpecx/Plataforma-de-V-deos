@@ -126,7 +126,7 @@ export default function AdminSidebar() {
                                 "group flex items-center gap-4 p-4 transition-all duration-300 relative",
                                 isActive
                                     ? "text-[#1D5F31]"
-                                    : "text-slate-700 hover:!text-[#1D5F31] font-medium"
+                                    : "text-slate-700 hover:!text-[#1D5F31] font-medium hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:rounded-xl"
                             )}
                         >
                             <item.icon

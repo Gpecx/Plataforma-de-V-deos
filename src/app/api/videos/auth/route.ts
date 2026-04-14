@@ -17,25 +17,38 @@ import { getMuxClient } from '@/lib/mux'
 
 export async function POST(request: NextRequest) {
     try {
-        // ── 1. Autenticação ───────────────────────────────────────────────────
-        // Extrai e verifica o Firebase ID Token enviado no header Authorization
+        // ── 1. Autenticação (Token ou Sessão) ──────────────────────────────────
+        let uid: string | undefined
+
+        // Tenta pegar pelo header Authorization (ID Token)
         const authHeader = request.headers.get('Authorization')
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return NextResponse.json(
-                { error: 'Não autorizado: token ausente' },
-                { status: 401 }
-            )
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            const idToken = authHeader.split('Bearer ')[1]
+            try {
+                const decoded = await adminAuth.verifyIdToken(idToken)
+                uid = decoded.uid
+            } catch (err) {
+                console.warn('Mux Auth: ID Token inválido, tentando sessão...')
+            }
         }
 
-        const idToken = authHeader.split('Bearer ')[1]
-        let uid: string
+        // Se não pegou pelo token, tenta pelo cookie de sessão
+        if (!uid) {
+            const sessionCookie = request.cookies.get('session')?.value
+            if (sessionCookie) {
+                try {
+                    const decodedSession = await adminAuth.verifySessionCookie(sessionCookie, true)
+                    uid = decodedSession.uid
+                } catch (err) {
+                    console.warn('Mux Auth: Sessão inválida.')
+                }
+            }
+        }
 
-        try {
-            const decoded = await adminAuth.verifyIdToken(idToken)
-            uid = decoded.uid
-        } catch {
+        if (!uid) {
+            console.warn('Mux Auth: Usuário não identificado por Token ou Sessão.')
             return NextResponse.json(
-                { error: 'Não autorizado: token inválido ou expirado' },
+                { error: 'Não autorizado: usuário não identificado' },
                 { status: 401 }
             )
         }
@@ -75,15 +88,32 @@ export async function POST(request: NextRequest) {
         const cursos_comprados: string[] = profileData?.cursos_comprados ?? []
         const hasPurchased = cursos_comprados.includes(cursoId)
 
-        if (!isAdmin && !isAuthor && !hasPurchased) {
-            console.warn(`Mux Auth: Acesso Negado para usuário ${uid} no curso ${cursoId}`)
+        // d) Busca na coleção de enrollments (fonte de verdade para matrículas manuais)
+        let hasEnrollment = false
+        if (!hasPurchased && !isAdmin && !isAuthor) {
+            const enrollmentsSnapshot = await adminDb.collection('enrollments')
+                .where('user_id', '==', uid)
+                .where('course_id', '==', cursoId)
+                .limit(1) // Otimização para busca rápida
+                .get()
+            hasEnrollment = !enrollmentsSnapshot.empty
+        }
+
+        // LOG DE DEPURAÇÃO PARA ALUNOS
+        console.log(`[MUX AUTH] Solicitação de vídeo por usuário: ${uid} | Perfil: ${profileData?.role} | Curso: ${cursoId}`)
+        console.log(`[MUX AUTH] Stats: isAdmin=${isAdmin}, isAuthor=${isAuthor}, hasPurchased=${hasPurchased}, hasEnrollment=${hasEnrollment}`)
+        
+        if (!hasPurchased && !hasEnrollment) {
+            console.log(`[MUX AUTH] Cursos liberados para este usuário no perfil:`, cursos_comprados)
+        }
+
+        if (!isAdmin && !isAuthor && !hasPurchased && !hasEnrollment) {
+            console.warn(`[MUX AUTH] ACESSO NEGADO: Usuário ${uid} tentou acessar curso ${cursoId} sem permissão (Perfil ou Enrollment).`)
             return NextResponse.json(
                 { error: 'Acesso negado: você não tem permissão para ver este conteúdo' },
                 { status: 403 }
             )
         }
-
-        console.log(`Mux Auth: Acesso liberado para ${uid} (Admin: ${isAdmin}, Autor: ${isAuthor}, Compra: ${hasPurchased})`)
 
         // ── 4. Geração do Token Mux (JWT assinado) ───────────────────────────
         // Assina o token de reprodução usando as Signing Keys configuradas.
@@ -106,8 +136,6 @@ export async function POST(request: NextRequest) {
                 sub: uid, // Identificador do usuário
             },
         })
-
-        console.log(`Mux Auth: Token assinado gerado para ${uid} (Curso: ${cursoId})`)
 
         // ── 5. Retorno ────────────────────────────────────────────────────────
         return NextResponse.json({ token }, { status: 200 })

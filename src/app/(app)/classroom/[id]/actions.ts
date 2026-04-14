@@ -106,6 +106,29 @@ export async function toggleLessonCompletion(
     }
 }
 
+export async function saveLessonProgress(
+    courseId: string,
+    lessonId: string,
+    userId: string,
+    timestamp: number
+) {
+    try {
+        const progressId = `${userId}_${courseId}`
+        await adminDb.collection('userProgress').doc(progressId).set({
+            userId,
+            courseId,
+            lastLessonId: lessonId,
+            lastTimestamp: timestamp,
+            updatedAt: new Date()
+        }, { merge: true })
+        
+        return { success: true }
+    } catch (err: any) {
+        console.error("Erro ao salvar progresso (server):", err)
+        return { success: false, error: err.message }
+    }
+}
+
 export async function getClassroomData(courseId: string, userId: string) {
     try {
         // 1. Verificação de acesso: checa se o aluno possui o curso
