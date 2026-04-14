@@ -39,3 +39,20 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+serviceAccountKey.json
+.env.local
+
+# Firebase Functions
+functions/lib/
+functions/node_modules/
+firebase-debug.log
+functions-debug.log
+
+# Ignorar binários específicos que apareceram no seu log
+*.musl
+
+# Agentes e Skills
+.agents/
+.skills/
+.agent/
