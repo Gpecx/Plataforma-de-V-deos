@@ -34,7 +34,11 @@ export default function ClassroomPage() {
     const router = useRouter()
     const searchParams = useSearchParams()
 
-    const [sidebarOpen, setSidebarOpen] = useState(true)
+    // Desktop: sidebar aberta por padrão. Mobile: fechada (vídeo é prioridade)
+    const [sidebarOpen, setSidebarOpen] = useState(() => {
+        if (typeof window !== 'undefined') return window.innerWidth >= 1024
+        return true
+    })
     const [course, setCourse] = useState<any>(null)
     const [lessons, setLessons] = useState<any[]>([])
     const [currentLesson, setCurrentLesson] = useState<any>(null)
@@ -51,6 +55,8 @@ export default function ClassroomPage() {
     const videoRef = useRef<HTMLVideoElement>(null)
     const saveProgressRef = useRef<NodeJS.Timeout | null>(null)
     const isMountedRef = useRef(true)
+    const touchStartX = useRef(0)
+    const sidebarRef = useRef<HTMLDivElement>(null)
 
     const isExternalVideo = (url: string | null | undefined) => {
         if (!url) return false
@@ -174,6 +180,26 @@ export default function ClassroomPage() {
         setAutoNextCountdown(null)
     }
 
+    // Bloqueia scroll do body quando drawer mobile está aberto
+    useEffect(() => {
+        const isMobile = window.innerWidth < 1024
+        if (sidebarOpen && isMobile) {
+            document.body.style.overflow = 'hidden'
+        } else {
+            document.body.style.overflow = ''
+        }
+        return () => { document.body.style.overflow = '' }
+    }, [sidebarOpen])
+
+    // Swipe left para fechar sidebar (mobile gesture)
+    const handleTouchStart = (e: React.TouchEvent) => {
+        touchStartX.current = e.touches[0].clientX
+    }
+    const handleTouchEnd = (e: React.TouchEvent) => {
+        const deltaX = touchStartX.current - e.changedTouches[0].clientX
+        if (deltaX > 50) setSidebarOpen(false)
+    }
+
     const goToNextLesson = () => {
         cancelAutoNext()
         const index = lessons.findIndex(l => l.id === currentLesson?.id)
@@ -287,73 +313,78 @@ export default function ClassroomPage() {
         : 0
 
     return (
-        <div className="flex flex-col h-screen overflow-hidden font-montserrat transition-colors duration-500 bg-[#061629] text-white">
+        <div className="flex flex-col h-screen overflow-hidden font-montserrat bg-[#061629] text-white">
             <style jsx global>{`
-                .scrollbar-hide::-webkit-scrollbar {
-                    display: none;
-                }
-                .scrollbar-hide {
-                    -ms-overflow-style: none;
-                    scrollbar-width: none;
-                }
+                .scrollbar-hide::-webkit-scrollbar { display: none; }
+                .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
             `}</style>
-            {/* Header Imersivo */}
-            <header className="h-16 flex items-center justify-between px-6 border-b border-slate-800 bg-[#061629] z-50 shadow-sm">
-                {/* Lado Esquerdo: Logo para sair da classroom */}
-                <div className="flex items-center w-1/4">
-                    <div className="flex items-center gap-3 text-slate-400 group">
-                        <Logo />
-                        <Link href="/course" className="text-xs font-bold uppercase tracking-widest group-hover:text-white transition-colors hidden md:block">
-                            Sair
-                        </Link>
-                    </div>
+
+            {/* ── Header ── */}
+            <header className="h-14 md:h-16 flex-shrink-0 flex items-center justify-between px-4 md:px-6 border-b border-slate-800 bg-[#061629] z-50 shadow-sm">
+                {/* Esquerda: Logo */}
+                <div className="flex items-center gap-3 text-slate-400 group min-w-0">
+                    <Logo />
+                    <Link
+                        href="/course"
+                        className="text-xs font-bold uppercase tracking-widest group-hover:text-white transition-colors hidden md:block"
+                    >
+                        Sair
+                    </Link>
                 </div>
 
-                {/* Centro: Título do Curso */}
-                <div className="flex-1 flex justify-center items-center px-4">
-                    <h1 className="text-sm md:text-base font-bold font-montserrat tracking-tight text-center line-clamp-1 text-white">
+                {/* Centro: Título — escondido em telas muito pequenas */}
+                <div className="flex-1 flex justify-center items-center px-2 min-w-0 overflow-hidden">
+                    <h1 className="hidden sm:block text-sm md:text-base font-bold font-montserrat tracking-tight text-center line-clamp-1 text-white">
                         {course?.title || 'Carregando...'}
                     </h1>
                 </div>
 
-                {/* Lado Direito: Progresso e Botões */}
-                <div className="flex items-center justify-end gap-6 w-1/4">
-                    <div className="hidden lg:flex items-center gap-3">
-                        <div className="flex flex-col items-end">
-                            <div className="flex items-center gap-2">
-                                <span className="text-[9px] font-bold uppercase tracking-widest text-slate-200">Progresso Final</span>
-                                <span className="text-xs font-bold text-[#1D5F31]">{progressPercent}%</span>
-                            </div>
-                            <div className="w-20 h-1 rounded-full overflow-hidden mt-1 bg-slate-100">
-                                <div
-                                    className="h-full bg-[#1D5F31] transition-all duration-1000 shadow-[0_0_10px_rgba(0,196,2,0.5)]"
-                                    style={{ width: `${progressPercent}%` }}
-                                ></div>
-                            </div>
+                {/* Direita: Progresso + Botão sidebar (apenas desktop lg+) */}
+                <div className="flex items-center justify-end gap-4">
+                    <div className="hidden lg:flex flex-col items-end">
+                        <div className="flex items-center gap-2">
+                            <span className="text-[9px] font-bold uppercase tracking-widest text-slate-200">Progresso</span>
+                            <span className="text-xs font-bold text-[#1D5F31]">{progressPercent}%</span>
+                        </div>
+                        <div className="w-20 h-1 rounded-full overflow-hidden mt-1 bg-slate-800">
+                            <div
+                                className="h-full bg-[#1D5F31] transition-all duration-1000 shadow-[0_0_10px_rgba(0,196,2,0.5)]"
+                                style={{ width: `${progressPercent}%` }}
+                            />
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-
-                        <button
-                            onClick={() => setSidebarOpen(!sidebarOpen)}
-                            className="p-2 bg-slate-800/50 text-slate-400 border border-slate-800 rounded-xl transition-colors hover:text-white flex items-center justify-center"
-                        >
-                            {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
-                        </button>
-                    </div>
+                    {/* Botão lista aulas — APENAS para desktop lg+ */}
+                    <button
+                        onClick={() => setSidebarOpen(!sidebarOpen)}
+                        className="hidden lg:flex min-w-[44px] min-h-[44px] items-center justify-center bg-slate-800/50
+                                   text-slate-400 border border-slate-800 rounded-xl transition-colors hover:text-white"
+                        aria-label="Alternar lista de aulas"
+                    >
+                        {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+                    </button>
                 </div>
             </header>
 
-            <main className="flex flex-1 overflow-hidden h-full">
-                {/* Player Section */}
+            {/* ── Layout Principal ── */}
+            {/*
+                Mobile (<lg):  flex-col — player no topo, list de aulas abaixo (sem drawer)
+                Desktop (lg+): flex-row — player à esquerda, sidebar drawer à direita
+            */}
+            <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
+
+                {/* ── Coluna Esquerda: Player + Tabs ── */}
                 <div
-                    className="flex-1 overflow-y-auto flex flex-col transition-colors duration-500 bg-[#061629] scrollbar-hide"
+                    className="flex-1 flex flex-col overflow-y-auto scrollbar-hide"
                     style={scrollbarHideStyle}
                 >
-                    <div className="flex-1 flex items-center justify-center p-0 md:p-6 lg:p-8">
-                        <div className="w-full max-w-[1440px] aspect-video relative group animate-in zoom-in-95 duration-700">
-                            <div className="relative w-full h-full rounded-2xl overflow-hidden border border-slate-100 shadow-2xl transition-all duration-500 bg-black">
+                    {/* Player */}
+                    <div className="w-full lg:p-6 lg:pb-0">
+                        <div
+                            key={currentLesson?.id}
+                            className="w-full aspect-video relative animate-in fade-in-0 zoom-in-95 duration-300"
+                        >
+                            <div className="relative w-full h-full lg:rounded-2xl overflow-hidden shadow-2xl bg-black border-0 lg:border lg:border-slate-700">
                                 {currentLesson?.type === 'quiz' ? (
                                     <QuizPlayer
                                         quizData={currentLesson.quizData || {}}
@@ -370,19 +401,17 @@ export default function ClassroomPage() {
                                                 saveProgress(currentLesson.id, currentTime)
                                             }
                                         }}
-                                        onEnded={() => {
-                                            toggleLessonStatus(currentLesson?.id, true)
-                                        }}
+                                        onEnded={() => toggleLessonStatus(currentLesson?.id, true)}
                                         className="w-full h-full"
                                     />
                                 ) : isExternalVideo(currentLesson?.video_url) ? (
                                     <div className="w-full h-full">
                                         <iframe
                                             src={getEmbedUrl(currentLesson?.video_url || '')}
-                                            className="w-full h-full aspect-video border-0"
+                                            className="w-full h-full border-0"
                                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
                                             allowFullScreen
-                                        ></iframe>
+                                        />
                                     </div>
                                 ) : (
                                     <>
@@ -406,33 +435,15 @@ export default function ClassroomPage() {
                                                     }
                                                 }
                                             }}
-                                            onEnded={() => {
-                                                toggleLessonStatus(currentLesson?.id, true)
-                                            }}
+                                            onEnded={() => toggleLessonStatus(currentLesson?.id, true)}
                                         />
-
-                                        {/* Overlay de Auto-Next */}
                                         {autoNextCountdown !== null && (
                                             <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center z-20 animate-in fade-in duration-300">
                                                 <div className="text-center space-y-6">
                                                     <div className="relative w-24 h-24 mx-auto">
-                                                        <svg className="w-full h-full transform -rotate-90">
-                                                            <circle
-                                                                cx="48"
-                                                                cy="48"
-                                                                r="44"
-                                                                stroke="currentColor"
-                                                                strokeWidth="4"
-                                                                fill="transparent"
-                                                                className="text-slate-800"
-                                                            />
-                                                            <circle
-                                                                cx="48"
-                                                                cy="48"
-                                                                r="44"
-                                                                stroke="currentColor"
-                                                                strokeWidth="4"
-                                                                fill="transparent"
+                                                        <svg className="w-full h-full -rotate-90">
+                                                            <circle cx="48" cy="48" r="44" stroke="currentColor" strokeWidth="4" fill="transparent" className="text-slate-800" />
+                                                            <circle cx="48" cy="48" r="44" stroke="currentColor" strokeWidth="4" fill="transparent"
                                                                 strokeDasharray={276.46}
                                                                 strokeDashoffset={276.46 * (1 - autoNextCountdown / 3)}
                                                                 className="text-green-500 transition-all duration-1000 ease-linear"
@@ -444,11 +455,13 @@ export default function ClassroomPage() {
                                                     </div>
                                                     <div>
                                                         <p className="text-sm font-bold uppercase tracking-[4px] text-green-500 mb-2">Próxima Aula em Instantes</p>
-                                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{lessons[lessons.findIndex(l => l.id === currentLesson?.id) + 1]?.title}</p>
+                                                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                                            {lessons[lessons.findIndex(l => l.id === currentLesson?.id) + 1]?.title}
+                                                        </p>
                                                     </div>
                                                     <button
                                                         onClick={cancelAutoNext}
-                                                        className="px-8 py-3 bg-slate-800 text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-slate-700 transition-all"
+                                                        className="px-8 min-h-[44px] bg-slate-800 text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-slate-700 transition-all"
                                                     >
                                                         Cancelar
                                                     </button>
@@ -458,158 +471,298 @@ export default function ClassroomPage() {
                                     </>
                                 )}
 
-                                {/* Marca d'água dinâmica anti-screen-recording */}
+                                {/* Watermark */}
                                 {currentLesson?.type !== 'quiz' && (
-                                    <VideoWatermark
-                                        userEmail={currentUser?.email}
-                                        userId={currentUser?.uid}
-                                    />
+                                    <VideoWatermark userEmail={currentUser?.email} userId={currentUser?.uid} />
                                 )}
-                            </div>
-
-                            <div className="flex items-center justify-between mt-2 px-4 md:px-0">
-                                <button
-                                    onClick={goToPrevLesson}
-                                    disabled={lessons.findIndex(l => l.id === currentLesson?.id) === 0}
-                                    className={`flex items-center gap-2 px-8 py-4 rounded-xl font-bold font-montserrat uppercase tracking-tighter transition-all shadow-sm border ${lessons.findIndex(l => l.id === currentLesson?.id) === 0
-                                        ? 'bg-slate-800/50 text-slate-500 border-slate-800 cursor-not-allowed'
-                                        : 'bg-slate-800 text-white hover:bg-slate-700 hover:border-white/20 border-slate-700'
-                                        }`}
-                                >
-                                    <ChevronLeft size={20} />
-                                    <span className="text-xs">Anterior</span>
-                                </button>
-
-                                <button
-                                    onClick={() => toggleLessonStatus(currentLesson?.id)}
-                                    disabled={isToggling}
-                                    className={`flex items-center gap-2 px-6 py-4 rounded-md font-bold font-montserrat uppercase tracking-tighter transition-all border ${
-                                        completedLessons.includes(currentLesson?.id)
-                                            ? 'bg-[#00c853]/20 text-[#00c853] border-[#00c853]/30'
-                                            : 'bg-slate-800 text-white hover:bg-slate-700 border-slate-700'
-                                    }`}
-                                >
-                                    {isToggling ? (
-                                        <span className="text-xs">Carregando...</span>
-                                    ) : completedLessons.includes(currentLesson?.id) ? (
-                                        <>
-                                            <CheckCircle2 size={18} />
-                                            <span className="text-xs">Concluída</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span className="text-xs">Marcar Concluída</span>
-                                        </>
-                                    )}
-                                </button>
-
-                                <button
-                                    onClick={goToNextLesson}
-                                    disabled={lessons.findIndex(l => l.id === currentLesson?.id) === lessons.length - 1}
-                                    className={`flex items-center gap-2 px-8 py-4 rounded-xl font-bold font-montserrat uppercase tracking-tighter transition-all shadow-md ${lessons.findIndex(l => l.id === currentLesson?.id) === lessons.length - 1
-                                        ? 'bg-slate-800/50 text-slate-500 border-slate-800 cursor-not-allowed'
-                                        : 'bg-green-600 text-white hover:bg-green-500 hover:scale-105 transition-all shadow-lg'
-                                        }`}
-                                >
-                                    <span className="text-xs">Próxima Aula</span>
-                                    <ChevronRight size={20} />
-                                </button>
                             </div>
                         </div>
                     </div>
 
-                    {/* Aula Info (Abaixo do Vídeo) */}
-                    <div className="px-6 md:px-12 pb-16">
-                        <div className="max-w-[1440px] mx-auto">
-                            <ClassroomTabs
-                                lessonId={currentLesson?.id}
-                                lessonTitle={currentLesson?.title || ''}
-                                description={course?.description || "Esta aula aborda os fundamentos necessários para sua evolução técnica e estratégica."}
-                                courseId={course?.id}
-                            />
+                    {/* ── Info da Aula Atual + Botões Nav ── */}
+                    <div className="px-4 md:px-6 lg:px-8 pt-4 pb-3 border-b border-slate-800">
+                        {/* Título e badge da aula */}
+                        <p className="text-[10px] font-bold uppercase tracking-[3px] text-[#1D5F31] mb-1">
+                            {currentLesson?.type === 'quiz' ? 'Questionário' : 'Vídeo Aula'}
+                        </p>
+                        <h2 className="text-lg md:text-xl font-bold font-montserrat tracking-tight text-white line-clamp-2">
+                            {currentLesson?.title || ''}
+                        </h2>
+
+                        {/* Barra de progresso mobile */}
+                        <div className="flex items-center gap-3 mt-3 lg:hidden">
+                            <div className="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                                <div
+                                    className="h-full bg-[#1D5F31] transition-all duration-700"
+                                    style={{ width: `${progressPercent}%` }}
+                                />
+                            </div>
+                            <span className="text-xs font-bold text-[#1D5F31] shrink-0">{progressPercent}%</span>
                         </div>
+                    </div>
+
+                    {/* ── Botões de Navegação Entre Aulas ── */}
+                    <div className="flex items-center justify-between gap-2 px-4 md:px-6 lg:px-8 py-3 border-b border-slate-800">
+                        <button
+                            onClick={goToPrevLesson}
+                            disabled={lessons.findIndex(l => l.id === currentLesson?.id) === 0}
+                            className={`flex items-center justify-center gap-2 flex-1 min-h-[44px] px-4
+                                rounded-xl font-bold font-montserrat uppercase tracking-tighter text-xs
+                                transition-all border
+                                ${
+                                    lessons.findIndex(l => l.id === currentLesson?.id) === 0
+                                        ? 'bg-slate-800/40 text-slate-600 border-slate-800 cursor-not-allowed'
+                                        : 'bg-slate-800 text-white hover:bg-slate-700 border-slate-700 active:scale-95'
+                                }`}
+                        >
+                            <ChevronLeft size={18} />
+                            <span>Anterior</span>
+                        </button>
+
+                        <button
+                            onClick={() => toggleLessonStatus(currentLesson?.id)}
+                            disabled={isToggling}
+                            className={`flex items-center justify-center gap-2 flex-1 min-h-[44px] px-4
+                                rounded-xl font-bold font-montserrat uppercase tracking-tighter text-xs
+                                transition-all border
+                                ${
+                                    completedLessons.includes(currentLesson?.id)
+                                        ? 'bg-[#00c853]/20 text-[#00c853] border-[#00c853]/30'
+                                        : 'bg-slate-800 text-white hover:bg-slate-700 border-slate-700 active:scale-95'
+                                }`}
+                        >
+                            {isToggling ? (
+                                <span>Carregando...</span>
+                            ) : completedLessons.includes(currentLesson?.id) ? (
+                                <><CheckCircle2 size={16} /><span>Concluída</span></>
+                            ) : (
+                                <span>Marcar Concluída</span>
+                            )}
+                        </button>
+
+                        <button
+                            onClick={goToNextLesson}
+                            disabled={lessons.findIndex(l => l.id === currentLesson?.id) === lessons.length - 1}
+                            className={`flex items-center justify-center gap-2 flex-1 min-h-[44px] px-4
+                                rounded-xl font-bold font-montserrat uppercase tracking-tighter text-xs
+                                transition-all
+                                ${
+                                    lessons.findIndex(l => l.id === currentLesson?.id) === lessons.length - 1
+                                        ? 'bg-slate-800/40 text-slate-600 border border-slate-800 cursor-not-allowed'
+                                        : 'bg-[#1D5F31] text-white hover:bg-green-500 border border-[#1D5F31] shadow-lg active:scale-95'
+                                }`}
+                        >
+                            <span>Próxima</span>
+                            <ChevronRight size={18} />
+                        </button>
+                    </div>
+
+                    {/* ── Lista de Aulas Embutida (APENAS mobile <lg) ── */}
+                    <div className="lg:hidden">
+                        <div className="px-4 pt-4 pb-2 flex items-center justify-between">
+                            <h3 className="text-[10px] font-bold uppercase tracking-[4px] text-[#1D5F31]">
+                                Conteúdo do Curso
+                            </h3>
+                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                                {completedLessons.length}/{lessons.length} aulas
+                            </span>
+                        </div>
+                        <div className="divide-y divide-slate-800/60">
+                            {lessons.map((lesson) => (
+                                <button
+                                    key={lesson.id}
+                                    onClick={() => {
+                                        cancelAutoNext()
+                                        setCurrentLesson(lesson)
+                                        // Scroll suave ao topo para ver o player
+                                        window.scrollTo({ top: 0, behavior: 'smooth' })
+                                    }}
+                                    className={`
+                                        w-full flex items-center gap-4 px-4 py-5 text-left transition-all
+                                        relative border-b border-slate-800/60 touch-manipulation
+                                        ${currentLesson?.id === lesson.id
+                                            ? 'bg-slate-800/50'
+                                            : 'active:bg-slate-800/30'}
+                                    `}
+                                >
+                                    {/* Indicador aula ativa */}
+                                    {currentLesson?.id === lesson.id && (
+                                        <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#1D5F31] rounded-r-full" />
+                                    )}
+
+                                    {/* Botão de conclusão com 44px de área */}
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            toggleLessonStatus(lesson.id)
+                                        }}
+                                        className={`
+                                            flex-shrink-0 w-11 h-11 -mx-1.5 rounded-full flex items-center justify-center
+                                            transition-all touch-manipulation
+                                            ${completedLessons.includes(lesson.id)
+                                                ? 'bg-[#1D5F31]/20 text-[#1D5F31]'
+                                                : 'bg-slate-800/50 text-slate-500'}
+                                        `}
+                                        aria-label={completedLessons.includes(lesson.id) ? 'Desmarcar aula' : 'Marcar como concluída'}
+                                    >
+                                        {completedLessons.includes(lesson.id)
+                                            ? <CheckCircle2 size={20} />
+                                            : <PlayCircle size={18} />
+                                        }
+                                    </button>
+
+                                    <div className="flex-1 min-w-0">
+                                        <p className={`text-sm font-bold tracking-tight line-clamp-2 leading-snug
+                                            ${currentLesson?.id === lesson.id ? 'text-white' : 'text-slate-400'}`}
+                                        >
+                                            {lesson.title}
+                                        </p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">
+                                                {lesson.type === 'quiz' ? 'Questionário' : 'Vídeo Aula'}
+                                            </span>
+                                            {currentLesson?.id === lesson.id && (
+                                                <span className="flex h-1.5 w-1.5 rounded-full bg-[#1D5F31] animate-pulse" />
+                                            )}
+                                        </div>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Tabs de info (descrição, Q&A etc.) */}
+                    <div className="px-4 md:px-6 lg:px-8 pb-16">
+                        <ClassroomTabs
+                            lessonId={currentLesson?.id}
+                            lessonTitle={currentLesson?.title || ''}
+                            description={course?.description || ''}
+                            courseId={course?.id}
+                        />
                     </div>
                 </div>
 
-                {/* Sidebar Playlist */}
+                {/* ── Sidebar Drawer (APENAS desktop lg+) ── */}
+                {/* Backdrop */}
+                {sidebarOpen && (
+                    <div
+                        className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+                        onClick={() => setSidebarOpen(false)}
+                    />
+                )}
+
                 <aside
+                    ref={sidebarRef}
+                    onTouchStart={handleTouchStart}
+                    onTouchEnd={handleTouchEnd}
+                    style={{ willChange: 'transform' }}
                     className={`
-                        fixed md:relative top-0 right-0 h-full w-full md:w-[420px] transition-all duration-500 ease-in-out z-40 shadow-xl border-l border-slate-800 bg-[#061629]
-                        ${sidebarOpen ? 'translate-x-0' : 'translate-x-full md:hidden'}
+                        fixed top-14 md:top-16 right-0
+                        h-[calc(100%-3.5rem)] md:h-[calc(100%-4rem)]
+                        lg:static lg:h-full
+                        w-[85vw] max-w-[360px] lg:w-[400px] xl:w-[440px]
+                        flex-shrink-0
+                        transition-transform duration-300 ease-in-out
+                        z-40 shadow-2xl border-l border-slate-800 bg-[#061629]
+                        ${
+                            sidebarOpen
+                                ? 'translate-x-0'
+                                : 'translate-x-full lg:translate-x-0'
+                        }
+                        ${!sidebarOpen ? 'lg:hidden' : ''}
                     `}
                 >
+                    {/* Drag handle (mobile) */}
+                    <div className="lg:hidden flex justify-center pt-3 pb-1">
+                        <div className="w-10 h-1 rounded-full bg-slate-700" />
+                    </div>
+
                     <div className="flex flex-col h-full">
-                        <div className="p-8 border-b border-slate-800 bg-[#061629]">
-                            <h3 className="text-[10px] font-bold uppercase tracking-[4px] text-green-500 mb-1 font-montserrat">CONTEÚDO DO CURSO</h3>
-                            <p className="text-[11px] font-bold uppercase truncate tracking-tight text-white font-montserrat">{course?.title}</p>
+                        {/* Header da Sidebar */}
+                        <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+                            <div>
+                                <h3 className="text-[10px] font-bold uppercase tracking-[4px] text-[#1D5F31] mb-0.5">
+                                    Conteúdo do Curso
+                                </h3>
+                                <p className="text-xs font-bold uppercase truncate tracking-tight text-white max-w-[220px]">
+                                    {course?.title}
+                                </p>
+                            </div>
+                            <span className="text-[10px] font-bold text-slate-500 shrink-0">
+                                {completedLessons.length}/{lessons.length}
+                            </span>
                         </div>
 
+                        {/* Lista de Aulas */}
                         <div
                             className="flex-1 overflow-y-auto scrollbar-hide"
                             style={scrollbarHideStyle}
                         >
-                            <div className="divide-y divide-slate-800">
-                                {lessons.map((lesson) => (
+                            {lessons.map((lesson) => (
+                                <button
+                                    key={lesson.id}
+                                    onClick={() => {
+                                        cancelAutoNext()
+                                        setCurrentLesson(lesson)
+                                        if (window.innerWidth < 1024) setSidebarOpen(false)
+                                    }}
+                                    className={`
+                                        w-full flex items-center gap-4 px-6 py-5 text-left
+                                        transition-all relative border-b border-slate-800/60
+                                        touch-manipulation
+                                        ${currentLesson?.id === lesson.id
+                                            ? 'bg-slate-800/50'
+                                            : 'hover:bg-slate-800/30 active:bg-slate-800/40'}
+                                    `}
+                                >
+                                    {currentLesson?.id === lesson.id && (
+                                        <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#1D5F31] rounded-r-full" />
+                                    )}
+
+                                    {/* Botão de conclusão 44px */}
                                     <button
-                                        key={lesson.id}
-                                        onClick={() => {
-                                            cancelAutoNext()
-                                            setCurrentLesson(lesson)
-                                            if (window.innerWidth < 768) setSidebarOpen(false)
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            toggleLessonStatus(lesson.id)
                                         }}
                                         className={`
-                                            w-full flex items-center gap-4 px-8 py-6 text-left transition-all relative group border-b border-slate-800
-                                            ${currentLesson?.id === lesson.id
-                                                ? 'bg-slate-800/50'
-                                                : 'hover:bg-slate-800/30'}
+                                            flex-shrink-0 w-11 h-11 -mx-1 rounded-full flex items-center justify-center
+                                            transition-all touch-manipulation
+                                            ${completedLessons.includes(lesson.id)
+                                                ? 'bg-[#1D5F31]/20 text-[#1D5F31]'
+                                                : 'bg-slate-800/60 text-slate-500 hover:text-[#1D5F31]'}
                                         `}
+                                        aria-label={completedLessons.includes(lesson.id) ? 'Desmarcar aula' : 'Marcar como concluída'}
                                     >
-                                        {/* Indicador de Aula Atual */}
-                                        {currentLesson?.id === lesson.id && (
-                                            <div className="absolute left-0 top-0 bottom-0 w-[4px] bg-[#1D5F31]"></div>
-                                        )}
+                                        {completedLessons.includes(lesson.id)
+                                            ? <CheckCircle2 size={18} />
+                                            : <PlayCircle size={16} />
+                                        }
+                                    </button>
 
-                                        <div
-                                            onClick={(e) => {
-                                                e.stopPropagation()
-                                                toggleLessonStatus(lesson.id)
-                                            }}
-                                            className={`
-                                                flex-shrink-0 w-6 h-6 rounded-full border flex items-center justify-center transition-all
-                                                ${completedLessons.includes(lesson.id)
-                                                    ? 'bg-[#1D5F31] border-[#1D5F31]'
-                                                    : 'border-slate-700 group-hover:border-[#1D5F31]/40 bg-[#061629]'}
-                                            `}
+                                    <div className="flex-1 min-w-0">
+                                        <p className={`text-[13px] font-bold tracking-tight line-clamp-2 leading-snug
+                                            ${currentLesson?.id === lesson.id ? 'text-white' : 'text-slate-400 hover:text-white'}`}
                                         >
-                                            {completedLessons.includes(lesson.id) ? (
-                                                <CheckCircle2 size={12} className="text-white" />
-                                            ) : (
-                                                <PlayCircle size={10} className="text-slate-300 group-hover:text-[#1D5F31] opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            {lesson.title}
+                                        </p>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">
+                                                {lesson.type === 'quiz' ? 'Questionário' : 'Vídeo Aula'}
+                                            </span>
+                                            {currentLesson?.id === lesson.id && (
+                                                <span className="flex h-1 w-1 rounded-full bg-[#1D5F31] animate-pulse" />
                                             )}
                                         </div>
-
-                                        <div className="flex-1 min-w-0 font-montserrat">
-                                            <p className={`text-[13px] font-bold tracking-tight truncate ${currentLesson?.id === lesson.id
-                                                ? 'text-white'
-                                                : 'text-slate-400 group-hover:text-white'}`}>
-                                                {lesson.title}
-                                            </p>
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <span className="text-[9px] font-bold text-slate-200 uppercase tracking-widest leading-none">
-                                                    {lesson.type === 'quiz' ? 'QUESTIONÁRIO' : 'VÍDEO AULA'}
-                                                </span>
-                                                {currentLesson?.id === lesson.id && (
-                                                    <span className="flex h-1 w-1 rounded-full bg-[#1D5F31] animate-pulse"></span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
+                                    </div>
+                                </button>
+                            ))}
                         </div>
                     </div>
                 </aside>
-            </main>
+            </div>
         </div>
     )
 }

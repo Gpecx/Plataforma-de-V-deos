@@ -226,7 +226,8 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                     type="text"
                                     placeholder="Buscar cursos..."
                                     className={cn(
-                                        "bg-transparent border-none outline-none text-[10px] font-bold uppercase tracking-widest w-full",
+                                        // font-size mínimo 16px em mobile previne zoom automático do iOS
+                                        "bg-transparent border-none outline-none text-base md:text-[10px] font-bold uppercase tracking-widest w-full",
                                         light ? "placeholder:text-slate-400 text-slate-900" : "placeholder:text-white/50 text-white"
                                     )}
                                     value={searchQuery}
@@ -453,9 +454,9 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
 
                         {/* Hamburger Button (mobile only) */}
                         {!isHomePage && (
-                            <button
+                             <button
                                 onClick={() => setIsMobileMenuOpen(prev => !prev)}
-                                className={`md:hidden flex items-center justify-center transition outline-none ml-1 ${'text-white hover:text-[#1D5F31]'}`}
+                                className={`md:hidden flex items-center justify-center min-w-[44px] min-h-[44px] transition outline-none ml-1 ${'text-white hover:text-[#1D5F31]'}`}
                                 aria-label="Abrir menu"
                             >
                                 {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -476,11 +477,11 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                 href={link.href as any}
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className={cn(
-                                    "flex items-center px-4 py-3 rounded-none text-sm tracking-tight transition-colors font-medium",
-                                    pathname === link.href
-                                        ? 'text-[#1D5F31] font-bold border-l-4 border-[#1D5F31]'
-                                        : light ? 'text-slate-500' : 'text-white/70'
-                                )}
+                                        "flex items-center px-4 py-3 min-h-[44px] rounded-xl text-sm tracking-tight transition-colors font-medium",
+                                        pathname === link.href
+                                            ? 'text-[#1D5F31] font-bold border-l-4 border-[#1D5F31]'
+                                            : light ? 'text-slate-500' : 'text-white/70'
+                                    )}
                             >
                                 {link.label}
                             </Link>
