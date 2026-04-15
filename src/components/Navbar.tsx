@@ -31,6 +31,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useCartStore } from '@/store/useCartStore'
+import { useTrailerStore } from '@/store/useTrailerStore'
 import { NotificationBell } from '@/components/NotificationBell'
 import Logo from '@/components/Logo'
 import {
@@ -46,9 +47,12 @@ import { useAuth } from '@/context/AuthProvider'
 interface NavbarProps {
     transparent?: boolean
     light?: boolean
+    hidden?: boolean
 }
 
-export default function Navbar({ transparent, light = false }: NavbarProps) {
+export default function Navbar({ transparent, light = false, hidden: hiddenProp }: NavbarProps) {
+    const { isOpen: trailerIsOpen } = useTrailerStore()
+    const isHidden = hiddenProp || trailerIsOpen
     const pathname = usePathname()
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -150,6 +154,10 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
     const filteredNavLinks = isHomePage
         ? navLinks.filter(link => link.label !== 'Cursos')
         : navLinks
+
+    if (isHidden) {
+        return null
+    }
 
     return (
         <>

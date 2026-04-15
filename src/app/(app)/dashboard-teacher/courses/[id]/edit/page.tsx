@@ -337,7 +337,7 @@ function VideoUpload({ onUploadComplete }: { onUploadComplete: (data: { url?: st
 
         try {
             // 1. Obter URL de upload do Mux
-            const response = await getMuxUploadUrl()
+            const response = await getMuxUploadUrl('lesson')
             if (response.error || !response.url) {
                 throw new Error(response.error || "Erro ao gerar URL de upload")
             }
@@ -1245,7 +1245,7 @@ export default function CourseBuilder() {
                                                 setCourseIntroVideoPlaybackId('')
 
                                                 try {
-                                                    const response = await getMuxUploadUrl()
+                                                    const response = await getMuxUploadUrl('intro')
                                                     if (response.error || !response.url) throw new Error(response.error)
 
                                                     const { url, id: uploadId } = response
