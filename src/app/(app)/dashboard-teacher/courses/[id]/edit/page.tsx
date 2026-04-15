@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import {
     DndContext,
@@ -42,7 +42,8 @@ import {
     AlertCircle,
     RotateCcw,
     XCircle,
-    HelpCircle
+    HelpCircle,
+    Play
 } from 'lucide-react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
@@ -562,6 +563,8 @@ export default function CourseBuilder() {
     const [isUploadingIntro, setIsUploadingIntro] = useState(false)
     const [introUploadProgress, setIntroUploadProgress] = useState(0)
     const [introUploadStatus, setIntroUploadStatus] = useState<'idle' | 'uploading' | 'processing' | 'ready'>('idle')
+    const [isPlayingIntro, setIsPlayingIntro] = useState(false)
+    const introFileInputRef = useRef<HTMLInputElement>(null)
     const [courseTags, setCourseTags] = useState<string[]>([])
 
     // 1. Carrega dados do Firestore
@@ -1218,33 +1221,70 @@ export default function CourseBuilder() {
                                     ) : courseIntroVideoPlaybackId || courseIntroVideoAssetId ? (
                                         <div className="w-full h-full group relative">
                                             {courseIntroVideoPlaybackId && (
-                                                <SecureMuxPlayer 
-                                                    cursoId={params.id as string} 
-                                                    playbackId={courseIntroVideoPlaybackId} 
-                                                    className="w-full h-full"
-                                                />
+                                                <>
+                                                    <SecureMuxPlayer 
+                                                        cursoId={params.id as string} 
+                                                        playbackId={courseIntroVideoPlaybackId} 
+                                                        className="w-full h-full"
+                                                        isPublic={true}
+                                                    />
+                                                    
+                                                    {/* Central Play Button Overlay - Now functional to PLAY */}
+                                                    {!isPlayingIntro && (
+                                                        <div 
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                setIsPlayingIntro(true)
+                                                            }}
+                                                            className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/40 transition-all cursor-pointer z-10"
+                                                        >
+                                                            <div className="w-16 h-16 bg-white/10 backdrop-blur-xl rounded-full flex items-center justify-center border border-white/30 hover:scale-110 hover:bg-white/20 transition-all duration-500">
+                                                                <Play size={32} className="text-white fill-white ml-1.5 opacity-80" />
+                                                            </div>
+                                                            <span className="absolute bottom-12 text-[10px] font-bold text-white uppercase tracking-[4px]">Clique para Assistir</span>
+                                                        </div>
+                                                    )}
+
+                                                    <div className="absolute bottom-2 right-2 flex gap-2 z-20">
+                                                        <button
+                                                            onClick={() => setIsPlayingIntro(!isPlayingIntro)}
+                                                            className="text-[8px] font-bold text-white uppercase tracking-[3px] px-3 py-2 bg-[#061629] hover:bg-[#061629]/90 rounded-md transition-colors flex items-center gap-1.5"
+                                                        >
+                                                            <Play size={12} className={isPlayingIntro ? 'fill-white' : ''} />
+                                                            {isPlayingIntro ? 'PAUSAR' : 'ASSISTIR'}
+                                                        </button>
+
+                                                        <button
+                                                            onClick={() => introFileInputRef.current?.click()}
+                                                            className="text-[8px] font-bold text-white uppercase tracking-[3px] px-3 py-2 bg-[#1D5F31] hover:bg-[#1D5F31]/90 rounded-md transition-colors flex items-center gap-1.5"
+                                                        >
+                                                            <UploadCloud size={12} />
+                                                            TROCAR VÍDEO
+                                                        </button>
+
+                                                        <button
+                                                            onClick={async (e) => {
+                                                                e.stopPropagation()
+                                                                if (!confirm("Remover este vídeo de abertura?")) return
+                                                                try {
+                                                                    await deleteVideoAction(params.id as string, 'courses', '', courseIntroVideoAssetId)
+                                                                    setCourseIntroVideo('')
+                                                                    setCourseIntroVideoMuxId('')
+                                                                    setCourseIntroVideoAssetId('')
+                                                                    setCourseIntroVideoPlaybackId('')
+                                                                    toast.success("Vídeo de abertura removido")
+                                                                } catch (err: any) {
+                                                                    toast.error("Erro ao remover")
+                                                                }
+                                                            }}
+                                                            className="text-[8px] font-bold text-white uppercase tracking-[3px] px-3 py-2 bg-red-500 hover:bg-red-600 rounded-md transition-colors flex items-center gap-1.5"
+                                                        >
+                                                            <Trash2 size={12} />
+                                                            REMOVER
+                                                        </button>
+                                                    </div>
+                                                </>
                                             )}
-                                            <div className="absolute bottom-2 right-2 flex gap-2 z-10">
-                                                <button
-                                                    onClick={async () => {
-                                                        if (!confirm("Remover este vídeo de abertura?")) return
-                                                        try {
-                                                            await deleteVideoAction(params.id as string, 'courses', '', courseIntroVideoAssetId)
-                                                            setCourseIntroVideo('')
-                                                            setCourseIntroVideoMuxId('')
-                                                            setCourseIntroVideoAssetId('')
-                                                            setCourseIntroVideoPlaybackId('')
-                                                            toast.success("Vídeo de abertura removido")
-                                                        } catch (err: any) {
-                                                            toast.error("Erro ao remover")
-                                                        }
-                                                    }}
-                                                    className="text-[8px] font-bold text-white uppercase tracking-[3px] px-3 py-2 bg-red-500 hover:bg-red-600 rounded-md transition-colors flex items-center gap-1"
-                                                >
-                                                    <Trash2 size={12} />
-                                                    REMOVER
-                                                </button>
-                                            </div>
                                         </div>
                                     ) : courseIntroVideo ? (
                                         <div className="flex flex-col items-center gap-1">
@@ -1259,9 +1299,10 @@ export default function CourseBuilder() {
                                     )}
                                     {!isUploadingIntro && (
                                         <input
+                                            ref={introFileInputRef}
                                             type="file"
                                             accept="video/*"
-                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                            className={courseIntroVideoPlaybackId ? "hidden" : "absolute inset-0 opacity-0 cursor-pointer"}
                                             onChange={async (e) => {
                                                 const file = e.target.files?.[0]
                                                 if (!file) return

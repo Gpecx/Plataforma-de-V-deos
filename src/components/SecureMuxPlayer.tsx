@@ -9,10 +9,11 @@ import { AlertCircle } from "lucide-react";
 interface SecureMuxPlayerProps {
   cursoId: string;
   playbackId: string;
-  className?: string; // Optional for external styling
+  className?: string;
   startTime?: number;
   onTimeUpdate?: (currentTime: number) => void;
   onEnded?: () => void;
+  isPublic?: boolean;
 }
 
 export default function SecureMuxPlayer({
@@ -22,6 +23,7 @@ export default function SecureMuxPlayer({
   startTime = 0,
   onTimeUpdate,
   onEnded,
+  isPublic = false,
 }: SecureMuxPlayerProps) {
   const { user, loading: authLoading } = useAuth();
   const [token, setToken] = useState<string | null>(null);
@@ -32,6 +34,15 @@ export default function SecureMuxPlayer({
     let isMounted = true;
 
     async function fetchPlaybackToken() {
+      // Se for público, não precisamos de token comercial/industrial
+      if (isPublic) {
+        if (isMounted) {
+          setLoading(false);
+          setError(null);
+        }
+        return;
+      }
+
       try {
         if (authLoading) return;
 
@@ -100,7 +111,7 @@ export default function SecureMuxPlayer({
     return () => {
       isMounted = false;
     };
-  }, [user, authLoading, cursoId, playbackId]);
+  }, [user, authLoading, cursoId, playbackId, isPublic]);
 
 
   if (loading) {
@@ -115,7 +126,7 @@ export default function SecureMuxPlayer({
     );
   }
 
-  if (error || !token) {
+  if (!isPublic && (error || !token)) {
     return (
       <div className={`relative w-full aspect-video rounded-md overflow-hidden bg-slate-900 border border-slate-800 flex flex-col items-center justify-center text-slate-400 p-6 text-center ${className}`}>
         <AlertCircle className="w-10 h-10 mb-4 text-red-500/80" />
@@ -132,10 +143,10 @@ export default function SecureMuxPlayer({
     >
       <MuxPlayer
         playbackId={playbackId}
-        tokens={{ playback: token }}
+        tokens={isPublic ? undefined : (token ? { playback: token } : undefined)}
         metadata={{
           video_id: playbackId,
-          video_title: `Curso ID: ${cursoId}`,
+          video_title: isPublic ? "Trailer do Curso" : `Curso ID: ${cursoId}`,
           viewer_id: user?.uid,
         }}
         primaryColor="#FFFFFF"
@@ -161,3 +172,4 @@ export default function SecureMuxPlayer({
     </div>
   );
 }
+

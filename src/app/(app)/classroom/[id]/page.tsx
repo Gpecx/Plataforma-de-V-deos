@@ -249,10 +249,10 @@ export default function ClassroomPage() {
 
     if (loading || isCheckingAccess) {
         return (
-            <div className="h-screen bg-[#F4F7F9] flex items-center justify-center">
+            <div className="h-screen bg-[#061629] flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
                     <Loader2 className="animate-spin text-[#1D5F31]" size={48} />
-                    <p className="text-xs font-bold uppercase tracking-widest text-slate-400 animate-pulse">
+                    <p className="text-xs font-bold uppercase tracking-widest text-white animate-pulse">
                         Verificando Acesso...
                     </p>
                 </div>
@@ -262,8 +262,8 @@ export default function ClassroomPage() {
 
     if (error || !course) {
         return (
-            <div className="h-screen bg-[#F4F7F9] flex flex-col items-center justify-center p-8 text-center font-montserrat">
-                <h1 className="text-2xl font-bold uppercase  tracking-tighter text-slate-800">
+            <div className="h-screen flex flex-col items-center justify-center p-8 text-center font-montserrat bg-[#061629]">
+                <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tighter text-white">
                     {error || 'Treinamento não encontrado'}
                 </h1>
                 <div className="mt-6 flex flex-col gap-3">
