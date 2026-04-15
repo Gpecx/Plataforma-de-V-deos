@@ -314,12 +314,9 @@ export default function ClassroomPage() {
 
     return (
         <div className="flex flex-col h-screen overflow-hidden font-montserrat bg-[#061629] text-white">
-            <style jsx global>{`
-                .scrollbar-hide::-webkit-scrollbar { display: none; }
-                .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-            `}</style>
 
-            {/* ── Header ── */}
+
+            {/* Header */}
             <header className="h-14 md:h-16 flex-shrink-0 flex items-center justify-between px-4 md:px-6 border-b border-slate-800 bg-[#061629] z-50 shadow-sm">
                 {/* Esquerda: Logo */}
                 <div className="flex items-center gap-3 text-slate-400 group min-w-0">
@@ -332,7 +329,7 @@ export default function ClassroomPage() {
                     </Link>
                 </div>
 
-                {/* Centro: Título — escondido em telas muito pequenas */}
+                {/* Centro: Titulo - escondido em telas muito pequenas */}
                 <div className="flex-1 flex justify-center items-center px-2 min-w-0 overflow-hidden">
                     <h1 className="hidden sm:block text-sm md:text-base font-bold font-montserrat tracking-tight text-center line-clamp-1 text-white">
                         {course?.title || 'Carregando...'}
@@ -366,14 +363,14 @@ export default function ClassroomPage() {
                 </div>
             </header>
 
-            {/* ── Layout Principal ── */}
+            {/* Layout Principal */}
             {/*
-                Mobile (<lg):  flex-col — player no topo, list de aulas abaixo (sem drawer)
-                Desktop (lg+): flex-row — player à esquerda, sidebar drawer à direita
+                Mobile (<lg):  flex-col - player no topo, list de aulas abaixo (sem drawer)
+                Desktop (lg+): flex-row - player a esquerda, sidebar drawer a direita
             */}
             <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
 
-                {/* ── Coluna Esquerda: Player + Tabs ── */}
+                {/* Coluna Esquerda: Player + Tabs */}
                 <div
                     className="flex-1 flex flex-col overflow-y-auto scrollbar-hide"
                     style={scrollbarHideStyle}
@@ -479,9 +476,9 @@ export default function ClassroomPage() {
                         </div>
                     </div>
 
-                    {/* ── Info da Aula Atual + Botões Nav ── */}
+                    {/* Info da Aula Atual + Botoes Nav */}
                     <div className="px-4 md:px-6 lg:px-8 pt-4 pb-3 border-b border-slate-800">
-                        {/* Título e badge da aula */}
+                        {/* Titulo e badge da aula */}
                         <p className="text-[10px] font-bold uppercase tracking-[3px] text-[#1D5F31] mb-1">
                             {currentLesson?.type === 'quiz' ? 'Questionário' : 'Vídeo Aula'}
                         </p>
@@ -501,7 +498,7 @@ export default function ClassroomPage() {
                         </div>
                     </div>
 
-                    {/* ── Botões de Navegação Entre Aulas ── */}
+                    {/* Botoes de Navegacao Entre Aulas */}
                     <div className="flex items-center justify-between gap-2 px-4 md:px-6 lg:px-8 py-3 border-b border-slate-800">
                         <button
                             onClick={goToPrevLesson}
@@ -557,7 +554,7 @@ export default function ClassroomPage() {
                         </button>
                     </div>
 
-                    {/* ── Lista de Aulas Embutida (APENAS mobile <lg) ── */}
+                    {/* Lista de Aulas Embutida (APENAS mobile <lg) */}
                     <div className="lg:hidden">
                         <div className="px-4 pt-4 pb-2 flex items-center justify-between">
                             <h3 className="text-[10px] font-bold uppercase tracking-[4px] text-[#1D5F31]">
@@ -643,7 +640,7 @@ export default function ClassroomPage() {
                     </div>
                 </div>
 
-                {/* ── Sidebar Drawer (APENAS desktop lg+) ── */}
+                {/* Sidebar Drawer (APENAS desktop lg+) */}
                 {/* Backdrop */}
                 {sidebarOpen && (
                     <div

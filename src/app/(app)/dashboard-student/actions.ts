@@ -288,3 +288,32 @@ export async function getStudentTransactions() {
         return { success: false, error: 'Erro ao buscar histórico de transações' }
     }
 }
+
+export async function getAllUserProgress() {
+    const user = await getAuthUser()
+    if (!user) return { success: false, error: 'Não autorizado' }
+
+    try {
+        const progressSnapshot = await adminDb
+            .collection('userProgress')
+            .where('userId', '==', user.uid)
+            .get()
+
+        const progressMap: Record<string, any> = {}
+        progressSnapshot.forEach(doc => {
+            const data = doc.data()
+            if (data.courseId) {
+                progressMap[data.courseId] = {
+                    completedLessons: data.completedLessons || [],
+                    lastLessonId: data.lastLessonId || null,
+                    lastTimestamp: data.lastTimestamp || 0
+                }
+            }
+        })
+
+        return { success: true, data: progressMap }
+    } catch (error) {
+        console.error('Erro ao buscar todo o progresso:', error)
+        return { success: false, error: 'Falha ao carregar progresso.' }
+    }
+}

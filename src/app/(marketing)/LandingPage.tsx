@@ -292,7 +292,6 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                             showWishlist={false}
                             teacherId={course.teacher_id}
                             teacherName={course.teacher_name}
-                            description={course.description}
                         />
                     ))}
                 </div>

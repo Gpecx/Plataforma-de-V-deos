@@ -151,6 +151,15 @@ export async function getClassroomData(courseId: string, userId: string) {
                          hasEnrollment || 
                          purchasedFromProfile.includes(courseId)
 
+        console.log('Classroom Access DEBUG:', { 
+            userId, 
+            courseId, 
+            isAdmin, 
+            hasEnrollment, 
+            purchasedFromProfile, 
+            hasCourse 
+        })
+
         if (!hasCourse) {
             console.log('Classroom Access Server DEBUG - DENIED:', { isAdmin, hasEnrollment, purchasedFromProfile, courseId, userId })
             return { success: false, error: 'ACCESS_DENIED' }
