@@ -97,9 +97,13 @@ export async function ensurePublicPlaybackId(assetId: string) {
             return { success: true, playback_id: existingPublic.id }
         }
 
-        const updated = await mux.video.assets.update(assetId, {
-            playback_policy: ['public', 'signed']
-        })
+        // Em vez de usar .update, criamos o novo ID com a política correta
+        await mux.video.assets.createPlaybackId(assetId, {
+            policy: 'public'
+        });
+
+        // Depois, busque o asset atualizado para manter o fluxo do seu código
+        const updated = await mux.video.assets.retrieve(assetId);
 
         const newPublic = updated.playback_ids?.find((p: any) => p.policy === 'public')
         return {

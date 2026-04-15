@@ -48,9 +48,10 @@ export async function POST(request: Request) {
                         continue
                     }
 
-                    const updatedAsset = await mux.video.assets.update(providedAssetId, {
-                        playback_policy: ['public', 'signed']
+                    await mux.video.assets.createPlaybackId(providedAssetId, {
+                        policy: 'public'
                     })
+                    const updatedAsset = await mux.video.assets.retrieve(providedAssetId)
 
                     const newPublicPbId = updatedAsset.playback_ids?.find((p: any) => p.policy === 'public')?.id
 
@@ -114,9 +115,10 @@ export async function POST(request: Request) {
                     continue
                 }
 
-                const updatedAsset = await mux.video.assets.update(assetIdToUse, {
-                    playback_policy: ['public', 'signed']
+                await mux.video.assets.createPlaybackId(assetIdToUse, {
+                    policy: 'public'
                 })
+                const updatedAsset = await mux.video.assets.retrieve(assetIdToUse)
 
                 const newPublicPlaybackId = updatedAsset.playback_ids?.find(
                     (p: any) => p.policy === 'public'
