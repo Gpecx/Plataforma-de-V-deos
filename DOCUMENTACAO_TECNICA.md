@@ -470,5 +470,53 @@ A aplicação utiliza o **App Router** do Next.js, onde a maioria das rotas são
 
 ---
 
-**Última Atualização:** 10 de Abril de 2026
-**Status do Documento:** Versão 2.0 (MFA Customizado + Certificados PDF + Gestão de Instrutores + Exportação CSV + Hardening de Bypass MFA)
+### 13 de Abril de 2026
+
+#### 🎨 Front-end & UI/UX
+**1. Otimização de Interface de Sucesso de Pagamento**
+- **Rota**: `/pagamento/sucesso`
+- Refinamento visual: remoção de badge de tipo "PIX/Boleto".
+- Padronização de botões para estética "Industrial Clean" (arredondamento `rounded-xl`, texto branco, fundo verde logo principal `#22c55e`).
+
+#### ⚙️ Back-end & Infraestrutura de Vídeo (Migração VOD)
+**2. Migração Firebase Storage para Mux (Fase 1 e 2)**
+- **Arquivos**: `src/app/actions/mux.ts`, `src/components/SecureMuxPlayer.tsx`
+- Transição total de upload de vídeo para envio via **Direct Upload no Mux**, garantindo melhor transcoding e HLS adaptativo.
+- Política de segurança adotada como padrão: `playback_policy: ['signed']`. Os JWTs agora são gerados dinamicamente no backend para autenticar acessos.
+
+---
+
+### 14 de Abril de 2026
+
+#### 🎨 Front-end & Visual
+**1. Identidade Visual Premium — Página do Curso**
+- Polimento no Layout Hero com atmosfera "Streaming Like" profunda (fundo escuro + gradiente esmeralda leve em background).
+- Refinamento de cores e logos (cor principal ajustada pontualmente para o ícone). Texto puramente branco (`#FFFFFF`) para máximo contraste.
+- Footer padronizado na versão escura onde necessário.
+- Componente `SecureMuxPlayer`: Player refinado com accent color configurado nativamente no MuxPlayer para o verde da marca (`#22c55e`).
+
+#### ⚙️ Gestão de Políticas Mux
+**2. Política Mista para Trailers de Cursos**
+- Criação de permissões `public` para IDs de reprodução usados estritamente nas "Aulas de Apresentação" e Hero de catálogo (permitindo tráfego para visitantes não autenticados no `CourseHeroClient`).
+
+---
+
+### 15 de Abril de 2026
+
+#### ⚙️ Back-end & Clean-up Automático
+**1. Exclusão Limpa de Assets no Mux**
+- Integração estendida com o `@mux/mux-node` para exclusão real de vídeos.
+- Arquitetura de exclusão atômica: Deleção validada no Mux via `mux_asset_id` ➜ Deleção lógica da aula no Firestore ➜ Notificação do Instrutor.
+
+#### 🔒 Segurança de Conteúdo — Anti-Pirataria
+**2. Marca D'água Dinâmica (Dynamic Watermark)**
+- **Componente**: `VideoWatermark` aplicado sobre a View da sala de aula.
+- Sistema renderiza o e-mail / ID do usuário rastreável (baixíssima opacidade) flutuando de forma aleatória e intervalada por cima do container de vídeo, de modo que não afeta o aprendizado mas prejudica capturas/screencasts sem autoria.
+
+**3. Bypass e Tolerância no Secure Player**
+- Aprimoramento da prop do Player: Injeção de estado `isPublic` (boolean) no `SecureMuxPlayer` para consumir Playback IDs sem assinar no caso de Trailers ou rotas liberadas por arquitetura, mantendo tokens super-estritos nas lições privadas.
+
+---
+
+**Última Atualização:** 15 de Abril de 2026
+**Status do Documento:** Versão 2.1 (Migração Global Mux Video + Políticas Signed/Public + Watermark de Antipirataria + UI Premium Streaming)

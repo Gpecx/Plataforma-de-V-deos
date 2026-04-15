@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from "react"
 import { useProgressStore } from "@/store/useProgressStore"
 import { auth, db } from "@/lib/firebase"
 import { onAuthStateChanged } from "firebase/auth"
-import { collection, query, where, getDocs } from "firebase/firestore"
+import { getAllUserProgress } from "@/app/(app)/dashboard-student/actions"
 
 interface ProgressInitializerProps {
     purchasedCourseIds: string[]
@@ -23,26 +23,22 @@ export function ProgressInitializer({ purchasedCourseIds, courseLessonsCount }: 
             }
 
             try {
-                const progressRef = collection(db, 'userProgress')
-                const q = query(progressRef, where('userId', '==', user.uid))
-                const snapshot = await getDocs(q)
+                const result = await getAllUserProgress()
+                
+                if (result.success && result.data) {
+                    const serverProgress = result.data
+                    const progressMap: Record<string, any> = {}
 
-                const progressMap: Record<string, { completedLessons: string[], totalLessons: number, lastLessonId?: string, lastTimestamp?: number }> = {}
-
-                snapshot.forEach(doc => {
-                    const data = doc.data()
-                    const courseId = data.courseId
-                    if (courseId && courseLessonsCount[courseId]) {
-                        progressMap[courseId] = {
-                            completedLessons: data.completedLessons || [],
-                            totalLessons: courseLessonsCount[courseId] || 0,
-                            lastLessonId: data.lastLessonId || undefined,
-                            lastTimestamp: data.lastTimestamp || 0
+                    Object.entries(serverProgress).forEach(([courseId, data]: [string, any]) => {
+                        if (courseLessonsCount[courseId]) {
+                            progressMap[courseId] = {
+                                ...data,
+                                totalLessons: courseLessonsCount[courseId] || 0
+                            }
                         }
-                    }
-                })
-
-                setAllProgress(progressMap)
+                    })
+                    setAllProgress(progressMap)
+                }
             } catch (error) {
                 console.error('Erro ao buscar progresso:', error)
             } finally {

@@ -31,6 +31,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useCartStore } from '@/store/useCartStore'
+import { useTrailerStore } from '@/store/useTrailerStore'
 import { NotificationBell } from '@/components/NotificationBell'
 import Logo from '@/components/Logo'
 import {
@@ -46,9 +47,12 @@ import { useAuth } from '@/context/AuthProvider'
 interface NavbarProps {
     transparent?: boolean
     light?: boolean
+    hidden?: boolean
 }
 
-export default function Navbar({ transparent, light = false }: NavbarProps) {
+export default function Navbar({ transparent, light = false, hidden: hiddenProp }: NavbarProps) {
+    const { isOpen: trailerIsOpen } = useTrailerStore()
+    const isHidden = hiddenProp || trailerIsOpen
     const pathname = usePathname()
     const router = useRouter()
     const searchParams = useSearchParams()
@@ -151,6 +155,10 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
         ? navLinks.filter(link => link.label !== 'Cursos')
         : navLinks
 
+    if (isHidden) {
+        return null
+    }
+
     return (
         <>
             <header
@@ -218,7 +226,8 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                                     type="text"
                                     placeholder="Buscar cursos..."
                                     className={cn(
-                                        "bg-transparent border-none outline-none text-[10px] font-bold uppercase tracking-widest w-full",
+                                        // font-size mínimo 16px em mobile previne zoom automático do iOS
+                                        "bg-transparent border-none outline-none text-base md:text-[10px] font-bold uppercase tracking-widest w-full",
                                         light ? "placeholder:text-slate-400 text-slate-900" : "placeholder:text-white/50 text-white"
                                     )}
                                     value={searchQuery}
@@ -303,12 +312,7 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                                     </Link>
                                 )}
                                 <Link href="/login">
-                                    <button className={cn(
-                                        "text-[10px] font-bold uppercase tracking-widest px-4 md:px-6 py-2 rounded-full transition-all duration-300",
-                                        light 
-                                            ? "bg-[#1D5F31] text-white hover:brightness-110 shadow-md"
-                                            : "bg-transparent border border-[#39FF14] text-white shadow-[0_0_10px_rgba(57,255,20,0.3)] hover:shadow-[0_0_15px_rgba(57,255,20,0.4)] hover:bg-[#39FF14]/10"
-                                    )}>
+                                    <button className="text-[10px] font-bold uppercase tracking-widest px-3 md:px-4 py-2 rounded-xl transition-all bg-[#1D5F31] text-white hover:brightness-110">
                                         Login
                                     </button>
                                 </Link>
@@ -450,9 +454,9 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
 
                         {/* Hamburger Button (mobile only) */}
                         {!isHomePage && (
-                            <button
+                             <button
                                 onClick={() => setIsMobileMenuOpen(prev => !prev)}
-                                className={`md:hidden flex items-center justify-center transition outline-none ml-1 ${'text-white hover:text-[#1D5F31]'}`}
+                                className={`md:hidden flex items-center justify-center min-w-[44px] min-h-[44px] transition outline-none ml-1 ${'text-white hover:text-[#1D5F31]'}`}
                                 aria-label="Abrir menu"
                             >
                                 {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -473,11 +477,11 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                                 href={link.href as any}
                                 onClick={() => setIsMobileMenuOpen(false)}
                                 className={cn(
-                                    "flex items-center px-4 py-3 rounded-none text-sm tracking-tight transition-colors font-medium",
-                                    pathname === link.href
-                                        ? 'text-[#1D5F31] font-bold border-l-4 border-[#1D5F31]'
-                                        : light ? 'text-slate-500' : 'text-white/70'
-                                )}
+                                        "flex items-center px-4 py-3 min-h-[44px] rounded-xl text-sm tracking-tight transition-colors font-medium",
+                                        pathname === link.href
+                                            ? 'text-[#1D5F31] font-bold border-l-4 border-[#1D5F31]'
+                                            : light ? 'text-slate-500' : 'text-white/70'
+                                    )}
                             >
                                 {link.label}
                             </Link>
@@ -498,12 +502,7 @@ export default function Navbar({ transparent, light = false }: NavbarProps) {
                                 )}
                                 <div className="flex gap-2">
                                     <Link href="/login" className="flex-1" onClick={() => setIsMobileMenuOpen(false)}>
-                                        <button className={cn(
-                                            "w-full text-[10px] font-bold uppercase tracking-widest px-4 py-2.5 rounded-full transition-all duration-300",
-                                            light 
-                                                ? "bg-[#1D5F31] text-white hover:brightness-110 shadow-md"
-                                                : "bg-transparent border border-[#39FF14] text-white shadow-[0_0_10px_rgba(57,255,20,0.3)] hover:shadow-[0_0_15px_rgba(57,255,20,0.4)] hover:bg-[#39FF14]/10"
-                                        )}>
+                                        <button className="w-full text-[10px] font-bold uppercase tracking-widest px-4 py-2.5 rounded-xl transition bg-[#1D5F31] text-white hover:brightness-110">
                                             Login
                                         </button>
                                     </Link>

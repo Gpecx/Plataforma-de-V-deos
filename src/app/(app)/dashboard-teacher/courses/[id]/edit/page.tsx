@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import {
     DndContext,
@@ -42,7 +42,8 @@ import {
     AlertCircle,
     RotateCcw,
     XCircle,
-    HelpCircle
+    HelpCircle,
+    Play
 } from 'lucide-react'
 import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
@@ -81,6 +82,7 @@ interface Lesson {
     video_url: string
     mux_upload_id?: string
     mux_playback_id?: string
+    mux_asset_id?: string
     position: number
     description?: string
     status?: string
@@ -323,7 +325,7 @@ function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons,
 }
 
 // --- Video Upload Component ---
-function VideoUpload({ onUploadComplete }: { onUploadComplete: (data: { url?: string, mux_upload_id?: string, mux_playback_id?: string }) => void }) {
+function VideoUpload({ onUploadComplete }: { onUploadComplete: (data: { url?: string, mux_upload_id?: string, mux_playback_id?: string, mux_asset_id?: string }) => void }) {
     const [isUploading, setIsUploading] = useState(false)
     const [progress, setProgress] = useState(0)
     const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'processing' | 'ready'>('idle')
@@ -337,7 +339,7 @@ function VideoUpload({ onUploadComplete }: { onUploadComplete: (data: { url?: st
 
         try {
             // 1. Obter URL de upload do Mux
-            const response = await getMuxUploadUrl()
+            const response = await getMuxUploadUrl('lesson')
             if (response.error || !response.url) {
                 throw new Error(response.error || "Erro ao gerar URL de upload")
             }
@@ -373,7 +375,8 @@ function VideoUpload({ onUploadComplete }: { onUploadComplete: (data: { url?: st
                             if (statusRes.status === 'ready') {
                                 onUploadComplete({
                                     mux_upload_id: uploadId,
-                                    mux_playback_id: statusRes.playback_id
+                                    mux_playback_id: statusRes.playback_id,
+                                    mux_asset_id: statusRes.asset_id
                                 })
                                 setUploadStatus('ready')
                                 resolve(true)
@@ -554,11 +557,14 @@ export default function CourseBuilder() {
     const [courseImage, setCourseImage] = useState('')
     const [courseIntroVideo, setCourseIntroVideo] = useState('')
     const [courseIntroVideoMuxId, setCourseIntroVideoMuxId] = useState('')
+    const [courseIntroVideoAssetId, setCourseIntroVideoAssetId] = useState('')
     const [courseIntroVideoPlaybackId, setCourseIntroVideoPlaybackId] = useState('')
     const [courseCurriculum, setCourseCurriculum] = useState<string[]>([])
     const [isUploadingIntro, setIsUploadingIntro] = useState(false)
     const [introUploadProgress, setIntroUploadProgress] = useState(0)
     const [introUploadStatus, setIntroUploadStatus] = useState<'idle' | 'uploading' | 'processing' | 'ready'>('idle')
+    const [isPlayingIntro, setIsPlayingIntro] = useState(false)
+    const introFileInputRef = useRef<HTMLInputElement>(null)
     const [courseTags, setCourseTags] = useState<string[]>([])
 
     // 1. Carrega dados do Firestore
@@ -583,6 +589,7 @@ export default function CourseBuilder() {
                         setCourseImage(cData.image_url || '')
                         setCourseIntroVideo(cData.intro_video_url || '')
                         setCourseIntroVideoMuxId(cData.intro_video_mux_id || '')
+                        setCourseIntroVideoAssetId(cData.intro_video_asset_id || '')
                         setCourseIntroVideoPlaybackId(cData.intro_video_playback_id || '')
                         setCourseCurriculum(cData.curriculum || [])
                         setCourseTags(cData.tags || [])
@@ -687,6 +694,7 @@ export default function CourseBuilder() {
                 image_url: courseImage,
                 intro_video_url: courseIntroVideo,
                 intro_video_mux_id: courseIntroVideoMuxId,
+                intro_video_asset_id: courseIntroVideoAssetId,
                 intro_video_playback_id: courseIntroVideoPlaybackId,
                 curriculum: courseCurriculum,
                 lessons: allLessons,
@@ -954,9 +962,10 @@ export default function CourseBuilder() {
                                                     <VideoUpload onUploadComplete={(data) => {
                                                         const updatedLesson = {
                                                             ...selectedLesson,
-                                                            video_url: data.url || '', // Limpa URL legada se estiver usando Mux
+                                                            video_url: data.url || '',
                                                             mux_upload_id: data.mux_upload_id || selectedLesson.mux_upload_id,
-                                                            mux_playback_id: data.mux_playback_id || selectedLesson.mux_playback_id
+                                                            mux_playback_id: data.mux_playback_id || selectedLesson.mux_playback_id,
+                                                            mux_asset_id: data.mux_asset_id || selectedLesson.mux_asset_id
                                                         }
                                                         setSelectedLesson(updatedLesson)
                                                         setModules(prev => prev.map(m => ({
@@ -1023,12 +1032,15 @@ export default function CourseBuilder() {
 
                                                                 setIsDeletingVideo(true)
                                                                 try {
-                                                                    // Se for vídeo legado, deleta do Firebase. Se for Mux, apenas limpamos os IDs (deletar no Mux é via API e opcional aqui)
-                                                                    if (selectedLesson.video_url && !selectedLesson.mux_playback_id) {
-                                                                         await deleteVideoAction(selectedLesson.id, 'lessons', selectedLesson.video_url)
+                                                                    // Deleta no Mux se houver asset_id
+                                                                    if (selectedLesson.mux_asset_id) {
+                                                                        await deleteVideoAction(selectedLesson.id, 'lessons', '', selectedLesson.mux_asset_id)
+                                                                    } else if (selectedLesson.video_url && !selectedLesson.mux_playback_id) {
+                                                                        // Para vídeos legados
+                                                                        await deleteVideoAction(selectedLesson.id, 'lessons', selectedLesson.video_url)
                                                                     }
                                                                     
-                                                                    const updatedLesson = { ...selectedLesson, video_url: '', mux_upload_id: '', mux_playback_id: '' }
+                                                                    const updatedLesson = { ...selectedLesson, video_url: '', mux_upload_id: '', mux_playback_id: '', mux_asset_id: '' }
                                                                     setSelectedLesson(updatedLesson)
                                                                     setModules(prev => prev.map(m => ({
                                                                         ...m,
@@ -1206,16 +1218,73 @@ export default function CourseBuilder() {
                                                 {introUploadStatus === 'uploading' ? `TRANSFERINDO ${introUploadProgress}%` : 'OTIMIZANDO VÍDEO PARA STREAMING...'}
                                             </span>
                                         </div>
-                                    ) : courseIntroVideoPlaybackId ? (
+                                    ) : courseIntroVideoPlaybackId || courseIntroVideoAssetId ? (
                                         <div className="w-full h-full group relative">
-                                            <SecureMuxPlayer 
-                                                cursoId={params.id as string} 
-                                                playbackId={courseIntroVideoPlaybackId} 
-                                                className="w-full h-full"
-                                            />
-                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                <span className="text-[8px] font-black text-white uppercase tracking-[3px] border border-white/30 px-3 py-2">SUBSTITUIR INTRO</span>
-                                            </div>
+                                            {courseIntroVideoPlaybackId && (
+                                                <>
+                                                    <SecureMuxPlayer 
+                                                        cursoId={params.id as string} 
+                                                        playbackId={courseIntroVideoPlaybackId} 
+                                                        className="w-full h-full"
+                                                        isPublic={true}
+                                                    />
+                                                    
+                                                    {/* Central Play Button Overlay - Now functional to PLAY */}
+                                                    {!isPlayingIntro && (
+                                                        <div 
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                setIsPlayingIntro(true)
+                                                            }}
+                                                            className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/40 transition-all cursor-pointer z-10"
+                                                        >
+                                                            <div className="w-16 h-16 bg-white/10 backdrop-blur-xl rounded-full flex items-center justify-center border border-white/30 hover:scale-110 hover:bg-white/20 transition-all duration-500">
+                                                                <Play size={32} className="text-white fill-white ml-1.5 opacity-80" />
+                                                            </div>
+                                                            <span className="absolute bottom-12 text-[10px] font-bold text-white uppercase tracking-[4px]">Clique para Assistir</span>
+                                                        </div>
+                                                    )}
+
+                                                    <div className="absolute bottom-2 right-2 flex gap-2 z-20">
+                                                        <button
+                                                            onClick={() => setIsPlayingIntro(!isPlayingIntro)}
+                                                            className="text-[8px] font-bold text-white uppercase tracking-[3px] px-3 py-2 bg-[#061629] hover:bg-[#061629]/90 rounded-md transition-colors flex items-center gap-1.5"
+                                                        >
+                                                            <Play size={12} className={isPlayingIntro ? 'fill-white' : ''} />
+                                                            {isPlayingIntro ? 'PAUSAR' : 'ASSISTIR'}
+                                                        </button>
+
+                                                        <button
+                                                            onClick={() => introFileInputRef.current?.click()}
+                                                            className="text-[8px] font-bold text-white uppercase tracking-[3px] px-3 py-2 bg-[#1D5F31] hover:bg-[#1D5F31]/90 rounded-md transition-colors flex items-center gap-1.5"
+                                                        >
+                                                            <UploadCloud size={12} />
+                                                            TROCAR VÍDEO
+                                                        </button>
+
+                                                        <button
+                                                            onClick={async (e) => {
+                                                                e.stopPropagation()
+                                                                if (!confirm("Remover este vídeo de abertura?")) return
+                                                                try {
+                                                                    await deleteVideoAction(params.id as string, 'courses', '', courseIntroVideoAssetId)
+                                                                    setCourseIntroVideo('')
+                                                                    setCourseIntroVideoMuxId('')
+                                                                    setCourseIntroVideoAssetId('')
+                                                                    setCourseIntroVideoPlaybackId('')
+                                                                    toast.success("Vídeo de abertura removido")
+                                                                } catch (err: any) {
+                                                                    toast.error("Erro ao remover")
+                                                                }
+                                                            }}
+                                                            className="text-[8px] font-bold text-white uppercase tracking-[3px] px-3 py-2 bg-red-500 hover:bg-red-600 rounded-md transition-colors flex items-center gap-1.5"
+                                                        >
+                                                            <Trash2 size={12} />
+                                                            REMOVER
+                                                        </button>
+                                                    </div>
+                                                </>
+                                            )}
                                         </div>
                                     ) : courseIntroVideo ? (
                                         <div className="flex flex-col items-center gap-1">
@@ -1230,9 +1299,10 @@ export default function CourseBuilder() {
                                     )}
                                     {!isUploadingIntro && (
                                         <input
+                                            ref={introFileInputRef}
                                             type="file"
                                             accept="video/*"
-                                            className="absolute inset-0 opacity-0 cursor-pointer"
+                                            className={courseIntroVideoPlaybackId ? "hidden" : "absolute inset-0 opacity-0 cursor-pointer"}
                                             onChange={async (e) => {
                                                 const file = e.target.files?.[0]
                                                 if (!file) return
@@ -1245,7 +1315,7 @@ export default function CourseBuilder() {
                                                 setCourseIntroVideoPlaybackId('')
 
                                                 try {
-                                                    const response = await getMuxUploadUrl()
+                                                    const response = await getMuxUploadUrl('intro')
                                                     if (response.error || !response.url) throw new Error(response.error)
 
                                                     const { url, id: uploadId } = response
@@ -1273,6 +1343,7 @@ export default function CourseBuilder() {
                                                                 const res = await getMuxUploadStatus(uploadId)
                                                                 if (res.status === 'ready') {
                                                                     setCourseIntroVideoPlaybackId(res.playback_id || '')
+                                                                    setCourseIntroVideoAssetId(res.asset_id || '')
                                                                     setIntroUploadStatus('ready')
                                                                     setIsUploadingIntro(false)
                                                                     toast.success("PlayBack ID Ativo!")

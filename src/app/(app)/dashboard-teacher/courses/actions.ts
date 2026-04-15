@@ -2,6 +2,7 @@
 import { adminAuth, adminDb, adminStorage } from '@/lib/firebase-admin'
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
+import { deleteMuxAsset } from '@/app/actions/mux'
 
 async function getAuthUser() {
     const cookieStore = cookies()
@@ -35,6 +36,7 @@ export async function createCourseAction(formData: any) {
             image_url: formData.image_url || "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=2070",
             intro_video_url: formData.intro_video_url || '',
             intro_video_mux_id: formData.intro_video_mux_id || '',
+            intro_video_asset_id: formData.intro_video_asset_id || '',
             intro_video_playback_id: formData.intro_video_playback_id || '',
             curriculum: formData.curriculum || [],
             tags: formData.tags || [],
@@ -56,6 +58,7 @@ export async function createCourseAction(formData: any) {
                     video_url: lesson.video_url || '',
                     mux_upload_id: lesson.mux_upload_id || '',
                     mux_playback_id: lesson.mux_playback_id || '',
+                    mux_asset_id: lesson.mux_asset_id || '',
                     position: index + 1,
                     description: lesson.description || '',
                     status: 'PENDENTE',
@@ -105,7 +108,29 @@ export async function deleteCourseAction(courseId: string) {
             return { success: true, requested: true }
         }
 
+        const courseData = courseDoc.data()
         const lessonsSnapshot = await adminDb.collection('lessons').where('course_id', '==', courseId).get()
+
+        // Deleta o asset do vídeo de introdução primeiro
+        if (courseData?.intro_video_asset_id) {
+            const muxResult = await deleteMuxAsset(courseData.intro_video_asset_id)
+            if (muxResult.error) {
+                console.error(`[deleteCourseAction] Erro ao deletar intro_video_asset:`, muxResult.error)
+            }
+        }
+
+        // Deleta os assets de cada aula
+        for (const lessonDoc of lessonsSnapshot.docs) {
+            const lessonData = lessonDoc.data()
+            if (lessonData?.mux_asset_id) {
+                const muxResult = await deleteMuxAsset(lessonData.mux_asset_id)
+                if (muxResult.error) {
+                    console.error(`[deleteCourseAction] Erro ao deletar lesson asset ${lessonData.mux_asset_id}:`, muxResult.error)
+                }
+            }
+        }
+
+        // Agora deleta os registros no Firestore
         const batch = adminDb.batch()
         lessonsSnapshot.docs.forEach(doc => batch.delete(doc.ref))
         batch.delete(courseRef)
@@ -145,6 +170,7 @@ export async function updateCourseAction(courseId: string, formData: any) {
         if (formData.image_url !== undefined) updateData.image_url = formData.image_url
         if (formData.intro_video_url !== undefined) updateData.intro_video_url = formData.intro_video_url
         if (formData.intro_video_mux_id !== undefined) updateData.intro_video_mux_id = formData.intro_video_mux_id
+        if (formData.intro_video_asset_id !== undefined) updateData.intro_video_asset_id = formData.intro_video_asset_id
         if (formData.intro_video_playback_id !== undefined) updateData.intro_video_playback_id = formData.intro_video_playback_id
         if (formData.curriculum !== undefined) updateData.curriculum = formData.curriculum
         if (formData.tags !== undefined) updateData.tags = formData.tags
@@ -172,6 +198,13 @@ export async function updateCourseAction(courseId: string, formData: any) {
             if (lessonData?.status === 'APROVADO') {
                 batch.update(lessonsRef.doc(id), { status: 'SOLICITADO_EXCLUSAO', updated_at: new Date() })
             } else {
+                // Deleta o asset no Mux antes de remover do Firestore
+                if (lessonData?.mux_asset_id) {
+                    const muxResult = await deleteMuxAsset(lessonData.mux_asset_id)
+                    if (muxResult.error) {
+                        console.error(`[updateCourseAction] Erro ao deletar Mux asset ${lessonData.mux_asset_id}:`, muxResult.error)
+                    }
+                }
                 batch.delete(lessonsRef.doc(id))
             }
         }
@@ -187,6 +220,7 @@ export async function updateCourseAction(courseId: string, formData: any) {
                 video_url: lesson.video_url || '',
                 mux_upload_id: lesson.mux_upload_id || '',
                 mux_playback_id: lesson.mux_playback_id || '',
+                mux_asset_id: lesson.mux_asset_id || '',
                 position: index + 1,
                 description: lesson.description || '',
                 updated_at: new Date()
@@ -238,38 +272,62 @@ export async function updateCourseAction(courseId: string, formData: any) {
 
 /**
  * Action para remover vídeo fisicamente do Storage e limpar referência no Firestore
+ * Opcionalmente pode receber mux_asset_id para deletar também no Mux
  */
-export async function deleteVideoAction(id: string, collectionName: 'courses' | 'lessons', videoUrl: string) {
+export async function deleteVideoAction(id: string, collectionName: 'courses' | 'lessons', videoUrl: string, muxAssetId?: string) {
     const user = await getAuthUser()
     if (!user) return { error: "Não autorizado" }
 
     try {
-        // 1. Extrai o path do arquivo no Storage a partir da URL
-        // Ex: .../o/courses%2Fabc%2Fvideo.mp4?alt=media... -> courses/abc/video.mp4
-        const baseUrl = "https://firebasestorage.googleapis.com/v0/b/";
-        const decodedUrl = decodeURIComponent(videoUrl);
-
-        // Tenta encontrar a parte entre /o/ e o primeiro ?
-        const parts = decodedUrl.split('/o/');
-        if (parts.length < 2) return { error: "URL de vídeo inválida para remoção." };
-
-        const filePath = parts[1].split('?')[0];
-
-        // 2. Deleta do Storage via Admin SDK
-        const bucket = adminStorage.bucket();
-        const file = bucket.file(filePath);
-
-        const [exists] = await file.exists();
-        if (exists) {
-            await file.delete();
-            console.log(`Arquivo removido do Storage: ${filePath}`);
+        // Deleta asset no Mux se fornecido
+        if (muxAssetId) {
+            const muxResult = await deleteMuxAsset(muxAssetId)
+            if (muxResult.error) {
+                console.error(`[deleteVideoAction] Erro ao deletar Mux asset:`, muxResult.error)
+            }
         }
 
-        // 3. Limpa a referência no Firestore
-        await adminDb.collection(collectionName).doc(id).update({
+        // Se há URL de vídeo legado, deleta do Storage
+        if (videoUrl) {
+            // 1. Extrai o path do arquivo no Storage a partir da URL
+            // Ex: .../o/courses%2Fabc%2Fvideo.mp4?alt=media... -> courses/abc/video.mp4
+            const baseUrl = "https://firebasestorage.googleapis.com/v0/b/";
+            const decodedUrl = decodeURIComponent(videoUrl);
+
+            // Tenta encontrar a parte entre /o/ e o primeiro ?
+            const parts = decodedUrl.split('/o/');
+            if (parts.length >= 2) {
+                const filePath = parts[1].split('?')[0];
+
+                // 2. Deleta do Storage via Admin SDK
+                const bucket = adminStorage.bucket();
+                const file = bucket.file(filePath);
+
+                const [exists] = await file.exists();
+                if (exists) {
+                    await file.delete();
+                    console.log(`Arquivo removido do Storage: ${filePath}`);
+                }
+            }
+        }
+
+        // 3. Limpa as referências no Firestore
+        const updateData: any = {
             video_url: "",
             updated_at: new Date()
-        });
+        }
+        
+        if (collectionName === 'courses') {
+            updateData.intro_video_mux_id = ''
+            updateData.intro_video_asset_id = ''
+            updateData.intro_video_playback_id = ''
+        } else {
+            updateData.mux_upload_id = ''
+            updateData.mux_asset_id = ''
+            updateData.mux_playback_id = ''
+        }
+        
+        await adminDb.collection(collectionName).doc(id).update(updateData)
 
         revalidatePath('/dashboard-teacher/courses');
 
