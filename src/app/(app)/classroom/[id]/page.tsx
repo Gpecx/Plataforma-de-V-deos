@@ -22,6 +22,7 @@ import { getClassroomData, toggleLessonCompletion, processCertificateIssuance, s
 import { QuizPlayer } from './QuizPlayer'
 import { useProgressStore } from '@/store/useProgressStore'
 import SecureMuxPlayer from '@/components/SecureMuxPlayer'
+import { VideoWatermark } from '@/components/VideoWatermark'
 
 const scrollbarHideStyle = {
     msOverflowStyle: 'none',
@@ -455,6 +456,14 @@ export default function ClassroomPage() {
                                             </div>
                                         )}
                                     </>
+                                )}
+
+                                {/* Marca d'água dinâmica anti-screen-recording */}
+                                {currentLesson?.type !== 'quiz' && (
+                                    <VideoWatermark
+                                        userEmail={currentUser?.email}
+                                        userId={currentUser?.uid}
+                                    />
                                 )}
                             </div>
 
