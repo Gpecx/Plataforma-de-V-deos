@@ -20,6 +20,8 @@ interface CourseData {
     tag: string;
     price: number;
     status: string;
+    teacher_id?: string;
+    teacher_name?: string;
 }
 
 interface LandingPageProps {
@@ -288,6 +290,9 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                             accent={course.tag}
                             ranking={i + 1}
                             showWishlist={false}
+                            teacherId={course.teacher_id}
+                            teacherName={course.teacher_name}
+                            description={course.description}
                         />
                     ))}
                 </div>

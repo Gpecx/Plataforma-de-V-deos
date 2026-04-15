@@ -111,3 +111,37 @@ export async function ensurePublicPlaybackId(assetId: string) {
         return { error: error.message }
     }
 }
+
+/**
+ * Exclui um asset do Mux pelo asset_id.
+ * Retorna { success: true } se deletado com sucesso ou se o asset não existir (404).
+ * Retorna erro em caso de falha na infraestrutura.
+ */
+export async function deleteMuxAsset(assetId: string) {
+    const user = await getSessionUser()
+    if (!user || (user.role !== 'teacher' && user.role !== 'admin')) {
+        return { error: 'Não autorizado' }
+    }
+
+    if (!assetId) {
+        return { error: 'asset_id inválido' }
+    }
+
+    try {
+        const mux = getMuxClient()
+        
+        await mux.video.assets.delete(assetId)
+        console.log(`[deleteMuxAsset] Asset ${assetId} deletado com sucesso do Mux`)
+        
+        return { success: true }
+    } catch (error: any) {
+        console.error(`[deleteMuxAsset] Erro ao deletar asset ${assetId}:`, error)
+        
+        if (error.status === 404 || error.response?.status === 404) {
+            console.log(`[deleteMuxAsset] Asset ${assetId} não encontrado no Mux (já foi deletado?)`)
+            return { success: true }
+        }
+        
+        return { error: `Falha ao deletar asset no Mux: ${error.message}` }
+    }
+}

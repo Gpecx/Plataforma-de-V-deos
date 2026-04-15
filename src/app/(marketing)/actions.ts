@@ -22,6 +22,8 @@ export async function getFeaturedCourses() {
                 tag: data.tag || 'PREMIUM',
                 price: Number(data.price) || 0,
                 status: data.status || '',
+                teacher_id: data.teacher_id || null,
+                teacher_name: data.teacher_name || null,
             }
         })
 

@@ -4,6 +4,7 @@ import { adminDb, adminAuth } from '@/lib/firebase-admin'
 import { revalidatePath } from 'next/cache'
 import { getSessionUser } from '@/app/actions/auth'
 import { parseFirebaseDate } from '@/lib/date-utils'
+import { deleteMuxAsset } from '@/app/actions/mux'
 
 /**
  * Busca todas as configurações globais da plataforma.
@@ -581,6 +582,29 @@ export async function approveCourseDeletion(courseId: string) {
         }
 
         const lessonsSnapshot = await adminDb.collection('lessons').where('course_id', '==', courseId).get()
+
+        // Deleta o asset do vídeo de introdução primeiro
+        if (courseData?.intro_video_asset_id) {
+            const muxResult = await deleteMuxAsset(courseData.intro_video_asset_id)
+            if (muxResult.error) {
+                console.error(`[approveCourseDeletion] Erro ao deletar intro_video_asset:`, muxResult.error)
+                return { success: false, error: muxResult.error }
+            }
+        }
+
+        // Deleta os assets de cada aula
+        for (const lessonDoc of lessonsSnapshot.docs) {
+            const lessonData = lessonDoc.data()
+            if (lessonData?.mux_asset_id) {
+                const muxResult = await deleteMuxAsset(lessonData.mux_asset_id)
+                if (muxResult.error) {
+                    console.error(`[approveCourseDeletion] Erro ao deletar lesson asset ${lessonData.mux_asset_id}:`, muxResult.error)
+                    return { success: false, error: muxResult.error }
+                }
+            }
+        }
+
+        // Agora deleta os registros no Firestore
         const batch = adminDb.batch()
         lessonsSnapshot.docs.forEach(doc => batch.delete(doc.ref))
         batch.delete(adminDb.collection('courses').doc(courseId))
@@ -656,10 +680,14 @@ export async function approveLessonDeletion(lessonId: string) {
             return { success: false, error: "Aula não encontrada." }
         }
 
-        // TODO: Implementar Mux SDK para deletar o asset via mux_asset_id antes de remover do DB
-        // if (lessonData?.mux_asset_id) {
-        //     await mux.video.assets.delete(lessonData.mux_asset_id);
-        // }
+        // Deleta o asset no Mux antes de remover do Firestore
+        if (lessonData?.mux_asset_id) {
+            const muxResult = await deleteMuxAsset(lessonData.mux_asset_id)
+            if (muxResult.error) {
+                console.error(`[approveLessonDeletion] Erro ao deletar Mux asset:`, muxResult.error)
+                return { success: false, error: muxResult.error }
+            }
+        }
 
         await adminDb.collection('lessons').doc(lessonId).delete()
 

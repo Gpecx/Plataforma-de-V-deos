@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, ArrowRight, Heart } from 'lucide-react'
+import { X, ArrowRight, Heart, Clock, Globe, CheckCircle2, ShieldCheck } from 'lucide-react'
 import Link from 'next/link'
 import { toggleWishlist, getWishlistCourseIds } from '@/app/actions/wishlist'
 import { auth } from '@/lib/firebase'
@@ -18,6 +18,8 @@ interface ExpandableCardProps {
     showWishlist?: boolean
     initialIsInWishlist?: boolean
     isPurchased?: boolean
+    teacherId?: string
+    teacherName?: string
 }
 
 export function ExpandableCard({ 
@@ -29,7 +31,9 @@ export function ExpandableCard({
     ranking, 
     showWishlist = true, 
     initialIsInWishlist = false,
-    isPurchased = false 
+    isPurchased = false,
+    teacherId,
+    teacherName
 }: ExpandableCardProps) {
     const [isOpen, setIsOpen] = useState(false)
     const [isInWishlist, setIsInWishlist] = useState(initialIsInWishlist)
@@ -210,17 +214,48 @@ export function ExpandableCard({
                                     <h2 className="text-3xl md:text-4xl font-bold uppercase mb-6 tracking-tighter leading-[0.9]">
                                         <span className="text-white !text-white" style={{ color: 'white' }}>{title}</span>
                                     </h2>
+
+                                    {teacherId && (
+                                        <div className="flex items-center gap-2 mb-6">
+                                            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest leading-none">Instrutor:</span>
+                                            <Link 
+                                                href={`/professor/${teacherId}` as any}
+                                                onClick={() => setIsOpen(false)}
+                                                className="text-[9px] font-bold text-[#1D5F31] uppercase tracking-[2px] hover:underline leading-none"
+                                            >
+                                                {teacherName}
+                                            </Link>
+                                        </div>
+                                    )}
                                     
                                     <p className="text-slate-400 !text-slate-400 text-sm md:text-base leading-relaxed mb-8 font-medium" style={{ color: '#94a3b8' }}>
                                         {description || 'Explore técnicas avançadas e domine o mercado com este treinamento exclusivo da PowerPlay.'}
                                     </p>
+
+                                    {/* Info Grid */}
+                                    <div className="grid grid-cols-2 gap-y-6 gap-x-4 mb-10">
+                                        {[
+                                            { icon: <Clock size={14} />, label: "Duração", text: "12 horas" },
+                                            { icon: <Globe size={14} />, label: "Idioma", text: "PT-BR" },
+                                            { icon: <CheckCircle2 size={14} />, label: "Acesso", text: "Total" },
+                                            { icon: <ShieldCheck size={14} />, label: "Certificado", text: "Incluso" },
+                                        ].map((item, i) => (
+                                            <div key={i} className="flex gap-2.5 items-start">
+                                                <div className="text-[#1D5F31] mt-0.5">{item.icon}</div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-[9px] uppercase font-bold text-slate-500 tracking-widest mb-0.5">{item.label}</span>
+                                                    <span className="text-[11px] font-bold text-white uppercase tracking-tighter">{item.text}</span>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
                                     
                                     <Link 
                                         href={`/course/${id}`}
-                                        className="group/btn relative inline-flex items-center justify-center bg-btn-gradient text-white font-bold py-4 px-10 uppercase tracking-[3px] text-[11px] hover:brightness-110 rounded-xl transition-all overflow-hidden self-start border border-[#1D5F31]"
+                                        className="btn-cta w-full flex items-center justify-center gap-3 group"
                                     >
                                         <span className="relative z-10 flex items-center gap-2">
-                                            Acessar Curso <ArrowRight size={16} />
+                                            Acessar Agora <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                                         </span>
                                     </Link>
                                 </motion.div>
