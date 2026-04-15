@@ -1,12 +1,12 @@
 # Stage 1: Instalação de dependências
-FROM node:18-alpine AS deps
+FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci
 
 # Stage 2: Build do projeto
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -34,7 +34,7 @@ ENV NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=$NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
 RUN npm run build
 
 # Stage 3: Imagem final de Produção (Super leve)
-FROM node:18-alpine AS runner
+FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -52,5 +52,7 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 EXPOSE 8080
+
+CMD ["node", "server.js"]
 
 CMD ["node", "server.js"]
