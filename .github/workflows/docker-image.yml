@@ -54,4 +54,4 @@ jobs:
             --platform managed \
             --port 8080 \
             --allow-unauthenticated \
-            --set-env-vars="ASAAS_API_KEY=${{ secrets.ASAAS_API_KEY }},ASAAS_API_URL=${{ secrets.ASAAS_API_URL }},ASAAS_WEBHOOK_TOKEN=${{ secrets.ASAAS_WEBHOOK_TOKEN }},FIREBASE_PRIVATE_KEY=${{ secrets.FIREBASE_PRIVATE_KEY }},MUX_SIGNING_KEY=${{ secrets.MUX_SIGNING_KEY }},MUX_SIGNING_KEY_ID=${{ secrets.MUX_SIGNING_KEY_ID }},MUX_TOKEN_ID=${{ secrets.MUX_TOKEN_ID }},MUX_TOKEN_SECRET=${{ secrets.MUX_TOKEN_SECRET }}"
+            --set-env-vars="ASAAS_API_KEY=${{ secrets.ASAAS_API_KEY }},ASAAS_API_URL=${{ secrets.ASAAS_API_URL }},ASAAS_WEBHOOK_TOKEN=${{ secrets.ASAAS_WEBHOOK_TOKEN }},MUX_SIGNING_KEY=${{ secrets.MUX_SIGNING_KEY }},MUX_SIGNING_KEY_ID=${{ secrets.MUX_SIGNING_KEY_ID }},MUX_TOKEN_ID=${{ secrets.MUX_TOKEN_ID }},MUX_TOKEN_SECRET=${{ secrets.MUX_TOKEN_SECRET }}"
