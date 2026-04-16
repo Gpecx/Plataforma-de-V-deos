@@ -125,8 +125,8 @@ export default function AdminSidebar() {
                             className={cn(
                                 "group flex items-center gap-4 p-4 transition-all duration-300 relative",
                                 isActive
-                                    ? "text-[#1D5F31]"
-                                    : "text-slate-700 hover:!text-[#1D5F31] font-medium hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:rounded-xl"
+                                    ? "text-[#1D5F31] bg-green-100"
+                                    : "text-slate-700 hover:!text-[#1D5F31] font-medium hover:bg-green-100 hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] hover:rounded-xl"
                             )}
                         >
                             <item.icon
@@ -182,7 +182,7 @@ export default function AdminSidebar() {
                             <>
                                 <DropdownMenuItem 
                                     onSelect={() => router.push('/dashboard-student')}
-                                    className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-700 transition-colors outline-none focus:bg-slate-50"
+                                    className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer hover:bg-green-50 hover:text-[#1D5F31] text-slate-700 transition-colors outline-none focus:bg-green-50 focus:text-[#1D5F31]"
                                 >
                                     <GraduationCap size={18} className="text-[#1D5F31]" />
                                     <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Modo Aluno</span>
