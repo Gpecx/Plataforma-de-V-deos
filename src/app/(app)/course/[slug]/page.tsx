@@ -48,12 +48,12 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
     const profile = profileRes.success ? profileRes.data : null
     const isAdmin = profile?.role === 'admin'
     const isTeacher = course.teacher_id === sessionUser?.uid
-    
+
     // Verifica se o curso está aprovado ou se o usuário tem permissão
     if (course.status !== 'APROVADO' && !isAdmin && !isTeacher) {
         return notFound()
     }
-    
+
     // Busca na coleção de enrollments (fonte de verdade)
     let hasEnrollment = false
     if (sessionUser?.uid) {
@@ -66,7 +66,7 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
 
     const hasAccess = isAdmin || hasEnrollment || (profile?.cursos_comprados && profile.cursos_comprados.includes(course.id))
 
-    // 3. Busca as lições
+    // 3. Busca as lições e mais 
     let lessons: any[] = []
     try {
         const lessonsSnap = await adminDb.collection('lessons')
@@ -106,7 +106,7 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                                 <div className="w-12 h-px bg-[#1D5F31]" />
                                 <span className="text-[10px] font-bold uppercase tracking-[4px] text-[#1D5F31]">Cronograma</span>
                             </div>
-                            <h2 className="text-2xl md:text-3xl font-bold text-white uppercase tracking-tighter max-w-xl">Grade <br className="hidden md:block"/> Curricular</h2>
+                            <h2 className="text-2xl md:text-3xl font-bold text-white uppercase tracking-tighter max-w-xl">Grade <br className="hidden md:block" /> Curricular</h2>
                         </div>
                         <p className="text-white/60 text-sm max-w-md font-medium uppercase tracking-widest leading-loose">
                             Explore os módulos desenhados para levar seu conhecimento ao nível máximo de performance técnica.
