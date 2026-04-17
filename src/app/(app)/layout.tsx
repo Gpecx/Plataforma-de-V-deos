@@ -12,7 +12,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const isBrandedPage = useMemo(() => 
         pathname?.startsWith('/course/') || 
         pathname?.startsWith('/classroom') || 
-        pathname?.startsWith('/checkout')
+        pathname?.startsWith('/checkout') ||
+        pathname?.startsWith('/professor')
     , [pathname])
 
     return (

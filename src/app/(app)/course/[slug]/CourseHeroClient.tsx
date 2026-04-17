@@ -4,7 +4,7 @@ import { useEffect } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import MuxPlayer from "@mux/mux-player-react"
-import { ArrowLeft, Clock, Globe, ShieldCheck, Play, Plus, Check, X } from "lucide-react"
+import { ArrowLeft, Clock, Globe, ShieldCheck, Play, Plus, Check, X, User } from "lucide-react"
 import SecureMuxPlayer from "@/components/SecureMuxPlayer"
 import { useCartStore } from '@/store/useCartStore'
 import { useTrailerStore } from '@/store/useTrailerStore'
@@ -178,6 +178,18 @@ export function CourseHeroClient({ course, isAdmin, hasAccess, purchasedCourseId
                     </Link>
 
                     <div className="max-w-4xl space-y-6">
+                        {course.teacher_id && (
+                            <Link 
+                                href={`/professor/${course.teacher_id}`}
+                                className="inline-flex items-center gap-3 group/teacher mb-1 bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-sm backdrop-blur-md border border-white/5 transition-all"
+                            >
+                                <span className="text-[10px] font-bold uppercase tracking-[3px] text-[#1D5F31]">Instrutor</span>
+                                <span className="text-white/80 group-hover/teacher:text-white transition-colors text-xs font-bold uppercase tracking-widest">
+                                    {course.teacher_name}
+                                </span>
+                            </Link>
+                        )}
+
                         <h1 className="text-5xl md:text-7xl lg:text-[6rem] font-bold tracking-tighter text-white leading-[0.9] drop-shadow-2xl uppercase" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.7)' }}>
                             {course.title}
                         </h1>
@@ -224,6 +236,16 @@ export function CourseHeroClient({ course, isAdmin, hasAccess, purchasedCourseId
                                     <X size={20} />
                                     Fechar Trailer
                                 </button>
+                            )}
+
+                            {course.teacher_id && (
+                                <Link
+                                    href={`/professor/${course.teacher_id}`}
+                                    className="w-full sm:w-auto bg-transparent hover:bg-white/10 border border-[#FFFFFF] text-[#FFFFFF] px-8 py-4 rounded-md font-bold text-base flex items-center justify-center gap-3 transition-colors shrink-0"
+                                >
+                                    <User size={20} />
+                                    Ver Instrutor
+                                </Link>
                             )}
                         </div>
                     </div>
