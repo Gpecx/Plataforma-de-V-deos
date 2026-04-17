@@ -31,6 +31,9 @@ ARG NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
 ENV NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=$NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
 
 # Gera o build de produção (standalone)
+# NOTA: As variáveis FIREBASE_* do Admin SDK (FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL,
+#       FIREBASE_PRIVATE_KEY) NÃO são injetadas aqui. Elas devem ser configuradas como
+#       variáveis de ambiente em runtime no Cloud Run, para não vazar credenciais na imagem.
 RUN npm run build
 
 # Stage 3: Imagem final de Produção (Super leve)
@@ -52,7 +55,5 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 EXPOSE 8080
-
-CMD ["node", "server.js"]
 
 CMD ["node", "server.js"]

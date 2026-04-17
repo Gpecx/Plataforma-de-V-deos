@@ -28,7 +28,8 @@ export async function getInstructorProfile(instructorId: string) {
                 linkedin: data?.linkedin || null,
                 twitter: data?.twitter || null,
                 website: data?.website || null,
-                youtube: data?.youtube || null
+                youtube: data?.youtube || null,
+                facebook: data?.facebook || null
             }
         }
     } catch (error) {

@@ -134,6 +134,7 @@ function RegisterForm() {
     const [birthDate, setBirthDate] = useState('')
     const [role, setRole] = useState<'student' | 'teacher'>('student')
     const [loading, setLoading] = useState(false)
+    const [formError, setFormError] = useState<{ message: string; isEmailConflict: boolean } | null>(null)
     const [cpfCnpjTouched, setCpfCnpjTouched] = useState(false)
     const [teacherData, setTeacherData] = useState<any>(null)
     const [isTeacherFlow, setIsTeacherFlow] = useState(false)
@@ -245,6 +246,7 @@ function RegisterForm() {
         if (!isFormValid) return
 
         setLoading(true)
+        setFormError(null)
 
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password)
@@ -296,14 +298,16 @@ function RegisterForm() {
                 localStorage.removeItem('powerplay_teacher_quiz')
             }
 
-            if (role === 'teacher') {
-                router.push('/verify-email')
-            } else {
-                router.push('/verify-email')
-            }
+            router.push('/verify-email')
         } catch (error: any) {
             console.error('Erro no cadastro:', error)
-            alert('Erro no cadastro: ' + (error.message || 'Verifique os dados e tente novamente.'))
+            const isEmailConflict = error?.code === 'auth/email-already-in-use'
+            setFormError({
+                isEmailConflict,
+                message: isEmailConflict
+                    ? 'Este e-mail já está cadastrado na PowerPlay.'
+                    : (error.message || 'Verifique os dados e tente novamente.'),
+            })
         } finally {
             setLoading(false)
         }
@@ -355,6 +359,44 @@ function RegisterForm() {
                     {/* Form Container */}
                     <div className="bg-transparent p-0 border-t border-white/5">
                         <form onSubmit={handleRegister} className="space-y-10 py-8">
+
+                            {/* Banner de Erro Inline */}
+                            <AnimatePresence mode="wait">
+                                {formError && (
+                                    <motion.div
+                                        key="form-error"
+                                        initial={{ opacity: 0, y: -8, height: 0 }}
+                                        animate={{ opacity: 1, y: 0, height: 'auto' }}
+                                        exit={{ opacity: 0, y: -8, height: 0 }}
+                                        transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+                                        className="overflow-hidden"
+                                    >
+                                        <div className={`flex items-start gap-3 p-4 rounded-xl border ${
+                                            formError.isEmailConflict
+                                                ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+                                                : 'bg-red-500/10 border-red-500/30 text-red-300'
+                                        }`}>
+                                            <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-[11px] font-bold uppercase tracking-widest">
+                                                    {formError.message}
+                                                </p>
+                                                {formError.isEmailConflict && (
+                                                    <p className="text-[10px] mt-1.5 text-white/50 uppercase tracking-wider">
+                                                        Já tem uma conta?{' '}
+                                                        <Link
+                                                            href={`/login?email=${encodeURIComponent(email)}`}
+                                                            className="text-[#28b828] font-bold hover:text-[#34d834] transition-colors underline underline-offset-2"
+                                                        >
+                                                            Entrar agora
+                                                        </Link>
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
 
                             {/* Grupo 1: Dados de Acesso */}
                             <motion.section

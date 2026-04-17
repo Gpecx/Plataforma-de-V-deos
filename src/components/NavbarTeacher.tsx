@@ -98,10 +98,10 @@ export default function NavbarTeacher() {
                                 <div className="px-3 py-2 text-[10px] font-medium text-slate-500 mb-1">
                                     Painel do Professor
                                 </div>
-                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-slate-50 rounded-xl cursor-pointer hover:text-black">Dashboard</DropdownMenuItem>
-                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/courses")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-slate-50 rounded-xl cursor-pointer hover:text-black">Meus Cursos</DropdownMenuItem>
-                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/analytics")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-slate-50 rounded-xl cursor-pointer hover:text-black">Vendas</DropdownMenuItem>
-                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/settings")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-slate-50 rounded-xl cursor-pointer hover:text-black">Configurações</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-green-50 rounded-xl cursor-pointer hover:bg-green-50 hover:text-[#1D5F31] transition-colors duration-200">Dashboard</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/courses")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-green-50 rounded-xl cursor-pointer hover:bg-green-50 hover:text-[#1D5F31] transition-colors duration-200">Meus Cursos</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/analytics")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-green-50 rounded-xl cursor-pointer hover:bg-green-50 hover:text-[#1D5F31] transition-colors duration-200">Vendas</DropdownMenuItem>
+                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/settings")} className="px-3 py-3 text-sm font-medium text-[#374151] focus:bg-green-50 rounded-xl cursor-pointer hover:bg-green-50 hover:text-[#1D5F31] transition-colors duration-200">Configurações</DropdownMenuItem>
                                 <DropdownMenuSeparator className="my-1 bg-slate-100" />
                             </DropdownMenuContent>
                         </DropdownMenu>
@@ -202,15 +202,15 @@ export default function NavbarTeacher() {
                                             </DropdownMenuItem>
                                         </>
                                     )}
-                                    <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/profile")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors focus:bg-slate-50">
+                                    <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/profile")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-green-50 hover:text-[#1D5F31] transition-colors focus:bg-green-50 focus:text-[#1D5F31]">
                                         <UserCog size={18} className="text-slate-400" />
                                         <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Editar Perfil</span>
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/settings")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors focus:bg-slate-50">
+                                    <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/settings")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-green-50 hover:text-[#1D5F31] transition-colors focus:bg-green-50 focus:text-[#1D5F31]">
                                         <Settings size={18} className="text-slate-400" />
                                         <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Configurações</span>
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/students")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-slate-50 text-slate-600 transition-colors focus:bg-slate-50">
+                                    <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/students")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-green-50 hover:text-[#1D5F31] transition-colors focus:bg-green-50 focus:text-[#1D5F31]">
                                         <Users size={18} className="text-slate-400" />
                                         <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Alunos</span>
                                     </DropdownMenuItem>
@@ -220,11 +220,11 @@ export default function NavbarTeacher() {
                                     <div className="px-3 py-2">
                                         <p className="text-[9px] font-bold uppercase tracking-[2px] text-slate-400 mb-2 px-2">Suporte & Ajuda</p>
                                         <div className="grid grid-cols-2 gap-2">
-                                            <DropdownMenuItem onSelect={() => router.push("/contact")} className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-slate-600 transition-colors cursor-pointer focus:bg-slate-100">
+                                            <DropdownMenuItem onSelect={() => router.push("/contact")} className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 hover:bg-green-50 hover:text-[#1D5F31] text-slate-600 transition-colors cursor-pointer focus:bg-green-50 focus:text-[#1D5F31]">
                                                 <HelpCircle size={20} className="mb-2 text-slate-400" />
                                                 <span className="text-[9px] font-bold uppercase tracking-widest">FAQ</span>
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/chat")} className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 hover:bg-slate-100 text-[#1D5F31] transition-colors cursor-pointer focus:bg-slate-100">
+                                            <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/chat")} className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 hover:bg-green-50 hover:text-[#1D5F31] text-[#1D5F31] transition-colors cursor-pointer focus:bg-green-50 focus:text-[#1D5F31]">
                                                 <MessageSquare size={20} className="mb-2" />
                                                 <span className="text-[9px] font-bold uppercase tracking-widest text-slate-600">Chat</span>
                                             </DropdownMenuItem>
