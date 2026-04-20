@@ -201,12 +201,21 @@ export async function updateProfile(prevState: any, formData: FormData) {
     if (!user) throw new Error('Não autorizado')
 
     const fullName = formData.get('fullName') as string
+    const photoURL = formData.get('photoURL') as string
 
     try {
-        await adminDb.collection('profiles').doc(user.uid).update({
+        const updateData: Record<string, any> = {
             full_name: fullName,
             updated_at: new Date()
-        })
+        }
+
+        // Se photoURL for uma string vazia, pode significar que o usuário removeu a foto
+        // ou se for uma URL, atualizamos. Se for null/undefined, não mexemos.
+        if (photoURL !== null) {
+            updateData.photoURL = photoURL
+        }
+
+        await adminDb.collection('profiles').doc(user.uid).update(updateData)
 
         revalidatePath('/dashboard-student')
         revalidatePath('/dashboard-student/profile')

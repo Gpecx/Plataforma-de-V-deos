@@ -36,7 +36,7 @@ import {
 export default function NavbarTeacher() {
     const pathname = usePathname()
     const router = useRouter()
-    const [userProfile, setUserProfile] = useState<{ full_name: string | null, role: string | null, created_at: string | null, avatar_url?: string } | null>(null)
+    const [userProfile, setUserProfile] = useState<{ full_name: string | null, role: string | null, created_at: string | null, avatar_url?: string, photoURL?: string } | null>(null)
     const [isLoggedIn, setIsLoggedIn] = useState(false)
     const [mounted, setMounted] = useState(false)
     const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -74,6 +74,13 @@ export default function NavbarTeacher() {
             console.error("Error signing out:", error);
         }
     };
+
+    const getInitials = (name: string) => {
+        if (!name) return '??'
+        const names = name.trim().split(' ')
+        if (names.length === 1) return names[0].substring(0, 2).toUpperCase()
+        return (names[0][0] + names[names.length - 1][0]).toUpperCase()
+    }
 
     const formatDate = (dateValue: any) => {
         return formatDateBR(dateValue)
@@ -164,10 +171,12 @@ export default function NavbarTeacher() {
                         <DropdownMenu modal={false}>
                             <DropdownMenuTrigger asChild>
                                 <button className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold transition-all outline-none hover:scale-105 bg-slate-900 shadow-sm overflow-hidden border-2 border-transparent hover:border-slate-200 relative">
-                                    {userProfile?.avatar_url ? (
-                                        <img src={userProfile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                                    {(userProfile?.photoURL || userProfile?.avatar_url) ? (
+                                        <img src={userProfile?.photoURL || userProfile?.avatar_url} alt="Profile" className="w-full h-full object-cover" />
                                     ) : (
-                                        <User size={22} />
+                                        <span className="text-xs font-bold uppercase tracking-widest">
+                                            {getInitials(userProfile?.full_name || '')}
+                                        </span>
                                     )}
                                 </button>
                             </DropdownMenuTrigger>

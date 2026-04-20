@@ -15,7 +15,7 @@ export async function getPublicProfile(userId: string) {
             id: userId,
             full_name: data?.full_name || 'Usuário',
             role: data?.role || 'student',
-            avatar_url: data?.avatar_url || null
+            photoURL: data?.photoURL || data?.avatar_url || null
         }
     } catch (error) {
         console.error('Erro ao buscar perfil público:', error)
