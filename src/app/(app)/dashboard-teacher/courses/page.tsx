@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { auth, db } from '@/lib/firebase'
 import { collection, query, where, orderBy, getDocs } from 'firebase/firestore'
 import { onAuthStateChanged } from 'firebase/auth'
@@ -23,10 +24,18 @@ import { XCircle } from 'lucide-react'
 // Importamos a action que você acabou de criar no actions.ts
 import { deleteCourseAction, cancelCourseDeletionRequest } from './actions'
 
-export default function TeacherCoursesPage() {
+function CoursesContent() {
     const [courses, setCourses] = useState<any[]>([])
     const [searchTerm, setSearchTerm] = useState("")
     const [loading, setLoading] = useState(true)
+    const searchParams = useSearchParams()
+
+    useEffect(() => {
+        const q = searchParams.get('q')
+        if (q) {
+            setSearchTerm(decodeURIComponent(q))
+        }
+    }, [searchParams])
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -34,10 +43,14 @@ export default function TeacherCoursesPage() {
                 try {
                     const coursesRef = collection(db, 'courses');
                     const querySnapshot = await getDocs(query(coursesRef, where('teacher_id', '==', user.uid)));
-                    const data = querySnapshot.docs.map(doc => ({
-                        id: doc.id,
-                        ...doc.data()
-                    }));
+                    const data = querySnapshot.docs.map(doc => {
+                        const courseData = doc.data();
+                        return {
+                            id: doc.id,
+                            ...courseData,
+                            image_url: courseData.image_url || courseData.imageUrl || courseData.image || null
+                        };
+                    });
                     setCourses(data);
                 } catch (error) {
                     console.error("Erro ao carregar cursos:", error);
@@ -134,6 +147,13 @@ export default function TeacherCoursesPage() {
             </div>
 
             <div className="px-4 md:px-8">
+                {filteredCourses.length === 0 ? (
+                    <div className="py-20 flex justify-center items-center">
+                        <p className="text-slate-900 font-bold uppercase tracking-widest text-base md:text-lg">
+                            NENHUM CURSO ENCONTRADO EM SUA BIBLIOTECA.
+                        </p>
+                    </div>
+                ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8">
                     {filteredCourses.map((curso) => (
                         <div key={curso.id} className="group bg-white rounded-[32px] border border-black/20 flex flex-col hover:border-black transition-all duration-500 shadow-sm hover:shadow-xl overflow-hidden">
@@ -142,6 +162,9 @@ export default function TeacherCoursesPage() {
                                     src={curso.image_url || "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400"}
                                     alt={curso.title}
                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400"
+                                    }}
                                 />
                                 <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
                                     <div className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-black/20 shadow-sm">
@@ -209,7 +232,20 @@ export default function TeacherCoursesPage() {
                         </div>
                     ))}
                 </div>
+                )}
             </div>
         </div>
+    )
+}
+
+export default function TeacherCoursesPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex h-screen items-center justify-center bg-transparent">
+                <Loader2 className="animate-spin text-[#1D5F31]" size={48} />
+            </div>
+        }>
+            <CoursesContent />
+        </Suspense>
     )
 }

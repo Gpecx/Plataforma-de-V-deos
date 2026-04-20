@@ -86,6 +86,13 @@ export default function NavbarTeacher() {
         return formatDateBR(dateValue)
     }
 
+    const handleSearch = () => {
+        if (searchQuery.trim()) {
+            router.push(`/dashboard-teacher/courses?q=${encodeURIComponent(searchQuery.trim())}` as any)
+            setIsSearchOpen(false)
+        }
+    }
+
     return (
         <header className="sticky top-0 left-0 right-0 z-[100] w-full bg-white border-b border-[#E5E7EB] transition-all duration-300 pointer-events-auto" style={{ height: '64px' }}>
             <nav className="flex items-center justify-between px-4 sm:px-8 md:px-12 h-full text-slate-800">
@@ -143,10 +150,13 @@ export default function NavbarTeacher() {
                             <Search size={16} className="text-slate-400 mr-2" />
                             <input
                                 type="text"
-                                placeholder="Buscar no painel..."
+                                placeholder="BUSCAR MEUS CURSOS..."
                                 className="bg-transparent border-none outline-none text-[10px] font-bold uppercase tracking-widest w-full placeholder:text-slate-400 text-slate-700"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter') handleSearch()
+                                }}
                             />
                         </div>
                         <button

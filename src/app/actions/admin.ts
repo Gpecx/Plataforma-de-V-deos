@@ -778,6 +778,7 @@ export async function getAllCourses() {
             return {
                 id: doc.id,
                 ...data,
+                image_url: data.image_url || data.imageUrl || data.image || null,
                 teacherName
             }
         }))

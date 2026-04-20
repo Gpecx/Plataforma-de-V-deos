@@ -232,7 +232,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                 <Search size={16} className={cn(light ? "text-slate-400" : "text-white", "mr-2 shrink-0")} />
                                 <input
                                     type="text"
-                                    placeholder="Buscar cursos..."
+                                    placeholder={isTeacherMode ? "BUSCAR MEUS CURSOS..." : "Buscar cursos..."}
                                     className={cn(
                                         // font-size mínimo 16px em mobile previne zoom automático do iOS
                                         "bg-transparent border-none outline-none text-base md:text-[10px] font-bold uppercase tracking-widest w-full",
@@ -243,21 +243,28 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                         const value = e.target.value
                                         setSearchQuery(value)
                                         
-                                        if (value.trim()) {
-                                            const encodedQuery = encodeURIComponent(value.trim())
-                                            if (pathname !== '/course') {
-                                                router.push(`/course?s=${encodedQuery}`)
+                                        // Busca "live" (ao digitar) apenas para o modo aluno
+                                        if (!isTeacherMode) {
+                                            if (value.trim()) {
+                                                const encodedQuery = encodeURIComponent(value.trim())
+                                                if (pathname !== '/course') {
+                                                    router.push(`/course?s=${encodedQuery}` as any)
+                                                } else {
+                                                    router.replace(`/course?s=${encodedQuery}`, { scroll: false })
+                                                }
                                             } else {
-                                                router.replace(`/course?s=${encodedQuery}`, { scroll: false })
-                                            }
-                                        } else {
-                                            if (pathname === '/course') {
-                                                router.replace('/course', { scroll: false })
+                                                if (pathname === '/course') {
+                                                    router.replace('/course', { scroll: false })
+                                                }
                                             }
                                         }
                                     }}
                                     onKeyDown={e => {
                                         if (e.key === 'Enter') {
+                                            // Se for professor, o redirecionamento ocorre no Enter (conforme regra industrial)
+                                            if (isTeacherMode && searchQuery.trim()) {
+                                                router.push(`/dashboard-teacher/courses?q=${encodeURIComponent(searchQuery.trim())}` as any)
+                                            }
                                             setIsSearchOpen(false)
                                         }
                                     }}
