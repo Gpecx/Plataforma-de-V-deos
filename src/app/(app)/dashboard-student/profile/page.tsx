@@ -43,7 +43,8 @@ export default async function ProfilePage() {
                 <div className="bg-white border border-black rounded-xl p-8 md:p-12 shadow-sm">
                     <ProfileForm 
                         initialFullName={profile?.full_name || ''} 
-                        initialCpf={profile?.cpf_cnpj || profile?.cpf || ''} 
+                        initialPhotoURL={profile?.photoURL || ''}
+                        uid={user.uid}
                     />
                 </div>
             </div>

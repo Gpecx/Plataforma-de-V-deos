@@ -26,6 +26,7 @@ export default function PagamentoPage() {
     const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('credit_card')
     const [userProfile, setUserProfile] = useState<any>(null)
     const [isLoadingProfile, setIsLoadingProfile] = useState(true)
+    const [termsAccepted, setTermsAccepted] = useState(false)
 
     useEffect(() => {
         setMounted(true)
@@ -53,6 +54,11 @@ export default function PagamentoPage() {
     const total = getTotal()
 
     const handlePayment = async () => {
+        if (!termsAccepted) {
+            showNotification('Você precisa aceitar os Termos de Uso e Política de Privacidade para continuar.', 'error')
+            return
+        }
+
         setIsProcessing(true)
 
         try {
@@ -65,7 +71,7 @@ export default function PagamentoPage() {
                 boleto: 'BOLETO'
             }
 
-            const result = await processCheckoutAction(courseIds, methodMap[selectedMethod])
+            const result = await processCheckoutAction(courseIds, methodMap[selectedMethod], termsAccepted)
 
             if (!result.success) {
                 showNotification(result.error || "Erro ao processar pagamento", 'error')
@@ -259,6 +265,37 @@ export default function PagamentoPage() {
 
                             <div className="h-px bg-slate-100 my-8" />
 
+                            {/* Terms Acceptance Checkbox */}
+                            <div className="mb-8">
+                                <label className="flex items-start gap-3 cursor-pointer group">
+                                    <div className="relative mt-0.5">
+                                        <input
+                                            type="checkbox"
+                                            checked={termsAccepted}
+                                            onChange={(e) => setTermsAccepted(e.target.checked)}
+                                            className="sr-only"
+                                        />
+                                        <div className={`w-5 h-5 border transition-all rounded-none flex items-center justify-center ${
+                                            termsAccepted
+                                                ? 'bg-[#1D5F31] border-[#1D5F31]'
+                                                : 'bg-transparent border-slate-300 group-hover:border-slate-400'
+                                        }`}>
+                                            {termsAccepted && (
+                                                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wide leading-relaxed">
+                                        Li e aceito os{' '}
+                                        <a href="/termos" target="_blank" className="text-[#1D5F31] hover:underline">Termos de Uso</a>{' '}
+                                        e a{' '}
+                                        <a href="/privacidade" target="_blank" className="text-[#1D5F31] hover:underline">Política de Privacidade</a>.
+                                    </span>
+                                </label>
+                            </div>
+
                             <div className="space-y-4 mb-10">
                                 <div className="flex justify-between font-bold uppercase text-[10px] tracking-widest text-slate-400">
                                     <span>Subtotal</span>
@@ -282,10 +319,10 @@ export default function PagamentoPage() {
                             ) : (
                                 <button
                                     onClick={handlePayment}
-                                    disabled={isProcessing || isLoadingProfile}
+                                    disabled={isProcessing || isLoadingProfile || !termsAccepted}
                                     className={cn(
                                         "w-full py-6 rounded-none font-bold uppercase  tracking-[3px] transition-all flex items-center justify-center gap-3",
-                                        (isProcessing || isLoadingProfile)
+                                        (isProcessing || isLoadingProfile || !termsAccepted)
                                             ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
                                             : 'bg-[#1D5F31] text-white hover:brightness-110 active:scale-[0.98]'
                                     )}

@@ -1,22 +1,42 @@
 "use client"
 
 import { useState, useEffect } from 'react'
+import { useActionState } from 'react'
 import { auth } from '@/lib/firebase'
 import { onAuthStateChanged, updatePassword, EmailAuthProvider, reauthenticateWithCredential, multiFactor, TotpMultiFactorGenerator, TotpSecret, reload } from 'firebase/auth'
 import { useRouter } from 'next/navigation'
-import { Settings, DollarSign, Bell, Shield, Wallet, Save, Key, Trash2, ShieldCheck } from 'lucide-react'
+import { Settings, DollarSign, Bell, Shield, Wallet, Save, Key, Trash2, ShieldCheck, MapPin } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useCartStore } from '@/store/useCartStore'
 import DeleteAccountButton from '@/components/DeleteAccountButton'
+import { updateTeacherSettings, getTeacherProfile } from '../profile/actions'
+
+const initialState: { success: boolean; error?: string } = {
+    success: false,
+    error: undefined
+}
+
+interface AddressData {
+    logradouro?: string
+    numero?: string
+    bairro?: string
+    cidade?: string
+    estado?: string
+    cep?: string
+}
 
 export default function TeacherSettingsPage() {
     const router = useRouter()
     const [loading, setLoading] = useState(true)
     const [user, setUser] = useState<any>(null)
     const [pixKey, setPixKey] = useState('')
+    const [addressData, setAddressData] = useState<AddressData>({})
+    const [state, formAction, isPending] = useActionState(updateTeacherSettings, initialState)
+
     const [emailEnabled, setEmailEnabled] = useState(true)
     const [browserEnabled, setBrowserEnabled] = useState(false)
+    const [isLoadingCep, setIsLoadingCep] = useState(false)
 
     const [newPassword, setNewPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
@@ -34,15 +54,58 @@ export default function TeacherSettingsPage() {
     const showNotification = useCartStore(state => state.showNotification)
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
             if (user) {
                 setUser(user)
                 setIsMFAActive(multiFactor(user).enrolledFactors.length > 0)
+
+                try {
+                    const result = await getTeacherProfile()
+                    if (result.success && result.data) {
+                        setPixKey(result.data.pix_key || '')
+                        setAddressData({
+                            logradouro: result.data.logradouro || '',
+                            numero: result.data.numero || '',
+                            bairro: result.data.bairro || '',
+                            cidade: result.data.cidade || '',
+                            estado: result.data.estado || '',
+                            cep: result.data.cep || ''
+                        })
+                    }
+                } catch (error) {
+                    console.error('Erro ao carregar dados:', error)
+                }
             }
             setLoading(false)
         })
         return () => unsubscribe()
     }, [router])
+
+    const handleCepBlur = async (cep: string) => {
+        const cleanCep = cep.replace(/\D/g, '')
+        if (cleanCep.length !== 8) return
+
+        setIsLoadingCep(true)
+        try {
+            const response = await fetch(`https://viacep.com.br/ws/${cleanCep}/json/`)
+            const data = await response.json()
+
+            if (!data.erro) {
+                setAddressData(prev => ({
+                    ...prev,
+                    logradouro: data.logradouro || '',
+                    bairro: data.bairro || '',
+                    cidade: data.localidade || '',
+                    estado: data.uf || '',
+                    cep: cleanCep
+                }))
+            }
+        } catch (error) {
+            console.error('Erro ao buscar CEP:', error)
+        } finally {
+            setIsLoadingCep(false)
+        }
+    }
 
     const handleUpdatePassword = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -114,12 +177,12 @@ export default function TeacherSettingsPage() {
             const assertion = TotpMultiFactorGenerator.assertionForEnrollment(mfaSecret, mfaCode)
             console.log("Tentando inscrever Professor no MFA...")
             await multiFactor(user).enroll(assertion, 'Authenticator App')
-            
+
             // Força a atualização do token e recarga
             console.log("Inscrição enviada (Teacher). Sincronizando...")
             await user.getIdToken(true)
             await reload(user)
-            
+
             const factors = multiFactor(auth.currentUser!).enrolledFactors
             console.log("MFA Inscribed (Teacher)! Fatores detectados:", factors)
 
@@ -163,7 +226,7 @@ export default function TeacherSettingsPage() {
         <div className="min-h-screen bg-transparent p-8 md:p-12 space-y-16 font-montserrat border-t border-black pb-32">
             <header className="max-w-6xl mx-auto">
                 <div className="flex items-center gap-3 mb-2">
-                    <span className="text-[10px] font-bold uppercase tracking-[5px] text-[#1D5F31]">WORKSPACE SETTINGS</span>
+
                 </div>
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tighter text-slate-900 max-w-4xl">
                     CONFIGURAÇÕES DO <span className="text-[#1D5F31] uppercase">TEACHER</span>
@@ -172,33 +235,149 @@ export default function TeacherSettingsPage() {
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
-                {/* Configurações Financeiras - rounded-xl */}
+                {/* Dados Fiscais e Endereço - rounded-xl */}
                 <section className="bg-white border border-black rounded-xl p-10 shadow-sm space-y-10">
-                    <div className="flex items-center gap-4">
-                        <div className="p-4 bg-slate-50 rounded-xl text-[#1D5F31] border border-black">
-                            <Wallet size={24} strokeWidth={2.5} />
-                        </div>
-                        <div>
-                            <h2 className="text-xl font-bold uppercase tracking-tight text-slate-900 leading-none">Dados de Saída</h2>
-                            <p className="text-sm font-medium tracking-tight text-slate-500 mt-2">Como você recebe seus lucros.</p>
-                        </div>
-                    </div>
-
-                    <div className="space-y-8">
-                        <div className="space-y-3">
-                            <label className="text-sm font-bold uppercase tracking-tight text-slate-900 px-1">Chave PIX Estratégica</label>
-                            <div className="relative group">
-                                <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1D5F31] transition-colors" size={20} />
-                                <Input
-                                    value={pixKey}
-                                    onChange={(e) => setPixKey(e.target.value)}
-                                    placeholder="CPF, E-mail ou Chave Aleatória"
-                                    className="bg-slate-50 border-black rounded-xl pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
-                                />
+                    <form action={formAction} className="space-y-10">
+                        <div className="flex items-center gap-4">
+                            <div className="p-4 bg-slate-50 rounded-xl text-[#1D5F31] border border-black">
+                                <Wallet size={24} strokeWidth={2.5} />
                             </div>
-                            <p className="text-sm text-slate-500 font-medium px-1">As comissões de vendas serão auditadas e enviadas para esta chave.</p>
+                            <div>
+                                <h2 className="text-xl font-bold uppercase tracking-tight text-slate-900 leading-none">Dados de Saída</h2>
+                                <p className="text-sm font-medium tracking-tight text-slate-500 mt-2">Como você recebe seus lucros.</p>
+                            </div>
                         </div>
-                    </div>
+
+                        <div className="space-y-6">
+                            <div className="space-y-3">
+                                <label className="text-sm font-bold uppercase tracking-tight text-slate-900 px-1">Chave PIX Estratégica</label>
+                                <div className="relative group">
+                                    <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1D5F31] transition-colors" size={20} />
+                                    <Input
+                                        name="pix_key"
+                                        defaultValue={pixKey}
+                                        placeholder="CPF, E-mail ou Chave Aleatória"
+                                        className="bg-slate-50 border-black rounded-xl pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="pt-6 border-t border-slate-100">
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className="p-3 bg-slate-50 rounded-xl text-[#1D5F31] border border-black">
+                                    <MapPin size={20} strokeWidth={2.5} />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-bold uppercase tracking-tight text-slate-900 leading-none">Endereço</h3>
+                                    <p className="text-sm font-medium tracking-tight text-slate-500 mt-1">Para emitância de notas fiscais.</p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-3">
+                                    <label className="text-sm font-bold uppercase tracking-tight text-slate-900 px-1">CEP {isLoadingCep && <span className="text-[#1D5F31] animate-pulse">buscando...</span>}</label>
+                                    <div className="relative group">
+                                        <MapPin className={`absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1D5F31] transition-colors ${isLoadingCep ? 'animate-pulse' : ''}`} size={20} />
+                                        <Input
+                                            name="cep"
+                                            defaultValue={addressData.cep || ''}
+                                            onBlur={(e) => handleCepBlur(e.target.value)}
+                                            disabled={isLoadingCep}
+                                            placeholder="00000-000"
+                                            className="bg-slate-50 border-black rounded-xl pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400 disabled:opacity-50"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-3">
+                                    <label className="text-sm font-bold uppercase tracking-tight text-slate-900 px-1">Número</label>
+                                    <div className="relative group">
+                                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '10px' }}>Nº</span>
+                                        <Input
+                                            name="numero"
+                                            defaultValue={addressData.numero || ''}
+                                            placeholder="Número"
+                                            className="bg-slate-50 border-black rounded-xl pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-3 md:col-span-2">
+                                    <label className="text-sm font-bold uppercase tracking-tight text-slate-900 px-1">Logradouro</label>
+                                    <div className="relative group">
+                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1D5F31] transition-colors" size={20} />
+                                        <Input
+                                            name="logradouro"
+                                            defaultValue={addressData.logradouro || ''}
+                                            placeholder="Rua, Avenida..."
+                                            className="bg-slate-50 border-black rounded-xl pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-3">
+                                    <label className="text-sm font-bold uppercase tracking-tight text-slate-900 px-1">Bairro</label>
+                                    <div className="relative group">
+                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1D5F31] transition-colors" size={20} />
+                                        <Input
+                                            name="bairro"
+                                            defaultValue={addressData.bairro || ''}
+                                            placeholder="Bairro"
+                                            className="bg-slate-50 border-black rounded-xl pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-3">
+                                    <label className="text-sm font-bold uppercase tracking-tight text-slate-900 px-1">Cidade</label>
+                                    <div className="relative group">
+                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1D5F31] transition-colors" size={20} />
+                                        <Input
+                                            name="cidade"
+                                            defaultValue={addressData.cidade || ''}
+                                            placeholder="Cidade"
+                                            className="bg-slate-50 border-black rounded-xl pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-3">
+                                    <label className="text-sm font-bold uppercase tracking-tight text-slate-900 px-1">Estado</label>
+                                    <div className="relative group">
+                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1D5F31] transition-colors" size={20} />
+                                        <Input
+                                            name="estado"
+                                            defaultValue={addressData.estado || ''}
+                                            placeholder="UF"
+                                            className="bg-slate-50 border-black rounded-xl pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {state?.success && (
+                            <div className="flex items-center gap-2 p-4 bg-green-50 border border-green-200/40 rounded-xl text-green-700 text-sm font-bold uppercase tracking-widest animate-in fade-in slide-in-from-top-2">
+                                <Save size={16} />
+                                Dados atualizados com sucesso!
+                            </div>
+                        )}
+
+                        {(state as any)?.error && (
+                            <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200/40 rounded-xl text-red-700 text-sm font-bold uppercase tracking-widest animate-in fade-in slide-in-from-top-2">
+                                {(state as any).error}
+                            </div>
+                        )}
+
+                        <Button
+                            type="submit"
+                            disabled={isPending}
+                            className="bg-[#1D5F31] text-white font-bold uppercase tracking-[3px] h-14 px-12 rounded-xl hover:bg-[#28b828] shadow-xl shadow-[#1D5F31]/20 transition-all gap-4 text-[11px]"
+                        >
+                            {isPending ? (
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-xl animate-spin" />
+                            ) : (
+                                <Save size={18} strokeWidth={3} />
+                            )}
+                            {isPending ? 'Salvando...' : 'Salvar Dados'}
+                        </Button>
+                    </form>
                 </section>
 
                 {/* Notificações - rounded-xl */}
@@ -323,7 +502,7 @@ export default function TeacherSettingsPage() {
                                 </h3>
                                 <p className="text-sm font-medium tracking-tight text-slate-500">Aumente a segurança do seu workspace de instrutor.</p>
                             </div>
-                            
+
                             {isMFAActive ? (
                                 <Button onClick={handleDisableMFA} variant="outline" className="border-red-200 text-red-600 hover:bg-red-50 font-bold uppercase rounded-xl h-14 px-8 transition-all">Desativar 2FA</Button>
                             ) : (
@@ -335,28 +514,28 @@ export default function TeacherSettingsPage() {
                             <div className="mt-8 p-6 bg-slate-50 border border-slate-100 rounded-2xl animate-in zoom-in-95 duration-200">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                                     <div className="flex flex-col items-center justify-center p-4 bg-white rounded-xl border border-slate-200 shadow-sm">
-                                        <img 
-                                            src={`https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(mfaSecret.generateQrCodeUrl(user.email!, 'PowerPlay Teacher'))}&size=200x200`} 
-                                            alt="QR Code 2FA" 
+                                        <img
+                                            src={`https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(mfaSecret.generateQrCodeUrl(user.email!, 'PowerPlay Teacher'))}&size=200x200`}
+                                            alt="QR Code 2FA"
                                             className="w-[180px] h-[180px]"
                                         />
                                         <p className="text-[9px] font-bold text-slate-400 mt-4 uppercase tracking-widest text-center">Escaneie com seu App de Autenticação</p>
                                     </div>
-                                    
+
                                     <div className="space-y-6">
                                         <div className="space-y-1.5">
                                             <label className="text-sm font-bold uppercase tracking-tight text-slate-900 px-1">Código de Confirmação</label>
-                                            <Input 
+                                            <Input
                                                 value={mfaCode}
                                                 onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, ''))}
                                                 maxLength={6}
-                                                className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-400 font-bold text-center text-xl tracking-widest focus:border-[#1D5F31]" 
-                                                placeholder="000000" 
+                                                className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-400 font-bold text-center text-xl tracking-widest focus:border-[#1D5F31]"
+                                                placeholder="000000"
                                             />
                                             {mfaError && <p className="text-[10px] font-bold text-red-600 uppercase mt-1 px-1">{mfaError}</p>}
                                         </div>
                                         <div className="flex flex-col gap-3">
-                                            <Button 
+                                            <Button
                                                 onClick={handleConfirmMFAEnroll}
                                                 disabled={isEnrollingMFA || mfaCode.length < 6}
                                                 className="bg-[#1D5F31] text-white font-bold uppercase rounded-xl h-14 transition-all w-full"
@@ -390,13 +569,6 @@ export default function TeacherSettingsPage() {
 
                     <DeleteAccountButton />
                 </section>
-            </div>
-
-            <div className="flex justify-end pt-8 max-w-6xl mx-auto">
-                <Button className="bg-[#1D5F31] text-white font-bold uppercase tracking-[3px] h-14 px-12 rounded-xl hover:bg-[#28b828] shadow-xl shadow-[#1D5F31]/20 transition-all gap-4 animate-in fade-in slide-in-from-bottom-4 text-[11px]">
-                    <Save size={18} strokeWidth={3} />
-                    Salvar Todas Alterações
-                </Button>
             </div>
         </div>
     )

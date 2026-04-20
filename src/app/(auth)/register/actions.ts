@@ -1,5 +1,6 @@
 'use server'
 
+import { headers } from 'next/headers'
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
 
 interface CreateProfileData {
@@ -10,7 +11,6 @@ interface CreateProfileData {
     person_type: 'CPF' | 'CNPJ'
     birth_date: string
     role: 'student' | 'teacher'
-    // Novos campos de endereço
     cep?: string
     rua?: string
     numero?: string
@@ -19,6 +19,16 @@ interface CreateProfileData {
     cidade?: string
     estado?: string
     teacher_application_data?: any
+    terms_accepted?: boolean
+}
+
+async function getClientIp(): Promise<string> {
+    const headersList = await headers()
+    const forwarded = headersList.get('x-forwarded-for')
+    if (forwarded) {
+        return forwarded.split(',')[0].trim()
+    }
+    return headersList.get('x-real-ip') || 'unknown'
 }
 
 function sanitize(value: string): string {
@@ -65,6 +75,17 @@ export async function createProfile(data: CreateProfileData) {
             mfaEnabled: true,
             created_at: new Date(),
             teacher_status: data.role === 'teacher' ? 'active' : undefined
+        }
+
+        // Consent Log (LGPD)
+        if (data.terms_accepted) {
+            const ipAddress = await getClientIp()
+            payload.consent_log = {
+                accepted_at: new Date().toISOString(),
+                ip_address: ipAddress,
+                version: 'v1.0',
+                form_source: 'registration_page'
+            }
         }
 
         // Firestore nao aceita undefined

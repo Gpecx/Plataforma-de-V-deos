@@ -1,10 +1,19 @@
 'use server'
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createPayment, BillingType, getStudentAsaasId, createCustomer } from '@/services/asaasService'
 import { sanitizeCpfCnpj } from '@/lib/utils'
+
+async function getClientIp(): Promise<string> {
+    const headersList = await headers()
+    const forwarded = headersList.get('x-forwarded-for')
+    if (forwarded) {
+        return forwarded.split(',')[0].trim()
+    }
+    return headersList.get('x-real-ip') || 'unknown'
+}
 
 async function getAuthUser() {
     const cookieStore = cookies()
@@ -85,13 +94,17 @@ export async function buyCourse(courseId: string) {
     }
 }
 
-export async function processCheckoutAction(courseIds: string[], billingType: BillingType = 'PIX'): Promise<
+export async function processCheckoutAction(courseIds: string[], billingType: BillingType = 'PIX', termsAccepted: boolean = false): Promise<
     | { success: true; isFree: true; data?: undefined; error?: undefined }
     | { success: true; isFree?: undefined; data: { invoiceUrl: string; paymentId: string; billingType: string }; error?: undefined }
     | { success: false; error: string; isFree?: undefined; data?: undefined }
 > {
     const user = await getAuthUser()
     if (!user) return { success: false, error: 'Não autorizado' }
+
+    if (!termsAccepted) {
+        return { success: false, error: 'Você precisa aceitar os Termos de Uso e Política de Privacidade.' }
+    }
 
     try {
         const settingsDoc = await adminDb.collection('config').doc('platform_settings').get()
@@ -134,6 +147,19 @@ export async function processCheckoutAction(courseIds: string[], billingType: Bi
             })
         }
         await batch.commit()
+
+        // Consent Log (LGPD) - Separate collection for audit
+        const ipAddress = await getClientIp()
+        await adminDb.collection('consent_logs').add({
+            user_id: user.uid,
+            accepted_at: new Date().toISOString(),
+            ip_address: ipAddress,
+            version: 'v1.0',
+            form_source: 'checkout_page',
+            course_ids: courseIds,
+            total_amount: totalAmount,
+            billing_type: billingType
+        })
 
         revalidatePath('/dashboard-student')
 
@@ -200,15 +226,22 @@ export async function updateProfile(prevState: any, formData: FormData) {
     const user = await getAuthUser()
     if (!user) throw new Error('Não autorizado')
 
-        const fullName = formData.get('fullName') as string
-        const cpf = formData.get('cpf') as string
+    const fullName = formData.get('fullName') as string
+    const photoURL = formData.get('photoURL') as string
 
     try {
-        await adminDb.collection('profiles').doc(user.uid).update({
+        const updateData: Record<string, any> = {
             full_name: fullName,
-            cpf_cnpj: cpf,
             updated_at: new Date()
-        })
+        }
+
+        // Se photoURL for uma string vazia, pode significar que o usuário removeu a foto
+        // ou se for uma URL, atualizamos. Se for null/undefined, não mexemos.
+        if (photoURL !== null) {
+            updateData.photoURL = photoURL
+        }
+
+        await adminDb.collection('profiles').doc(user.uid).update(updateData)
 
         revalidatePath('/dashboard-student')
         revalidatePath('/dashboard-student/profile')
@@ -216,6 +249,46 @@ export async function updateProfile(prevState: any, formData: FormData) {
     } catch (error) {
         console.error('Erro ao atualizar perfil:', error)
         return { success: false, error: 'Falha ao atualizar perfil.' }
+    }
+}
+
+export async function updateSettings(prevState: any, formData: FormData) {
+    const user = await getAuthUser()
+    if (!user) throw new Error('Não autorizado')
+
+    const cpfCnpj = formData.get('cpf_cnpj') as string
+    const pixKey = formData.get('pix_key') as string
+    const bankName = formData.get('bank_name') as string
+    const logradouro = formData.get('logradouro') as string
+    const numero = formData.get('numero') as string
+    const bairro = formData.get('bairro') as string
+    const cidade = formData.get('cidade') as string
+    const estado = formData.get('estado') as string
+    const cep = formData.get('cep') as string
+
+    try {
+        const updateData: Record<string, any> = {
+            updated_at: new Date()
+        }
+
+        if (cpfCnpj) updateData.cpf_cnpj = cpfCnpj
+        if (pixKey) updateData.pix_key = pixKey
+        if (bankName) updateData.bank_name = bankName
+        if (logradouro) updateData.logradouro = logradouro
+        if (numero) updateData.numero = numero
+        if (bairro) updateData.bairro = bairro
+        if (cidade) updateData.cidade = cidade
+        if (estado) updateData.estado = estado
+        if (cep) updateData.cep = cep
+
+        await adminDb.collection('profiles').doc(user.uid).set(updateData, { merge: true })
+
+        revalidatePath('/dashboard-student')
+        revalidatePath('/dashboard-student/settings')
+        return { success: true }
+    } catch (error) {
+        console.error('Erro ao atualizar configurações:', error)
+        return { success: false, error: 'Falha ao atualizar configurações.' }
     }
 }
 

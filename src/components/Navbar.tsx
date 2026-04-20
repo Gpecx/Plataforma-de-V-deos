@@ -58,7 +58,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
     const searchParams = useSearchParams()
     const { isMfaPending } = useAuth()
     // ... (no changes in inner hooks)
-    const [userProfile, setUserProfile] = useState<{ full_name: string | null, role: string | null, created_at: any } | null>(null)
+    const [userProfile, setUserProfile] = useState<{ full_name: string | null, role: string | null, created_at: any, photoURL?: string | null } | null>(null)
     const [isLoggedIn, setIsLoggedIn] = useState(false)
     const { items } = useCartStore()
     const [mounted, setMounted] = useState(false)
@@ -87,7 +87,8 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                     setUserProfile({
                         full_name: data.full_name || null,
                         role: data.role as any || null,
-                        created_at: (data as any).created_at
+                        created_at: (data as any).created_at,
+                        photoURL: (data as any).photoURL || null
                     })
                 }
             } catch (error) {
@@ -127,6 +128,13 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
         pathname.startsWith('/painel-professor')
 
     const isEffectivelyLoggedIn = isLoggedIn && !isMfaPending;
+
+    const getInitials = (name: string) => {
+        if (!name) return '??'
+        const names = name.trim().split(' ')
+        if (names.length === 1) return names[0].substring(0, 2).toUpperCase()
+        return (names[0][0] + names[names.length - 1][0]).toUpperCase()
+    }
 
     const studentLinks = [
         { href: '/course', label: 'Cursos' },
@@ -224,7 +232,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                 <Search size={16} className={cn(light ? "text-slate-400" : "text-white", "mr-2 shrink-0")} />
                                 <input
                                     type="text"
-                                    placeholder="Buscar cursos..."
+                                    placeholder={isTeacherMode ? "BUSCAR MEUS CURSOS..." : "Buscar cursos..."}
                                     className={cn(
                                         // font-size mínimo 16px em mobile previne zoom automático do iOS
                                         "bg-transparent border-none outline-none text-base md:text-[10px] font-bold uppercase tracking-widest w-full",
@@ -235,21 +243,28 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                         const value = e.target.value
                                         setSearchQuery(value)
                                         
-                                        if (value.trim()) {
-                                            const encodedQuery = encodeURIComponent(value.trim())
-                                            if (pathname !== '/course') {
-                                                router.push(`/course?s=${encodedQuery}`)
+                                        // Busca "live" (ao digitar) apenas para o modo aluno
+                                        if (!isTeacherMode) {
+                                            if (value.trim()) {
+                                                const encodedQuery = encodeURIComponent(value.trim())
+                                                if (pathname !== '/course') {
+                                                    router.push(`/course?s=${encodedQuery}` as any)
+                                                } else {
+                                                    router.replace(`/course?s=${encodedQuery}`, { scroll: false })
+                                                }
                                             } else {
-                                                router.replace(`/course?s=${encodedQuery}`, { scroll: false })
-                                            }
-                                        } else {
-                                            if (pathname === '/course') {
-                                                router.replace('/course', { scroll: false })
+                                                if (pathname === '/course') {
+                                                    router.replace('/course', { scroll: false })
+                                                }
                                             }
                                         }
                                     }}
                                     onKeyDown={e => {
                                         if (e.key === 'Enter') {
+                                            // Se for professor, o redirecionamento ocorre no Enter (conforme regra industrial)
+                                            if (isTeacherMode && searchQuery.trim()) {
+                                                router.push(`/dashboard-teacher/courses?q=${encodeURIComponent(searchQuery.trim())}` as any)
+                                            }
                                             setIsSearchOpen(false)
                                         }
                                     }}
@@ -332,7 +347,13 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                         "w-9 h-9 md:w-10 md:h-10 flex items-center justify-center font-bold transition-all cursor-pointer border-2 outline-none hover:scale-105 shadow-sm overflow-hidden rounded-full",
                                         light ? "bg-white text-slate-900 border-black/20" : "bg-slate-900 text-white border-black/20"
                                     )}>
-                                        <User size={20} />
+                                        {userProfile?.photoURL ? (
+                                            <img src={userProfile.photoURL} alt="Avatar" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest">
+                                                {getInitials(userProfile?.full_name || '')}
+                                            </span>
+                                        )}
                                     </div>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent className={cn(
