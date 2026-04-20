@@ -138,6 +138,7 @@ function RegisterForm() {
     const [cpfCnpjTouched, setCpfCnpjTouched] = useState(false)
     const [teacherData, setTeacherData] = useState<any>(null)
     const [isTeacherFlow, setIsTeacherFlow] = useState(false)
+    const [termsAccepted, setTermsAccepted] = useState(false)
 
     useEffect(() => {
         const stored = localStorage.getItem('powerplay_teacher_quiz')
@@ -189,8 +190,9 @@ function RegisterForm() {
             rua.length > 2 &&
             numero.length > 0 &&
             cidade.length > 2 &&
-            estado.length === 2
-    }, [email, password, fullName, isCpfCnpjValid, isBirthDateValid, cep, rua, numero, cidade, estado])
+            estado.length === 2 &&
+            termsAccepted
+    }, [email, password, fullName, isCpfCnpjValid, isBirthDateValid, cep, rua, numero, cidade, estado, termsAccepted])
 
     const handleCpfCnpjChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCpfCnpj(maskCpfCnpj(e.target.value, personType))
@@ -273,6 +275,7 @@ function RegisterForm() {
                 bairro,
                 cidade,
                 estado,
+                terms_accepted: termsAccepted,
                 ...(teacherData ? { teacher_application_data: teacherData } : {})
             })
 
@@ -676,11 +679,34 @@ function RegisterForm() {
                                 Seja um Professor PowerPlay
                             </motion.button>
 
-                            <div className="pt-6 border-t border-white/5 text-center">
-                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-loose">
-                                    Ao se cadastrar, você concorda com nossos <br />
-                                    <span className="text-white cursor-pointer hover:underline">Termos de Uso</span> e <span className="text-white cursor-pointer hover:underline">Privacidade</span>
-                                </p>
+                            <div className="pt-6 border-t border-white/5">
+                                <label className="flex items-start gap-3 cursor-pointer group">
+                                    <div className="relative mt-0.5">
+                                        <input
+                                            type="checkbox"
+                                            checked={termsAccepted}
+                                            onChange={(e) => setTermsAccepted(e.target.checked)}
+                                            className="sr-only"
+                                        />
+                                        <div className={`w-5 h-5 border transition-all rounded-none flex items-center justify-center ${
+                                            termsAccepted
+                                                ? 'bg-[#28b828] border-[#28b828]'
+                                                : 'bg-transparent border-white/30 group-hover:border-white/50'
+                                        }`}>
+                                            {termsAccepted && (
+                                                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                </svg>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed">
+                                        Li e aceito os{' '}
+                                        <a href="/termos-de-uso" target="_blank" className="text-white hover:underline">Termos de Uso</a>{' '}
+                                        e a{' '}
+                                        <a href="/politica-de-privacidade" target="_blank" className="text-white hover:underline">Política de Privacidade</a>.
+                                    </span>
+                                </label>
                             </div>
 
                             <div className="mt-8 pt-6 border-t border-white/10 text-center">

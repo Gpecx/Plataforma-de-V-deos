@@ -1,10 +1,19 @@
 'use server'
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createPayment, BillingType, getStudentAsaasId, createCustomer } from '@/services/asaasService'
 import { sanitizeCpfCnpj } from '@/lib/utils'
+
+async function getClientIp(): Promise<string> {
+    const headersList = await headers()
+    const forwarded = headersList.get('x-forwarded-for')
+    if (forwarded) {
+        return forwarded.split(',')[0].trim()
+    }
+    return headersList.get('x-real-ip') || 'unknown'
+}
 
 async function getAuthUser() {
     const cookieStore = cookies()
@@ -85,13 +94,17 @@ export async function buyCourse(courseId: string) {
     }
 }
 
-export async function processCheckoutAction(courseIds: string[], billingType: BillingType = 'PIX'): Promise<
+export async function processCheckoutAction(courseIds: string[], billingType: BillingType = 'PIX', termsAccepted: boolean = false): Promise<
     | { success: true; isFree: true; data?: undefined; error?: undefined }
     | { success: true; isFree?: undefined; data: { invoiceUrl: string; paymentId: string; billingType: string }; error?: undefined }
     | { success: false; error: string; isFree?: undefined; data?: undefined }
 > {
     const user = await getAuthUser()
     if (!user) return { success: false, error: 'Não autorizado' }
+
+    if (!termsAccepted) {
+        return { success: false, error: 'Você precisa aceitar os Termos de Uso e Política de Privacidade.' }
+    }
 
     try {
         const settingsDoc = await adminDb.collection('config').doc('platform_settings').get()
@@ -134,6 +147,19 @@ export async function processCheckoutAction(courseIds: string[], billingType: Bi
             })
         }
         await batch.commit()
+
+        // Consent Log (LGPD) - Separate collection for audit
+        const ipAddress = await getClientIp()
+        await adminDb.collection('consent_logs').add({
+            user_id: user.uid,
+            accepted_at: new Date().toISOString(),
+            ip_address: ipAddress,
+            version: 'v1.0',
+            form_source: 'checkout_page',
+            course_ids: courseIds,
+            total_amount: totalAmount,
+            billing_type: billingType
+        })
 
         revalidatePath('/dashboard-student')
 
