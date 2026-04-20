@@ -289,9 +289,9 @@ export default function PagamentoPage() {
                                     </div>
                                     <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wide leading-relaxed">
                                         Li e aceito os{' '}
-                                        <a href="/termos-de-uso" target="_blank" className="text-[#1D5F31] hover:underline">Termos de Uso</a>{' '}
+                                        <a href="/termos" target="_blank" className="text-[#1D5F31] hover:underline">Termos de Uso</a>{' '}
                                         e a{' '}
-                                        <a href="/politica-de-privacidade" target="_blank" className="text-[#1D5F31] hover:underline">Política de Privacidade</a>.
+                                        <a href="/privacidade" target="_blank" className="text-[#1D5F31] hover:underline">Política de Privacidade</a>.
                                     </span>
                                 </label>
                             </div>

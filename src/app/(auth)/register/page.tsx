@@ -702,9 +702,9 @@ function RegisterForm() {
                                     </div>
                                     <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed">
                                         Li e aceito os{' '}
-                                        <a href="/termos-de-uso" target="_blank" className="text-white hover:underline">Termos de Uso</a>{' '}
+                                        <a href="/termos" target="_blank" className="text-white hover:underline">Termos de Uso</a>{' '}
                                         e a{' '}
-                                        <a href="/politica-de-privacidade" target="_blank" className="text-white hover:underline">Política de Privacidade</a>.
+                                        <a href="/privacidade" target="_blank" className="text-white hover:underline">Política de Privacidade</a>.
                                     </span>
                                 </label>
                             </div>
