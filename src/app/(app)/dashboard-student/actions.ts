@@ -200,13 +200,11 @@ export async function updateProfile(prevState: any, formData: FormData) {
     const user = await getAuthUser()
     if (!user) throw new Error('Não autorizado')
 
-        const fullName = formData.get('fullName') as string
-        const cpf = formData.get('cpf') as string
+    const fullName = formData.get('fullName') as string
 
     try {
         await adminDb.collection('profiles').doc(user.uid).update({
             full_name: fullName,
-            cpf_cnpj: cpf,
             updated_at: new Date()
         })
 
@@ -216,6 +214,46 @@ export async function updateProfile(prevState: any, formData: FormData) {
     } catch (error) {
         console.error('Erro ao atualizar perfil:', error)
         return { success: false, error: 'Falha ao atualizar perfil.' }
+    }
+}
+
+export async function updateSettings(prevState: any, formData: FormData) {
+    const user = await getAuthUser()
+    if (!user) throw new Error('Não autorizado')
+
+    const cpfCnpj = formData.get('cpf_cnpj') as string
+    const pixKey = formData.get('pix_key') as string
+    const bankName = formData.get('bank_name') as string
+    const logradouro = formData.get('logradouro') as string
+    const numero = formData.get('numero') as string
+    const bairro = formData.get('bairro') as string
+    const cidade = formData.get('cidade') as string
+    const estado = formData.get('estado') as string
+    const cep = formData.get('cep') as string
+
+    try {
+        const updateData: Record<string, any> = {
+            updated_at: new Date()
+        }
+
+        if (cpfCnpj) updateData.cpf_cnpj = cpfCnpj
+        if (pixKey) updateData.pix_key = pixKey
+        if (bankName) updateData.bank_name = bankName
+        if (logradouro) updateData.logradouro = logradouro
+        if (numero) updateData.numero = numero
+        if (bairro) updateData.bairro = bairro
+        if (cidade) updateData.cidade = cidade
+        if (estado) updateData.estado = estado
+        if (cep) updateData.cep = cep
+
+        await adminDb.collection('profiles').doc(user.uid).set(updateData, { merge: true })
+
+        revalidatePath('/dashboard-student')
+        revalidatePath('/dashboard-student/settings')
+        return { success: true }
+    } catch (error) {
+        console.error('Erro ao atualizar configurações:', error)
+        return { success: false, error: 'Falha ao atualizar configurações.' }
     }
 }
 

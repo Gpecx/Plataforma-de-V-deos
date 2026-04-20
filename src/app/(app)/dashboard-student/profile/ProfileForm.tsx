@@ -6,7 +6,6 @@ import { User, Save, CheckCircle2, AlertCircle } from 'lucide-react'
 
 interface ProfileFormProps {
     initialFullName: string
-    initialCpf: string
 }
 
 const initialState = {
@@ -14,7 +13,7 @@ const initialState = {
     error: undefined as string | undefined
 }
 
-export function ProfileForm({ initialFullName, initialCpf }: ProfileFormProps) {
+export function ProfileForm({ initialFullName }: ProfileFormProps) {
     const [state, formAction, isPending] = useActionState(updateProfile, initialState)
 
     return (
@@ -46,20 +45,7 @@ export function ProfileForm({ initialFullName, initialCpf }: ProfileFormProps) {
                         />
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 px-1">
-                            CPF ou CNPJ
-                        </label>
-                        <input
-                            type="text"
-                            name="cpf"
-                            defaultValue={initialCpf}
-                            className="w-full bg-gray-50 border border-black shadow-sm rounded-xl px-5 py-4 focus:outline-none focus:border-[#1D5F31] focus:bg-white transition-all text-[#1a1a1a] font-medium placeholder-slate-400"
-                            placeholder="000.000.000-00"
-                            required
-                        />
-                        <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider px-1">Necessário para emissão de notas e checkout.</p>
-                    </div>
+                    
                 </div>
 
                 {state?.success && (
