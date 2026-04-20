@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, Eye, EyeOff } from "lucide-react"
 import { auth, db } from "@/lib/firebase"
 import { signInWithEmailAndPassword, reload } from "firebase/auth"
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore"
@@ -34,6 +34,7 @@ function LoginContent() {
     const [isMFAStep, setIsMFAStep] = useState(false)
     const [mfaEmail, setMfaEmail] = useState("")
     const { setMfaPending } = useAuth()
+    const [showPassword, setShowPassword] = useState(false)
 
     useEffect(() => {
         setMounted(true)
@@ -256,12 +257,22 @@ function LoginContent() {
                                                     <Link href="/forgot-password" title="Esqueceu a senha?" className="text-[9px] font-bold uppercase tracking-widest hover:underline text-green-200">Recuperar senha</Link>
                                                 </div>
                                                 <FormControl>
-                                                    <Input
-                                                        className="bg-[#153b1b] border-[#266d35] focus:border-slate-800 focus:ring-0 rounded-xl h-14 text-sm font-bold text-[var(--foreground)] placeholder:text-green-700 transition-all shadow-none px-5"
-                                                        type="password"
-                                                        placeholder="••••••••"
-                                                        {...field}
-                                                    />
+                                                    <div className="relative">
+                                                        <Input
+                                                            className="bg-[#153b1b] border-[#266d35] focus:border-slate-800 focus:ring-0 rounded-xl h-14 text-sm font-bold text-[var(--foreground)] placeholder:text-green-700 transition-all shadow-none px-5 pr-12"
+                                                            type={showPassword ? "text" : "password"}
+                                                            placeholder="••••••••"
+                                                            {...field}
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setShowPassword(!showPassword)}
+                                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-green-200 hover:text-white transition-colors p-1"
+                                                            title={showPassword ? "Ocultar senha" : "Ver senha"}
+                                                        >
+                                                            {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                                        </button>
+                                                    </div>
                                                 </FormControl>
                                                 <FormMessage className="text-[9px] uppercase font-bold text-red-600" />
                                             </FormItem>

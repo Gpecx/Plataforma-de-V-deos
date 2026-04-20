@@ -7,7 +7,7 @@ import { auth } from '@/lib/firebase'
 import { createUserWithEmailAndPassword, updateProfile as firebaseUpdateProfile, sendEmailVerification } from 'firebase/auth'
 import { createProfile, getAddressByCep } from './actions'
 import Logo from '@/components/Logo'
-import { ArrowRight, AlertCircle } from 'lucide-react'
+import { ArrowRight, AlertCircle, Eye, EyeOff } from 'lucide-react'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
 
 const fadeUp: Variants = {
@@ -128,6 +128,9 @@ function RegisterForm() {
 
     const [email, setEmail] = useState(initialEmail)
     const [password, setPassword] = useState('')
+    const [confirmPassword, setConfirmPassword] = useState('')
+    const [showPassword, setShowPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [fullName, setFullName] = useState('')
     const [personType, setPersonType] = useState<'CPF' | 'CNPJ'>('CPF')
     const [cpfCnpj, setCpfCnpj] = useState('')
@@ -183,6 +186,7 @@ function RegisterForm() {
     const isFormValid = useMemo(() => {
         return email.includes('@') &&
             password.length >= 6 &&
+            password === confirmPassword &&
             fullName.length > 3 &&
             isCpfCnpjValid &&
             isBirthDateValid &&
@@ -192,7 +196,7 @@ function RegisterForm() {
             cidade.length > 2 &&
             estado.length === 2 &&
             termsAccepted
-    }, [email, password, fullName, isCpfCnpjValid, isBirthDateValid, cep, rua, numero, cidade, estado, termsAccepted])
+    }, [email, password, confirmPassword, fullName, isCpfCnpjValid, isBirthDateValid, cep, rua, numero, cidade, estado, termsAccepted])
 
     const handleCpfCnpjChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCpfCnpj(maskCpfCnpj(e.target.value, personType))
@@ -421,28 +425,53 @@ function RegisterForm() {
                                             onChange={(e) => setFullName(e.target.value)}
                                         />
                                     </motion.div>
+                                    <motion.div variants={inputVariants} custom={1.2} className="space-y-1">
+                                        <label className={labelClass}>E-mail</label>
+                                        <input
+                                            type="email"
+                                            placeholder="seu@email.com"
+                                            required
+                                            className={inputClass()}
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                        />
+                                    </motion.div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <motion.div variants={inputVariants} custom={1.2} className="space-y-1">
-                                            <label className={labelClass}>E-mail</label>
-                                            <input
-                                                type="email"
-                                                placeholder="seu@email.com"
-                                                required
-                                                className={inputClass()}
-                                                value={email}
-                                                onChange={(e) => setEmail(e.target.value)}
-                                            />
-                                        </motion.div>
                                         <motion.div variants={inputVariants} custom={1.3} className="space-y-1">
                                             <label className={labelClass}>Senha</label>
-                                            <input
-                                                type="password"
-                                                placeholder="••••••••"
-                                                required
-                                                className={inputClass()}
-                                                value={password}
-                                                onChange={(e) => setPassword(e.target.value)}
-                                            />
+                                            <div className="relative">
+                                                <input
+                                                    type={showPassword ? "text" : "password"}
+                                                    placeholder="••••••••"
+                                                    required
+                                                    className={`${inputClass()} pr-12`}
+                                                    value={password}
+                                                    onChange={(e) => setPassword(e.target.value)}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-green-200 hover:text-white transition-colors p-1"
+                                                >
+                                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                                </button>
+                                            </div>
+                                        </motion.div>
+                                        <motion.div variants={inputVariants} custom={1.4} className="space-y-1">
+                                            <label className={labelClass}>Confirmar Senha</label>
+                                            <div className="relative">
+                                                <input
+                                                    type={showConfirmPassword ? "text" : "password"}
+                                                    placeholder="••••••••"
+                                                    required
+                                                    className={inputClass(confirmPassword !== "" && password !== confirmPassword)}
+                                                    value={confirmPassword}
+                                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                                />
+                                            </div>
+                                            {confirmPassword !== "" && password !== confirmPassword && (
+                                                <p className="text-red-500 text-[9px] font-bold uppercase tracking-widest mt-1">As senhas não coincidem</p>
+                                            )}
                                         </motion.div>
                                     </div>
                                 </div>
@@ -458,7 +487,7 @@ function RegisterForm() {
                                 <span className={sectionTitleClass}>Identificação</span>
                                 <div className="grid grid-cols-12 gap-4">
                                     <div className="col-span-12 md:col-span-7 space-y-1">
-                                        <div className="flex justify-between items-center mb-1">
+                                        <div className="flex justify-between items-center mb-1 h-[22px]">
                                             <label className={labelClass}>Documento</label>
                                             <div className="flex gap-1 bg-[#153b1b] p-0.5 border border-[#266d35]">
                                                 {['CPF', 'CNPJ'].map((type) => (
@@ -495,7 +524,9 @@ function RegisterForm() {
                                         )}
                                     </div>
                                     <div className="col-span-12 md:col-span-5 space-y-1">
-                                        <label className={labelClass}>Data de Nascimento</label>
+                                        <div className="flex items-center mb-1 h-[22px]">
+                                            <label className={labelClass}>Data de Nascimento</label>
+                                        </div>
                                         <motion.input
                                             type="text"
                                             placeholder="DD/MM/AAAA"
