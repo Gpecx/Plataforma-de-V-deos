@@ -63,7 +63,7 @@ export const useCartStore = create<CartStore>()(
             },
             clearCart: () => set({ items: [] }),
             getTotal: () => {
-                return get().items.reduce((total, item) => total + item.price, 0)
+                return get().items.reduce((total, item) => total + (Number(item.price) || 0), 0)
             },
             syncPrices: (freshPrices) => {
                 const currentItems = get().items
