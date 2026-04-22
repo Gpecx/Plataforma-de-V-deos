@@ -104,7 +104,7 @@ export default function PagamentoPage() {
 
             clearCart()
 
-            console.log("DEBUG_CHECKOUT_RESULT:", result)
+            console.log("DEBUG_CHECKOUT_RESULT:", JSON.stringify(result))
 
             if (result.isFree) {
                 router.push('/dashboard-student')
