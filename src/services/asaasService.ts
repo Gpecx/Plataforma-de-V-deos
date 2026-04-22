@@ -112,7 +112,8 @@ function getAsaasApiKey(): string {
     if (!apiKey) {
         throw new AsaasServiceError('ASAAS_API_KEY não configurada nas variáveis de ambiente')
     }
-    return apiKey
+    // HIGHLIGHT: Sanitização Industrial - Remove escapes de shell (\) e espaços
+    return apiKey.replace(/\\/g, '').trim()
 }
 
 async function makeRequest<T>(
@@ -121,7 +122,12 @@ async function makeRequest<T>(
 ): Promise<T> {
     const apiKey = getAsaasApiKey()
     
-    const response = await fetch(`${ASAAS_API_BASE_URL}${endpoint}`, {
+    // HIGHLIGHT: Normalização de URL - Previne barras duplicadas (Resiliência Industrial)
+    const cleanBase = ASAAS_API_BASE_URL.replace(/\/+$/, '')
+    const cleanEndpoint = endpoint.replace(/^\/+/, '')
+    const url = `${cleanBase}/${cleanEndpoint}`
+    
+    const response = await fetch(url, {
         ...options,
         headers: {
             'Content-Type': 'application/json',
@@ -130,24 +136,45 @@ async function makeRequest<T>(
         },
     })
 
-    const data = await response.json()
+    let data: any
+    try {
+        data = await response.json()
+    } catch (e) {
+        data = { errors: [{ description: 'Resposta inválida do servidor Asaas' }] }
+    }
 
     if (!response.ok) {
-        // Log detalhado para depuração conforme solicitado no requisito
-        console.error("ERRO ASAAS DATA:", data);
-        console.error("STATUS ASAAS:", response.status);
+        // Log Industrial: Transparente e direto
+        console.error("ASAAS_API_ERROR:", {
+            url,
+            status: response.status,
+            errors: data.errors
+        });
 
         const errors = (data.errors || (Array.isArray(data) ? data : [])) as ApiError[]
         const errorMessage = errors.length > 0
             ? errors.map(e => e.description).join(', ') 
             : 'Erro desconhecido'
-        throw new AsaasServiceError(errorMessage, undefined, response.status)
+        
+        // Captura o código de erro específico do Asaas para tratamento refinado
+        const errorCode = errors[0]?.code
+        
+        throw new AsaasServiceError(errorMessage, errorCode, response.status)
     }
 
     return data as T
 }
 
 export async function createPayment(paymentData: PaymentRequest): Promise<PaymentResponse> {
+    // HIGHLIGHT: Validação Fail-Fast (Padrão Industrial)
+    if (paymentData.value <= 0) {
+        throw new AsaasServiceError('O valor do pagamento deve ser maior que zero', 'INVALID_VALUE', 400)
+    }
+
+    if (!paymentData.customer) {
+        throw new AsaasServiceError('ID do cliente é obrigatório', 'MISSING_CUSTOMER', 400)
+    }
+
     return makeRequest<PaymentResponse>('/payments', {
         method: 'POST',
         body: JSON.stringify(paymentData),
@@ -280,6 +307,19 @@ export interface CreateCustomerRequest {
 }
 
 export async function createCustomer(customerData: CreateCustomerRequest): Promise<CustomerResponse> {
+    // HIGHLIGHT: Validação Industrial - Campos obrigatórios para PIX/Checkout no Sandbox
+    if (!customerData.postalCode) {
+        throw new AsaasServiceError('O CEP (postalCode) é obrigatório para evitar erros no checkout de PIX', 'MISSING_POSTAL_CODE', 400)
+    }
+
+    if (!customerData.addressNumber) {
+        throw new AsaasServiceError('O número do endereço (addressNumber) é obrigatório', 'MISSING_ADDRESS_NUMBER', 400)
+    }
+
+    if (!customerData.cpfCnpj) {
+        throw new AsaasServiceError('O CPF/CNPJ é obrigatório para o cadastro de cliente no Asaas', 'MISSING_CPF_CNPJ', 400)
+    }
+
     return makeRequest<CustomerResponse>('/customers', {
         method: 'POST',
         body: JSON.stringify(customerData),
