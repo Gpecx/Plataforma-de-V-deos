@@ -122,9 +122,13 @@ export async function processCheckoutAction(courseIds: string[], billingType: Bi
         
         console.log("DEBUG_PAYMENT_VALUE:", { totalAmount, courseIds, userId: user.uid })
 
-        // Validação de Segurança: Se temos cursos mas o total é 0, registrar para auditoria
+        // Validação de Segurança Crítica: Se temos cursos mas o total é 0, bloqueia o checkout
         if (courseIds.length > 0 && totalAmount === 0) {
             console.error("ERRO_VALOR_ZERO_DETECTADO:", { courseIds, userId: user.uid })
+            return { 
+                success: false, 
+                error: 'Erro de sincronização de preços. Por favor, volte ao carrinho e tente novamente ou limpe o cache do navegador.' 
+            }
         }
 
         // Grava matrículas e logs de venda em lote
@@ -226,7 +230,8 @@ export async function processCheckoutAction(courseIds: string[], billingType: Bi
             }
         } catch (asaasError: any) {
             console.error("ERRO_ASAAS_DEPLOY:", asaasError.response?.data || asaasError.message || asaasError)
-            throw asaasError // Repassa para o catch externo
+            const asaasMessage = asaasError.response?.data?.errors?.[0]?.description || asaasError.message || 'Erro ao gerar cobrança'
+            throw new Error(`Falha no pagamento: ${asaasMessage}`)
         }
     } catch (error: any) {
         console.error('Erro no checkout:', error)

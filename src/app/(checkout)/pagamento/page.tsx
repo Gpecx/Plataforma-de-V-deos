@@ -73,6 +73,15 @@ export default function PagamentoPage() {
             return
         }
 
+        const courseIds = items.map(item => item.id)
+        const calculatedTotal = getTotal()
+        
+        console.log("DEBUG_HANDLE_PAYMENT:", {
+            courseIds,
+            totalFromGetTotal: calculatedTotal,
+            items: items.map(i => ({ id: i.id, title: i.title, price: i.price }))
+        })
+
         setIsProcessing(true)
 
         try {
@@ -188,8 +197,18 @@ export default function PagamentoPage() {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2 opacity-40 group-hover:opacity-100 transition-opacity">
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="Visa" className="h-4" />
-                                    <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" className="h-6" />
+                                    <svg viewBox="0 0 48 32" className="h-4" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <rect width="48" height="32" rx="4" fill="#1A1F71"/>
+                                        <path d="M19.5 21.5C20.375 20.625 18.75 20 18 19.5C16.5 18.75 15.5 18.125 14.25 17.5C13.125 16.937 12 16.625 10.875 16.625C9.6875 16.625 8.5625 17 7.5625 17.625C6.125 18.5 5.375 19.6875 5.375 21.125C5.375 22.3125 5.9375 23.3125 7.0625 24.0625C8.1875 24.8125 9.6875 25.25 11.5625 25.25C12.8125 25.25 14 25 15.0625 24.5625C16.1875 24.0625 17.1875 23.375 17.8125 22.5L19.5 21.5ZM13.375 19.5C14.1875 18.6875 13.875 18.0625 13.125 17.5625C12.3125 17 11.3125 16.75 10.125 16.75C8.6875 16.75 7.625 17.1875 6.875 18C6.1875 18.75 5.8125 19.8125 5.8125 21C5.8125 22.1875 6.1875 23.25 6.9375 24.0625C7.6875 24.875 8.75 25.3125 10 25.3125C11.5 25.3125 12.8125 24.875 13.9375 24C15.0625 23.125 15.5625 22 15.5625 20.75C15.5625 19.5625 15.125 18.5 14.3125 17.8125L13.375 19.5Z" fill="white"/>
+                                        <path d="M28.6875 17.0625L27.8125 17.875C27.25 17.3125 26.5 17 25.6875 17C24.3125 17 23.3125 17.9375 22.875 19.0625L22.625 19.6875L22.5625 20C22.375 20.625 22.0625 21.125 21.625 21.5C21.125 21.9375 20.5 22.1875 19.75 22.1875C18.625 22.1875 17.75 21.6875 17.1875 20.8125C16.5625 19.875 16.3125 18.6875 16.3125 17.375C16.3125 15.9375 16.5625 14.625 17.1875 13.5625C17.8125 12.5 18.75 11.875 20 11.875C21.1875 11.875 22.1875 12.3125 23 13.0625L24.0625 12.3125C23.8125 11.875 23.375 11.5625 22.8125 11.375C22.1875 11.125 21.5 11 20.75 11C19.75 11 18.875 11.3125 18.125 11.9375C17.375 12.5625 17 13.5 17 14.75C17 15.6875 17.3125 16.5625 17.9375 17.3125C18.5625 18.0625 19.5625 18.4375 20.9375 18.4375C22.0625 18.4375 23.0625 18.0625 23.8125 17.4375C24.5625 16.8125 24.8125 15.9375 24.8125 14.875C24.8125 14 24.5625 13.1875 24.125 12.5L25.125 12C25.8125 12.8125 26.375 13.9375 26.375 15.3125C26.375 16.125 26.1875 16.875 25.8125 17.5625C25.5 18.25 24.8125 18.75 23.8125 18.75C23.0625 18.75 22.375 18.375 21.8125 17.75L22.8125 16.9375C24.0625 18.4375 25.625 19.1875 27.5 19.1875C28.5 19.1875 29.25 18.875 29.875 18.3125C30.5 17.6875 30.75 16.875 30.75 15.875C30.75 15 30.5 14.25 29.9375 13.625C29.375 13 28.5625 12.6875 27.5625 12.6875C26.625 12.6875 25.8125 13 25.1875 13.6875C24.5625 14.375 24.3125 15.25 24.3125 16.3125C24.3125 17.3125 24.625 18.1875 25.1875 18.9375L28.6875 17.0625Z" fill="white"/>
+                                    </svg>
+                                    <svg viewBox="0 0 48 32" className="h-6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <rect width="48" height="32" rx="4" fill="#EB001B"/>
+                                        <circle cx="17" cy="16" r="10" fill="#EB001B"/>
+                                        <circle cx="31" cy="16" r="10" fill="#F79E1B"/>
+                                        <path d="M24 11.5C25.775 13.3 25.55 16 24 18.5C22.45 16 22.225 13.3 24 11.5Z" fill="#FF5F00"/>
+                                        <path d="M24 20.5C22.225 18.7 22.45 16 24 13.5C25.55 16 25.775 18.7 24 20.5Z" fill="#EB001B"/>
+                                    </svg>
                                 </div>
                             </div>
 
@@ -322,7 +341,7 @@ export default function PagamentoPage() {
                                 <div className="flex flex-col gap-1">
                                     <span className="text-[10px] font-bold uppercase tracking-[4px] text-slate-400">Total Final</span>
                                     <div className="text-4xl font-bold tracking-tighter text-[#1D5F31]">
-                                        {isLoadingPrices ? (
+                                        {(isLoadingPrices || isProcessing) ? (
                                             <div className="h-10 w-32 bg-slate-100 animate-pulse" />
                                         ) : (
                                             total === 0 ? 'Gratuito' : `R$ ${total.toFixed(2)}`
