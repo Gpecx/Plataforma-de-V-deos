@@ -42,8 +42,20 @@ export async function getMuxUploadUrl(context?: 'intro' | 'lesson') {
             id: upload.id
         }
     } catch (error: any) {
-        console.error('Mux Direct Upload Error:', error)
-        return { error: 'Falha ao gerar URL de upload no Mux.' }
+        // HIGHLIGHT: Log Industrial (Transparência Total)
+        console.error("MUX_UPLOAD_ERROR:", {
+            context,
+            status: error.status,
+            message: error.message,
+            isAuthError: error.status === 401,
+            details: error.response?.data?.errors || 'No detailed error from Mux'
+        });
+
+        if (error.status === 401) {
+            return { error: 'Erro de autenticação com o Mux. Verifique as credenciais no servidor.' }
+        }
+
+        return { error: `Falha ao gerar URL de upload no Mux: ${error.message}` }
     }
 }
 
@@ -70,9 +82,27 @@ export async function getMuxUploadStatus(uploadId: string) {
             }
         }
 
+        if (upload.status === 'errored') {
+            console.error("MUX_ASSET_ERROR:", {
+                uploadId,
+                error: upload.error
+            });
+            return { status: 'errored', error: upload.error?.message || 'Erro no processamento do vídeo pelo Mux.' }
+        }
+
         return { status: upload.status }
     } catch (error: any) {
-        console.error('Mux Retrieve Upload Error:', error)
+        // HIGHLIGHT: Log Industrial
+        console.error("MUX_RETRIEVE_ERROR:", {
+            uploadId,
+            status: error.status,
+            isAuthError: error.status === 401
+        });
+
+        if (error.status === 401) {
+            return { error: 'Erro de autenticação ao consultar status do upload.' }
+        }
+
         return { error: 'Falha ao buscar status do upload.' }
     }
 }
@@ -111,7 +141,18 @@ export async function ensurePublicPlaybackId(assetId: string) {
             playback_id: newPublic?.id || asset.playback_ids?.[0]?.id
         }
     } catch (error: any) {
-        console.error('Ensure Public Playback Error:', error)
+        // HIGHLIGHT: Log Industrial
+        console.error("MUX_PLAYBACK_ERROR:", {
+            assetId,
+            status: error.status,
+            message: error.message,
+            isAuthError: error.status === 401
+        });
+
+        if (error.status === 401) {
+            return { error: 'Erro de autenticação com o Mux.' }
+        }
+
         return { error: error.message }
     }
 }
@@ -139,11 +180,21 @@ export async function deleteMuxAsset(assetId: string) {
         
         return { success: true }
     } catch (error: any) {
-        console.error(`[deleteMuxAsset] Erro ao deletar asset ${assetId}:`, error)
+        // HIGHLIGHT: Log Industrial
+        console.error(`MUX_DELETE_ERROR:`, {
+            assetId,
+            status: error.status,
+            message: error.message,
+            isAuthError: error.status === 401
+        });
         
         if (error.status === 404 || error.response?.status === 404) {
             console.log(`[deleteMuxAsset] Asset ${assetId} não encontrado no Mux (já foi deletado?)`)
             return { success: true }
+        }
+
+        if (error.status === 401) {
+            return { error: 'Erro de autenticação ao tentar deletar asset no Mux.' }
         }
         
         return { error: `Falha ao deletar asset no Mux: ${error.message}` }

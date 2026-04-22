@@ -20,6 +20,7 @@ interface CartStore {
     removeItem: (id: string) => void
     clearCart: () => void
     getTotal: () => number
+    syncPrices: (freshPrices: { id: string, price: number }[]) => void
 }
 
 export const useCartStore = create<CartStore>()(
@@ -64,6 +65,21 @@ export const useCartStore = create<CartStore>()(
             getTotal: () => {
                 return get().items.reduce((total, item) => total + item.price, 0)
             },
+            syncPrices: (freshPrices) => {
+                const currentItems = get().items
+                let changed = false
+                const newItems = currentItems.map(item => {
+                    const fresh = freshPrices.find(f => f.id === item.id)
+                    if (fresh && fresh.price !== item.price) {
+                        changed = true
+                        return { ...item, price: fresh.price }
+                    }
+                    return item
+                })
+                if (changed) {
+                    set({ items: newItems })
+                }
+            }
         }),
         {
             name: 'spcs-cart-storage',

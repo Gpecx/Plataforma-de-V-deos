@@ -118,7 +118,14 @@ export async function processCheckoutAction(courseIds: string[], billingType: Bi
             .filter(doc => doc.exists)
             .map(doc => ({ id: doc.id, ...(doc.data() as any) }))
 
-        const totalAmount = coursesData.reduce((sum, c) => sum + (c.price || 0), 0)
+        const totalAmount = coursesData.reduce((sum, c) => sum + (Number(c.price) || 0), 0)
+        
+        console.log("DEBUG_PAYMENT_VALUE:", { totalAmount, courseIds, userId: user.uid })
+
+        // Validação de Segurança: Se temos cursos mas o total é 0, registrar para auditoria
+        if (courseIds.length > 0 && totalAmount === 0) {
+            console.error("ERRO_VALOR_ZERO_DETECTADO:", { courseIds, userId: user.uid })
+        }
 
         // Grava matrículas e logs de venda em lote
         const batch = adminDb.batch()
@@ -130,8 +137,8 @@ export async function processCheckoutAction(courseIds: string[], billingType: Bi
                 created_at: new Date()
             })
 
-            const platformShare = (courseData.price || 0) * (platformTaxPercent / 100)
-            const teacherShare = (courseData.price || 0) - platformShare
+            const platformShare = (Number(courseData.price) || 0) * (platformTaxPercent / 100)
+            const teacherShare = (Number(courseData.price) || 0) - platformShare
 
             const saleRef = adminDb.collection('vendas_logs').doc()
             batch.set(saleRef, {
@@ -139,7 +146,7 @@ export async function processCheckoutAction(courseIds: string[], billingType: Bi
                 alunoId: user.uid,
                 cursoId: courseData.id,
                 professorId: courseData.teacher_id,
-                valorBruto: courseData.price || 0,
+                valorBruto: Number(courseData.price) || 0,
                 taxaPlataforma: platformShare,
                 repasseProfessor: teacherShare,
                 statusPagamento: totalAmount === 0 ? 'pago' : 'pendente',
@@ -199,22 +206,27 @@ export async function processCheckoutAction(courseIds: string[], billingType: Bi
             }, { merge: true })
         }
 
-        const asaasResponse = await createPayment({
-            customer: customerId,
-            billingType,
-            value: totalAmount,
-            dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-            description: `Compra de ${coursesData.length} curso(s) na plataforma`,
-            externalReference: `checkout-${user.uid}-${Date.now()}`,
-        })
+        try {
+            const asaasResponse = await createPayment({
+                customer: customerId,
+                billingType,
+                value: totalAmount,
+                dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                description: `Compra de ${coursesData.length} curso(s) na plataforma`,
+                externalReference: `checkout-${user.uid}-${Date.now()}`,
+            })
 
-        return { 
-            success: true, 
-            data: { 
-                invoiceUrl: asaasResponse.invoiceUrl, 
-                paymentId: asaasResponse.id,
-                billingType: asaasResponse.billingType
-            } 
+            return { 
+                success: true, 
+                data: { 
+                    invoiceUrl: asaasResponse.invoiceUrl, 
+                    paymentId: asaasResponse.id,
+                    billingType: asaasResponse.billingType
+                } 
+            }
+        } catch (asaasError: any) {
+            console.error("ERRO_ASAAS_DEPLOY:", asaasError.response?.data || asaasError.message || asaasError)
+            throw asaasError // Repassa para o catch externo
         }
     } catch (error: any) {
         console.error('Erro no checkout:', error)
@@ -388,5 +400,24 @@ export async function getAllUserProgress() {
     } catch (error) {
         console.error('Erro ao buscar todo o progresso:', error)
         return { success: false, error: 'Falha ao carregar progresso.' }
+    }
+}
+export async function getLatestCoursePrices(courseIds: string[]) {
+    try {
+        const courseDocs = await Promise.all(
+            courseIds.map(id => adminDb.collection('courses').doc(id).get())
+        )
+        
+        const prices = courseDocs
+            .filter(doc => doc.exists)
+            .map(doc => ({
+                id: doc.id,
+                price: Number(doc.data()?.price) || 0
+            }))
+
+        return { success: true, data: prices }
+    } catch (error) {
+        console.error('Erro ao buscar preços atualizados:', error)
+        return { success: false, error: 'Falha ao sincronizar preços' }
     }
 }

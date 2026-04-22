@@ -13,13 +13,13 @@ import {
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { processCheckoutAction, getProfile } from '@/app/(app)/dashboard-student/actions'
+import { processCheckoutAction, getProfile, getLatestCoursePrices } from '@/app/(app)/dashboard-student/actions'
 import { cn } from '@/lib/utils'
 
 type PaymentMethod = 'credit_card' | 'pix' | 'boleto'
 
 export default function PagamentoPage() {
-    const { items, getTotal, clearCart, showNotification } = useCartStore()
+    const { items, getTotal, clearCart, showNotification, syncPrices } = useCartStore()
     const router = useRouter()
     const [mounted, setMounted] = useState(false)
     const [isProcessing, setIsProcessing] = useState(false)
@@ -27,6 +27,7 @@ export default function PagamentoPage() {
     const [userProfile, setUserProfile] = useState<any>(null)
     const [isLoadingProfile, setIsLoadingProfile] = useState(true)
     const [termsAccepted, setTermsAccepted] = useState(false)
+    const [isLoadingPrices, setIsLoadingPrices] = useState(true)
 
     useEffect(() => {
         setMounted(true)
@@ -37,17 +38,30 @@ export default function PagamentoPage() {
             router.push('/course')
         }
         
-        const fetchProfile = async () => {
+        const fetchData = async () => {
             if (mounted) {
-                const result = await getProfile()
-                if (result.success) {
-                    setUserProfile(result.data)
+                // Fetch Profile
+                const profileResult = await getProfile()
+                if (profileResult.success) {
+                    setUserProfile(profileResult.data)
                 }
                 setIsLoadingProfile(false)
+
+                // Sync Cart Prices with Firestore
+                if (items.length > 0) {
+                    setIsLoadingPrices(true)
+                    const priceResult = await getLatestCoursePrices(items.map(i => i.id))
+                    if (priceResult.success && priceResult.data) {
+                        syncPrices(priceResult.data)
+                    }
+                    setIsLoadingPrices(false)
+                } else {
+                    setIsLoadingPrices(false)
+                }
             }
         }
-        fetchProfile()
-    }, [mounted, items, router])
+        fetchData()
+    }, [mounted, items.length, router, syncPrices])
 
     if (!mounted) return null
 
@@ -256,7 +270,11 @@ export default function PagamentoPage() {
                                         <div className="flex-1 min-w-0">
                                             <h4 className="text-[12px] font-bold uppercase tracking-tight truncate text-[#1a1a1a]">{item.title}</h4>
                                             <span className="text-sm font-bold text-[#1D5F31]">
-                                                {item.price === 0 ? 'Gratuito' : `R$ ${item.price.toFixed(2)}`}
+                                                {isLoadingPrices ? (
+                                                    <span className="animate-pulse opacity-50">Carregando...</span>
+                                                ) : (
+                                                    item.price === 0 ? 'Gratuito' : `R$ ${item.price.toFixed(2)}`
+                                                )}
                                             </span>
                                         </div>
                                     </div>
@@ -304,7 +322,11 @@ export default function PagamentoPage() {
                                 <div className="flex flex-col gap-1">
                                     <span className="text-[10px] font-bold uppercase tracking-[4px] text-slate-400">Total Final</span>
                                     <div className="text-4xl font-bold tracking-tighter text-[#1D5F31]">
-                                        {total === 0 ? 'Gratuito' : `R$ ${total.toFixed(2)}`}
+                                        {isLoadingPrices ? (
+                                            <div className="h-10 w-32 bg-slate-100 animate-pulse" />
+                                        ) : (
+                                            total === 0 ? 'Gratuito' : `R$ ${total.toFixed(2)}`
+                                        )}
                                     </div>
                                 </div>
                             </div>

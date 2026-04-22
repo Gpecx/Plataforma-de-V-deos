@@ -171,7 +171,8 @@ export default async function SucessoPagamentoPage({ searchParams }: SuccessPage
                 </div>
             </div>
         )
-    } catch (error) {
+    } catch (error: any) {
+        console.error("ERRO_ASAAS_DEPLOY_SUCCESS_PAGE:", error.response?.data || error.message || error)
         console.error('Erro ao carregar sucesso pagamento:', error)
         return (
             <div className="min-h-screen flex items-center justify-center p-4">
