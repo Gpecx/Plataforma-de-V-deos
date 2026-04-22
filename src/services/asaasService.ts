@@ -131,6 +131,7 @@ async function makeRequest<T>(
         ...options,
         headers: {
             'Content-Type': 'application/json',
+            'User-Agent': 'GpecxPlataforma/1.0',
             'access_token': apiKey,
             ...options.headers,
         },
@@ -167,6 +168,7 @@ async function makeRequest<T>(
 
 export async function createPayment(paymentData: PaymentRequest): Promise<PaymentResponse> {
     // HIGHLIGHT: Validação Fail-Fast (Padrão Industrial)
+    console.log("DEBUG_PAYMENT_VALUE:", paymentData.value)
     if (paymentData.value <= 0) {
         throw new AsaasServiceError('O valor do pagamento deve ser maior que zero', 'INVALID_VALUE', 400)
     }
