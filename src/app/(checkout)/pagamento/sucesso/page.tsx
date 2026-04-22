@@ -35,11 +35,14 @@ export default async function SucessoPagamentoPage({ searchParams }: SuccessPage
     try {
         const payment = await getPayment(paymentId)
 
+        console.log("DEBUG_SUCCESS_PAGE:", { paymentId, payment })
+
         let pixData = null
         let boletoData = null
 
         if (payment.billingType === 'PIX') {
             pixData = await getPaymentQrCode(paymentId)
+            console.log("DEBUG_PIX_DATA:", pixData)
         } else if (payment.billingType === 'BOLETO') {
             boletoData = await getPaymentIdentification(paymentId)
         }
