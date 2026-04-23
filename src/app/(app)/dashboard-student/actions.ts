@@ -195,11 +195,17 @@ export async function processCheckoutAction(courseIds: string[], billingType: Bi
                 }
             }
 
+            const rawCep = profileData?.cep
+            const sanitizedCep = rawCep ? rawCep.replace(/\D/g, '') : undefined
+            const addressNumber = profileData?.numero || profileData?.numero_endereco || undefined
+
             const newCustomer = await createCustomer({
                 name: profileData?.name || profileData?.displayName || profileData?.full_name || 'Aluno',
                 email: profileData?.email || user.email || '',
                 cpfCnpj: sanitizedCpf,
                 phone: profileData?.phone || undefined,
+                postalCode: sanitizedCep,
+                addressNumber: addressNumber,
                 externalReference: user.uid,
             })
 

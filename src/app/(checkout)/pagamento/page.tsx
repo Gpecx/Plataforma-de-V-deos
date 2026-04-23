@@ -34,7 +34,7 @@ export default function PagamentoPage() {
     }, [])
 
     useEffect(() => {
-        if (mounted && items.length === 0) {
+        if (mounted && items.length === 0 && !isProcessing) {
             router.push('/course')
         }
         
@@ -61,7 +61,7 @@ export default function PagamentoPage() {
             }
         }
         fetchData()
-    }, [mounted, items.length, router, syncPrices])
+    }, [mounted, items.length, router, syncPrices, isProcessing])
 
     if (!mounted) return null
 
@@ -70,6 +70,12 @@ export default function PagamentoPage() {
     const handlePayment = async () => {
         if (!termsAccepted) {
             showNotification('Você precisa aceitar os Termos de Uso e Política de Privacidade para continuar.', 'error')
+            return
+        }
+
+        const hasCep = userProfile?.cep && userProfile?.numero
+        if (!hasCep && (selectedMethod === 'pix' || selectedMethod === 'boleto')) {
+            showNotification('Para pagamentos via PIX ou Boleto, você precisa cadastrar seu CEP e Número do endereço em Perfil.', 'error')
             return
         }
 
@@ -173,6 +179,25 @@ export default function PagamentoPage() {
                                         <h3 className="font-bold uppercase text-sm text-amber-900 tracking-tight">Ação Necessária: Cadastro de CPF</h3>
                                         <p className="text-xs text-amber-800 font-medium leading-relaxed">
                                             Para sua segurança e conformidade com a emissão de notas fiscais, o Asaas exige um CPF ou CNPJ vinculado à sua conta.
+                                        </p>
+                                        <Link href="/dashboard-student/profile" className="inline-block text-[10px] font-bold uppercase tracking-widest text-amber-600 hover:text-amber-700 underline underline-offset-4 pt-2">
+                                            Cadastrar agora no meu perfil →
+                                        </Link>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {mounted && !isLoadingProfile && (!userProfile?.cep || !userProfile?.numero) && (
+                            <div className="bg-amber-50 border-l-4 border-amber-500 p-6 rounded-r-xl shadow-sm animate-in fade-in slide-in-from-left-4 duration-500">
+                                <div className="flex gap-4">
+                                    <div className="bg-amber-100 p-2 rounded-lg h-fit text-amber-600">
+                                        <ShieldCheck size={24} />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <h3 className="font-bold uppercase text-sm text-amber-900 tracking-tight">Ação Necessária: Cadastro de Endereço</h3>
+                                        <p className="text-xs text-amber-800 font-medium leading-relaxed">
+                                            Para pagamentos via PIX ou Boleto, é necessário cadastrar o CEP e o Número do endereço em seu perfil.
                                         </p>
                                         <Link href="/dashboard-student/profile" className="inline-block text-[10px] font-bold uppercase tracking-widest text-amber-600 hover:text-amber-700 underline underline-offset-4 pt-2">
                                             Cadastrar agora no meu perfil →
