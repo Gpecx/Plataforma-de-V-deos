@@ -103,6 +103,11 @@ export default function PagamentoPage() {
             }
 
             clearCart()
+            
+            if (result.data) {
+                const { setCheckoutResult } = useCartStore.getState()
+                setCheckoutResult(result.data)
+            }
 
             console.log("DEBUG_CHECKOUT_RESULT:", JSON.stringify(result))
 
