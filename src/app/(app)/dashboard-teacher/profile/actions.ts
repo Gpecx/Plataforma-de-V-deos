@@ -71,9 +71,13 @@ export async function updateTeacherSettings(prevState: any, formData: FormData) 
         const bairro = formData.get('bairro') as string
         const cidade = formData.get('cidade') as string
         const estado = formData.get('estado') as string
+        const notifications_email = formData.get('notifications_email') === 'on'
+        const notifications_push = formData.get('notifications_push') === 'on'
 
         const updateData: Record<string, any> = {
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
+            notifications_email,
+            notifications_push
         }
 
         if (pixKey) updateData.pix_key = pixKey

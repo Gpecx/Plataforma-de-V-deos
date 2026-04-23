@@ -390,6 +390,9 @@ export default function TeacherSettingsPage() {
                             )}
                             {isPending ? 'Salvando...' : 'Salvar Dados'}
                         </Button>
+                        
+                        <input type="hidden" name="notifications_email" value={emailEnabled ? 'on' : 'off'} />
+                        <input type="hidden" name="notifications_push" value={browserEnabled ? 'on' : 'off'} />
                     </form>
                 </section>
 
