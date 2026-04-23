@@ -21,6 +21,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { XCircle } from 'lucide-react'
+import { toast } from 'sonner'
 // Importamos a action que você acabou de criar no actions.ts
 import { deleteCourseAction, cancelCourseDeletionRequest } from './actions'
 
@@ -63,39 +64,143 @@ function CoursesContent() {
     }, [])
 
     // --- AQUI ENTRA O CÓDIGO QUE VOCÊ ESTAVA NA DÚVIDA ---
-    const handleDelete = async (courseId: string, currentStatus: string) => {
-        const confirmMessage = currentStatus === 'APROVADO' 
-            ? "Este curso está APROVADO. A exclusão será enviada para aprovação do admin. Continuar?" 
-            : "Tem certeza que deseja excluir este curso permanentemente?";
+    // --- AQUI ENTRA O CÓDIGO QUE VOCÊ ESTAVA NA DÚVIDA ---
+    const handleDelete = (courseId: string, currentStatus: string) => {
+        const isAprovado = currentStatus === 'APROVADO';
+        const confirmMessage = isAprovado
+            ? "O curso será enviado para análise antes de ser removido." 
+            : "Todos os dados e alunos vinculados serão perdidos.";
         
-        if (!confirm(confirmMessage)) return;
+        toast(isAprovado ? "Solicitar exclusão" : "Excluir curso", {
+            description: (
+                <div className="mt-1 flex flex-col gap-1">
+                    <span className="text-slate-500 font-medium text-xs leading-relaxed">
+                        {confirmMessage}
+                    </span>
+                </div>
+            ),
+            duration: 8000,
+            style: { 
+                background: '#fff', 
+                color: '#0f172a', 
+                border: '1px solid #e2e8f0', 
+                borderRadius: '16px', 
+                boxShadow: '0 10px 30px -10px rgba(0,0,0,0.08)',
+                padding: '20px'
+            },
+            actionButtonStyle: {
+                background: '#1D5F31',
+                color: '#fff',
+                borderRadius: '10px',
+                fontWeight: '600',
+                fontSize: '11px',
+                padding: '8px 16px'
+            },
+            cancelButtonStyle: {
+                background: '#f8fafc',
+                color: '#64748b',
+                borderRadius: '10px',
+                fontWeight: '500',
+                fontSize: '11px',
+                border: '1px solid #e2e8f0',
+                padding: '8px 16px'
+            },
+            action: {
+                label: 'Confirmar',
+                onClick: async () => {
+                    const result = await deleteCourseAction(courseId);
 
-        const result = await deleteCourseAction(courseId);
-
-        if (result.success) {
-            if (result.requested) {
-                alert("📋 Solicitação de exclusão enviada ao admin!");
-                setCourses(prev => prev.map(c => c.id === courseId ? { ...c, status: 'SOLICITADO_EXCLUSAO' } : c));
-            } else {
-                setCourses(prev => prev.filter(c => c.id !== courseId));
-                alert("🚀 Curso removido com sucesso!");
+                    if (result.success) {
+                        if (result.requested) {
+                            toast.success("SOLICITAÇÃO ENVIADA!", {
+                                description: "Solicitação de exclusão enviada ao admin.",
+                                style: { background: '#1D5F31', color: '#fff', border: '2px solid #1D5F31', borderRadius: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', boxShadow: 'none' },
+                                icon: '📋'
+                            })
+                            setCourses(prev => prev.map(c => c.id === courseId ? { ...c, status: 'SOLICITADO_EXCLUSAO' } : c));
+                        } else {
+                            setCourses(prev => prev.filter(c => c.id !== courseId));
+                            toast.success("CURSO REMOVIDO!", {
+                                description: "Curso excluído com sucesso.",
+                                style: { background: '#1D5F31', color: '#fff', border: '2px solid #1D5F31', borderRadius: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', boxShadow: 'none' },
+                                icon: '🚀'
+                            })
+                        }
+                    } else {
+                        toast.error("ERRO AO REMOVER", {
+                            description: result.error,
+                            style: { background: '#fff', color: '#ef4444', border: '2px solid #ef4444', borderRadius: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', boxShadow: 'none' }
+                        })
+                    }
+                }
+            },
+            cancel: {
+                label: 'Cancelar',
+                onClick: () => {}
             }
-        } else {
-            alert("Erro ao remover: " + result.error);
-        }
+        });
     };
 
-    const handleCancelDeletionRequest = async (courseId: string) => {
-        if (!confirm("Cancelar a solicitação de exclusão? O curso voltará a estar ativo.")) return;
+    const handleCancelDeletionRequest = (courseId: string) => {
+        toast("Cancelar exclusão", {
+            description: (
+                <div className="mt-1 flex flex-col gap-1">
+                    <span className="text-slate-500 font-medium text-xs leading-relaxed">
+                        O curso voltará a ficar ativo para os alunos.
+                    </span>
+                </div>
+            ),
+            duration: 8000,
+            style: { 
+                background: '#fff', 
+                color: '#0f172a', 
+                border: '1px solid #e2e8f0', 
+                borderRadius: '16px', 
+                boxShadow: '0 10px 30px -10px rgba(0,0,0,0.08)',
+                padding: '20px'
+            },
+            actionButtonStyle: {
+                background: '#1D5F31',
+                color: '#fff',
+                borderRadius: '10px',
+                fontWeight: '600',
+                fontSize: '11px',
+                padding: '8px 16px'
+            },
+            cancelButtonStyle: {
+                background: '#f8fafc',
+                color: '#64748b',
+                borderRadius: '10px',
+                fontWeight: '500',
+                fontSize: '11px',
+                border: '1px solid #e2e8f0',
+                padding: '8px 16px'
+            },
+            action: {
+                label: 'Confirmar',
+                onClick: async () => {
+                    const result = await cancelCourseDeletionRequest(courseId);
 
-        const result = await cancelCourseDeletionRequest(courseId);
-
-        if (result.success) {
-            alert("Solicitação de exclusão cancelada!");
-            setCourses(prev => prev.map(c => c.id === courseId ? { ...c, status: 'APROVADO' } : c));
-        } else {
-            alert("Erro ao cancelar: " + result.error);
-        }
+                    if (result.success) {
+                        toast.success("SOLICITAÇÃO CANCELADA!", {
+                            description: "O curso voltou a estar ativo.",
+                            style: { background: '#1D5F31', color: '#fff', border: '2px solid #1D5F31', borderRadius: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', boxShadow: 'none' },
+                            icon: '✅'
+                        })
+                        setCourses(prev => prev.map(c => c.id === courseId ? { ...c, status: 'APROVADO' } : c));
+                    } else {
+                        toast.error("ERRO AO CANCELAR", {
+                            description: result.error,
+                            style: { background: '#fff', color: '#ef4444', border: '2px solid #ef4444', borderRadius: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', boxShadow: 'none' }
+                        })
+                    }
+                }
+            },
+            cancel: {
+                label: 'Voltar',
+                onClick: () => {}
+            }
+        });
     };
     // ---------------------------------------------------
 

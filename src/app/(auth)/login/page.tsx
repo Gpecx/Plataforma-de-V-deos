@@ -18,6 +18,7 @@ import { ConversionBridge } from "@/components/ConversionBridge"
 import MFAChallenge from "@/components/MFAChallenge"
 import { useAuth } from "@/context/AuthProvider"
 import { updateDoc } from "firebase/firestore"
+import { toast } from "sonner"
 
 const loginSchema = z.object({
     email: z.string().email("E-mail inválido"),
@@ -171,7 +172,7 @@ function LoginContent() {
         } else if (error.message) {
             errorMessage = "Erro ao entrar: " + error.message;
         }
-        alert(errorMessage)
+        toast.error(errorMessage)
     }
 
     if (!mounted) {

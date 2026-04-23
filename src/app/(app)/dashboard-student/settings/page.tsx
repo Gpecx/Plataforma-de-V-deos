@@ -5,7 +5,7 @@ import { auth } from '@/lib/firebase'
 import { onAuthStateChanged, updatePassword, EmailAuthProvider, reauthenticateWithCredential, multiFactor, TotpMultiFactorGenerator, TotpSecret, reload } from 'firebase/auth'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { Lock, CreditCard, Trash2, ArrowLeft, Save, Key, ShieldCheck, MapPin, CheckCircle2, AlertCircle } from 'lucide-react'
+import { Lock, CreditCard, Trash2, ArrowLeft, Save, Key, ShieldCheck, MapPin, CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react'
 import Link from 'next/link'
 import DeleteAccountButton from '@/components/DeleteAccountButton'
 import { Input } from '@/components/ui/input'
@@ -47,6 +47,10 @@ export default function SettingsPage() {
     const [currentPassword, setCurrentPassword] = useState('')
     const [isUpdatingPassword, setIsUpdatingPassword] = useState(false)
     const [needsReauth, setNeedsReauth] = useState(false)
+    
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+    const [showNewPassword, setShowNewPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     
     const [showMFAEnroll, setShowMFAEnroll] = useState(false)
     const [mfaSecret, setMfaSecret] = useState<TotpSecret | null>(null)
@@ -117,32 +121,40 @@ export default function SettingsPage() {
 
     const handleUpdatePassword = async (e: React.FormEvent) => {
         e.preventDefault()
+        
+        if (!currentPassword) {
+            showNotification('Digite sua senha atual para confirmar a alteração.', 'error')
+            return
+        }
+        
         if (newPassword !== confirmPassword) {
             showNotification('As senhas não coincidem', 'error')
             return
         }
         if (newPassword.length < 6) {
-            showNotification('A senha deve ter pelo menos 6 caracteres', 'error')
+            showNotification('A nova senha deve ter pelo menos 6 caracteres', 'error')
             return
         }
         setIsUpdatingPassword(true)
         try {
             if (user) {
-                if (currentPassword) {
-                    const credential = EmailAuthProvider.credential(user.email!, currentPassword)
-                    await reauthenticateWithCredential(user, credential)
-                    setNeedsReauth(false)
-                }
+                const credential = EmailAuthProvider.credential(user.email!, currentPassword)
+                await reauthenticateWithCredential(user, credential)
+                setNeedsReauth(false)
+                
                 await updatePassword(user, newPassword)
                 showNotification('Senha atualizada com sucesso!', 'success')
                 setNewPassword(''); setConfirmPassword(''); setCurrentPassword('')
             }
         } catch (error: any) {
-            if (error.code === 'auth/requires-recent-login') {
+            console.error("Password Update Error:", error)
+            if (error.code === 'auth/wrong-password') {
+                showNotification('Senha atual incorreta.', 'error')
+            } else if (error.code === 'auth/requires-recent-login') {
                 setNeedsReauth(true)
                 showNotification('Confirme sua senha atual.', 'info')
             } else {
-                showNotification('Erro ao atualizar.', 'error')
+                showNotification('Erro ao atualizar senha.', 'error')
             }
         } finally {
             setIsUpdatingPassword(false)
@@ -246,41 +258,68 @@ export default function SettingsPage() {
                             </div>
                         </div>
                         <form onSubmit={handleUpdatePassword} className="space-y-6">
-                            {needsReauth && (
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-900 ml-1">Senha Atual para Confirmação</label>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-900 ml-1">Senha Atual</label>
+                                <div className="relative">
                                     <Input 
-                                        type="password" 
+                                        type={showCurrentPassword ? 'text' : 'password'} 
                                         value={currentPassword} 
                                         onChange={(e) => setCurrentPassword(e.target.value)} 
-                                        className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-600 font-medium focus-visible:ring-[#1D5F31]/20 focus-visible:border-black" 
+                                        className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-600 font-medium focus-visible:ring-[#1D5F31]/20 focus-visible:border-black pr-12" 
                                         placeholder="Digite sua senha atual" 
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                    >
+                                        {showCurrentPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                    </button>
                                 </div>
-                            )}
+                            </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-bold uppercase tracking-widest text-slate-900 ml-1">Nova Senha</label>
-                                    <Input 
-                                        type="password" 
-                                        value={newPassword} 
-                                        onChange={(e) => setNewPassword(e.target.value)} 
-                                        className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-600 font-medium focus-visible:ring-[#1D5F31]/20 focus-visible:border-black" 
-                                        placeholder="Nova senha (mín. 6 chars)" 
-                                    />
+                                    <div className="relative">
+                                        <Input 
+                                            type={showNewPassword ? 'text' : 'password'} 
+                                            value={newPassword} 
+                                            onChange={(e) => setNewPassword(e.target.value)} 
+                                            className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-600 font-medium focus-visible:ring-[#1D5F31]/20 focus-visible:border-black pr-12" 
+                                            placeholder="Nova senha (mín. 6 chars)" 
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowNewPassword(!showNewPassword)}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                        >
+                                            {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                        </button>
+                                    </div>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-bold uppercase tracking-widest text-slate-900 ml-1">Confirmar Senha</label>
-                                    <Input 
-                                        type="password" 
-                                        value={confirmPassword} 
-                                        onChange={(e) => setConfirmPassword(e.target.value)} 
-                                        className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-600 font-medium focus-visible:ring-[#1D5F31]/20 focus-visible:border-black" 
-                                        placeholder="Repita a nova senha" 
-                                    />
+                                    <div className="relative">
+                                        <Input 
+                                            type={showConfirmPassword ? 'text' : 'password'} 
+                                            value={confirmPassword} 
+                                            onChange={(e) => setConfirmPassword(e.target.value)} 
+                                            className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-600 font-medium focus-visible:ring-[#1D5F31]/20 focus-visible:border-black pr-12" 
+                                            placeholder="Repita a nova senha" 
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                        >
+                                            {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                            <Button type="submit" className="bg-[#1D5F31] border border-black hover:opacity-90 text-white font-bold uppercase rounded-xl h-14 px-10 shadow-lg shadow-[#1D5F31]/10 transition-all active:scale-95">Atualizar Senha</Button>
+                            <Button type="submit" disabled={isUpdatingPassword} className="bg-[#1D5F31] border border-black hover:opacity-90 text-white font-bold uppercase rounded-xl h-14 px-10 shadow-lg shadow-[#1D5F31]/10 transition-all active:scale-95">
+                                {isUpdatingPassword ? 'Atualizando...' : 'Atualizar Senha'}
+                            </Button>
                         </form>
 
                         <div className="mt-12 pt-10 border-t border-slate-100">
@@ -398,7 +437,8 @@ export default function SettingsPage() {
                                         <label className="text-[10px] font-bold uppercase tracking-widest text-slate-900 ml-1">CEP</label>
                                         <Input 
                                             name="cep"
-                                            defaultValue={addressData.cep || ''}
+                                            value={addressData.cep || ''}
+                                            onChange={(e) => setAddressData(prev => ({ ...prev, cep: e.target.value }))}
                                             onBlur={(e) => handleCepBlur(e.target.value)}
                                             className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-600 font-medium focus-visible:ring-[#1D5F31]/20 focus-visible:border-black" 
                                             placeholder="00000-000"
@@ -408,7 +448,8 @@ export default function SettingsPage() {
                                         <label className="text-[10px] font-bold uppercase tracking-widest text-slate-900 ml-1">Número</label>
                                         <Input 
                                             name="numero"
-                                            defaultValue={addressData.numero || ''}
+                                            value={addressData.numero || ''}
+                                            onChange={(e) => setAddressData(prev => ({ ...prev, numero: e.target.value }))}
                                             className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-600 font-medium focus-visible:ring-[#1D5F31]/20 focus-visible:border-black" 
                                             placeholder="Número" 
                                         />
@@ -419,7 +460,8 @@ export default function SettingsPage() {
                                     <label className="text-[10px] font-bold uppercase tracking-widest text-slate-900 ml-1">Logradouro</label>
                                     <Input 
                                         name="logradouro"
-                                        defaultValue={addressData.logradouro || ''}
+                                        value={addressData.logradouro || ''}
+                                        onChange={(e) => setAddressData(prev => ({ ...prev, logradouro: e.target.value }))}
                                         className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-600 font-medium focus-visible:ring-[#1D5F31]/20 focus-visible:border-black" 
                                         placeholder="Rua, Avenida..." 
                                     />
@@ -429,7 +471,8 @@ export default function SettingsPage() {
                                     <label className="text-[10px] font-bold uppercase tracking-widest text-slate-900 ml-1">Bairro</label>
                                     <Input 
                                         name="bairro"
-                                        defaultValue={addressData.bairro || ''}
+                                        value={addressData.bairro || ''}
+                                        onChange={(e) => setAddressData(prev => ({ ...prev, bairro: e.target.value }))}
                                         className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-600 font-medium focus-visible:ring-[#1D5F31]/20 focus-visible:border-black" 
                                         placeholder="Bairro" 
                                     />
@@ -440,7 +483,8 @@ export default function SettingsPage() {
                                         <label className="text-[10px] font-bold uppercase tracking-widest text-slate-900 ml-1">Cidade</label>
                                         <Input 
                                             name="cidade"
-                                            defaultValue={addressData.cidade || ''}
+                                            value={addressData.cidade || ''}
+                                            onChange={(e) => setAddressData(prev => ({ ...prev, cidade: e.target.value }))}
                                             className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-600 font-medium focus-visible:ring-[#1D5F31]/20 focus-visible:border-black" 
                                             placeholder="Cidade" 
                                         />
@@ -449,7 +493,8 @@ export default function SettingsPage() {
                                         <label className="text-[10px] font-bold uppercase tracking-widest text-slate-900 ml-1">Estado</label>
                                         <Input 
                                             name="estado"
-                                            defaultValue={addressData.estado || ''}
+                                            value={addressData.estado || ''}
+                                            onChange={(e) => setAddressData(prev => ({ ...prev, estado: e.target.value }))}
                                             className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-600 font-medium focus-visible:ring-[#1D5F31]/20 focus-visible:border-black" 
                                             placeholder="UF" 
                                         />

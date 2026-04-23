@@ -57,24 +57,32 @@ export async function getTeacherProfile() {
     }
 }
 
-export async function updateTeacherSettings(data: any) {
+export async function updateTeacherSettings(prevState: any, formData: FormData) {
     const session = await getServerSession()
     if (!session || (session.role !== 'teacher' && session.role !== 'admin')) {
-        throw new Error('Não autorizado')
+        return { success: false, error: 'Não autorizado' }
     }
 
     try {
+        const pixKey = formData.get('pix_key') as string
+        const cep = formData.get('cep') as string
+        const logradouro = formData.get('logradouro') as string
+        const numero = formData.get('numero') as string
+        const bairro = formData.get('bairro') as string
+        const cidade = formData.get('cidade') as string
+        const estado = formData.get('estado') as string
+
         const updateData: Record<string, any> = {
-            pix_key: data.pix_key,
             updated_at: new Date().toISOString()
         }
 
-        if (data.cep) updateData.cep = data.cep
-        if (data.logradouro) updateData.logradouro = data.logradouro
-        if (data.numero) updateData.numero = data.numero
-        if (data.bairro) updateData.bairro = data.bairro
-        if (data.cidade) updateData.cidade = data.cidade
-        if (data.estado) updateData.estado = data.estado
+        if (pixKey) updateData.pix_key = pixKey
+        if (cep) updateData.cep = cep
+        if (logradouro) updateData.logradouro = logradouro
+        if (numero) updateData.numero = numero
+        if (bairro) updateData.bairro = bairro
+        if (cidade) updateData.cidade = cidade
+        if (estado) updateData.estado = estado
 
         await adminDb.collection('profiles').doc(session.uid).set(updateData, { merge: true })
 
@@ -82,6 +90,6 @@ export async function updateTeacherSettings(data: any) {
         return { success: true }
     } catch (error) {
         console.error("Erro ao atualizar configurações do professor", error)
-        throw new Error("Erro ao salvar configurações")
+        return { success: false, error: 'Erro ao salvar configurações' }
     }
 }

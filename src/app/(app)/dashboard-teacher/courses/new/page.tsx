@@ -21,6 +21,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import TagInput from '@/components/ui/TagInput'
 import MuxPlayer from '@mux/mux-player-react'
+import { toast } from 'sonner'
 
 import { useCourseFormStore, Lesson } from "@/store/useCourseFormStore"
 import { createCourseAction } from "../actions"
@@ -77,7 +78,10 @@ export default function NewCoursePage() {
             console.log("Upload concluído:", publicUrl)
         } catch (error) {
             console.error(error)
-            alert("Erro ao subir imagem. Verifique sua conexão.")
+            toast.error("FALHA NO UPLOAD", {
+                description: "Erro ao subir imagem. Verifique sua conexão.",
+                style: { background: '#fff', color: '#ef4444', border: '2px solid #ef4444', borderRadius: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', boxShadow: 'none' }
+            })
         } finally {
             setIsUploading(false)
         }
@@ -152,7 +156,10 @@ export default function NewCoursePage() {
                 xhr.send(file)
             })
         } catch (error: any) {
-            alert(error.message || 'Erro ao subir vídeo.')
+            toast.error("FALHA NO UPLOAD", {
+                description: error.message || 'Erro ao subir vídeo.',
+                style: { background: '#fff', color: '#ef4444', border: '2px solid #ef4444', borderRadius: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', boxShadow: 'none' }
+            })
         } finally {
             setUploadingVideos(prev => ({ ...prev, [index]: false }))
         }
@@ -185,11 +192,17 @@ export default function NewCoursePage() {
         try {
             const result = await createCourseAction(formData)
             if (result.success) {
-                alert("🚀 CURSO LANÇADO COM SUCESSO!")
+                toast.success("CURSO LANÇADO COM SUCESSO!", {
+                    style: { background: '#1D5F31', color: '#fff', border: '2px solid #1D5F31', borderRadius: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', boxShadow: 'none' },
+                    icon: '🚀'
+                })
                 resetForm()
                 router.push("/dashboard-teacher/courses")
             } else {
-                alert("Erro: " + result.error)
+                toast.error("ERRO AO LANÇAR", {
+                    description: result.error,
+                    style: { background: '#fff', color: '#ef4444', border: '2px solid #ef4444', borderRadius: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', boxShadow: 'none' }
+                })
             }
         } catch (error) {
             console.error(error)
@@ -518,7 +531,10 @@ export default function NewCoursePage() {
                                                             xhr.send(file)
                                                         })
                                                     } catch (err: any) {
-                                                        alert(err.message || 'Erro ao subir vídeo.')
+                                                        toast.error("FALHA NO UPLOAD", {
+                                                            description: err.message || 'Erro ao subir vídeo.',
+                                                            style: { background: '#fff', color: '#ef4444', border: '2px solid #ef4444', borderRadius: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', boxShadow: 'none' }
+                                                        })
                                                     } finally {
                                                         setIsUploadingIntro(false)
                                                     }
