@@ -46,20 +46,19 @@ function SucessoContent() {
             return
         }
 
-        async function loadData() {
-            // Re-checa o paymentId para satisfazer o TypeScript dentro do escopo async
-            if (!paymentId) return
+        const validPaymentId: string = paymentId
 
+        async function loadData() {
             try {
                 // 1. Tenta usar dados do store primeiro para evitar fetch extra
-                if (checkoutResult && checkoutResult.paymentId === paymentId) {
+                if (checkoutResult && checkoutResult.paymentId === validPaymentId) {
                     console.log("DEBUG_SUCCESS_STORE_FOUND:", checkoutResult)
                     
                     if (checkoutResult.pixData) {
                         setPixData(checkoutResult.pixData)
                     }
 
-                    const res = await getPaymentStatusAction(paymentId)
+                    const res = await getPaymentStatusAction(validPaymentId)
                     if (res.success && res.data) {
                         setPayment(res.data)
                         setLoading(false)
@@ -69,7 +68,7 @@ function SucessoContent() {
 
                 // 2. Se não houver no store ou falhar, busca via Server Actions
                 console.log("DEBUG_SUCCESS_FETCHING_VIA_ACTIONS...")
-                const paymentRes = await getPaymentStatusAction(paymentId)
+                const paymentRes = await getPaymentStatusAction(validPaymentId)
                 if (!paymentRes.success || !paymentRes.data) {
                     throw new Error(paymentRes.error || "Dados do pagamento não encontrados")
                 }
@@ -79,10 +78,10 @@ function SucessoContent() {
 
                 // Verificações adicionais baseadas no tipo de cobrança
                 if (paymentDetail.billingType === 'PIX') {
-                    const pixRes = await getPixDataAction(paymentId)
+                    const pixRes = await getPixDataAction(validPaymentId)
                     if (pixRes.success) setPixData(pixRes.data)
                 } else if (paymentDetail.billingType === 'BOLETO') {
-                    const boletoRes = await getBoletoDataAction(paymentId)
+                    const boletoRes = await getBoletoDataAction(validPaymentId)
                     if (boletoRes.success) setBoletoData(boletoRes.data)
                 }
                 
