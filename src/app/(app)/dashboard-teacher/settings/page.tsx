@@ -5,7 +5,7 @@ import { useActionState } from 'react'
 import { auth } from '@/lib/firebase'
 import { onAuthStateChanged, updatePassword, EmailAuthProvider, reauthenticateWithCredential, multiFactor, TotpMultiFactorGenerator, TotpSecret, reload } from 'firebase/auth'
 import { useRouter } from 'next/navigation'
-import { Settings, DollarSign, Bell, Shield, Wallet, Save, Key, Trash2, ShieldCheck, MapPin } from 'lucide-react'
+import { Settings, DollarSign, Bell, Shield, Wallet, Save, Key, Trash2, ShieldCheck, MapPin, Eye, EyeOff } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useCartStore } from '@/store/useCartStore'
@@ -43,6 +43,10 @@ export default function TeacherSettingsPage() {
     const [currentPassword, setCurrentPassword] = useState('')
     const [isUpdatingPassword, setIsUpdatingPassword] = useState(false)
     const [needsReauth, setNeedsReauth] = useState(false)
+
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+    const [showNewPassword, setShowNewPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
     const [showMFAEnroll, setShowMFAEnroll] = useState(false)
     const [mfaSecret, setMfaSecret] = useState<TotpSecret | null>(null)
@@ -110,6 +114,11 @@ export default function TeacherSettingsPage() {
     const handleUpdatePassword = async (e: React.FormEvent) => {
         e.preventDefault()
 
+        if (!currentPassword) {
+            showNotification('Digite sua senha atual para confirmar a alteração.', 'error')
+            return
+        }
+
         if (newPassword !== confirmPassword) {
             showNotification('As senhas não coincidem', 'error')
             return
@@ -124,11 +133,9 @@ export default function TeacherSettingsPage() {
 
         try {
             if (user) {
-                if (currentPassword) {
-                    const credential = EmailAuthProvider.credential(user.email!, currentPassword)
-                    await reauthenticateWithCredential(user, credential)
-                    setNeedsReauth(false)
-                }
+                const credential = EmailAuthProvider.credential(user.email!, currentPassword)
+                await reauthenticateWithCredential(user, credential)
+                setNeedsReauth(false)
 
                 await updatePassword(user, newPassword)
                 showNotification('Senha atualizada com sucesso!', 'success')
@@ -139,11 +146,11 @@ export default function TeacherSettingsPage() {
         } catch (error: any) {
             console.error("Erro ao atualizar senha:", error)
 
-            if (error.code === 'auth/requires-recent-login') {
+            if (error.code === 'auth/wrong-password') {
+                showNotification('Senha atual incorreta.', 'error')
+            } else if (error.code === 'auth/requires-recent-login') {
                 setNeedsReauth(true)
                 showNotification('Para sua segurança, confirme sua senha atual.', 'info')
-            } else if (error.code === 'auth/wrong-password') {
-                showNotification('Senha atual incorreta.', 'error')
             } else {
                 showNotification('Erro ao atualizar senha', 'error')
             }
@@ -281,7 +288,8 @@ export default function TeacherSettingsPage() {
                                         <MapPin className={`absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1D5F31] transition-colors ${isLoadingCep ? 'animate-pulse' : ''}`} size={20} />
                                         <Input
                                             name="cep"
-                                            defaultValue={addressData.cep || ''}
+                                            value={addressData.cep || ''}
+                                            onChange={(e) => setAddressData(prev => ({ ...prev, cep: e.target.value }))}
                                             onBlur={(e) => handleCepBlur(e.target.value)}
                                             disabled={isLoadingCep}
                                             placeholder="00000-000"
@@ -295,7 +303,8 @@ export default function TeacherSettingsPage() {
                                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" style={{ fontSize: '10px' }}>Nº</span>
                                         <Input
                                             name="numero"
-                                            defaultValue={addressData.numero || ''}
+                                            value={addressData.numero || ''}
+                                            onChange={(e) => setAddressData(prev => ({ ...prev, numero: e.target.value }))}
                                             placeholder="Número"
                                             className="bg-slate-50 border-black rounded-xl pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
                                         />
@@ -307,7 +316,8 @@ export default function TeacherSettingsPage() {
                                         <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1D5F31] transition-colors" size={20} />
                                         <Input
                                             name="logradouro"
-                                            defaultValue={addressData.logradouro || ''}
+                                            value={addressData.logradouro || ''}
+                                            onChange={(e) => setAddressData(prev => ({ ...prev, logradouro: e.target.value }))}
                                             placeholder="Rua, Avenida..."
                                             className="bg-slate-50 border-black rounded-xl pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
                                         />
@@ -319,7 +329,8 @@ export default function TeacherSettingsPage() {
                                         <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1D5F31] transition-colors" size={20} />
                                         <Input
                                             name="bairro"
-                                            defaultValue={addressData.bairro || ''}
+                                            value={addressData.bairro || ''}
+                                            onChange={(e) => setAddressData(prev => ({ ...prev, bairro: e.target.value }))}
                                             placeholder="Bairro"
                                             className="bg-slate-50 border-black rounded-xl pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
                                         />
@@ -331,7 +342,8 @@ export default function TeacherSettingsPage() {
                                         <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1D5F31] transition-colors" size={20} />
                                         <Input
                                             name="cidade"
-                                            defaultValue={addressData.cidade || ''}
+                                            value={addressData.cidade || ''}
+                                            onChange={(e) => setAddressData(prev => ({ ...prev, cidade: e.target.value }))}
                                             placeholder="Cidade"
                                             className="bg-slate-50 border-black rounded-xl pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
                                         />
@@ -343,7 +355,8 @@ export default function TeacherSettingsPage() {
                                         <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1D5F31] transition-colors" size={20} />
                                         <Input
                                             name="estado"
-                                            defaultValue={addressData.estado || ''}
+                                            value={addressData.estado || ''}
+                                            onChange={(e) => setAddressData(prev => ({ ...prev, estado: e.target.value }))}
                                             placeholder="UF"
                                             className="bg-slate-50 border-black rounded-xl pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
                                         />
@@ -377,6 +390,9 @@ export default function TeacherSettingsPage() {
                             )}
                             {isPending ? 'Salvando...' : 'Salvar Dados'}
                         </Button>
+                        
+                        <input type="hidden" name="notifications_email" value={emailEnabled ? 'on' : 'off'} />
+                        <input type="hidden" name="notifications_push" value={browserEnabled ? 'on' : 'off'} />
                     </form>
                 </section>
 
@@ -434,62 +450,93 @@ export default function TeacherSettingsPage() {
                     </div>
 
                     <form onSubmit={handleUpdatePassword} className="space-y-8 relative z-10">
-                        {needsReauth && (
-                            <div className="max-w-md space-y-3 animate-in fade-in slide-in-from-top-2">
+                        <div className="space-y-6">
+                            <h3 className="text-sm font-bold uppercase tracking-tight text-slate-900 px-1">Redefinição de Credenciais</h3>
+                            
+                            <div className="space-y-3">
                                 <label className="text-sm font-bold uppercase tracking-tight text-slate-900 px-1 flex items-center gap-2">
                                     <Key size={14} />
-                                    Senha Atual Necessária
+                                    Senha Atual
                                 </label>
-                                <Input
-                                    type="password"
-                                    value={currentPassword}
-                                    onChange={(e) => setCurrentPassword(e.target.value)}
-                                    placeholder="Confirme sua senha atual"
-                                    className="bg-slate-50 border-black h-14 rounded-xl text-slate-900 focus:border-[#1D5F31] font-bold text-sm placeholder:text-slate-400"
-                                    required
-                                />
-                            </div>
-                        )}
-
-                        <div className="flex flex-col md:flex-row gap-8">
-                            <div className="flex-grow space-y-6">
-                                <h3 className="text-sm font-bold uppercase tracking-tight text-slate-900 px-1">Redefinição de Credenciais</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="relative group">
                                     <Input
-                                        type="password"
-                                        value={newPassword}
-                                        onChange={(e) => setNewPassword(e.target.value)}
-                                        placeholder="Nova senha master"
-                                        className="bg-slate-50 border-black h-14 rounded-xl text-slate-900 focus:border-[#1D5F31] placeholder:text-slate-400 font-bold text-sm"
+                                        type={showCurrentPassword ? 'text' : 'password'}
+                                        value={currentPassword}
+                                        onChange={(e) => setCurrentPassword(e.target.value)}
+                                        placeholder="Digite sua senha atual"
+                                        className="bg-slate-50 border-black h-14 rounded-xl text-slate-900 focus:border-[#1D5F31] font-bold text-sm placeholder:text-slate-400 pr-12"
                                         required
-                                        minLength={6}
                                     />
-                                    <Input
-                                        type="password"
-                                        value={confirmPassword}
-                                        onChange={(e) => setConfirmPassword(e.target.value)}
-                                        placeholder="Confirmar nova senha"
-                                        className="bg-slate-50 border-black h-14 rounded-xl text-slate-900 focus:border-[#1D5F31] placeholder:text-slate-400 font-bold text-sm"
-                                        required
-                                        minLength={6}
-                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                    >
+                                        {showCurrentPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                    </button>
                                 </div>
                             </div>
-                            <div className="flex items-end">
-                                <Button
-                                    type="submit"
-                                    disabled={isUpdatingPassword}
-                                    variant="outline"
-                                    className="border-black text-slate-600 hover:bg-slate-50 hover:text-slate-900 h-14 px-8 rounded-xl font-bold uppercase tracking-[2px] text-[10px] transition-all gap-2"
-                                >
-                                    {isUpdatingPassword ? (
-                                        <div className="w-4 h-4 border-2 border-slate-200 border-t-[#1D5F31] rounded-xl animate-spin" />
-                                    ) : (
-                                        <Save size={16} />
-                                    )}
-                                    {needsReauth ? 'Confirmar Mudança' : 'Sincronizar Acesso'}
-                                </Button>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-3">
+                                    <label className="text-sm font-bold uppercase tracking-tight text-slate-900 px-1">Nova Senha</label>
+                                    <div className="relative group">
+                                        <Input
+                                            type={showNewPassword ? 'text' : 'password'}
+                                            value={newPassword}
+                                            onChange={(e) => setNewPassword(e.target.value)}
+                                            placeholder="Nova senha (mín. 6 chars)"
+                                            className="bg-slate-50 border-black h-14 rounded-xl text-slate-900 focus:border-[#1D5F31] placeholder:text-slate-400 font-bold text-sm pr-12"
+                                            required
+                                            minLength={6}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowNewPassword(!showNewPassword)}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                        >
+                                            {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="space-y-3">
+                                    <label className="text-sm font-bold uppercase tracking-tight text-slate-900 px-1">Confirmar Senha</label>
+                                    <div className="relative group">
+                                        <Input
+                                            type={showConfirmPassword ? 'text' : 'password'}
+                                            value={confirmPassword}
+                                            onChange={(e) => setConfirmPassword(e.target.value)}
+                                            placeholder="Repita a nova senha"
+                                            className="bg-slate-50 border-black h-14 rounded-xl text-slate-900 focus:border-[#1D5F31] placeholder:text-slate-400 font-bold text-sm pr-12"
+                                            required
+                                            minLength={6}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                                        >
+                                            {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
+                        </div>
+
+                        <div className="flex items-end">
+                            <Button
+                                type="submit"
+                                disabled={isUpdatingPassword}
+                                variant="outline"
+                                className="border-black text-slate-600 hover:bg-slate-50 hover:text-slate-900 h-14 px-8 rounded-xl font-bold uppercase tracking-[2px] text-[10px] transition-all gap-2"
+                            >
+                                {isUpdatingPassword ? (
+                                    <div className="w-4 h-4 border-2 border-slate-200 border-t-[#1D5F31] rounded-xl animate-spin" />
+                                ) : (
+                                    <Save size={16} />
+                                )}
+                                {isUpdatingPassword ? 'Atualizando...' : 'Atualizar Senha'}
+                            </Button>
                         </div>
                     </form>
 

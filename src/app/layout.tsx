@@ -4,6 +4,7 @@ import { ToastNotification } from '@/components/ui/ToastNotification'
 import { BrandingProvider } from '@/context/BrandingContext'
 import { BrandingData, getSettings } from '@/app/admin/settings/actions'
 import { CartStoreSynchronizer } from '@/components/CartStoreSynchronizer'
+import { Toaster } from '@/components/ui/sonner'
 
 const exo = Exo({
   subsets: ['latin'],
@@ -38,6 +39,7 @@ export default async function RootLayout({
         <BrandingProvider value={branding}>
           <CartStoreSynchronizer />
           <ToastNotification />
+          <Toaster />
           {children}
         </BrandingProvider>
       </body>
