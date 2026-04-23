@@ -3,7 +3,7 @@ import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { cookies, headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createPayment, BillingType, getStudentAsaasId, createCustomer } from '@/services/asaasService'
+import { createPayment, BillingType, getStudentAsaasId, createCustomer, getPaymentQrCode } from '@/services/asaasService'
 import { sanitizeCpfCnpj } from '@/lib/utils'
 
 async function getClientIp(): Promise<string> {
@@ -96,7 +96,7 @@ export async function buyCourse(courseId: string) {
 
 export async function processCheckoutAction(courseIds: string[], billingType: BillingType = 'PIX', termsAccepted: boolean = false): Promise<
     | { success: true; isFree: true; data?: undefined; error?: undefined }
-    | { success: true; isFree?: undefined; data: { invoiceUrl: string; paymentId: string; billingType: string }; error?: undefined }
+    | { success: true; isFree?: undefined; data: { invoiceUrl: string; paymentId: string; billingType: string; pixData?: any }; error?: undefined }
     | { success: false; error: string; isFree?: undefined; data?: undefined }
 > {
     const user = await getAuthUser()
@@ -220,12 +220,22 @@ export async function processCheckoutAction(courseIds: string[], billingType: Bi
                 externalReference: `checkout-${user.uid}-${Date.now()}`,
             })
 
+            let pixData = null
+            if (billingType === 'PIX') {
+                try {
+                    pixData = await getPaymentQrCode(asaasResponse.id)
+                } catch (pixError) {
+                    console.error("ERRO_AO_BUSCAR_QRCODE_PIX_NO_CHECKOUT:", pixError)
+                }
+            }
+
             return { 
                 success: true, 
                 data: { 
                     invoiceUrl: asaasResponse.invoiceUrl, 
                     paymentId: asaasResponse.id,
-                    billingType: asaasResponse.billingType
+                    billingType: asaasResponse.billingType,
+                    pixData
                 } 
             }
         } catch (asaasError: any) {
