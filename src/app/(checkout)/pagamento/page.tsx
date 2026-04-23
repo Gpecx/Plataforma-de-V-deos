@@ -114,6 +114,8 @@ export default function PagamentoPage() {
             if (result.data) {
                 const { paymentId, billingType, invoiceUrl } = result.data
 
+                console.log("DEBUG_REDIRECT:", { paymentId, billingType, invoiceUrl })
+
                 if (billingType === 'PIX' || billingType === 'BOLETO') {
                     router.push(`/pagamento/sucesso?id=${paymentId}&type=${billingType}`)
                     return
