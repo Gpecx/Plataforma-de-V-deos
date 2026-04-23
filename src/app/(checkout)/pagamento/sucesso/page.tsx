@@ -140,7 +140,7 @@ export default async function SucessoPagamentoPage({ searchParams }: SuccessPage
                             {/* Lado Direito: QR Code Visual */}
                             {payment.billingType === 'PIX' && pixData && (
                                 <>
-                                    {console.log("DEBUG_RENDER_PIX:", { pixDataExists: !!pixData, image: pixData?.encodedImage?.substring(0, 50) })}
+                                    {console.log("DEBUG_RENDER_PIX:", { pixDataExists: !!pixData, encodedImage: pixData?.encodedImage })}
                                     <div className="flex flex-col items-center justify-center p-6 bg-white border-2 border-black rounded-none">
                                         <div className="w-48 h-48 bg-white p-2 shadow-sm mb-4 border-2 border-black rounded-none">
                                             <img
