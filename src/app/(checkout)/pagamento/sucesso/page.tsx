@@ -139,16 +139,19 @@ export default async function SucessoPagamentoPage({ searchParams }: SuccessPage
 
                             {/* Lado Direito: QR Code Visual */}
                             {payment.billingType === 'PIX' && pixData && (
-                                <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-200 bg-slate-50/50">
-                                    <div className="w-48 h-48 bg-white p-2 shadow-sm mb-4">
-                                        <img
-                                            src={`data:image/png;base64,${pixData.encodedImage}`}
-                                            alt="QR Code PIX"
-                                            className="w-full h-full object-contain"
-                                        />
+                                <>
+                                    {console.log("DEBUG_RENDER_PIX:", { pixDataExists: !!pixData, image: pixData?.encodedImage?.substring(0, 50) })}
+                                    <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-slate-200 bg-slate-50/50">
+                                        <div className="w-48 h-48 bg-white p-2 shadow-sm mb-4">
+                                            <img
+                                                src={`data:image/png;base64,${pixData.encodedImage}`}
+                                                alt="QR Code PIX"
+                                                className="w-full h-full object-contain"
+                                            />
+                                        </div>
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Escaneie para pagar</span>
                                     </div>
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Escaneie para pagar</span>
-                                </div>
+                                </>
                             )}
 
                             {payment.billingType === 'BOLETO' && (
