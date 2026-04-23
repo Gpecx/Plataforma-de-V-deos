@@ -20,11 +20,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import TagInput from '@/components/ui/TagInput'
+import MuxPlayer from '@mux/mux-player-react'
 
-// Importamos a Store, a Action e o utilitário de Storage
 import { useCourseFormStore, Lesson } from "@/store/useCourseFormStore"
 import { createCourseAction } from "../actions"
-import { uploadCourseImage, uploadCourseVideo } from "@/lib/storage-helpers"
+import { uploadCourseImage } from "@/lib/storage-helpers"
+import { getMuxUploadUrl, getMuxUploadStatus } from "@/app/actions/mux"
 
 const STEPS = [
     { id: 1, name: 'Informações Básicas', icon: Info },
@@ -52,6 +53,10 @@ export default function NewCoursePage() {
     const [isPublishing, setIsPublishing] = useState(false)
     const [isUploading, setIsUploading] = useState(false)
     const [isUploadingIntro, setIsUploadingIntro] = useState(false)
+    const [uploadingVideoStatus, setUploadingVideoStatus] = useState<Record<number, 'idle' | 'uploading' | 'processing' | 'ready'>>({})
+    const [uploadingVideoProgress, setUploadingVideoProgress] = useState<Record<number, number>>({})
+    const [introUploadStatus, setIntroUploadStatus] = useState<'idle' | 'uploading' | 'processing' | 'ready'>('idle')
+    const [introUploadProgress, setIntroUploadProgress] = useState(0)
 
     // Automatiza o scroll para o topo ao mudar de passo
     useEffect(() => {
@@ -104,11 +109,50 @@ export default function NewCoursePage() {
         if (!file) return
 
         setUploadingVideos(prev => ({ ...prev, [index]: true }))
+        setUploadingVideoStatus(prev => ({ ...prev, [index]: 'uploading' }))
+        setUploadingVideoProgress(prev => ({ ...prev, [index]: 0 }))
+
         try {
-            const publicUrl = await uploadCourseVideo(file)
-            handleUpdateLesson(index, { video_url: publicUrl })
+            const response = await getMuxUploadUrl('lesson')
+            if (response.error || !response.url) throw new Error(response.error || 'Erro ao gerar URL')
+
+            const { url, id: uploadId } = response
+            handleUpdateLesson(index, { mux_upload_id: uploadId })
+
+            await new Promise<void>((resolve, reject) => {
+                const xhr = new XMLHttpRequest()
+                xhr.open('PUT', url)
+                xhr.upload.onprogress = (evt) => {
+                    if (evt.lengthComputable) {
+                        setUploadingVideoProgress(prev => ({ ...prev, [index]: Math.round((evt.loaded / evt.total) * 100) }))
+                    }
+                }
+                xhr.onload = async () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        setUploadingVideoStatus(prev => ({ ...prev, [index]: 'processing' }))
+                        let attempts = 0
+                        const poll = async () => {
+                            if (attempts > 30) { resolve(); return }
+                            const res = await getMuxUploadStatus(uploadId)
+                            if (res.status === 'ready') {
+                                handleUpdateLesson(index, {
+                                    mux_upload_id: uploadId,
+                                    mux_playback_id: res.playback_id,
+                                    mux_asset_id: res.asset_id,
+                                    video_url: `https://stream.mux.com/${res.playback_id}.m3u8`
+                                })
+                                setUploadingVideoStatus(prev => ({ ...prev, [index]: 'ready' }))
+                                resolve()
+                            } else { attempts++; setTimeout(poll, 3000) }
+                        }
+                        poll()
+                    } else { reject(new Error('Erro no upload para o Mux')) }
+                }
+                xhr.onerror = () => reject(new Error('Erro de rede'))
+                xhr.send(file)
+            })
         } catch (error: any) {
-            alert(error.message || "Erro ao subir vídeo.")
+            alert(error.message || 'Erro ao subir vídeo.')
         } finally {
             setUploadingVideos(prev => ({ ...prev, [index]: false }))
         }
@@ -237,7 +281,7 @@ export default function NewCoursePage() {
                                         {isUploading ? (
                                             <div className="flex flex-col items-center gap-5">
                                                 <Loader2 className="animate-spin text-black" size={40} />
-                                                <p className="text-[10px] font-bold tracking-widest text-black animate-pulse">PROCESSANDO UPLOAD...</p>
+                                                <p className="text-[10px] font-bold tracking-widest text-black animate-pulse rounded-none">PROCESSANDO UPLOAD...</p>
                                             </div>
                                         ) : (
                                             <>
@@ -380,23 +424,36 @@ export default function NewCoursePage() {
                                     <Label className="text-[9px] font-bold uppercase tracking-widest text-black/40 px-1">Upload Direto</Label>
                                     <div className={`
                                         relative h-40 rounded-xl border-2 border-dashed transition-all flex flex-col items-center justify-center overflow-hidden cursor-pointer
-                                        ${formData.intro_video_url && !formData.intro_video_url.includes('youtube.com') && !formData.intro_video_url.includes('vimeo.com')
+                                        ${formData.intro_video_playback_id && !formData.intro_video_url?.includes('youtube.com') && !formData.intro_video_url?.includes('vimeo.com')
                                             ? 'border-[#1D5F31] bg-[#1D5F31]/5' : 'border-black bg-white hover:border-black/50 text-black/60'}
                                     `}>
                                         {isUploadingIntro ? (
                                             <div className="flex flex-col items-center gap-3">
                                                 <Loader2 className="animate-spin text-[#1D5F31]" size={24} />
-                                                <span className="text-[8px] font-bold uppercase tracking-[2px] animate-pulse text-[#1D5F31]">UPLOADING...</span>
+                                                <span className="text-[8px] font-bold uppercase tracking-[2px] animate-pulse text-[#1D5F31] rounded-none">UPLOADING...</span>
                                             </div>
-                                        ) : formData.intro_video_url && !formData.intro_video_url.includes('youtube.com') && !formData.intro_video_url.includes('vimeo.com') ? (
-                                            <div className="flex flex-col items-center gap-2">
-                                                <div className="w-10 h-10 bg-[#1D5F31] rounded-xl flex items-center justify-center text-white">
-                                                    <Check size={20} strokeWidth={4} />
+                                        ) : formData.intro_video_playback_id && !formData.intro_video_url?.includes('youtube.com') && !formData.intro_video_url?.includes('vimeo.com') ? (
+                                            <div className="flex flex-col gap-2 w-full h-full p-2">
+                                                <div className="aspect-video w-full bg-black rounded-lg overflow-hidden">
+                                                    <MuxPlayer
+                                                        playbackId={formData.intro_video_playback_id}
+                                                        streamType="on-demand"
+                                                        muted
+                                                        className="w-full h-full"
+                                                        accentColor="#1D5F31"
+                                                    />
                                                 </div>
-                                                <span className="text-[9px] font-bold uppercase tracking-widest text-[#1D5F31]">VÍDEO CARREGADO</span>
+                                                <span className="text-[9px] font-bold uppercase tracking-widest text-[#1D5F31] rounded-none">
+                                                    {introUploadStatus === 'processing' ? 'PROCESSANDO...' : 'VÍDEO PRONTO'}
+                                                </span>
                                                 <button
                                                     className="text-[8px] text-[#1D5F31]/60 hover:text-red-500 font-bold uppercase  tracking-widest mt-2"
-                                                    onClick={() => setStepData({ intro_video_url: '' })}
+                                                    onClick={() => setStepData({ 
+                                                        intro_video_url: '',
+                                                        intro_video_mux_id: '',
+                                                        intro_video_asset_id: '',
+                                                        intro_video_playback_id: ''
+                                                    })}
                                                 >
                                                     [ REMOVER ]
                                                 </button>
@@ -418,13 +475,50 @@ export default function NewCoursePage() {
                                                     const file = e.target.files?.[0]
                                                     if (!file) return
 
-                                                    // Validação simples de duração se possível (via URL.createObjectURL e metadata)
                                                     setIsUploadingIntro(true)
+                                                    setIntroUploadProgress(0)
+                                                    setIntroUploadStatus('uploading')
                                                     try {
-                                                        const publicUrl = await uploadCourseVideo(file)
-                                                        setStepData({ intro_video_url: publicUrl })
-                                                    } catch (err) {
-                                                        alert("Erro no upload do vídeo.")
+                                                        const response = await getMuxUploadUrl('intro')
+                                                        if (response.error || !response.url) throw new Error(response.error || 'Erro ao gerar URL')
+
+                                                        const { url, id: uploadId } = response
+                                                        setStepData({ intro_video_mux_id: uploadId })
+
+                                                        await new Promise<void>((resolve, reject) => {
+                                                            const xhr = new XMLHttpRequest()
+                                                            xhr.open('PUT', url)
+                                                            xhr.upload.onprogress = (evt) => {
+                                                                if (evt.lengthComputable) {
+                                                                    setIntroUploadProgress(Math.round((evt.loaded / evt.total) * 100))
+                                                                }
+                                                            }
+                                                            xhr.onload = async () => {
+                                                                if (xhr.status >= 200 && xhr.status < 300) {
+                                                                    setIntroUploadStatus('processing')
+                                                                    let attempts = 0
+                                                                    const poll = async () => {
+                                                                        if (attempts > 30) { resolve(); return }
+                                                                        const res = await getMuxUploadStatus(uploadId)
+                                                                        if (res.status === 'ready') {
+                                                                            setStepData({
+                                                                                intro_video_mux_id: uploadId,
+                                                                                intro_video_asset_id: res.asset_id,
+                                                                                intro_video_playback_id: res.playback_id,
+                                                                                intro_video_url: `https://stream.mux.com/${res.playback_id}.m3u8`
+                                                                            })
+                                                                            setIntroUploadStatus('ready')
+                                                                            resolve()
+                                                                        } else { attempts++; setTimeout(poll, 3000) }
+                                                                    }
+                                                                    poll()
+                                                                } else { reject(new Error('Erro no upload para o Mux')) }
+                                                            }
+                                                            xhr.onerror = () => reject(new Error('Erro de rede'))
+                                                            xhr.send(file)
+                                                        })
+                                                    } catch (err: any) {
+                                                        alert(err.message || 'Erro ao subir vídeo.')
                                                     } finally {
                                                         setIsUploadingIntro(false)
                                                     }
@@ -529,24 +623,37 @@ export default function NewCoursePage() {
                                                 <Label className="text-[10px] font-bold uppercase tracking-widest text-black/90 px-1 ">Vídeo da Aula</Label>
                                                 <div className={`
                                                     relative h-32 rounded-xl border-2 border-dashed transition-all flex flex-col items-center justify-center overflow-hidden
-                                                    ${lesson.video_url ? 'border-[#1D5F31] bg-[#1D5F31]/5' : 'border-black bg-white hover:border-black/50'}
+                                                    ${lesson.mux_playback_id ? 'border-[#1D5F31] bg-[#1D5F31]/5' : 'border-black bg-white hover:border-black/50'}
                                                 `}>
                                                     {uploadingVideos[index] ? (
                                                         <div className="flex flex-col items-center gap-3">
                                                             <Loader2 className="animate-spin text-[#1D5F31]" size={24} />
-                                                            <span className="text-[8px] font-bold uppercase tracking-[2px] animate-pulse text-[#1D5F31]">UPLOADING...</span>
+                                                            <span className="text-[8px] font-bold uppercase tracking-[2px] animate-pulse text-[#1D5F31] rounded-none">UPLOADING...</span>
                                                         </div>
-                                                    ) : lesson.video_url ? (
-                                                        <div className="flex flex-col items-center gap-2">
-                                                            <div className="w-10 h-10 bg-[#1D5F31] rounded-xl flex items-center justify-center text-white border border-[#1D5F31]">
-                                                                <Check size={20} strokeWidth={4} />
+                                                    ) : lesson.mux_playback_id ? (
+                                                        <div className="flex flex-col gap-2 w-full">
+                                                            <div className="aspect-video w-full bg-black rounded-lg overflow-hidden">
+                                                                <MuxPlayer
+                                                                    playbackId={lesson.mux_playback_id}
+                                                                    streamType="on-demand"
+                                                                    muted
+                                                                    className="w-full h-full"
+                                                                    accentColor="#1D5F31"
+                                                                />
                                                             </div>
-                                                            <span className="text-[9px] font-bold uppercase tracking-widest text-[#1D5F31]">MULTIMÍDIA PRONTA</span>
+                                                            <span className="text-[9px] font-bold uppercase tracking-widest text-[#1D5F31] rounded-none">
+                                                                {uploadingVideoStatus[index] === 'processing' ? 'PROCESSANDO...' : 'VÍDEO PRONTO'}
+                                                            </span>
                                                             <button
                                                                 className="text-[8px] text-[#1D5F31]/40 hover:text-red-500 font-bold uppercase tracking-widest mt-1 "
-                                                                onClick={() => handleUpdateLesson(index, { video_url: '' })}
+                                                                onClick={() => handleUpdateLesson(index, { 
+                                                                    video_url: '',
+                                                                    mux_upload_id: '',
+                                                                    mux_playback_id: '',
+                                                                    mux_asset_id: ''
+                                                                })}
                                                             >
-                                                                [ SUBSTITUIR ]
+                                                                [ REMOVER ]
                                                             </button>
                                                         </div>
                                                     ) : (
@@ -556,7 +663,7 @@ export default function NewCoursePage() {
                                                         </div>
                                                     )}
 
-                                                    {!uploadingVideos[index] && !lesson.video_url && (
+                                                    {!uploadingVideos[index] && !lesson.mux_playback_id && (
                                                         <input
                                                             type="file"
                                                             accept="video/*"
@@ -602,7 +709,7 @@ export default function NewCoursePage() {
                         <Button
                             onClick={handlePublish}
                             disabled={!isPublishable || isPublishing}
-                            className="bg-[#1D5F31] text-white hover:bg-[#1D5F31]/90 font-bold uppercase text-[10px] tracking-[4px] px-16 h-16 rounded-xl shadow-none border-2 border-[#1D5F31] disabled:opacity-30 group transition-all"
+                            className={`bg-[#1D5F31] text-white hover:bg-[#1D5F31]/90 font-bold uppercase text-[10px] tracking-[4px] px-16 h-16 shadow-none border-2 border-[#1D5F31] disabled:opacity-30 group transition-all ${isPublishing ? 'rounded-none' : 'rounded-xl'}`}
                         >
                             {isPublishing ? (
                                 <Loader2 className="animate-spin mr-3" />
