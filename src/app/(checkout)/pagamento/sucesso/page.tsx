@@ -213,7 +213,7 @@ function SucessoContent() {
                             <div className="flex flex-col items-center justify-center p-6 bg-white border-2 border-black rounded-none">
                                 <div className="w-48 h-48 bg-white p-2 shadow-sm mb-4 border-2 border-black rounded-none">
                                     <img
-                                        src={`data:image/png;base64,${pixData.encodedImage}`}
+                                        src={`data:image/png;base64,${pixData.encodedImage || pixData.data?.encodedImage || ''}`}
                                         alt="QR Code PIX"
                                         className="w-full h-full object-contain not-italic"
                                     />
