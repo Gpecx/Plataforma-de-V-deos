@@ -41,8 +41,12 @@ export default async function SucessoPagamentoPage({ searchParams }: SuccessPage
         let boletoData = null
 
         if (payment.billingType === 'PIX') {
-            pixData = await getPaymentQrCode(paymentId)
-            console.log("DEBUG_PIX_DATA:", pixData)
+            try {
+                pixData = await getPaymentQrCode(paymentId)
+                console.log("DEBUG_PIX_DATA:", pixData)
+            } catch (pixError: any) {
+                console.error("DEBUG_PIX_ERROR:", pixError)
+            }
         } else if (payment.billingType === 'BOLETO') {
             boletoData = await getPaymentIdentification(paymentId)
         }
