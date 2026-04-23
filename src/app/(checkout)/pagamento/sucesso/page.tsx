@@ -36,6 +36,9 @@ export default async function SucessoPagamentoPage({ searchParams }: SuccessPage
         const payment = await getPayment(paymentId)
 
         console.log("DEBUG_SUCCESS_PAGE:", { paymentId, payment })
+        console.log("DEBUG_TYPE_FROM_URL:", type)
+        console.log("DEBUG_BILLING_TYPE:", payment.billingType)
+        console.log("DEBUG_BILLING_TYPE_CHECK:", payment.billingType === 'PIX')
 
         let pixData = null
         let boletoData = null
