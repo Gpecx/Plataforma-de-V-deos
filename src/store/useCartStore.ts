@@ -13,6 +13,7 @@ interface CartStore {
     items: CartItem[]
     purchasedCourseIds: string[]
     notification: { message: string, type: 'error' | 'success' | 'info' } | null
+    checkoutResult: any | null
     addItem: (item: CartItem) => void
     setPurchasedCourses: (ids: string[]) => void
     showNotification: (message: string, type?: 'error' | 'success' | 'info', duration?: number) => void
@@ -21,6 +22,7 @@ interface CartStore {
     clearCart: () => void
     getTotal: () => number
     syncPrices: (freshPrices: { id: string, price: number }[]) => void
+    setCheckoutResult: (result: any) => void
 }
 
 export const useCartStore = create<CartStore>()(
@@ -29,6 +31,7 @@ export const useCartStore = create<CartStore>()(
             items: [],
             purchasedCourseIds: [],
             notification: null,
+            checkoutResult: null,
             addItem: (item) => {
                 const currentItems = get().items
                 const purchasedIds = get().purchasedCourseIds
@@ -79,7 +82,8 @@ export const useCartStore = create<CartStore>()(
                 if (changed) {
                     set({ items: newItems })
                 }
-            }
+            },
+            setCheckoutResult: (result) => set({ checkoutResult: result }),
         }),
         {
             name: 'spcs-cart-storage',

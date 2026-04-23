@@ -3,7 +3,7 @@ import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { cookies, headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createPayment, BillingType, getStudentAsaasId, createCustomer, getPaymentQrCode } from '@/services/asaasService'
+import { createPayment, BillingType, getStudentAsaasId, createCustomer, getPaymentQrCode, getPayment, getPaymentIdentification } from '@/services/asaasService'
 import { sanitizeCpfCnpj } from '@/lib/utils'
 
 async function getClientIp(): Promise<string> {
@@ -434,5 +434,35 @@ export async function getLatestCoursePrices(courseIds: string[]) {
     } catch (error) {
         console.error('Erro ao buscar preços atualizados:', error)
         return { success: false, error: 'Falha ao sincronizar preços' }
+    }
+}
+
+export async function getPaymentStatusAction(paymentId: string) {
+    try {
+        const payment = await getPayment(paymentId)
+        return { success: true, data: payment }
+    } catch (error: any) {
+        console.error('Erro ao buscar status do pagamento:', error)
+        return { success: false, error: error.message }
+    }
+}
+
+export async function getPixDataAction(paymentId: string) {
+    try {
+        const pix = await getPaymentQrCode(paymentId)
+        return { success: true, data: pix }
+    } catch (error: any) {
+        console.error('Erro ao buscar dados do PIX:', error)
+        return { success: false, error: error.message }
+    }
+}
+
+export async function getBoletoDataAction(paymentId: string) {
+    try {
+        const boleto = await getPaymentIdentification(paymentId)
+        return { success: true, data: boleto }
+    } catch (error: any) {
+        console.error('Erro ao buscar dados do Boleto:', error)
+        return { success: false, error: error.message }
     }
 }
