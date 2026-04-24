@@ -148,7 +148,11 @@ export function ExpandableCard({
                 
                 {/* Info Overlay (Thumbnail) */}
                 <div className={`absolute inset-0 p-4 flex flex-col justify-end items-end opacity-100 group-hover:opacity-0 transition-opacity z-[11] text-right`}>
-                    <span className="text-[10px] font-bold text-[#4ADE80] shadow-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)] uppercase tracking-[2px] mb-0.5">{accent || 'PREMIUM'}</span>
+                    {accent && (
+                        <span className={`text-[10px] font-bold uppercase tracking-[2px] mb-0.5 ${accent === 'NOVO' ? 'bg-white text-[#1D5F31] px-1.5 py-0.5 rounded-sm' : 'text-[#4ADE80] shadow-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]'}`}>
+                            {accent}
+                        </span>
+                    )}
                     <h3 className="text-white font-bold text-[11px] line-clamp-2 uppercase leading-tight tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">{title}</h3>
                 </div>
 
@@ -206,9 +210,11 @@ export function ExpandableCard({
                                 >
                                     <div className="flex items-center gap-3 mb-6">
                                         <div className="w-10 h-px bg-[#1D5F31]" />
-                                        <span className="text-[10px] font-bold uppercase tracking-[4px] text-[#1D5F31]">
-                                            {accent || 'PREMIUM'}
-                                        </span>
+                                        {accent && (
+                                            <span className="text-[10px] font-bold uppercase tracking-[4px] text-[#1D5F31]">
+                                                {accent}
+                                            </span>
+                                        )}
                                     </div>
                                     
                                     <h2 className="text-3xl md:text-4xl font-bold uppercase mb-6 tracking-tighter leading-[0.9]">

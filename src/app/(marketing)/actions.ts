@@ -24,6 +24,7 @@ export async function getFeaturedCourses() {
                 status: data.status || '',
                 teacher_id: data.teacher_id || null,
                 teacher_name: data.teacher_name || null,
+                created_at: data.created_at || null,
             }
         })
 

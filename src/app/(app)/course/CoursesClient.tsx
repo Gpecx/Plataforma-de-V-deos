@@ -45,6 +45,7 @@ interface Course {
     status: 'APROVADO' | 'PENDENTE' | 'DESATIVADO';
     teacher_name?: string;
     tags?: string[];
+    created_at?: any;
 }
 
 interface CoursesClientProps {
@@ -97,6 +98,14 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
     };
 
     const dynamicCategories = Array.from(new Set(filteredCourses.map(c => c.category || "Lançamentos"))).sort();
+
+    const isNew = (createdAt: any) => {
+        if (!createdAt) return false;
+        const created = createdAt.toDate ? createdAt.toDate() : new Date(createdAt);
+        const now = new Date();
+        const diffDays = Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
+        return diffDays <= 30;
+    };
 
     return (
         <div className="min-h-screen bg-white text-black font-montserrat">
@@ -236,9 +245,11 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
                                                     courseId={course.id} 
                                                     isPurchased={profile?.cursos_comprados?.includes(course.id)} 
                                                 />
-                                                <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm border border-slate-200 text-[#1D5F31] px-2 py-0.5 text-sm font-bold uppercase tracking-tight rounded-md z-10">
-                                                    {course.tag || "TREINAMENTO"}
-                                                </div>
+                                                {isNew(course.created_at) && (
+                                                    <div className="absolute top-2 left-2 bg-white text-[#1D5F31] px-2 py-0.5 text-sm font-bold uppercase tracking-tight rounded-sm z-10">
+                                                        NOVO
+                                                    </div>
+                                                )}
                                             </div>
                                             <div className="p-6 flex-grow flex flex-col space-y-4">
                                                 <h3 className="text-sm font-bold text-black leading-tight group-hover:text-[#1D5F31] transition-colors line-clamp-2">
