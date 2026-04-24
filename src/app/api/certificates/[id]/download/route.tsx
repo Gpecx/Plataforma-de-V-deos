@@ -45,9 +45,10 @@ export async function GET(
     
     const pdfBuffer = await generatePDF(renderUrl)
 
-    return new NextResponse(pdfBuffer, {
+    const blob = new Blob([pdfBuffer as unknown as BlobPart], { type: 'application/pdf' })
+
+    return new NextResponse(blob, {
       headers: {
-        'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="certificado-${courseId}.pdf"`,
       },
     })

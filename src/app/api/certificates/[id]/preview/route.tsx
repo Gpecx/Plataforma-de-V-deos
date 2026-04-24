@@ -42,11 +42,12 @@ export async function GET(
     
     console.log('Generating high-fidelity PDF via Playwright at:', renderUrl)
     
-    const pdfBuffer = await generatePDF(renderUrl)
+const pdfBuffer = await generatePDF(renderUrl)
+ 
+    const blob = new Blob([pdfBuffer as unknown as BlobPart], { type: 'application/pdf' })
 
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(blob, {
       headers: {
-        'Content-Type': 'application/pdf',
         'Content-Disposition': 'inline',
       },
     })
