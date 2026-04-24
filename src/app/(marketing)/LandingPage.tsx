@@ -296,11 +296,12 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                             thumbnail={course.image_url}
                             title={course.title}
                             description={course.description}
-                            accent={isNew(course.created_at) ? "NOVO" : course.tag}
                             ranking={i + 1}
                             showWishlist={false}
                             teacherId={course.teacher_id}
                             teacherName={course.teacher_name}
+                            pricing_type={course.pricing_type}
+                            created_at={course.created_at}
                         />
                     ))}
                 </div>

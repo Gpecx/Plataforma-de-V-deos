@@ -1,6 +1,7 @@
 "use client"
 
 import { X, Play, Info, CheckCircle2, Clock, Globe, ShieldCheck, ArrowRight } from "lucide-react"
+import { isNewCourse } from "@/lib/date-utils"
 import { Button } from "@/components/ui/button"
 import { useState, useEffect } from "react"
 import { createPortal } from "react-dom"
@@ -60,11 +61,30 @@ export default function CourseModal({ course, isOpen, onClose }: CourseModalProp
                         <div className="absolute inset-0 bg-gradient-to-t from-[#061629] via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-[#061629]" />
                                 
                         <div className="absolute top-8 left-8 z-20">
-                            {course.tag && (
-                                <span className="bg-[#1D5F31] text-white text-[10px] font-bold px-3 py-1.5 rounded-sm uppercase tracking-[3px] shadow-xl">
-                                    {course.tag}
-                                </span>
-                            )}
+                            {(() => {
+                                if (course.pricing_type === 'premium') {
+                                    return (
+                                        <div className="bg-[#1D5F31] !text-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[3px] rounded-sm shadow-xl no-theme-override">
+                                            PREMIUM
+                                        </div>
+                                    )
+                                }
+                                if (course.pricing_type === 'free') {
+                                    return (
+                                        <div className="bg-black !text-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[3px] rounded-sm shadow-xl no-theme-override">
+                                            GRATUITO
+                                        </div>
+                                    )
+                                }
+                                if (isNewCourse(course.created_at)) {
+                                    return (
+                                        <div className="bg-white !text-[#1D5F31] px-3 py-1.5 text-[10px] font-bold uppercase tracking-[3px] rounded-sm shadow-xl no-theme-override">
+                                            NOVO
+                                        </div>
+                                    )
+                                }
+                                return null
+                            })()}
                         </div>
                     </div>
 

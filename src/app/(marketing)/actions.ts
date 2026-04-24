@@ -1,6 +1,7 @@
 'use server'
 
 import { adminDb } from '@/lib/firebase-admin'
+import { serializeFirestoreData } from '@/lib/date-utils'
 
 export async function getFeaturedCourses() {
     try {
@@ -14,18 +15,19 @@ export async function getFeaturedCourses() {
         console.log(`Found ${snapshot.size} featured courses.`);
         const courses = snapshot.docs.map(doc => {
             const data = doc.data()
-            return {
+            return serializeFirestoreData({
                 id: doc.id,
                 title: data.title || '',
                 description: data.description || '',
                 image_url: data.image_url || null,
-                tag: data.tag || 'PREMIUM',
+                tag: data.tag || '',
+                pricing_type: data.pricing_type || 'standard',
                 price: Number(data.price) || 0,
                 status: data.status || '',
                 teacher_id: data.teacher_id || null,
                 teacher_name: data.teacher_name || null,
                 created_at: data.created_at || null,
-            }
+            })
         })
 
         return courses

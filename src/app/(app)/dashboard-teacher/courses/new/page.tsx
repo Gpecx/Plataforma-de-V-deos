@@ -170,7 +170,9 @@ export default function NewCoursePage() {
             return formData.title && formData.category && formData.description
         }
         if (step === 2) {
-            return formData.price > 0
+            if (formData.pricing_type === 'free') return true
+            if (formData.pricing_type === 'premium') return formData.price > 0
+            return formData.price >= 0
         }
         if (step === 3) {
             return true // Grade opcional na validação simples, ou adicione sua lógica
@@ -563,18 +565,49 @@ export default function NewCoursePage() {
                         </div>
 
                         <div className="space-y-6">
+                            <Label className="text-[10px] font-bold uppercase tracking-widest text-black text-center block ">Tipo de Precificação</Label>
+                            <div className="flex justify-center gap-4">
+                                {[
+                                    { id: 'standard', label: 'Padrão' },
+                                    { id: 'free', label: 'Gratuito' },
+                                    { id: 'premium', label: 'Premium' }
+                                ].map((type) => (
+                                    <button
+                                        key={type.id}
+                                        type="button"
+                                        onClick={() => {
+                                            const newData: any = { pricing_type: type.id }
+                                            if (type.id === 'free') newData.price = 0
+                                            setStepData(newData)
+                                        }}
+                                        className={`px-6 py-3 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all border-2 ${
+                                            formData.pricing_type === type.id
+                                                ? 'bg-[#1D5F31] border-[#1D5F31] text-white'
+                                                : 'bg-white border-black text-black hover:border-[#1D5F31]'
+                                        }`}
+                                    >
+                                        {type.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="space-y-6">
                             <Label className="text-[10px] font-bold uppercase tracking-widest text-black text-center block ">Investimento Sugerido</Label>
                             <div className="relative max-w-sm mx-auto group">
-                                <span className="absolute left-6 top-1/2 -translate-y-1/2 text-black font-bold text-2xl group-focus-within:text-black transition-colors">R$</span>
+                                <span className={`absolute left-6 top-1/2 -translate-y-1/2 font-bold text-2xl transition-colors ${formData.pricing_type === 'free' ? 'text-black/20' : 'text-black'}`}>R$</span>
                                 <Input
                                     type="number"
-                                    className="bg-white border-2 border-black focus:border-black h-24 pl-16 rounded-xl text-6xl font-bold text-black shadow-none transition-all text-center pr-8 placeholder:text-black/20"
+                                    className={`bg-white border-2 border-black focus:border-black h-24 pl-16 rounded-xl text-6xl font-bold text-black shadow-none transition-all text-center pr-8 placeholder:text-black/20 ${formData.pricing_type === 'free' ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     placeholder="0"
                                     value={formData.price || ''}
                                     onChange={(e) => setStepData({ price: Number(e.target.value) })}
+                                    disabled={formData.pricing_type === 'free'}
                                 />
                             </div>
-                            <p className="text-center text-[10px] text-black/70 font-bold uppercase tracking-[5px]">Defina o valor do seu conteúdo Premium</p>
+                            <p className="text-center text-[10px] text-black/70 font-bold uppercase tracking-[5px]">
+                                {formData.pricing_type === 'free' ? 'Conteúdo disponibilizado gratuitamente' : 'Defina o valor do seu conteúdo Premium'}
+                            </p>
                         </div>
                     </div>
 

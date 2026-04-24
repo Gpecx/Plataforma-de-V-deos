@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ArrowRight, Heart, Clock, Globe, CheckCircle2, ShieldCheck } from 'lucide-react'
 import Link from 'next/link'
+import { isNewCourse } from '@/lib/date-utils'
 import { toggleWishlist, getWishlistCourseIds } from '@/app/actions/wishlist'
 import { auth } from '@/lib/firebase'
 import { onAuthStateChanged } from 'firebase/auth'
@@ -13,13 +14,14 @@ interface ExpandableCardProps {
     thumbnail: string
     title: string
     description: string
-    accent?: string
     ranking?: number
     showWishlist?: boolean
     initialIsInWishlist?: boolean
     isPurchased?: boolean
     teacherId?: string
     teacherName?: string
+    pricing_type?: 'premium' | 'free' | 'standard'
+    created_at?: any
 }
 
 export function ExpandableCard({ 
@@ -27,13 +29,14 @@ export function ExpandableCard({
     thumbnail, 
     title, 
     description, 
-    accent, 
     ranking, 
     showWishlist = true, 
     initialIsInWishlist = false,
     isPurchased = false,
     teacherId,
-    teacherName
+    teacherName,
+    pricing_type = 'standard',
+    created_at
 }: ExpandableCardProps) {
     const [isOpen, setIsOpen] = useState(false)
     const [isInWishlist, setIsInWishlist] = useState(initialIsInWishlist)
@@ -80,6 +83,23 @@ export function ExpandableCard({
             document.body.style.overflow = 'unset'
         }
     }, [isOpen])
+
+    const getBadge = () => {
+        if (pricing_type === 'premium') {
+            return { label: 'PREMIUM', className: 'bg-[#1D5F31] !text-white no-theme-override' }
+        }
+        if (pricing_type === 'free') {
+            return { label: 'GRATUITO', className: 'bg-black !text-white no-theme-override' }
+        }
+
+        if (isNewCourse(created_at)) {
+            return { label: 'NOVO', className: 'bg-white !text-[#1D5F31] no-theme-override' }
+        }
+
+        return null
+    }
+
+    const badge = getBadge()
 
     return (
         <>
@@ -129,6 +149,13 @@ export function ExpandableCard({
                     }}
                 />
 
+                {/* Badge Label */}
+                {badge && (
+                    <div className={`absolute top-2 left-2 z-20 px-2 py-1 rounded-sm text-[10px] font-bold uppercase tracking-widest shadow-lg ${badge.className}`}>
+                        {badge.label}
+                    </div>
+                )}
+
                 {/* Ranking Number */}
                 {ranking !== undefined && (
                     <div 
@@ -148,11 +175,6 @@ export function ExpandableCard({
                 
                 {/* Info Overlay (Thumbnail) */}
                 <div className={`absolute inset-0 p-4 flex flex-col justify-end items-end opacity-100 group-hover:opacity-0 transition-opacity z-[11] text-right`}>
-                    {accent && (
-                        <span className={`text-[10px] font-bold uppercase tracking-[2px] mb-0.5 ${accent === 'NOVO' ? 'bg-white text-[#1D5F31] px-1.5 py-0.5 rounded-sm' : 'text-[#4ADE80] shadow-black drop-shadow-[0_2px_4px_rgba(0,0,0,0.9)]'}`}>
-                            {accent}
-                        </span>
-                    )}
                     <h3 className="text-white font-bold text-[11px] line-clamp-2 uppercase leading-tight tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">{title}</h3>
                 </div>
 
@@ -210,9 +232,9 @@ export function ExpandableCard({
                                 >
                                     <div className="flex items-center gap-3 mb-6">
                                         <div className="w-10 h-px bg-[#1D5F31]" />
-                                        {accent && (
-                                            <span className="text-[10px] font-bold uppercase tracking-[4px] text-[#1D5F31]">
-                                                {accent}
+                                        {badge && (
+                                            <span className={`text-[10px] font-bold uppercase tracking-[4px] px-2 py-0.5 rounded-sm ${badge.className}`}>
+                                                {badge.label}
                                             </span>
                                         )}
                                     </div>

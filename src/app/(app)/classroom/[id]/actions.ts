@@ -1,9 +1,12 @@
 'use server'
 
 import { adminDb } from '@/lib/firebase-admin'
+import { serializeFirestoreData } from '@/lib/date-utils'
 import { doc, getDoc, setDoc, deleteDoc, collection, query, where, getDocs } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { ICertificate } from '@/lib/types/certificate'
+
+
 
 function generateVerificationCode(): string {
     const hexChars = '0123456789ABCDEF'
@@ -12,25 +15,6 @@ function generateVerificationCode(): string {
         code += hexChars[Math.floor(Math.random() * hexChars.length)]
     }
     return code
-}
-
-function serializeFirestoreData(data: any): any {
-    if (data === null || data === undefined) return null
-    if (data instanceof Date) return data.toISOString()
-    if (typeof data === 'object' && data._seconds !== undefined) {
-        return new Date(data._seconds * 1000).toISOString()
-    }
-    if (Array.isArray(data)) {
-        return data.map(item => serializeFirestoreData(item))
-    }
-    if (typeof data === 'object') {
-        const result: any = {}
-        for (const key of Object.keys(data)) {
-            result[key] = serializeFirestoreData(data[key])
-        }
-        return result
-    }
-    return data
 }
 
 export async function getUserCourseProgress(userId: string, courseId: string) {
