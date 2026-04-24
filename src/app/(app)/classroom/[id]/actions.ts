@@ -312,7 +312,9 @@ export async function processCertificateIssuance(courseId: string, userId: strin
             studentName,
             instructorName,
             issueDate: new Date().toISOString(),
+            date_conclusao: new Date().toISOString(),
             verificationCode,
+            credentialId: verificationCode,
             percentage: 100,
             status: 'pending_rules'
         }
