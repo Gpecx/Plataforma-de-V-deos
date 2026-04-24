@@ -2,8 +2,6 @@
 
 import { adminDb } from '@/lib/firebase-admin'
 import { serializeFirestoreData } from '@/lib/date-utils'
-import { doc, getDoc, setDoc, deleteDoc, collection, query, where, getDocs } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
 import { ICertificate } from '@/lib/types/certificate'
 
 
@@ -19,15 +17,20 @@ function generateVerificationCode(): string {
 
 export async function getUserCourseProgress(userId: string, courseId: string) {
     try {
-        const progressDoc = await adminDb.collection('userProgress').doc(`${userId}_${courseId}`).get()
+        const enrollmentsSnapshot = await adminDb.collection('enrollments')
+            .where('user_id', '==', userId)
+            .where('course_id', '==', courseId)
+            .limit(1)
+            .get()
         
-        if (progressDoc.exists) {
-            const data = progressDoc.data()
+        if (!enrollmentsSnapshot.empty) {
+            const enrollmentDoc = enrollmentsSnapshot.docs[0]
+            const data = enrollmentDoc.data()
             return {
                 success: true,
-                completedLessons: data?.completedLessons || [],
-                lastLessonId: data?.lastLessonId || null,
-                lastTimestamp: data?.lastTimestamp || 0
+                completedLessons: data?.completed_lessons || [],
+                lastLessonId: data?.last_lesson_id || null,
+                lastTimestamp: data?.last_timestamp || 0
             }
         }
         
@@ -50,43 +53,88 @@ export async function toggleLessonCompletion(
     completed: boolean
 ) {
     try {
-        const progressId = `${userId}_${courseId}`
-        const progressRef = doc(db, 'userProgress', progressId)
+        const enrollmentsSnapshot = await adminDb.collection('enrollments')
+            .where('user_id', '==', userId)
+            .where('course_id', '==', courseId)
+            .limit(1)
+            .get()
         
-        const progressDoc = await getDoc(progressRef)
-        
-        if (progressDoc.exists()) {
-            const data = progressDoc.data()
-            const currentCompleted = data?.completedLessons || []
-            
-            let newCompleted: string[]
-            if (completed) {
-                newCompleted = [...currentCompleted, lessonId]
-            } else {
-                newCompleted = currentCompleted.filter((id: string) => id !== lessonId)
-            }
-            
-            await setDoc(progressRef, {
-                userId,
-                courseId,
-                completedLessons: newCompleted,
-                updatedAt: new Date()
-            }, { merge: true })
-        } else {
-            if (completed) {
-                await setDoc(progressRef, {
-                    userId,
-                    courseId,
-                    completedLessons: [lessonId],
-                    updatedAt: new Date()
-                })
-            }
+        if (enrollmentsSnapshot.empty) {
+            return { success: false, error: 'Matrícula não encontrada' }
         }
         
-        return { success: true }
+        const enrollmentDoc = enrollmentsSnapshot.docs[0]
+        const enrollmentRef = adminDb.collection('enrollments').doc(enrollmentDoc.id)
+        const data = enrollmentDoc.data()
+        const currentCompleted = data?.completed_lessons || []
+        
+        let newCompleted: string[]
+        if (completed) {
+            if (!currentCompleted.includes(lessonId)) {
+                newCompleted = [...currentCompleted, lessonId]
+            } else {
+                newCompleted = currentCompleted
+            }
+        } else {
+            newCompleted = currentCompleted.filter((id: string) => id !== lessonId)
+        }
+        
+        await enrollmentRef.set({
+            completed_lessons: newCompleted,
+            updated_at: new Date()
+        }, { merge: true })
+        
+        const lessonsSnapshot = await adminDb.collection('lessons')
+            .where('course_id', '==', courseId)
+            .where('status', '==', 'APROVADO')
+            .get()
+        const totalLessons = lessonsSnapshot.size
+        
+        const percentage = newCompleted.length / totalLessons
+        const completed100 = percentage >= 1.0
+        
+        if (completed100) {
+            const courseDoc = await adminDb.collection('courses').doc(courseId).get()
+            const courseData = courseDoc.data()
+            const courseTitle = courseData?.title || 'Curso'
+            
+            await processCourseCompletion(userId, courseId, courseTitle)
+        }
+        
+        return { success: true, completedLessons: newCompleted, completedPercentage: percentage }
     } catch (err: any) {
         console.error("Erro ao salvar progresso:", err)
         return { success: false, error: err.message }
+    }
+}
+
+async function processCourseCompletion(userId: string, courseId: string, courseTitle: string) {
+    try {
+        const profileDoc = await adminDb.collection('profiles').doc(userId).get()
+        const profileData = profileDoc.exists ? profileDoc.data() : null
+        const concludedCourses = profileData?.concluded_courses || []
+        
+        const alreadyConcluded = concludedCourses.some((c: any) => c.courseId === courseId)
+        if (alreadyConcluded) {
+            console.log('Curso já concluído:', courseId)
+            return
+        }
+        
+        const credentialId = generateVerificationCode()
+        const newConcluded = {
+            courseId,
+            courseTitle,
+            date_conclusao: new Date().toISOString(),
+            credentialId
+        }
+        
+        await adminDb.collection('profiles').doc(userId).set({
+            concluded_courses: [...concludedCourses, newConcluded]
+        }, { merge: true })
+        
+        console.log('Curso concluído e perfil atualizado:', { userId, courseId, credentialId })
+    } catch (err) {
+        console.error('Erro ao processar conclusão:', err)
     }
 }
 
@@ -97,13 +145,22 @@ export async function saveLessonProgress(
     timestamp: number
 ) {
     try {
-        const progressId = `${userId}_${courseId}`
-        await adminDb.collection('userProgress').doc(progressId).set({
-            userId,
-            courseId,
-            lastLessonId: lessonId,
-            lastTimestamp: timestamp,
-            updatedAt: new Date()
+        const enrollmentsSnapshot = await adminDb.collection('enrollments')
+            .where('user_id', '==', userId)
+            .where('course_id', '==', courseId)
+            .limit(1)
+            .get()
+        
+        if (enrollmentsSnapshot.empty) {
+            return { success: false, error: 'Matrícula não encontrada' }
+        }
+        
+        const enrollmentDoc = enrollmentsSnapshot.docs[0]
+        
+        await adminDb.collection('enrollments').doc(enrollmentDoc.id).set({
+            last_lesson_id: lessonId,
+            last_timestamp: timestamp,
+            updated_at: new Date()
         }, { merge: true })
         
         return { success: true }
