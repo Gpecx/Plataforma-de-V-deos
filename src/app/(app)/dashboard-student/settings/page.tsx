@@ -138,23 +138,36 @@ export default function SettingsPage() {
         setIsUpdatingPassword(true)
         try {
             if (user) {
+                // Protocolo 1: Reautenticação Obrigatória
                 const credential = EmailAuthProvider.credential(user.email!, currentPassword)
                 await reauthenticateWithCredential(user, credential)
-                setNeedsReauth(false)
                 
+                // Protocolo 2: Update Silencioso
                 await updatePassword(user, newPassword)
+
+                // Protocolo: Sincronização de Sessão (Server-side)
+                const newToken = await user.getIdToken(true)
+                await fetch('/api/auth/session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idToken: newToken })
+                })
+                
                 showNotification('Senha atualizada com sucesso!', 'success')
                 setNewPassword(''); setConfirmPassword(''); setCurrentPassword('')
+                setNeedsReauth(false)
             }
         } catch (error: any) {
             console.error("Password Update Error:", error)
+
+            // Protocolo 3: Tratamento de Erros sem Redirecionamento Punitivo
             if (error.code === 'auth/wrong-password') {
                 showNotification('Senha atual incorreta.', 'error')
             } else if (error.code === 'auth/requires-recent-login') {
                 setNeedsReauth(true)
                 showNotification('Confirme sua senha atual.', 'info')
             } else {
-                showNotification('Erro ao atualizar senha.', 'error')
+                showNotification('Erro ao atualizar senha. Tente novamente.', 'error')
             }
         } finally {
             setIsUpdatingPassword(false)

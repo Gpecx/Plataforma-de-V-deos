@@ -23,22 +23,28 @@ export const useChangePassword = () => {
         setIsLoading(true);
 
         try {
-            // Step 1: Generate credential using existing email and provided current password
+            // Step 1: Protocolo 1 - Reautenticação Obrigatória
             const credential = EmailAuthProvider.credential(user.email, data.currentPassword);
-
-            // Step 2: Re-authenticate user to satisfy "recent login" requirement
             await reauthenticateWithCredential(user, credential);
 
-            // Step 3: Perform the password update
+            // Step 2: Protocolo 2 - Update Silencioso
             await updatePassword(user, data.newPassword);
 
-            toast.success("Senha alterada com sucesso!");
+            // Step 3: Protocolo - Sincronização de Sessão (Server-side)
+            const newToken = await user.getIdToken(true);
+            await fetch('/api/auth/session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ idToken: newToken })
+            });
+
+            toast.success("Senha atualizada com sucesso!");
             return true;
         } catch (error) {
             const fbError = error as FirebaseError;
             console.error("Password Change Error:", fbError.code);
 
-            // Map Firebase codes to user-friendly messages
+            // Step 4: Protocolo 3 - Tratamento de Erros sem Redirecionamento Punitivo
             let errorMessage = "Ocorreu um erro ao alterar a senha.";
 
             switch (fbError.code) {
@@ -46,19 +52,17 @@ export const useChangePassword = () => {
                     errorMessage = "A senha atual está incorreta.";
                     break;
                 case "auth/weak-password":
-                    errorMessage = "A nova senha é considerada fraca pela segurança do Firebase.";
+                    errorMessage = "A nova senha é considerada fraca.";
                     break;
                 case "auth/requires-recent-login":
-                    errorMessage = "Sessão expirada. Por favor, faça login novamente.";
-                    break;
-                case "email-mismatch":
-                    errorMessage = "O e-mail fornecido não corresponde ao usuário logado.";
+                    errorMessage = "Sessão expirada. Por favor, reautentique-se.";
                     break;
             }
 
             toast.error(errorMessage);
             return false;
-        } finally {
+        }
+ finally {
             setIsLoading(false);
         }
     };
