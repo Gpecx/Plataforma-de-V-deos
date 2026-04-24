@@ -559,6 +559,7 @@ export default function CourseBuilder() {
     const [courseIntroVideoMuxId, setCourseIntroVideoMuxId] = useState('')
     const [courseIntroVideoAssetId, setCourseIntroVideoAssetId] = useState('')
     const [courseIntroVideoPlaybackId, setCourseIntroVideoPlaybackId] = useState('')
+    const [coursePricingType, setCoursePricingType] = useState<'premium' | 'free' | 'standard'>('standard')
     const [courseCurriculum, setCourseCurriculum] = useState<string[]>([])
     const [isUploadingIntro, setIsUploadingIntro] = useState(false)
     const [introUploadProgress, setIntroUploadProgress] = useState(0)
@@ -591,6 +592,7 @@ export default function CourseBuilder() {
                         setCourseIntroVideoMuxId(cData.intro_video_mux_id || '')
                         setCourseIntroVideoAssetId(cData.intro_video_asset_id || '')
                         setCourseIntroVideoPlaybackId(cData.intro_video_playback_id || '')
+                        setCoursePricingType(cData.pricing_type || 'standard')
                         setCourseCurriculum(cData.curriculum || [])
                         setCourseTags(cData.tags || [])
 
@@ -683,6 +685,12 @@ export default function CourseBuilder() {
             formattedPrice = 0
         }
 
+        if (coursePricingType === 'premium' && formattedPrice <= 0) {
+            toast.error("O curso Premium deve ter um valor maior que zero.")
+            setIsSaving(false)
+            return
+        }
+
         try {
             const result = await updateCourseAction(params.id as string, {
                 title: courseTitle,
@@ -690,6 +698,7 @@ export default function CourseBuilder() {
                 description: courseDescription,
                 category: courseCategory,
                 price: formattedPrice,
+                pricing_type: coursePricingType,
                 duration: courseDuration,
                 image_url: courseImage,
                 intro_video_url: courseIntroVideo,
@@ -1138,14 +1147,42 @@ export default function CourseBuilder() {
                             </div>
 
                             <div className="space-y-4">
+                                <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Tipo de Precificação</label>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {[
+                                        { id: 'standard', label: 'Padrão' },
+                                        { id: 'free', label: 'Gratuito' },
+                                        { id: 'premium', label: 'Premium' }
+                                    ].map((type) => (
+                                        <button
+                                            key={type.id}
+                                            type="button"
+                                            onClick={() => {
+                                                setCoursePricingType(type.id as any)
+                                                if (type.id === 'free') setCoursePrice('0,00')
+                                            }}
+                                            className={`px-3 py-3 rounded-md text-[9px] font-bold uppercase tracking-widest transition-all border-2 ${
+                                                coursePricingType === type.id
+                                                    ? 'bg-[#1D5F31] border-[#1D5F31] text-white'
+                                                    : 'bg-white border-black text-black hover:border-[#1D5F31]'
+                                            }`}
+                                        >
+                                            {type.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
                                 <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Valor do Investimento</label>
                                 <div className="relative group">
-                                    <span className="absolute left-8 top-1/2 -translate-y-1/2 text-black font-bold text-2xl group-focus-within:text-[#1D5F31] transition-colors">R$</span>
+                                    <span className={`absolute left-8 top-1/2 -translate-y-1/2 font-bold text-2xl transition-colors ${coursePricingType === 'free' ? 'text-black/20' : 'text-black group-focus-within:text-[#1D5F31]'}`}>R$</span>
                                     <input
                                         type="text"
                                         value={coursePrice}
                                         onChange={(e) => setCoursePrice(e.target.value)}
-                                        className="w-full bg-white border border-[#1D5F31]/20 rounded-md pl-24 pr-8 py-5 focus:border-[#1D5F31] outline-none font-bold text-2xl text-black transition-all"
+                                        disabled={coursePricingType === 'free'}
+                                        className={`w-full bg-white border border-[#1D5F31]/20 rounded-md pl-24 pr-8 py-5 focus:border-[#1D5F31] outline-none font-bold text-2xl text-black transition-all ${coursePricingType === 'free' ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     />
                                 </div>
                             </div>

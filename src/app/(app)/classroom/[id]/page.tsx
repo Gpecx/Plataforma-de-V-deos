@@ -11,7 +11,8 @@ import {
     PlayCircle,
     Loader2,
     Lightbulb,
-    Moon
+    Moon,
+    Award
 } from 'lucide-react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { ClassroomTabs } from './ClassroomTabs'
@@ -48,6 +49,7 @@ export default function ClassroomPage() {
     const [error, setError] = useState<string | null>(null)
     const [autoNextCountdown, setAutoNextCountdown] = useState<number | null>(null)
     const [certificateIssued, setCertificateIssued] = useState(false)
+    const [showCongratulations, setShowCongratulations] = useState(false)
     const [isToggling, setIsToggling] = useState(false)
     const [currentUser, setCurrentUser] = useState<any>(null)
     const [lastTimestamp, setLastTimestamp] = useState(0)
@@ -252,9 +254,7 @@ export default function ClassroomPage() {
                 const certResult = await processCertificateIssuance(course?.id, currentUser.uid)
                 if (certResult.success && certResult.data) {
                     setCertificateIssued(true)
-                    setTimeout(() => {
-                        alert(`Parabéns! Certificado emitido com sucesso!\n\nCurso: ${certResult.data?.courseTitle}\nCódigo de Verificação: ${certResult.data?.verificationCode}`)
-                    }, 500)
+                    setShowCongratulations(true)
                 }
             }
         } catch (err) {
@@ -311,6 +311,36 @@ export default function ClassroomPage() {
     const progressPercent = lessons.length > 0
         ? Math.round((completedLessons.length / lessons.length) * 100)
         : 0
+
+    if (showCongratulations) {
+        return (
+            <div className="h-screen flex flex-col items-center justify-center p-8 text-center font-montserrat bg-[#061629] animate-in fade-in zoom-in duration-500">
+                <div className="w-24 h-24 bg-[#1D5F31]/20 rounded-full flex items-center justify-center mb-8">
+                    <Award size={48} className="text-[#1D5F31]" />
+                </div>
+                <h1 className="text-4xl md:text-5xl font-black uppercase tracking-tighter text-white mb-4">
+                    Parabéns, curso concluído!
+                </h1>
+                <p className="text-sm md:text-base font-bold uppercase tracking-widest text-slate-400 max-w-lg mb-12">
+                    Você completou todas as aulas de {course?.title}. Seu certificado oficial já está disponível.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4">
+                    <Link 
+                        href="/dashboard-student/certificates"
+                        className="px-8 py-4 bg-[#1D5F31] text-white font-bold uppercase text-xs tracking-widest rounded-xl hover:bg-[#1D5F31]/90 transition-all shadow-[0_0_20px_rgba(29,95,49,0.4)] flex items-center justify-center gap-2"
+                    >
+                        <Award size={18} /> Visualizar Meu Certificado
+                    </Link>
+                    <button 
+                        onClick={() => setShowCongratulations(false)}
+                        className="px-8 py-4 bg-transparent border border-slate-700 text-slate-300 font-bold uppercase text-xs tracking-widest rounded-xl hover:bg-slate-800 transition-all flex items-center justify-center"
+                    >
+                        Voltar para Aula
+                    </button>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className="flex flex-col h-screen overflow-hidden font-montserrat bg-[#061629] text-white">

@@ -30,13 +30,14 @@ export default async function CoursesPage() {
                 description: data.description || '',
                 category: data.category || 'Lançamentos',
                 price: data.price ?? 157,
-                tag: data.tag || 'TREINAMENTO',
+                tag: data.tag || '',
                 image_url: data.image_url || null,
                 duration: data.duration || 0,
                 status: data.status || 'APROVADO',
                 teacher_id: data.teacher_id || null,
                 teacher_name: data.teacher_name || 'Equipe PowerPlay',
                 tags: data.tags || [],
+                pricing_type: data.pricing_type || 'standard',
                 created_at: parseFirebaseDate(data.created_at)?.toISOString() || null,
             };
         });

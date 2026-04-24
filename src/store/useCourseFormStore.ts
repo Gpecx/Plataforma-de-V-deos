@@ -16,6 +16,7 @@ interface CourseFormData {
     subtitle: string
     description: string
     price: number
+    pricing_type: 'premium' | 'free' | 'standard'
     duration: number
     image_url?: string
     intro_video_url?: string
@@ -40,6 +41,7 @@ const defaultFormData: CourseFormData = {
     subtitle: '',
     description: '',
     price: 0,
+    pricing_type: 'standard',
     duration: 0,
     intro_video_url: '',
     intro_video_mux_id: '',

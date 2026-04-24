@@ -17,9 +17,15 @@ export function ToastNotification() {
     }
 
     const bgColors = {
-        info: "bg-blue-50/90 border-blue-100",
-        success: "bg-[#1D5F31]/10 border-[#1D5F31]/20",
-        error: "bg-red-50/90 border-red-100",
+        info: "bg-blue-50 border-blue-200",
+        success: "bg-[#1D5F31] border-[#1D5F31]",
+        error: "bg-red-50 border-red-200",
+    }
+
+    const textColors = {
+        info: "text-slate-800",
+        success: "text-white",
+        error: "text-slate-800",
     }
 
     return (
@@ -30,19 +36,19 @@ export function ToastNotification() {
                         initial={{ opacity: 0, y: -20, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                        className={`pointer-events-auto backdrop-blur-md border shadow-2xl rounded-2xl p-4 flex items-center justify-between gap-4 ${bgColors[notification.type]}`}
+                        className={`pointer-events-auto backdrop-blur-md border shadow-2xl rounded-md p-4 flex items-center justify-between gap-4 ${bgColors[notification.type]}`}
                     >
                         <div className="flex items-center gap-3">
-                            <div className="bg-white p-1.5 rounded-xl shadow-sm">
+                            <div className="bg-white p-1.5 rounded-md shadow-sm">
                                 {icons[notification.type]}
                             </div>
-                            <p className="text-sm font-bold uppercase tracking-tight text-slate-800 leading-tight">
+                            <p className={`text-xs font-bold uppercase tracking-wider leading-tight ${textColors[notification.type]}`}>
                                 {notification.message}
                             </p>
                         </div>
                         <button
                             onClick={hideNotification}
-                            className="p-1 hover:bg-black/5 rounded-lg transition-colors text-slate-400 hover:text-slate-600"
+                            className={`p-1 hover:bg-black/5 rounded-lg transition-colors ${notification.type === 'success' ? 'text-white/80 hover:text-white' : 'text-slate-400 hover:text-slate-600'}`}
                         >
                             <X size={16} />
                         </button>

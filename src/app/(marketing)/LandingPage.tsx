@@ -22,6 +22,7 @@ interface CourseData {
     status: string;
     teacher_id?: string;
     teacher_name?: string;
+    created_at?: any;
 }
 
 interface LandingPageProps {
@@ -74,6 +75,14 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
             description: "Conte com mentores e uma comunidade ativa para tirar dúvidas e acelerar seu crescimento.",
         },
     ];
+
+    const isNew = (createdAt: any) => {
+        if (!createdAt) return false;
+        const created = createdAt.toDate ? createdAt.toDate() : new Date(createdAt);
+        const now = new Date();
+        const diffDays = Math.floor((now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24));
+        return diffDays <= 30;
+    };
 
     if (authLoading || user) {
         return (
@@ -287,11 +296,12 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                             thumbnail={course.image_url}
                             title={course.title}
                             description={course.description}
-                            accent={course.tag}
                             ranking={i + 1}
                             showWishlist={false}
                             teacherId={course.teacher_id}
                             teacherName={course.teacher_name}
+                            pricing_type={course.pricing_type}
+                            created_at={course.created_at}
                         />
                     ))}
                 </div>

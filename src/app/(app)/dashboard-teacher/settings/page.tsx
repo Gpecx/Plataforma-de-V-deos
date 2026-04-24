@@ -133,27 +133,44 @@ export default function TeacherSettingsPage() {
 
         try {
             if (user) {
+                // Protocolo 1: Reautenticação Obrigatória
                 const credential = EmailAuthProvider.credential(user.email!, currentPassword)
                 await reauthenticateWithCredential(user, credential)
-                setNeedsReauth(false)
-
+                
+                // Protocolo 2: Update Silencioso
                 await updatePassword(user, newPassword)
+
+                // Protocolo: Sincronização de Sessão (Server-side)
+                // Após a troca da senha, o idToken muda. Precisamos atualizar o cookie de sessão.
+                const newToken = await user.getIdToken(true)
+                await fetch('/api/auth/session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idToken: newToken })
+                })
+
+                // Feedback Visual de Sucesso (#1D5F31)
                 showNotification('Senha atualizada com sucesso!', 'success')
+                
+                // Limpeza de campos
                 setNewPassword('')
                 setConfirmPassword('')
                 setCurrentPassword('')
+                setNeedsReauth(false)
             }
         } catch (error: any) {
             console.error("Erro ao atualizar senha:", error)
 
+            // Protocolo 3: Tratamento de Erros sem Redirecionamento Punitivo
             if (error.code === 'auth/wrong-password') {
                 showNotification('Senha atual incorreta.', 'error')
             } else if (error.code === 'auth/requires-recent-login') {
                 setNeedsReauth(true)
                 showNotification('Para sua segurança, confirme sua senha atual.', 'info')
             } else {
-                showNotification('Erro ao atualizar senha', 'error')
+                showNotification('Erro ao atualizar senha. Tente novamente.', 'error')
             }
+            // Mantenha o usuário na tela; sem router.push ou setUser(null)
         } finally {
             setIsUpdatingPassword(false)
         }

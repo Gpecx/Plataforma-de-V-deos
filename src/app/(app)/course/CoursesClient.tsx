@@ -4,7 +4,8 @@ import { useState, Suspense, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useSearchParams } from "next/navigation";
-import { Info, ChevronRight, Loader2 } from "lucide-react";
+import { Info, ChevronRight, Loader2, Search } from "lucide-react";
+import { isNewCourse } from "@/lib/date-utils";
 import Navbar from "@/components/Navbar";
 import CourseModal from "@/components/CourseModal";
 import { BannerWrapper } from "@/components/ui/BannerWrapper";
@@ -45,6 +46,8 @@ interface Course {
     status: 'APROVADO' | 'PENDENTE' | 'DESATIVADO';
     teacher_name?: string;
     tags?: string[];
+    pricing_type?: 'premium' | 'free' | 'standard';
+    created_at?: any;
 }
 
 interface CoursesClientProps {
@@ -60,6 +63,8 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [selectedCourse, setSelectedCourse] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [localSearch, setLocalSearch] = useState("");
+    const [activeFilter, setActiveFilter] = useState<'all' | 'premium' | 'free' | 'new'>('all');
 
     const firstName = profile?.full_name?.split(' ')[0] || '';
     const isLoggedIn = !loading && !!user;
@@ -79,17 +84,25 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
         return () => clearInterval(timer);
     }, [displaySlides.length]);
 
-    const filteredCourses = searchQuery
-        ? initialCourses.filter(c => {
-            const query = searchQuery.toLowerCase().trim()
-            return c.status === 'APROVADO' && (
-                c.title?.toLowerCase().includes(query) ||
-                c.category?.toLowerCase().includes(query) ||
-                c.teacher_name?.toLowerCase().includes(query) ||
-                (c.tags && c.tags.some((tag: string) => tag.toLowerCase().includes(query)))
-            )
-        })
-        : initialCourses.filter(c => c.status === 'APROVADO');
+    const filteredCourses = initialCourses.filter(c => {
+        if (c.status !== 'APROVADO') return false;
+
+        const query = (localSearch || searchQuery).toLowerCase().trim();
+        const matchesSearch = query ? (
+            c.title?.toLowerCase().includes(query) ||
+            c.category?.toLowerCase().includes(query) ||
+            c.teacher_name?.toLowerCase().includes(query) ||
+            (c.tags && c.tags.some((tag: string) => tag.toLowerCase().includes(query)))
+        ) : true;
+
+        if (!matchesSearch) return false;
+
+        if (activeFilter === 'premium') return c.pricing_type === 'premium';
+        if (activeFilter === 'free') return c.pricing_type === 'free';
+        if (activeFilter === 'new') return isNewCourse(c.created_at);
+
+        return true;
+    });
 
     const handleCourseClick = (course: Course) => {
         setSelectedCourse(course);
@@ -177,14 +190,57 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
                 </div>
             </BannerWrapper>
 
+            {/* Filtros e Busca */}
+            <div className="relative z-30 px-6 md:px-12 mt-12">
+                <div className="flex flex-col md:flex-row gap-6 items-center justify-between bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
+                    {/* Filtros Rápidos */}
+                    <div className="flex flex-wrap gap-2 w-full md:w-auto">
+                        {(['all', 'premium', 'free', 'new'] as const).map((filter) => {
+                            const labels = {
+                                all: 'Todos',
+                                premium: 'Premium',
+                                free: 'Gratuito',
+                                new: 'Novo'
+                            };
+                            const isActive = activeFilter === filter;
+                            return (
+                                <button
+                                    key={filter}
+                                    onClick={() => setActiveFilter(filter)}
+                                    className={`px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all duration-300 border ${
+                                        isActive 
+                                        ? 'bg-[#1D5F31] !text-white border-[#1D5F31] shadow-md no-theme-override' 
+                                        : 'bg-white text-slate-600 border-slate-200 hover:border-[#1D5F31]/50 hover:text-[#1D5F31]'
+                                    }`}
+                                >
+                                    {labels[filter]}
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    {/* Barra de Pesquisa */}
+                    <div className="relative w-full md:max-w-md">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                        <input 
+                            type="text" 
+                            placeholder="Buscar treinamentos..." 
+                            value={localSearch}
+                            onChange={(e) => setLocalSearch(e.target.value)}
+                            className="w-full h-12 pl-11 pr-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-black placeholder:text-slate-400 focus:outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31] transition-all"
+                        />
+                    </div>
+                </div>
+            </div>
+
             {/* Título */}
-            <div className="relative z-30 px-6 md:px-12 mt-16 mb-10">
+            <div className="relative z-30 px-6 md:px-12 mt-12 mb-10">
                 <div className="flex items-center gap-4 mb-2">
                     <div className="w-12 h-[2px] bg-[#1D5F31]"></div>
                     <span className="text-sm font-bold uppercase tracking-tight text-[#1D5F31]">Explorar</span>
                 </div>
                 <h2 className="text-2xl md:text-3xl font-bold tracking-tighter text-black">
-                    {searchQuery ? `RESULTADOS PARA: ${searchQuery.toUpperCase()}` : "CATÁLOGO DE FORMAÇÃO"}
+                    {localSearch || searchQuery ? `RESULTADOS PARA: ${(localSearch || searchQuery).toUpperCase()}` : "CATÁLOGO DE FORMAÇÃO"}
                 </h2>
             </div>
 
@@ -236,9 +292,31 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
                                                     courseId={course.id} 
                                                     isPurchased={profile?.cursos_comprados?.includes(course.id)} 
                                                 />
-                                                <div className="absolute top-2 right-2 bg-white/90 backdrop-blur-sm border border-slate-200 text-[#1D5F31] px-2 py-0.5 text-sm font-bold uppercase tracking-tight rounded-md z-10">
-                                                    {course.tag || "TREINAMENTO"}
-                                                </div>
+                                                {/* Badge Logic */}
+                                                {(() => {
+                                                    if (course.pricing_type === 'premium') {
+                                                        return (
+                                                            <div className="absolute top-2 left-2 bg-[#1D5F31] !text-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm z-10 shadow-lg no-theme-override">
+                                                                PREMIUM
+                                                            </div>
+                                                        )
+                                                    }
+                                                    if (course.pricing_type === 'free') {
+                                                        return (
+                                                            <div className="absolute top-2 left-2 bg-black !text-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm z-10 shadow-lg no-theme-override">
+                                                                GRATUITO
+                                                            </div>
+                                                        )
+                                                    }
+                                                    if (isNewCourse(course.created_at)) {
+                                                        return (
+                                                            <div className="absolute top-2 left-2 bg-white !text-[#1D5F31] px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm z-10 shadow-lg no-theme-override">
+                                                                NOVO
+                                                            </div>
+                                                        )
+                                                    }
+                                                    return null
+                                                })()}
                                             </div>
                                             <div className="p-6 flex-grow flex flex-col space-y-4">
                                                 <h3 className="text-sm font-bold text-black leading-tight group-hover:text-[#1D5F31] transition-colors line-clamp-2">
