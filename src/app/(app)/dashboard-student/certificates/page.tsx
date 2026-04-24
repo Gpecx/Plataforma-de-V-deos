@@ -37,6 +37,18 @@ export default function CertificatesPage() {
         fetchProfile()
     }, [])
 
+    useEffect(() => {
+        const handleEsc = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                setSelectedCert(null)
+            }
+        }
+        if (selectedCert) {
+            window.addEventListener('keydown', handleEsc)
+        }
+        return () => window.removeEventListener('keydown', handleEsc)
+    }, [selectedCert])
+
     const hasCertificates = certificates.length > 0
 
     const handleDownload = async (cert: ICertificate) => {
@@ -60,34 +72,91 @@ export default function CertificatesPage() {
     }
 
     const downloadPDF = async (cert: ICertificate) => {
-        if (!certificateRef.current) return;
-        try {
-            const canvas = await html2canvas(certificateRef.current, {
-                scale: 3, // High quality
-                useCORS: true,
-                logging: false,
-                backgroundColor: '#061b0f'
-            });
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jsPDF({
-                orientation: 'landscape',
-                unit: 'mm',
-                format: 'a4'
-            });
-            
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-            
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            pdf.save(`certificado-powerplay-${cert.courseId}.pdf`);
-            toast.success('Certificado baixado com sucesso!');
-        } catch (err) {
-            console.error('Error generating PDF', err);
-            toast.error('Ocorreu um erro ao gerar o PDF.');
+        if (!certificateRef.current) {
+            console.error("ERRO NO DOWNLOAD: Referência do certificado não encontrada.");
+            toast.error("Ocorreu um erro técnico ao capturar o certificado.");
+            return;
         }
+
+        setDownloadingId(cert.credentialId);
+        
+        toast.promise(async () => {
+            try {
+                // Pequeno delay para garantir que imagens remotas (QR Code) e fontes carreguem
+                await new Promise(resolve => setTimeout(resolve, 800));
+
+                console.log("Iniciando captura do canvas...");
+                
+                const canvas = await html2canvas(certificateRef.current!, {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: false,
+                    logging: true,
+                    backgroundColor: '#ffffff',
+                    windowWidth: 1440,
+                    onclone: (clonedDoc) => {
+                        const el = clonedDoc.getElementById('print-section');
+                        if (el) {
+                            el.style.display = 'block';
+                            el.style.padding = '0';
+                            el.style.margin = '0';
+                            
+                            // Limpeza profunda de cores modernas que quebram o html2canvas (v4/modern CSS)
+                            const allElements = el.getElementsByTagName('*');
+                            for (let i = 0; i < allElements.length; i++) {
+                                const element = allElements[i] as HTMLElement;
+                                // Força o uso de cores herdadas ou explícitas em Hex para evitar lab() / oklch()
+                                const style = window.getComputedStyle(element);
+                                if (style.color.includes('lab') || style.color.includes('oklch')) {
+                                    element.style.color = '#000000';
+                                }
+                                if (style.backgroundColor.includes('lab') || style.backgroundColor.includes('oklch')) {
+                                    element.style.backgroundColor = 'transparent';
+                                }
+                                if (style.borderColor.includes('lab') || style.borderColor.includes('oklch')) {
+                                    element.style.borderColor = 'transparent';
+                                }
+                            }
+                        }
+                    }
+                });
+
+                console.log("Canvas capturado com sucesso. Gerando PDF...");
+
+                const imgData = canvas.toDataURL('image/png', 1.0);
+                const pdf = new jsPDF({
+                    orientation: 'landscape',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+                
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+                
+                // Preenche a página A4 exatamente
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+                
+                const filename = `Certificado - ${studentName} - PowerPlay.pdf`;
+                pdf.save(filename);
+                
+                console.log(`PDF ${filename} gerado com sucesso.`);
+                setDownloadingId(null);
+            } catch (error) {
+                console.error("ERRO CRÍTICO NO DOWNLOAD DO PDF:", error);
+                setDownloadingId(null);
+                throw error; // Repassa para o toast.promise tratar
+            }
+        }, {
+            loading: 'Processando certificado de alta fidelidade...',
+            success: 'Certificado baixado com sucesso!',
+            error: 'Falha na geração do PDF. Verifique o console.'
+        });
     }
 
     const handlePrint = () => {
+        if (!certificateRef.current) return;
+        
+        // Direct print via browser with improved CSS
         window.print();
     }
 
@@ -110,19 +179,38 @@ export default function CertificatesPage() {
         <div className="p-8 md:p-12 min-h-screen font-montserrat text-black bg-transparent animate-in fade-in duration-500">
             <style jsx global>{`
                 @media print {
+                    body {
+                        margin: 0;
+                        padding: 0;
+                        background: white !important;
+                    }
                     body * {
                         visibility: hidden;
                     }
                     #print-section, #print-section * {
                         visibility: visible;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
                     }
                     #print-section {
                         position: absolute;
                         left: 0;
                         top: 0;
                         width: 100%;
+                        height: 100vh;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
                     }
-                    @page { size: landscape; margin: 0; }
+                    @page { 
+                        size: A4 landscape; 
+                        margin: 0; 
+                    }
+                    /* Ensure background images and gradients print */
+                    * {
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
                 }
             `}</style>
             
@@ -234,12 +322,14 @@ export default function CertificatesPage() {
 
             {/* Certificate Modal */}
             {selectedCert && (
-                <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/90 backdrop-blur-md p-4">
+                <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#061629]/95 backdrop-blur-xl p-4 overflow-y-auto">
+                    {/* Botão de Fechar Superior Direito */}
                     <button 
                         onClick={() => setSelectedCert(null)}
-                        className="absolute top-6 right-6 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all"
+                        className="fixed top-6 right-6 md:top-10 md:right-10 z-[110] p-4 bg-white hover:bg-[#CCFF00] text-black rounded-full transition-all duration-300 shadow-2xl group border-2 border-transparent hover:scale-110 active:scale-95 print:hidden"
+                        title="Fechar (Esc)"
                     >
-                        <X size={24} />
+                        <X size={28} className="group-hover:rotate-90 transition-transform duration-300" />
                     </button>
                     
                     <div className="w-full max-w-5xl flex flex-col items-center">
@@ -250,6 +340,7 @@ export default function CertificatesPage() {
                                 duration={12} // Example, you can pass real duration
                                 credentialId={selectedCert.credentialId}
                                 date={new Date(selectedCert.date_conclusao).toLocaleDateString('pt-BR')}
+                                teacherName={selectedCert.teacherName || "Professor(a) Responsável"}
                             />
                         </div>
                         

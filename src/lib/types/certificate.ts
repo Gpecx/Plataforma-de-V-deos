@@ -3,4 +3,5 @@ export interface ICertificate {
   courseTitle: string;
   date_conclusao: string;
   credentialId: string;
+  teacherName?: string;
 }
