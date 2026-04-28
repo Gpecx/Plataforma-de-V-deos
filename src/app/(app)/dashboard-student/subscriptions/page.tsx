@@ -1,6 +1,7 @@
 "use client"
 
 import { Zap, CheckCircle2, ArrowRight, ShieldCheck, Star } from 'lucide-react'
+import Link from 'next/link'
 import { getFinancialSettings, PlanData } from '@/app/actions/financial'
 import { useState, useEffect } from 'react'
 
@@ -99,9 +100,12 @@ export default function SubscriptionsPage() {
                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Sua renovação é protegida pela criptografia PowerPlay Shield.</p>
                         </div>
                     </div>
-                    <button className="mt-8 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[3px] text-[#1D5F31] hover:text-slate-900 transition-colors">
+                    <Link 
+                        href="/dashboard-student/refund-policy"
+                        className="mt-8 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[3px] text-[#1D5F31] hover:text-slate-900 transition-colors"
+                    >
                         CONHECER POLÍTICA DE REEMBOLSO <ArrowRight size={14} />
-                    </button>
+                    </Link>
                 </div>
             </div>
         </div>
