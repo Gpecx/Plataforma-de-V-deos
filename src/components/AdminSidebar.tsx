@@ -78,6 +78,12 @@ const menuItems: MenuItem[] = [
         href: '/admin/all-courses',
         description: 'Catálogo Global'
     },
+    {
+        title: 'Documentos Legais',
+        icon: ShieldAlert,
+        href: '/admin/legal',
+        description: 'LGPD, Termos e Políticas'
+    },
 ]
 
 export default function AdminSidebar() {

@@ -29,6 +29,7 @@ function LoginContent() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const redirectTo = searchParams.get("redirectTo") || searchParams.get("next") || ""
+    const errorParam = searchParams.get("error")
     const isCourseRedirect = redirectTo.startsWith('/course') || redirectTo.startsWith('/classroom') || redirectTo.startsWith('/cart') || redirectTo.startsWith('/dashboard-student')
     const [showLogin, setShowLogin] = useState(!isCourseRedirect)
     const [mounted, setMounted] = useState(false)
@@ -39,7 +40,12 @@ function LoginContent() {
 
     useEffect(() => {
         setMounted(true)
-    }, [])
+        if (errorParam === 'account_suspended') {
+            toast.error('Sua conta foi suspensa. Entre em contato com o suporte.', {
+                duration: 8000,
+            })
+        }
+    }, [errorParam])
 
     const form = useForm<z.infer<typeof loginSchema>>({
         resolver: zodResolver(loginSchema),

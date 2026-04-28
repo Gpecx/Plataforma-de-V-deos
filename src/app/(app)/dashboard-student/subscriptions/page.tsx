@@ -101,7 +101,7 @@ export default function SubscriptionsPage() {
                         </div>
                     </div>
                     <Link 
-                        href="/dashboard-student/refund-policy"
+                        href={"/dashboard-student/refund-policy" as any}
                         className="mt-8 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[3px] text-[#1D5F31] hover:text-slate-900 transition-colors"
                     >
                         CONHECER POLÍTICA DE REEMBOLSO <ArrowRight size={14} />

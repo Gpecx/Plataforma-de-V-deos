@@ -115,15 +115,27 @@ async function processCourseCompletion(userId: string, courseId: string, courseT
         const concludedCourses = profileData?.concluded_courses || []
         
         const alreadyConcluded = concludedCourses.some((c: any) => c.courseId === courseId)
-        if (alreadyConcluded) {
-            console.log('Curso já concluído:', courseId)
-            return
+        if (alreadyConcluded) return
+        
+        // Busca o nome do instrutor para incluir no certificado
+        let teacherName = 'Professor(a) Responsável'
+        const courseDoc = await adminDb.collection('courses').doc(courseId).get()
+        if (courseDoc.exists) {
+            const courseData = courseDoc.data()
+            const teacherId = courseData?.teacher_id
+            if (teacherId) {
+                const teacherDoc = await adminDb.collection('profiles').doc(teacherId).get()
+                if (teacherDoc.exists) {
+                    teacherName = teacherDoc.data()?.full_name || teacherDoc.data()?.displayName || teacherName
+                }
+            }
         }
         
         const credentialId = generateVerificationCode()
         const newConcluded = {
             courseId,
             courseTitle,
+            teacherName,
             date_conclusao: new Date().toISOString(),
             credentialId
         }
@@ -131,8 +143,6 @@ async function processCourseCompletion(userId: string, courseId: string, courseT
         await adminDb.collection('profiles').doc(userId).set({
             concluded_courses: [...concludedCourses, newConcluded]
         }, { merge: true })
-        
-        console.log('Curso concluído e perfil atualizado:', { userId, courseId, credentialId })
     } catch (err) {
         console.error('Erro ao processar conclusão:', err)
     }
@@ -192,17 +202,7 @@ export async function getClassroomData(courseId: string, userId: string) {
                          hasEnrollment || 
                          purchasedFromProfile.includes(courseId)
 
-        console.log('Classroom Access DEBUG:', { 
-            userId, 
-            courseId, 
-            isAdmin, 
-            hasEnrollment, 
-            purchasedFromProfile, 
-            hasCourse 
-        })
-
         if (!hasCourse) {
-            console.log('Classroom Access Server DEBUG - DENIED:', { isAdmin, hasEnrollment, purchasedFromProfile, courseId, userId })
             return { success: false, error: 'ACCESS_DENIED' }
         }
 
@@ -299,7 +299,14 @@ export async function processCertificateIssuance(courseId: string, userId: strin
         const studentName = profileData?.full_name || 'Aluno'
 
         // 6. Buscar nome do instrutor
-        const instructorName = courseData?.instructorName || courseData?.instructor_name || 'Fred'
+        let instructorName = courseData?.instructorName || courseData?.instructor_name
+        if (!instructorName && courseData?.teacher_id) {
+            const teacherDoc = await adminDb.collection('profiles').doc(courseData.teacher_id).get()
+            if (teacherDoc.exists) {
+                instructorName = teacherDoc.data()?.full_name || teacherDoc.data()?.displayName
+            }
+        }
+        if (!instructorName) instructorName = 'Fred'
 
         // 7. Gerar código de verificação
         const verificationCode = generateVerificationCode()
