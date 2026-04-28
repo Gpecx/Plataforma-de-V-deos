@@ -22,6 +22,7 @@ interface CartStore {
     clearCart: () => void
     getTotal: () => number
     syncPrices: (freshPrices: { id: string, price: number }[]) => void
+    validateItems: (validIds: string[]) => void
     setCheckoutResult: (result: any) => void
 }
 
@@ -80,6 +81,13 @@ export const useCartStore = create<CartStore>()(
                     return item
                 })
                 if (changed) {
+                    set({ items: newItems })
+                }
+            },
+            validateItems: (validIds) => {
+                const currentItems = get().items
+                const newItems = currentItems.filter(item => validIds.includes(item.id))
+                if (newItems.length !== currentItems.length) {
                     set({ items: newItems })
                 }
             },
