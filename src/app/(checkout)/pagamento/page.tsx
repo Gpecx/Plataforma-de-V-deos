@@ -360,9 +360,10 @@ export default function PagamentoPage() {
                                     </div>
                                     <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wide leading-relaxed">
                                         Li e aceito os{' '}
-                                        <a href="/termos" target="_blank" className="text-[#1D5F31] hover:underline">Termos de Uso</a>{' '}
+                                        <a href="/termos" target="_blank" className="text-[#1D5F31] hover:underline">Termos de Uso</a>,{' '}
+                                        <a href="/privacidade" target="_blank" className="text-[#1D5F31] hover:underline">Privacidade</a>{' '}
                                         e a{' '}
-                                        <a href="/privacidade" target="_blank" className="text-[#1D5F31] hover:underline">Política de Privacidade</a>.
+                                        <a href="/dashboard-student/refund-policy" target="_blank" className="text-[#1D5F31] hover:underline">Política de Reembolso</a>.
                                     </span>
                                 </label>
                             </div>

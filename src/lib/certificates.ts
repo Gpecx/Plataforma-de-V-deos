@@ -52,7 +52,19 @@ export async function validateAndGetCertificate(courseId: string, userId: string
   const profileData = profileDoc.exists ? profileDoc.data() : null
   const studentName = profileData?.full_name || 'Aluno'
 
-  const instructorName = courseData?.instructorName || courseData?.instructor_name || 'Fred'
+  // Melhora a resolução do nome do professor
+  let instructorName = courseData?.instructorName || courseData?.instructor_name
+  if (!instructorName && courseData?.teacher_id) {
+    const teacherDoc = await adminDb.collection('profiles').doc(courseData.teacher_id).get()
+    if (teacherDoc.exists) {
+      instructorName = teacherDoc.data()?.full_name || teacherDoc.data()?.displayName
+    }
+  }
+  
+  if (!instructorName) {
+    instructorName = 'Fred' // Fallback final
+  }
+
   const duration = courseData?.duration || courseData?.carga_horaria || 12
 
   // Check if already has a code in profile

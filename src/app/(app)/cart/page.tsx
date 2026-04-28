@@ -1,6 +1,7 @@
 "use client"
 
 import { useCartStore } from '@/store/useCartStore'
+import { validateCartItemsAction } from './actions'
 import { ShoppingCart, Trash2, CreditCard, ArrowLeft, BookOpen, ChevronRight, ShieldCheck } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -15,6 +16,26 @@ export default function CartPage() {
 
     useEffect(() => {
         setMounted(true)
+        
+        // Validação de integridade do carrinho
+        const validateCart = async () => {
+            if (items.length === 0) return
+            
+            const itemIds = items.map(i => i.id)
+            const result = await validateCartItemsAction(itemIds)
+            
+            if (result.validIds) {
+                const { validateItems, showNotification } = useCartStore.getState()
+                const removedCount = itemIds.length - result.validIds.length
+                
+                if (removedCount > 0) {
+                    validateItems(result.validIds)
+                    showNotification(`${removedCount} item(s) foram removidos do seu carrinho pois não estão mais disponíveis.`, 'info')
+                }
+            }
+        }
+        
+        validateCart()
     }, [])
 
     const hasPurchasedItems = items.some(item => purchasedCourseIds.includes(item.id))

@@ -37,14 +37,40 @@ export async function getProfile() {
         if (!data) return { success: true, data: null }
 
         // Converte todos os Timestamp do Firestore em strings ISO serializáveis
-        const plainData = Object.fromEntries(
-            Object.entries(data).map(([key, value]) => {
-                if (value && typeof value === 'object' && typeof (value as any).toDate === 'function') {
-                    return [key, (value as any).toDate().toISOString()]
+        // E enriquece cursos concluídos com nome do professor se faltar
+        const plainData = { ...data }
+        
+        for (const [key, value] of Object.entries(plainData)) {
+            if (value && typeof value === 'object' && typeof (value as any).toDate === 'function') {
+                plainData[key] = (value as any).toDate().toISOString()
+            }
+        }
+
+        // Soft Migration: Enriquece concluded_courses se teacherName estiver ausente
+        if (plainData.concluded_courses && Array.isArray(plainData.concluded_courses)) {
+            const enrichedCourses = []
+            for (const course of plainData.concluded_courses) {
+                if (!course.teacherName && course.courseId) {
+                    try {
+                        const courseDoc = await adminDb.collection('courses').doc(course.courseId).get()
+                        if (courseDoc.exists) {
+                            const cData = courseDoc.data()
+                            const tId = cData?.teacher_id
+                            if (tId) {
+                                const tDoc = await adminDb.collection('profiles').doc(tId).get()
+                                if (tDoc.exists) {
+                                    course.teacherName = tDoc.data()?.full_name || tDoc.data()?.displayName
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Erro ao enriquecer certificado:', e)
+                    }
                 }
-                return [key, value]
-            })
-        )
+                enrichedCourses.push(course)
+            }
+            plainData.concluded_courses = enrichedCourses
+        }
 
         return { success: true, data: plainData }
     } catch (error) {

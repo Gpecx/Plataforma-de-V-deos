@@ -30,7 +30,7 @@ export async function createCourseAction(formData: any) {
             subtitle: formData.subtitle,
             description: formData.description || '',
             category: formData.category || '',
-            price: Number(formData.price) || 157.0,
+            price: formData.pricing_type === 'free' ? 0 : (Number(formData.price) || 157.0),
             pricing_type: formData.pricing_type || 'standard',
             duration: Number(formData.duration) || 0,
             status: 'PENDENTE',
@@ -158,6 +158,11 @@ export async function updateCourseAction(courseId: string, formData: any) {
 
         if (!courseDoc.exists || courseDoc.data()?.teacher_id !== user.uid) {
             return { error: "Curso não encontrado ou você não tem permissão para editá-lo." }
+        }
+
+        const currentData = courseDoc.data()
+        if (currentData?.pricing_type === 'free' && formData.pricing_type !== undefined && formData.pricing_type !== 'free') {
+            return { error: "Cursos gratuitos não podem ser alterados para pagos por questões de segurança e integridade." }
         }
 
         const updateData: any = { updated_at: new Date() }

@@ -2,8 +2,9 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { auth, db } from '@/lib/firebase'
-import { onAuthStateChanged, User } from 'firebase/auth'
-import { doc, getDoc, onSnapshot } from 'firebase/firestore'
+import { onAuthStateChanged, signOut, User } from 'firebase/auth'
+import { doc, onSnapshot } from 'firebase/firestore'
+import { useRouter } from 'next/navigation'
 
 interface AuthContextType {
     user: User | null
@@ -26,6 +27,7 @@ const AuthContext = createContext<AuthContextType>({
 export const useAuth = () => useContext(AuthContext)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+    const router = useRouter()
     const [user, setUser] = useState<User | null>(null)
     const [profile, setProfile] = useState<any | null>(null)
     const [role, setRole] = useState<'student' | 'teacher' | 'admin' | null>(null)
@@ -54,13 +56,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
             setUser(currentUser)
             
-            // Se o MFA estiver pendente, não carregamos o perfil ainda para evitar erros de permissão
             if (currentUser && !isMfaPending) {
-                // Escutar mudanças no perfil em tempo real
                 const profileRef = doc(db, 'profiles', currentUser.uid)
-                const unsubscribeProfile = onSnapshot(profileRef, (docSnap) => {
+                const unsubscribeProfile = onSnapshot(profileRef, async (docSnap) => {
                     if (docSnap.exists()) {
                         const data = docSnap.data()
+
+                        // INC-009: Ban enforcement em tempo real
+                        if (data.status === 'banido') {
+                            await signOut(auth)
+                            setUser(null)
+                            setProfile(null)
+                            setRole(null)
+                            // Limpa cookies de sessao via API existente
+                            await fetch('/api/auth/signout').catch(() => {})
+                            router.push('/login?error=account_suspended')
+                            return
+                        }
+
                         setProfile(data)
                         setRole(data.role || 'student')
                     } else {
@@ -84,7 +97,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         })
 
         return () => unsubscribeAuth()
-    }, [isMfaPending])
+    }, [isMfaPending, router])
 
     return (
         <AuthContext.Provider value={{ user, profile, role, loading, isMfaPending, setMfaPending }}>

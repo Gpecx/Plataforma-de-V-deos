@@ -1148,30 +1148,40 @@ export default function CourseBuilder() {
 
                             <div className="space-y-4">
                                 <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Tipo de Precificação</label>
-                                <div className="grid grid-cols-3 gap-2">
-                                    {[
-                                        { id: 'standard', label: 'Padrão' },
-                                        { id: 'free', label: 'Gratuito' },
-                                        { id: 'premium', label: 'Premium' }
-                                    ].map((type) => (
-                                        <button
-                                            key={type.id}
-                                            type="button"
-                                            onClick={() => {
-                                                setCoursePricingType(type.id as any)
-                                                if (type.id === 'free') setCoursePrice('0,00')
-                                            }}
-                                            className={`px-3 py-3 rounded-md text-[9px] font-bold uppercase tracking-widest transition-all border-2 ${
-                                                coursePricingType === type.id
-                                                    ? 'bg-[#1D5F31] border-[#1D5F31] text-white'
-                                                    : 'bg-white border-black text-black hover:border-[#1D5F31]'
-                                            }`}
-                                        >
-                                            {type.label}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
+                                 <div className="grid grid-cols-3 gap-2">
+                                     {[
+                                         { id: 'standard', label: 'Padrão' },
+                                         { id: 'free', label: 'Gratuito' },
+                                         { id: 'premium', label: 'Premium' }
+                                     ].map((type) => {
+                                         const isLocked = course?.pricing_type === 'free' && type.id !== 'free';
+                                         return (
+                                             <button
+                                                 key={type.id}
+                                                 type="button"
+                                                 disabled={isLocked}
+                                                 onClick={() => {
+                                                     setCoursePricingType(type.id as any)
+                                                     if (type.id === 'free') setCoursePrice('0,00')
+                                                 }}
+                                                 className={`px-3 py-3 rounded-md text-[9px] font-bold uppercase tracking-widest transition-all border-2 ${
+                                                     coursePricingType === type.id
+                                                         ? 'bg-[#1D5F31] border-[#1D5F31] text-white'
+                                                         : 'bg-white border-black text-black hover:border-[#1D5F31]'
+                                                 } ${isLocked ? 'opacity-30 cursor-not-allowed grayscale' : ''}`}
+                                                 title={isLocked ? "Cursos gratuitos não podem ser alterados para pagos" : ""}
+                                             >
+                                                 {type.label}
+                                             </button>
+                                         );
+                                     })}
+                                 </div>
+                                 {course?.pricing_type === 'free' && (
+                                     <p className="text-[8px] text-amber-600 font-bold uppercase tracking-widest mt-2 px-1">
+                                         * Este curso é gratuito e não pode ser alterado para pago.
+                                     </p>
+                                 )}
+                             </div>
 
                             <div className="space-y-4">
                                 <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Valor do Investimento</label>
