@@ -205,13 +205,18 @@ export async function getAllStudents() {
             const userEnrollments = enrollments.filter(e => e.user_id === student.uid)
             const coursesCount = userEnrollments.length
             
+            // Conta certificados do array concluded_courses no perfil
+            const certificatesCount = student.concluded_courses?.length || 0
+            
             return {
                 id: student.id,
                 uid: student.uid,
                 full_name: student.full_name || 'Sem nome',
                 email: student.email || 'Sem e-mail',
                 role: student.role || 'user',
+                ativo: student.ativo !== false,
                 coursesCount,
+                certificatesCount,
                 watchedTime: 0,
                 lastAccess: student.last_access || null,
                 createdAt: student.created_at || null,
