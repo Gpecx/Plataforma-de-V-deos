@@ -12,6 +12,7 @@ interface SecureMuxPlayerProps {
   className?: string;
   startTime?: number;
   onTimeUpdate?: (currentTime: number) => void;
+  onPause?: () => void;
   onEnded?: () => void;
   isPublic?: boolean;
 }
@@ -22,6 +23,7 @@ export default function SecureMuxPlayer({
   className = "",
   startTime = 0,
   onTimeUpdate,
+  onPause,
   onEnded,
   isPublic = false,
 }: SecureMuxPlayerProps) {
@@ -157,6 +159,7 @@ export default function SecureMuxPlayer({
                 onTimeUpdate((e.target as any).currentTime);
             }
         }}
+        onPause={onPause}
         onEnded={onEnded}
         className="w-full h-full object-contain"
         style={{

@@ -21,16 +21,6 @@ interface StudentManagementProps {
     initialStudents: Student[]
 }
 
-function formatWatchedTime(seconds: number): string {
-    if (!seconds || seconds === 0) return '0min'
-    const hours = Math.floor(seconds / 3600)
-    const minutes = Math.floor((seconds % 3600) / 60)
-    if (hours > 0) {
-        return `${hours}h ${minutes}min`
-    }
-    return `${minutes}min`
-}
-
 function SkeletonRow() {
     return (
         <tr className="border-b" style={{ borderColor: '#e2e8f0' }}>
@@ -194,7 +184,13 @@ export default function StudentManagement({ initialStudents }: StudentManagement
                                     </td>
                                     <td className="p-6">
                                         <span className="text-sm font-bold" style={{ color: '#334155' }}>
-                                            {formatWatchedTime(student.watchedTime || 0)}
+                                            {(() => {
+                                                const totalSeconds = Number(student.watchedTime) || 0;
+                                                const totalMinutes = Math.floor(totalSeconds / 60);
+                                                const hours = Math.floor(totalMinutes / 60);
+                                                const minutes = totalMinutes % 60;
+                                                return hours > 0 ? `${hours}h ${minutes}min` : `${totalMinutes}min`;
+                                            })()}
                                         </span>
                                     </td>
                                     <td className="p-6">

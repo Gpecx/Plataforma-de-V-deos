@@ -195,9 +195,12 @@ export async function getAllStudents() {
             .where('role', 'in', ['student', 'user'])
             .get()
         
-        const students = studentsSnap.docs.map(doc => doc.data())
-        const studentIds = students.map(s => s.uid)
-
+        const students = studentsSnap.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        })) as any[]
+        
+        // Busca todas as matrículas para contar cursos e somar tempo assistido
         const enrollmentsSnap = await adminDb.collection('enrollments').get()
         const enrollments = enrollmentsSnap.docs.map(doc => doc.data())
 
@@ -208,6 +211,13 @@ export async function getAllStudents() {
             // Conta certificados do array concluded_courses no perfil
             const certificatesCount = student.concluded_courses?.length || 0
             
+            // Soma o tempo: pega do perfil se existir (totalStudyTime/totalStudyTimeSeconds)
+            // ou soma os 'last_timestamp' da coleção de matrículas
+            let watchedTime = Number(student.totalStudyTime || student.totalStudyTimeSeconds) || 0;
+            if (watchedTime === 0) {
+                watchedTime = userEnrollments.reduce((acc, e) => acc + (Number(e.last_timestamp) || 0), 0);
+            }
+            
             return {
                 id: student.id,
                 uid: student.uid,
@@ -217,7 +227,7 @@ export async function getAllStudents() {
                 ativo: student.ativo !== false,
                 coursesCount,
                 certificatesCount,
-                watchedTime: 0,
+                watchedTime,
                 lastAccess: student.last_access || null,
                 createdAt: student.created_at || null,
             }
@@ -351,8 +361,7 @@ export async function approveCourse(courseId: string) {
 
         // Cria notificação para o professor
         if (courseData?.teacher_id) {
-            console.log('[approveCourse] Creating notification for teacher:', courseData.teacher_id)
-            const notifRef = await adminDb.collection('notifications').add({
+            await adminDb.collection('notifications').add({
                 user_id: courseData.teacher_id,
                 type: 'course_approved',
                 title: 'Curso Aprovado!',
@@ -361,7 +370,6 @@ export async function approveCourse(courseId: string) {
                 read: false,
                 created_at: new Date()
             })
-            console.log('[approveCourse] Notification created with ID:', notifRef.id)
         } else {
             console.warn('[approveCourse] No teacher_id found for course:', courseId)
         }
@@ -402,8 +410,7 @@ export async function approveLesson(lessonId: string) {
 
         // Cria notificação para o professor
         if (courseData?.teacher_id) {
-            console.log('[approveLesson] Creating notification for teacher:', courseData.teacher_id)
-            const notifRef = await adminDb.collection('notifications').add({
+            await adminDb.collection('notifications').add({
                 user_id: courseData.teacher_id,
                 type: 'lesson_approved',
                 title: 'Aula Aprovada!',
@@ -413,7 +420,6 @@ export async function approveLesson(lessonId: string) {
                 read: false,
                 created_at: new Date()
             })
-            console.log('[approveLesson] Notification created with ID:', notifRef.id)
         } else {
             console.warn('[approveLesson] No teacher_id found for course:', lessonData.course_id)
         }
@@ -454,8 +460,7 @@ export async function rejectLesson(lessonId: string, reason: string) {
 
         // Cria notificação para o professor
         if (courseData?.teacher_id) {
-            console.log('[rejectLesson] Creating notification for teacher:', courseData.teacher_id)
-            const notifRef = await adminDb.collection('notifications').add({
+            await adminDb.collection('notifications').add({
                 user_id: courseData.teacher_id,
                 type: 'lesson_rejected',
                 title: 'Aula Rejeitada',
@@ -465,7 +470,6 @@ export async function rejectLesson(lessonId: string, reason: string) {
                 read: false,
                 created_at: new Date()
             })
-            console.log('[rejectLesson] Notification created with ID:', notifRef.id)
         } else {
             console.warn('[rejectLesson] No teacher_id found for course:', lessonData.course_id)
         }
@@ -499,8 +503,7 @@ export async function rejectCourse(courseId: string, reason: string) {
 
         // Cria notificação para o professor
         if (courseData.teacher_id) {
-            console.log('[rejectCourse] Creating notification for teacher:', courseData.teacher_id)
-            const notifRef = await adminDb.collection('notifications').add({
+            await adminDb.collection('notifications').add({
                 user_id: courseData.teacher_id,
                 type: 'course_rejected',
                 title: 'Curso Rejeitado',
@@ -509,7 +512,6 @@ export async function rejectCourse(courseId: string, reason: string) {
                 read: false,
                 created_at: new Date()
             })
-            console.log('[rejectCourse] Notification created with ID:', notifRef.id)
         } else {
             console.warn('[rejectCourse] No teacher_id found for course:', courseId)
         }
@@ -848,15 +850,24 @@ export async function handleTeacherApproval(
     action: 'approve' | 'reject'
 ): Promise<{ success: boolean; message: string; error?: string }> {
     try {
-        console.log(`[TeacherApproval] Processando ${action} para professor ${teacherId}`)
+        const newStatus = action === 'approve' ? 'approved' : 'rejected'
+        await adminDb.collection('profiles').doc(teacherId).update({
+            teacher_status: newStatus,
+            updated_at: new Date()
+        })
 
-        if (action === 'approve') {
-            console.log(`[TeacherApproval] Professor ${teacherId} APROVADO`)
-            console.log(`[TeacherApproval] Atualizando status para 'approved' no Firestore...`)
-        } else {
-            console.log(`[TeacherApproval] Professor ${teacherId} REJEITADO`)
-            console.log(`[TeacherApproval] Removendo perfil de professor ou definindo status 'rejected'...`)
-        }
+        await adminDb.collection('notifications').add({
+            user_id: teacherId,
+            type: action === 'approve' ? 'teacher_approved' : 'teacher_rejected',
+            title: action === 'approve' ? 'Solicitação Aprovada' : 'Solicitação Rejeitada',
+            message: action === 'approve'
+                ? 'Sua solicitação para ser professor foi aprovada! Você já pode criar cursos.'
+                : 'Sua solicitação para ser professor foi rejeitada. Entre em contato para mais informações.',
+            read: false,
+            created_at: new Date()
+        })
+
+        revalidatePath('/admin/teachers')
 
         return {
             success: true,

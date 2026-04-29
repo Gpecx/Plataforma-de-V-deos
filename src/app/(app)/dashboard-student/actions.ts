@@ -146,36 +146,44 @@ export async function processCheckoutAction(courseIds: string[], billingType: Bi
 
         const totalAmount = coursesData.reduce((sum, c) => sum + (Number(c.price) || 0), 0)
         
-        console.log("DEBUG_PAYMENT_VALUE:", { totalAmount, courseIds, userId: user.uid })
 
+        // Para cursos GRATUITOS: commit imediato (não precisa de confirmação externa)
+        // Para cursos PAGOS: commit apenas após Asaas criar o pagamento com paymentId válido
+        const buildBatch = (paymentId?: string) => {
+            const batch = adminDb.batch()
+            for (const courseData of coursesData) {
+                const enrollRef = adminDb.collection('enrollments').doc()
+                batch.set(enrollRef, {
+                    user_id: user.uid,
+                    course_id: courseData.id,
+                    created_at: new Date()
+                })
 
-        // Grava matrículas e logs de venda em lote
-        const batch = adminDb.batch()
-        for (const courseData of coursesData) {
-            const enrollRef = adminDb.collection('enrollments').doc()
-            batch.set(enrollRef, {
-                user_id: user.uid,
-                course_id: courseData.id,
-                created_at: new Date()
-            })
+                const platformShare = (Number(courseData.price) || 0) * (platformTaxPercent / 100)
+                const teacherShare = (Number(courseData.price) || 0) - platformShare
 
-            const platformShare = (Number(courseData.price) || 0) * (platformTaxPercent / 100)
-            const teacherShare = (Number(courseData.price) || 0) - platformShare
-
-            const saleRef = adminDb.collection('vendas_logs').doc()
-            batch.set(saleRef, {
-                idTransacao: `TR-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-                alunoId: user.uid,
-                cursoId: courseData.id,
-                professorId: courseData.teacher_id,
-                valorBruto: Number(courseData.price) || 0,
-                taxaPlataforma: platformShare,
-                repasseProfessor: teacherShare,
-                statusPagamento: totalAmount === 0 ? 'pago' : 'pendente',
-                dataCriacao: new Date()
-            })
+                const saleRef = adminDb.collection('vendas_logs').doc()
+                batch.set(saleRef, {
+                    idTransacao: `TR-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                    // paymentId do Asaas — usado pelo webhook para confirmar matrícula em cursos pagos
+                    ...(paymentId ? { paymentId } : {}),
+                    alunoId: user.uid,
+                    userId: user.uid,
+                    cursoId: courseData.id,
+                    professorId: courseData.teacher_id,
+                    valorBruto: Number(courseData.price) || 0,
+                    taxaPlataforma: platformShare,
+                    repasseProfessor: teacherShare,
+                    statusPagamento: totalAmount === 0 ? 'pago' : 'pendente',
+                    dataCriacao: new Date()
+                })
+            }
+            return batch
         }
-        await batch.commit()
+
+        if (totalAmount === 0) {
+            await buildBatch().commit()
+        }
 
         // Consent Log (LGPD) - Separate collection for audit
         const ipAddress = await getClientIp()
@@ -192,7 +200,7 @@ export async function processCheckoutAction(courseIds: string[], billingType: Bi
 
         revalidatePath('/dashboard-student')
 
-        // Curso gratuito: não precisa de cobrança externa
+        // Curso gratuito: matrícula já commitada acima
         if (totalAmount === 0) {
             return { success: true, isFree: true }
         }
@@ -243,6 +251,9 @@ export async function processCheckoutAction(courseIds: string[], billingType: Bi
                 description: `Compra de ${coursesData.length} curso(s) na plataforma`,
                 externalReference: `checkout-${user.uid}-${Date.now()}`,
             })
+
+            // Commit das matrículas APÓS Asaas confirmar criação — paymentId incluso para o webhook
+            await buildBatch(asaasResponse.id).commit()
 
             let pixData = null
             if (billingType === 'PIX') {
@@ -418,19 +429,19 @@ export async function getAllUserProgress() {
     if (!user) return { success: false, error: 'Não autorizado' }
 
     try {
-        const progressSnapshot = await adminDb
-            .collection('userProgress')
-            .where('userId', '==', user.uid)
+        const enrollmentsSnapshot = await adminDb
+            .collection('enrollments')
+            .where('user_id', '==', user.uid)
             .get()
 
         const progressMap: Record<string, any> = {}
-        progressSnapshot.forEach(doc => {
+        enrollmentsSnapshot.forEach(doc => {
             const data = doc.data()
-            if (data.courseId) {
-                progressMap[data.courseId] = {
-                    completedLessons: data.completedLessons || [],
-                    lastLessonId: data.lastLessonId || null,
-                    lastTimestamp: data.lastTimestamp || 0
+            if (data.course_id) {
+                progressMap[data.course_id] = {
+                    completedLessons: data.completed_lessons || [],
+                    lastLessonId: data.last_lesson_id || null,
+                    lastTimestamp: data.last_timestamp || 0
                 }
             }
         })

@@ -12,9 +12,8 @@ export default function NewQuizPage() {
   const router = useRouter();
 
   const handleSave = (data: any) => {
-    // Simular salvamento
-    console.log('Salvando quiz:', data);
-    
+    // TODO: Substituir por Server Action real (Firestore) — atualmente é mock via localStorage
+
     // Armazenar no localStorage para o Admin ver (mock)
     const existingQuizzes = JSON.parse(localStorage.getItem('mock_quizzes') || '[]');
     const newQuiz = {

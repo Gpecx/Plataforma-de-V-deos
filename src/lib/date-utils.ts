@@ -105,3 +105,20 @@ export function isNewCourse(createdAt: any, days: number = 30): boolean {
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     return diffDays <= days;
 }
+
+/**
+ * Formata segundos em uma string legível de tempo (ex: 2h 15min ou 45min)
+ * Seguindo o padrão solicitado para o dashboard administrativo.
+ */
+export function formatWatchedTime(seconds: number): string {
+    if (!seconds || seconds <= 0) return '0min'
+    
+    const hours = Math.floor(seconds / 3600)
+    const minutes = Math.floor((seconds % 3600) / 60)
+    
+    if (hours > 0) {
+        return `${hours}h ${minutes}min`
+    }
+    
+    return `${minutes}min`
+}
