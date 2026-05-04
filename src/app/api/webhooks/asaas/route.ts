@@ -33,47 +33,66 @@ export async function POST(request: NextRequest) {
         const { event, payment } = payload
 
         if (event === 'PAYMENT_RECEIVED' || event === 'PAYMENT_CONFIRMED') {
-            console.log(`Webhook Asaas: Processando evento ${event} para payment ${payment.id}`)
-
-            // 1. Busca da Venda por paymentId
+            // 1. Busca todas as linhas de vendas_logs com este paymentId (pode ser compra multi-curso)
             const vendasLogsQuery = await adminDb.collection('vendas_logs')
                 .where('paymentId', '==', payment.id)
-                .limit(1)
                 .get()
 
             if (vendasLogsQuery.empty) {
-                console.error(`Webhook Asaas: Venda não encontrada para paymentId ${payment.id}`)
+                console.error(`Webhook Asaas: Nenhuma venda encontrada para paymentId ${payment.id}`)
                 return NextResponse.json({ success: true, message: 'Venda não encontrada, ignorando.' }, { status: 200 })
             }
 
-            const saleDoc = vendasLogsQuery.docs[0]
-            const saleData = saleDoc.data()
-
-            // 2. Idempotência: já foi processado?
-            if (saleData.status === 'PAID') {
-                console.log(`Webhook Asaas: Pagamento ${payment.id} já foi processado anteriormente. Ignorando.`)
+            // 2. Idempotência: verifica se ao menos um já foi processado
+            const alreadyProcessed = vendasLogsQuery.docs.some(d => d.data().statusPagamento === 'pago')
+            if (alreadyProcessed) {
                 return NextResponse.json({ success: true, message: 'Já processado.' }, { status: 200 })
             }
 
-            const { userId, cursoId } = saleData
+            // 3. Confirma cada venda e atualiza o enrollment correspondente
+            const batch = adminDb.batch()
 
-            // 3. Liberação do Curso: adiciona cursoId ao perfil do usuário
-            const profileRef = adminDb.collection('profiles').doc(userId)
-            await profileRef.update({
-                cursos_comprados: FieldValue.arrayUnion(cursoId),
-                updated_at: FieldValue.serverTimestamp(),
-            })
-            console.log(`Webhook Asaas: Curso ${cursoId} liberado para o usuário ${userId}`)
+            for (const saleDoc of vendasLogsQuery.docs) {
+                const saleData = saleDoc.data()
+                const userId: string = saleData.userId || saleData.alunoId
+                const cursoId: string = saleData.cursoId
 
-            // 4. Baixa no Pagamento: atualiza o status da venda para PAID
-            await saleDoc.ref.update({
-                status: 'PAID',
-                paymentDate: FieldValue.serverTimestamp(),
-            })
-            console.log(`Webhook Asaas: Venda ${saleDoc.id} marcada como PAID.`)
+                // Marca a venda como paga
+                batch.update(saleDoc.ref, {
+                    statusPagamento: 'pago',
+                    paymentDate: FieldValue.serverTimestamp(),
+                })
+
+                // Confirma o enrollment (muda status para confirmado se existir o campo)
+                const enrollmentQuery = await adminDb.collection('enrollments')
+                    .where('user_id', '==', userId)
+                    .where('course_id', '==', cursoId)
+                    .limit(1)
+                    .get()
+
+                if (!enrollmentQuery.empty) {
+                    batch.update(enrollmentQuery.docs[0].ref, {
+                        payment_confirmed: true,
+                        payment_id: payment.id,
+                        updated_at: FieldValue.serverTimestamp(),
+                    })
+                } else {
+                    // Fallback: cria enrollment se não existir (edge case)
+                    const newEnrollRef = adminDb.collection('enrollments').doc()
+                    batch.set(newEnrollRef, {
+                        user_id: userId,
+                        course_id: cursoId,
+                        payment_confirmed: true,
+                        payment_id: payment.id,
+                        created_at: FieldValue.serverTimestamp(),
+                    })
+                }
+            }
+
+            await batch.commit()
 
         } else {
-            console.log(`Webhook Asaas: Evento ${event} ignorado`)
+            // Eventos ignorados não precisam ser logados em produção
         }
 
         return NextResponse.json({ success: true }, { status: 200 })

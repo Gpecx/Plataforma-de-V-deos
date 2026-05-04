@@ -5,14 +5,12 @@ import { serializeFirestoreData } from '@/lib/date-utils'
 
 export async function getFeaturedCourses() {
     try {
-        console.log('Fetching featured courses...');
         const snapshot = await adminDb
             .collection('courses')
             .where('status', '==', 'APROVADO')
             .limit(5)
             .get()
 
-        console.log(`Found ${snapshot.size} featured courses.`);
         const courses = snapshot.docs.map(doc => {
             const data = doc.data()
             return serializeFirestoreData({

@@ -29,13 +29,12 @@ export default async function StudentDashboard() {
         redirect('/login')
     }
 
-    const [profileDoc, coursesSnapshot, enrollmentsSnapshot, lessonsSnapshot, banners, userProgressSnapshot] = await Promise.all([
+    const [profileDoc, coursesSnapshot, enrollmentsSnapshot, lessonsSnapshot, banners] = await Promise.all([
         adminDb.collection('profiles').doc(user.uid).get(),
         adminDb.collection('courses').get(),
         adminDb.collection('enrollments').where('user_id', '==', user.uid).get(),
         adminDb.collection('lessons').get(),
-        getBanners(),
-        adminDb.collection('userProgress').where('userId', '==', user.uid).get()
+        getBanners()
     ])
 
     const profile = profileDoc.data()
@@ -52,13 +51,15 @@ export default async function StudentDashboard() {
     const purchasedCourseIds = enrollmentsSnapshot.docs.map(doc => doc.data().course_id)
     
     const userProgressMap: Record<string, { completedLessons: string[], totalLessons: number }> = {}
-    userProgressSnapshot.docs.forEach(doc => {
+    enrollmentsSnapshot.docs.forEach(doc => {
         const data = doc.data()
-        const courseId = data.courseId
-        const courseLessons = allLessons.filter((l: any) => l.course_id === courseId)
-        userProgressMap[courseId] = {
-            completedLessons: data.completedLessons || [],
-            totalLessons: courseLessons.length
+        const courseId = data.course_id
+        if (courseId) {
+            const courseLessons = allLessons.filter((l: any) => l.course_id === courseId)
+            userProgressMap[courseId] = {
+                completedLessons: data.completed_lessons || [],
+                totalLessons: courseLessons.length
+            }
         }
     })
 

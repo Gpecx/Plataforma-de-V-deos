@@ -27,11 +27,28 @@ export async function getPurchasedCourseIds(userId: string): Promise<string[]> {
     if (!userId) return []
 
     try {
-        const profileDoc = await adminDb.collection('profiles').doc(userId).get()
-        if (!profileDoc.exists) return []
+        // Buscamos na coleção de enrollments, filtrando por status válidos
+        const enrollmentsSnapshot = await adminDb.collection('enrollments')
+            .where('user_id', '==', userId)
+            .get()
 
-        const data = profileDoc.data()
-        return data?.cursos_comprados || []
+        // Filtramos apenas matrículas que NÃO estão canceladas ou expiradas
+        const purchasedIds = enrollmentsSnapshot.docs
+            .map(doc => doc.data())
+            .filter(data => data.status !== 'cancelled' && data.status !== 'expired')
+            .map(data => data.course_id)
+        
+        // Também verificamos o perfil para compatibilidade com dados legados
+        const profileDoc = await adminDb.collection('profiles').doc(userId).get()
+        if (profileDoc.exists) {
+            const profileData = profileDoc.data()
+            const profileIds = profileData?.cursos_comprados || []
+            
+            // Unificamos as listas removendo duplicatas
+            return Array.from(new Set([...purchasedIds, ...profileIds]))
+        }
+
+        return purchasedIds
     } catch (error) {
         console.error('Erro ao buscar cursos comprados:', error)
         return []

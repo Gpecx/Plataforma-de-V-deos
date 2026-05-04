@@ -62,6 +62,19 @@ export async function processAsaasCheckout(request: CheckoutRequest): Promise<Ch
 
         const { cursoId, billingType } = request
 
+        // Bloqueio no Lado do Servidor: verifica se o aluno já possui o curso
+        const existingEnrollment = await adminDb.collection('enrollments')
+            .where('user_id', '==', user.uid)
+            .where('course_id', '==', cursoId)
+            .get()
+
+        if (!existingEnrollment.empty) {
+            const enrollmentData = existingEnrollment.docs[0].data()
+            if (enrollmentData.status !== 'cancelled' && enrollmentData.status !== 'expired') {
+                return { success: false, error: 'Você já possui este curso e não pode adquiri-lo novamente.' }
+            }
+        }
+
         if (!cursoId || !billingType) {
             return { success: false, error: 'Dados inválidos: cursoId e billingType são obrigatórios' }
         }

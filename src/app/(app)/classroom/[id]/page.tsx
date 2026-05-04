@@ -60,6 +60,13 @@ export default function ClassroomPage() {
     const touchStartX = useRef(0)
     const sidebarRef = useRef<HTMLDivElement>(null)
 
+    // Refs for tracking time and state safely on unmount/events
+    const currentUserRef = useRef<any>(null)
+    const courseRef = useRef<any>(null)
+    const currentLessonRef = useRef<any>(null)
+    const currentVideoTimeRef = useRef(0)
+    const lastSavedTimeRef = useRef(0)
+
     const isExternalVideo = (url: string | null | undefined) => {
         if (!url) return false
         return url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com')
@@ -147,9 +154,37 @@ export default function ClassroomPage() {
     }, [params.id, router])
 
     useEffect(() => {
-        return () => {
-            isMountedRef.current = false
+        currentUserRef.current = currentUser
+        courseRef.current = course
+        currentLessonRef.current = currentLesson
+    }, [currentUser, course, currentLesson])
+
+    const forceSaveCurrentProgress = () => {
+        const user = currentUserRef.current;
+        const crs = courseRef.current;
+        const lesson = currentLessonRef.current;
+        const time = currentVideoTimeRef.current;
+        
+        if (user && crs && lesson && time > 0) {
+            if (time !== lastSavedTimeRef.current) {
+                saveLessonProgress(crs.id, lesson.id, user.uid, time).catch(err => {
+                    console.error("Erro ao salvar progresso:", err);
+                });
+                lastSavedTimeRef.current = time;
+            }
         }
+    }
+
+    useEffect(() => {
+        const handleBeforeUnload = () => {
+            forceSaveCurrentProgress();
+        };
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+            forceSaveCurrentProgress();
+            isMountedRef.current = false
+        };
     }, [])
 
     useEffect(() => {
@@ -203,11 +238,14 @@ export default function ClassroomPage() {
     }
 
     const goToNextLesson = () => {
+        forceSaveCurrentProgress();
         cancelAutoNext()
         const index = lessons.findIndex(l => l.id === currentLesson?.id)
         if (index < lessons.length - 1) {
             const nextLesson = lessons[index + 1]
             setCurrentLesson(nextLesson)
+            currentVideoTimeRef.current = 0;
+            lastSavedTimeRef.current = 0;
             if (currentUser && course) {
                 saveProgress(nextLesson.id, 0)
             }
@@ -215,11 +253,14 @@ export default function ClassroomPage() {
     }
 
     const goToPrevLesson = () => {
+        forceSaveCurrentProgress();
         cancelAutoNext()
         const index = lessons.findIndex(l => l.id === currentLesson?.id)
         if (index > 0) {
             const prevLesson = lessons[index - 1]
             setCurrentLesson(prevLesson)
+            currentVideoTimeRef.current = 0;
+            lastSavedTimeRef.current = 0;
             if (currentUser && course) {
                 saveProgress(prevLesson.id, 0)
             }
@@ -424,11 +465,19 @@ export default function ClassroomPage() {
                                         startTime={lastTimestamp}
                                         onTimeUpdate={(time) => {
                                             const currentTime = Math.round(time)
-                                            if (currentTime > 0 && currentTime % 10 === 0) {
-                                                saveProgress(currentLesson.id, currentTime)
+                                            currentVideoTimeRef.current = currentTime
+                                            if (currentTime > 0 && currentTime % 120 === 0) {
+                                                if (lastSavedTimeRef.current !== currentTime) {
+                                                    saveProgress(currentLesson.id, currentTime)
+                                                    lastSavedTimeRef.current = currentTime
+                                                }
                                             }
                                         }}
-                                        onEnded={() => toggleLessonStatus(currentLesson?.id, true)}
+                                        onPause={() => forceSaveCurrentProgress()}
+                                        onEnded={() => {
+                                            forceSaveCurrentProgress()
+                                            toggleLessonStatus(currentLesson?.id, true)
+                                        }}
                                         className="w-full h-full"
                                     />
                                 ) : isExternalVideo(currentLesson?.video_url) ? (
@@ -457,12 +506,20 @@ export default function ClassroomPage() {
                                             onTimeUpdate={() => {
                                                 if (videoRef.current && currentLesson && currentUser) {
                                                     const currentTime = Math.floor(videoRef.current.currentTime)
-                                                    if (currentTime > 0 && currentTime % 10 === 0) {
-                                                        saveProgress(currentLesson.id, currentTime)
+                                                    currentVideoTimeRef.current = currentTime
+                                                    if (currentTime > 0 && currentTime % 120 === 0) {
+                                                        if (lastSavedTimeRef.current !== currentTime) {
+                                                            saveProgress(currentLesson.id, currentTime)
+                                                            lastSavedTimeRef.current = currentTime
+                                                        }
                                                     }
                                                 }
                                             }}
-                                            onEnded={() => toggleLessonStatus(currentLesson?.id, true)}
+                                            onPause={() => forceSaveCurrentProgress()}
+                                            onEnded={() => {
+                                                forceSaveCurrentProgress()
+                                                toggleLessonStatus(currentLesson?.id, true)
+                                            }}
                                         />
                                         {autoNextCountdown !== null && (
                                             <div className="absolute inset-0 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center z-20 animate-in fade-in duration-300">

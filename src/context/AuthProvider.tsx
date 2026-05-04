@@ -5,6 +5,8 @@ import { auth, db } from '@/lib/firebase'
 import { onAuthStateChanged, signOut, User } from 'firebase/auth'
 import { doc, onSnapshot } from 'firebase/firestore'
 import { useRouter } from 'next/navigation'
+import { useCartStore } from '@/store/useCartStore'
+import { getPurchasedCourseIds } from '@/app/actions/profile'
 
 interface AuthContextType {
     user: User | null
@@ -57,6 +59,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(currentUser)
             
             if (currentUser && !isMfaPending) {
+                // Limpeza Proativa do Carrinho (Ação Imediata)
+                getPurchasedCourseIds(currentUser.uid).then(ids => {
+                    useCartStore.getState().setPurchasedCourses(ids)
+                }).catch(err => console.error("Erro na limpeza proativa:", err))
+
                 const profileRef = doc(db, 'profiles', currentUser.uid)
                 const unsubscribeProfile = onSnapshot(profileRef, async (docSnap) => {
                     if (docSnap.exists()) {

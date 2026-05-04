@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Search, User as UserIcon, Loader2, ShieldCheck, ShieldAlert, ChevronRight, BookOpen, Clock } from 'lucide-react'
+import { Search, User as UserIcon, Loader2, ShieldCheck, ShieldAlert, ChevronRight, BookOpen, Clock, Medal } from 'lucide-react'
 import { toggleUserStatus } from '@/app/actions/admin'
+import StudentDetailsDrawer from './StudentDetailsDrawer'
 
 interface Student {
     id: string
@@ -11,6 +12,7 @@ interface Student {
     email?: string
     ativo?: boolean
     coursesCount: number
+    certificatesCount: number
     watchedTime: number
     lastAccess?: string
     createdAt?: string
@@ -18,16 +20,6 @@ interface Student {
 
 interface StudentManagementProps {
     initialStudents: Student[]
-}
-
-function formatWatchedTime(seconds: number): string {
-    if (!seconds || seconds === 0) return '0min'
-    const hours = Math.floor(seconds / 3600)
-    const minutes = Math.floor((seconds % 3600) / 60)
-    if (hours > 0) {
-        return `${hours}h ${minutes}min`
-    }
-    return `${minutes}min`
 }
 
 function SkeletonRow() {
@@ -41,6 +33,9 @@ function SkeletonRow() {
                         <div className="h-3 w-48 rounded animate-pulse" style={{ backgroundColor: '#e2e8f0' }} />
                     </div>
                 </div>
+            </td>
+            <td className="p-6">
+                <div className="h-5 w-12 rounded animate-pulse" style={{ backgroundColor: '#e2e8f0' }} />
             </td>
             <td className="p-6">
                 <div className="h-5 w-12 rounded animate-pulse" style={{ backgroundColor: '#e2e8f0' }} />
@@ -63,6 +58,7 @@ export default function StudentManagement({ initialStudents }: StudentManagement
     const [searchTerm, setSearchTerm] = useState('')
     const [loadingId, setLoadingId] = useState<string | null>(null)
     const [isLoading, setIsLoading] = useState(false)
+    const [selectedStudentUid, setSelectedStudentUid] = useState<string | null>(null)
 
     const handleToggleStatus = async (uid: string, currentStatus: boolean) => {
         if (!confirm(`Deseja ${currentStatus ? 'desativar' : 'ativar'} este aluno?`)) return
@@ -90,14 +86,14 @@ export default function StudentManagement({ initialStudents }: StudentManagement
     return (
         <div className="space-y-6 font-montserrat">
             {/* Search Card */}
-            <div className="p-6 rounded-xl border-2" style={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0' }}>
+            <div className="p-6 rounded-none border-2" style={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0' }}>
                 <div className="relative max-w-xl">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2" size={18} style={{ color: '#64748b' }} />
                     <input
                         placeholder="BUSCAR ALUNO POR NOME OU E-MAIL..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full border rounded-lg px-12 py-4 text-[10px] outline-none transition-all font-bold uppercase tracking-wider"
+                        className="w-full border rounded-none px-12 py-4 text-[10px] outline-none transition-all font-bold uppercase tracking-wider"
                         style={{ 
                             backgroundColor: '#f8fafc', 
                             borderColor: '#e2e8f0',
@@ -108,7 +104,7 @@ export default function StudentManagement({ initialStudents }: StudentManagement
             </div>
 
             {/* Table */}
-            <div className="overflow-x-auto rounded-xl border-2" style={{ borderColor: '#e2e8f0', backgroundColor: '#fff' }}>
+            <div className="overflow-x-auto rounded-none border-2" style={{ borderColor: '#e2e8f0', backgroundColor: '#fff' }}>
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr style={{ backgroundColor: '#0f172a' }}>
@@ -117,6 +113,12 @@ export default function StudentManagement({ initialStudents }: StudentManagement
                                 <div className="flex items-center gap-2">
                                     <BookOpen size={14} />
                                     CURSOS
+                                </div>
+                            </th>
+                            <th className="p-6 text-[10px] font-bold uppercase tracking-wider text-left" style={{ color: '#fff' }}>
+                                <div className="flex items-center gap-2">
+                                    <Medal size={14} />
+                                    CERTIFICADOS
                                 </div>
                             </th>
                             <th className="p-6 text-[10px] font-bold uppercase tracking-wider text-left" style={{ color: '#fff' }}>
@@ -134,7 +136,7 @@ export default function StudentManagement({ initialStudents }: StudentManagement
                             Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
                         ) : filteredStudents.length === 0 ? (
                             <tr>
-                                <td colSpan={5} className="p-16 text-center">
+                                <td colSpan={6} className="p-16 text-center">
                                     <div className="flex flex-col items-center gap-4">
                                         <Search size={48} style={{ color: '#cbd5e1' }} />
                                         <p className="font-bold uppercase tracking-wider text-[10px]" style={{ color: '#64748b' }}>
@@ -152,11 +154,17 @@ export default function StudentManagement({ initialStudents }: StudentManagement
                                 >
                                     <td className="p-6">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0' }}>
-                                                <UserIcon size={20} style={{ color: '#1D5F31' }} />
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <span className="font-bold uppercase tracking-tight text-sm" style={{ color: '#0f172a' }}>
+                                            <button 
+                                                onClick={() => setSelectedStudentUid(student.uid)}
+                                                className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 group relative" 
+                                                style={{ backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0' }}
+                                                title="Ver perfil completo"
+                                            >
+                                                <UserIcon size={20} className="group-hover:text-[#1D5F31] transition-colors" style={{ color: '#1D5F31' }} />
+                                                <div className="absolute inset-0 rounded-full border-2 border-transparent group-hover:border-[#1D5F31] transition-all" />
+                                            </button>
+                                            <div className="flex flex-col cursor-pointer" onClick={() => setSelectedStudentUid(student.uid)}>
+                                                <span className="font-bold uppercase tracking-tight text-sm hover:text-[#1D5F31] transition-colors" style={{ color: '#0f172a' }}>
                                                     {student.full_name || 'N/A'}
                                                 </span>
                                                 <span className="text-[10px] font-bold uppercase tracking-wider mt-1" style={{ color: '#64748b' }}>
@@ -171,8 +179,26 @@ export default function StudentManagement({ initialStudents }: StudentManagement
                                         </span>
                                     </td>
                                     <td className="p-6">
+                                        <div 
+                                            className="text-sm font-bold flex items-center gap-2" 
+                                            style={{ color: '#0f172a' }}
+                                            title="Cursos concluídos com certificado emitido"
+                                        >
+                                            {student.certificatesCount || 0}
+                                            {student.certificatesCount > 0 && (
+                                                <Medal size={14} style={{ color: '#1D5F31' }} />
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td className="p-6">
                                         <span className="text-sm font-bold" style={{ color: '#334155' }}>
-                                            {formatWatchedTime(student.watchedTime || 0)}
+                                            {(() => {
+                                                const totalSeconds = Number(student.watchedTime) || 0;
+                                                const totalMinutes = Math.floor(totalSeconds / 60);
+                                                const hours = Math.floor(totalMinutes / 60);
+                                                const minutes = totalMinutes % 60;
+                                                return hours > 0 ? `${hours}h ${minutes}min` : `${totalMinutes}min`;
+                                            })()}
                                         </span>
                                     </td>
                                     <td className="p-6">
@@ -200,7 +226,7 @@ export default function StudentManagement({ initialStudents }: StudentManagement
                                         <button 
                                             onClick={() => handleToggleStatus(student.uid, student.ativo ?? true)}
                                             disabled={loadingId === student.uid}
-                                            className="w-10 h-10 rounded-lg flex items-center justify-center transition-all active:scale-95"
+                                            className="w-10 h-10 rounded-none flex items-center justify-center transition-all active:scale-95"
                                             style={{ 
                                                 backgroundColor: student.ativo !== false ? '#f1f5f9' : '#dcfce7',
                                                 border: '1px solid #e2e8f0'
@@ -219,6 +245,11 @@ export default function StudentManagement({ initialStudents }: StudentManagement
                     </tbody>
                 </table>
             </div>
+
+            <StudentDetailsDrawer 
+                uid={selectedStudentUid} 
+                onClose={() => setSelectedStudentUid(null)} 
+            />
         </div>
     )
 }

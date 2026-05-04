@@ -195,9 +195,12 @@ export async function getAllStudents() {
             .where('role', 'in', ['student', 'user'])
             .get()
         
-        const students = studentsSnap.docs.map(doc => doc.data())
-        const studentIds = students.map(s => s.uid)
-
+        const students = studentsSnap.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        })) as any[]
+        
+        // Busca todas as matrículas para contar cursos e somar tempo assistido
         const enrollmentsSnap = await adminDb.collection('enrollments').get()
         const enrollments = enrollmentsSnap.docs.map(doc => doc.data())
 
@@ -205,14 +208,26 @@ export async function getAllStudents() {
             const userEnrollments = enrollments.filter(e => e.user_id === student.uid)
             const coursesCount = userEnrollments.length
             
+            // Conta certificados do array concluded_courses no perfil
+            const certificatesCount = student.concluded_courses?.length || 0
+            
+            // Soma o tempo: pega do perfil se existir (totalStudyTime/totalStudyTimeSeconds)
+            // ou soma os 'last_timestamp' da coleção de matrículas
+            let watchedTime = Number(student.totalStudyTime || student.totalStudyTimeSeconds) || 0;
+            if (watchedTime === 0) {
+                watchedTime = userEnrollments.reduce((acc, e) => acc + (Number(e.last_timestamp) || 0), 0);
+            }
+            
             return {
                 id: student.id,
                 uid: student.uid,
                 full_name: student.full_name || 'Sem nome',
                 email: student.email || 'Sem e-mail',
                 role: student.role || 'user',
+                ativo: student.ativo !== false,
                 coursesCount,
-                watchedTime: 0,
+                certificatesCount,
+                watchedTime,
                 lastAccess: student.last_access || null,
                 createdAt: student.created_at || null,
             }
@@ -346,8 +361,7 @@ export async function approveCourse(courseId: string) {
 
         // Cria notificação para o professor
         if (courseData?.teacher_id) {
-            console.log('[approveCourse] Creating notification for teacher:', courseData.teacher_id)
-            const notifRef = await adminDb.collection('notifications').add({
+            await adminDb.collection('notifications').add({
                 user_id: courseData.teacher_id,
                 type: 'course_approved',
                 title: 'Curso Aprovado!',
@@ -356,7 +370,6 @@ export async function approveCourse(courseId: string) {
                 read: false,
                 created_at: new Date()
             })
-            console.log('[approveCourse] Notification created with ID:', notifRef.id)
         } else {
             console.warn('[approveCourse] No teacher_id found for course:', courseId)
         }
@@ -397,8 +410,7 @@ export async function approveLesson(lessonId: string) {
 
         // Cria notificação para o professor
         if (courseData?.teacher_id) {
-            console.log('[approveLesson] Creating notification for teacher:', courseData.teacher_id)
-            const notifRef = await adminDb.collection('notifications').add({
+            await adminDb.collection('notifications').add({
                 user_id: courseData.teacher_id,
                 type: 'lesson_approved',
                 title: 'Aula Aprovada!',
@@ -408,7 +420,6 @@ export async function approveLesson(lessonId: string) {
                 read: false,
                 created_at: new Date()
             })
-            console.log('[approveLesson] Notification created with ID:', notifRef.id)
         } else {
             console.warn('[approveLesson] No teacher_id found for course:', lessonData.course_id)
         }
@@ -449,8 +460,7 @@ export async function rejectLesson(lessonId: string, reason: string) {
 
         // Cria notificação para o professor
         if (courseData?.teacher_id) {
-            console.log('[rejectLesson] Creating notification for teacher:', courseData.teacher_id)
-            const notifRef = await adminDb.collection('notifications').add({
+            await adminDb.collection('notifications').add({
                 user_id: courseData.teacher_id,
                 type: 'lesson_rejected',
                 title: 'Aula Rejeitada',
@@ -460,7 +470,6 @@ export async function rejectLesson(lessonId: string, reason: string) {
                 read: false,
                 created_at: new Date()
             })
-            console.log('[rejectLesson] Notification created with ID:', notifRef.id)
         } else {
             console.warn('[rejectLesson] No teacher_id found for course:', lessonData.course_id)
         }
@@ -494,8 +503,7 @@ export async function rejectCourse(courseId: string, reason: string) {
 
         // Cria notificação para o professor
         if (courseData.teacher_id) {
-            console.log('[rejectCourse] Creating notification for teacher:', courseData.teacher_id)
-            const notifRef = await adminDb.collection('notifications').add({
+            await adminDb.collection('notifications').add({
                 user_id: courseData.teacher_id,
                 type: 'course_rejected',
                 title: 'Curso Rejeitado',
@@ -504,7 +512,6 @@ export async function rejectCourse(courseId: string, reason: string) {
                 read: false,
                 created_at: new Date()
             })
-            console.log('[rejectCourse] Notification created with ID:', notifRef.id)
         } else {
             console.warn('[rejectCourse] No teacher_id found for course:', courseId)
         }
@@ -843,15 +850,24 @@ export async function handleTeacherApproval(
     action: 'approve' | 'reject'
 ): Promise<{ success: boolean; message: string; error?: string }> {
     try {
-        console.log(`[TeacherApproval] Processando ${action} para professor ${teacherId}`)
+        const newStatus = action === 'approve' ? 'approved' : 'rejected'
+        await adminDb.collection('profiles').doc(teacherId).update({
+            teacher_status: newStatus,
+            updated_at: new Date()
+        })
 
-        if (action === 'approve') {
-            console.log(`[TeacherApproval] Professor ${teacherId} APROVADO`)
-            console.log(`[TeacherApproval] Atualizando status para 'approved' no Firestore...`)
-        } else {
-            console.log(`[TeacherApproval] Professor ${teacherId} REJEITADO`)
-            console.log(`[TeacherApproval] Removendo perfil de professor ou definindo status 'rejected'...`)
-        }
+        await adminDb.collection('notifications').add({
+            user_id: teacherId,
+            type: action === 'approve' ? 'teacher_approved' : 'teacher_rejected',
+            title: action === 'approve' ? 'Solicitação Aprovada' : 'Solicitação Rejeitada',
+            message: action === 'approve'
+                ? 'Sua solicitação para ser professor foi aprovada! Você já pode criar cursos.'
+                : 'Sua solicitação para ser professor foi rejeitada. Entre em contato para mais informações.',
+            read: false,
+            created_at: new Date()
+        })
+
+        revalidatePath('/admin/teachers')
 
         return {
             success: true,
@@ -996,5 +1012,172 @@ export async function promoteTeacherToAdmin(teacherId: string): Promise<{ succes
     } catch (error) {
         console.error("[promoteTeacherToAdmin] Erro ao promover professor:", error)
         return { success: false, error: "Erro interno ao processar a promoção.", message: "" }
+    }
+}
+/**
+ * Busca detalhes completos de um aluno para o Admin Dashboard.
+ * Inclui dados cadastrais (Asaas), acadêmicos (progresso) e segurança (MFA).
+ */
+export async function getStudentDetails(uid: string) {
+    try {
+        const userSession = await getSessionUser()
+        if (!userSession || userSession.role !== 'admin') {
+            throw new Error('Acesso negado: Apenas administradores podem ver detalhes de alunos.')
+        }
+
+        // 1. Dados de Perfil do Firestore
+        const profileDoc = await adminDb.collection('profiles').doc(uid).get()
+        if (!profileDoc.exists) {
+            throw new Error('Perfil não encontrado.')
+        }
+        const profileData = profileDoc.data() as any
+
+        // 2. Dados de Segurança (Firebase Auth Admin)
+        const authUser = await adminAuth.getUser(uid)
+        const mfaStatus = profileData.mfaEnabled === true
+        const lastLogin = authUser.metadata.lastSignInTime
+
+        // 3. Dados Acadêmicos (Matrículas e Progresso)
+        const enrollmentsSnap = await adminDb.collection('enrollments')
+            .where('user_id', '==', uid)
+            .get()
+        
+        const coursesSnap = await adminDb.collection('courses').get()
+        const coursesMap = new Map()
+        coursesSnap.docs.forEach(doc => coursesMap.set(doc.id, { id: doc.id, ...doc.data() }))
+
+        const lessonsSnap = await adminDb.collection('lessons')
+            .where('status', '==', 'APROVADO')
+            .get()
+        
+        // Agrupa lições por curso para contar total
+        const lessonsCountByCourse = new Map()
+        lessonsSnap.docs.forEach(doc => {
+            const courseId = doc.data().course_id
+            lessonsCountByCourse.set(courseId, (lessonsCountByCourse.get(courseId) || 0) + 1)
+        })
+
+        const academicData = enrollmentsSnap.docs.map(doc => {
+            const data = doc.data()
+            const course = coursesMap.get(data.course_id)
+            const completedCount = data.completed_lessons?.length || 0
+            const totalCount = lessonsCountByCourse.get(data.course_id) || 0
+            const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
+            
+            // Verifica se tem certificado gerado no perfil
+            const certificate = profileData.concluded_courses?.find((c: any) => c.courseId === data.course_id)
+
+            return {
+                courseId: data.course_id,
+                courseTitle: course?.title || 'Curso N/A',
+                progress,
+                completedCount,
+                totalCount,
+                isConcluded: progress === 100,
+                certificateCode: certificate?.credentialId || null,
+                concludedAt: certificate?.date_conclusao || null
+            }
+        })
+
+        // 4. Montar Objeto Final (Padrão Industrial)
+        return {
+            success: true,
+            student: {
+                uid: profileData.uid,
+                fullName: profileData.full_name || 'N/A',
+                email: profileData.email,
+                phone: profileData.phone || profileData.mobilePhone || 'N/A',
+                role: profileData.role,
+                ativo: profileData.ativo !== false,
+                createdAt: profileData.created_at ? parseFirebaseDate(profileData.created_at)?.toISOString() : null,
+                address: {
+                    cep: profileData.cep || profileData.postalCode || null,
+                    logradouro: profileData.logradouro || profileData.address || null,
+                    numero: profileData.numero || profileData.addressNumber || null,
+                    complemento: profileData.complemento || profileData.complement || null,
+                    bairro: profileData.bairro || profileData.province || null,
+                    cidade: profileData.cidade || profileData.city || null,
+                    uf: profileData.uf || profileData.state || null,
+                },
+                security: {
+                    mfaEnabled: mfaStatus,
+                    lastLogin: lastLogin,
+                    emailVerified: authUser.emailVerified
+                },
+                academic: academicData
+            }
+        }
+    } catch (error: any) {
+        console.error('Error fetching student details:', error)
+        return { success: false, error: error.message || 'Falha ao buscar detalhes do aluno.' }
+    }
+}
+
+/**
+ * Busca detalhes completos de um professor para o Admin Dashboard.
+ */
+export async function getTeacherDetails(uid: string) {
+    try {
+        const userSession = await getSessionUser()
+        if (!userSession || userSession.role !== 'admin') {
+            throw new Error('Acesso negado: Apenas administradores podem ver detalhes de professores.')
+        }
+
+        // 1. Dados de Perfil do Firestore
+        const profileDoc = await adminDb.collection('profiles').doc(uid).get()
+        if (!profileDoc.exists) {
+            throw new Error('Perfil não encontrado.')
+        }
+        const profileData = profileDoc.data() as any
+
+        // 2. Dados de Segurança (Firebase Auth Admin)
+        const authUser = await adminAuth.getUser(uid)
+        const mfaStatus = profileData.mfaEnabled === true
+        const lastLogin = authUser.metadata.lastSignInTime
+
+        // 3. Dados Profissionais (Cursos)
+        const coursesSnap = await adminDb.collection('courses')
+            .where('teacher_id', '==', uid)
+            .get()
+        
+        const courses = coursesSnap.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+            created_at: doc.data().created_at?.toDate ? doc.data().created_at.toDate().toISOString() : null
+        }))
+
+        // 4. Montar Objeto Final (Padrão Industrial)
+        return {
+            success: true,
+            teacher: {
+                uid: profileData.uid || uid,
+                fullName: profileData.full_name || 'N/A',
+                email: profileData.email,
+                phone: profileData.phone || profileData.mobilePhone || 'N/A',
+                cpfCnpj: profileData.cpf_cnpj || 'N/A',
+                role: profileData.role,
+                ativo: profileData.ativo !== false,
+                teacherStatus: profileData.teacher_status || 'active',
+                createdAt: profileData.created_at ? parseFirebaseDate(profileData.created_at)?.toISOString() : null,
+                address: {
+                    cep: profileData.cep || profileData.postalCode || null,
+                    logradouro: profileData.logradouro || profileData.address || null,
+                    numero: profileData.numero || profileData.addressNumber || null,
+                    complemento: profileData.complemento || profileData.complement || null,
+                    bairro: profileData.bairro || profileData.province || null,
+                    cidade: profileData.cidade || profileData.city || null,
+                    uf: profileData.uf || profileData.state || null,
+                },
+                security: {
+                    mfaEnabled: mfaStatus,
+                    lastLogin: lastLogin,
+                    emailVerified: authUser.emailVerified
+                },
+                courses: courses
+            }
+        }
+    } catch (error: any) {
+        console.error('Error fetching teacher details:', error)
+        return { success: false, error: error.message || 'Falha ao buscar detalhes do professor.' }
     }
 }
