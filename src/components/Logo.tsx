@@ -6,7 +6,7 @@ import { useBranding } from '@/context/BrandingContext'
 interface LogoProps {
     className?: string
     variant?: 'horizontal' | 'vertical' | 'text-only'
-    href?: string
+    href?: string | null
     logoUrl?: string  // optional explicit override
     light?: boolean
 }
@@ -84,18 +84,40 @@ export default function Logo({ className = '', variant = 'horizontal', href = '/
     )
 
     if (variant === 'text-only') {
+        const content = (
+            <span className={`text-2xl font-bold tracking-tighter uppercase font-exo`} style={{ color: primaryColor }}>
+                POWER <span style={{ color: primaryColor }}>PLAY</span>
+            </span>
+        )
+
+        if (!href) {
+            return (
+                <div className={`${className}`}>
+                    {content}
+                </div>
+            )
+        }
+
         return (
             <Link href={href as any} className={`hover:scale-105 transition-transform duration-500 outline-none ${className}`}>
-                <span className={`text-2xl font-bold tracking-tighter uppercase font-exo`} style={{ color: primaryColor }}>
-                    POWER <span style={{ color: primaryColor }}>PLAY</span>
-                </span>
+                {content}
             </Link>
+        )
+    }
+
+    const content = <PowerPlayLogo />
+
+    if (!href) {
+        return (
+            <div className={`flex items-center h-12 md:h-14 ${className}`}>
+                {content}
+            </div>
         )
     }
 
     return (
         <Link href={href as any} className={`flex items-center hover:opacity-90 transition-opacity outline-none h-12 md:h-14 ${className}`}>
-            <PowerPlayLogo />
+            {content}
         </Link>
     )
 }
