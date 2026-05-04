@@ -33,11 +33,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Generate a unique session identifier
     const sessionId = crypto.randomUUID();
 
-    // Persist the active session ID in Firestore (overwrites previous device)
+    // Persist only the active session ID in Firestore.
+    // NOTE: mfaEnabled is NOT updated here because this platform uses a custom
+    // email-based 2FA flow, not Firebase native MFA. The field is managed by
+    // the sync script (scripts/sync-mfa.js) and is always true by platform policy.
     await adminDb
       .collection("profiles")
       .doc(uid)
-      .set({ active_session_id: sessionId }, { merge: true });
+      .set({ 
+        active_session_id: sessionId,
+        updated_at: new Date()
+      }, { merge: true });
 
     // Create the Firebase session cookie via Admin SDK
     const sessionCookie = await adminAuth.createSessionCookie(idToken, {

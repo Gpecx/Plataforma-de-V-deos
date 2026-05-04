@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { auth } from '@/lib/firebase'
 import { createUserWithEmailAndPassword, updateProfile as firebaseUpdateProfile, sendEmailVerification } from 'firebase/auth'
-import { createProfile, getAddressByCep } from './actions'
+import { createProfile, getAddressByCep, getDataByCnpj } from './actions'
 import Logo from '@/components/Logo'
 import { ArrowRight, AlertCircle, Eye, EyeOff } from 'lucide-react'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
@@ -106,6 +106,18 @@ function maskCep(value: string): string {
     return digits.replace(/^(\d{5})(\d)/, '$1-$2')
 }
 
+function maskPhone(value: string): string {
+    const digits = value.replace(/\D/g, '').slice(0, 11)
+    if (digits.length <= 10) {
+        return digits
+            .replace(/^(\d{2})(\d)/, '($1) $2')
+            .replace(/(\d{4})(\d)/, '$1-$2')
+    }
+    return digits
+        .replace(/^(\d{2})(\d)/, '($1) $2')
+        .replace(/(\d{5})(\d)/, '$1-$2')
+}
+
 export default function RegisterPage() {
     return (
         <Suspense fallback={
@@ -132,6 +144,7 @@ function RegisterForm() {
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [fullName, setFullName] = useState('')
+    const [phone, setPhone] = useState('')
     const [personType, setPersonType] = useState<'CPF' | 'CNPJ'>('CPF')
     const [cpfCnpj, setCpfCnpj] = useState('')
     const [birthDate, setBirthDate] = useState('')
@@ -172,6 +185,7 @@ function RegisterForm() {
     const [cidade, setCidade] = useState('')
     const [estado, setEstado] = useState('')
     const [isCepLoading, setIsCepLoading] = useState(false)
+    const [isCnpjLoading, setIsCnpjLoading] = useState(false)
     const [cepError, setCepError] = useState('')
 
     // Validação em tempo real
@@ -190,13 +204,14 @@ function RegisterForm() {
             fullName.length > 3 &&
             isCpfCnpjValid &&
             isBirthDateValid &&
+            phone.length >= 14 &&
             cep.length === 9 &&
             rua.length > 2 &&
             numero.length > 0 &&
             cidade.length > 2 &&
             estado.length === 2 &&
             termsAccepted
-    }, [email, password, confirmPassword, fullName, isCpfCnpjValid, isBirthDateValid, cep, rua, numero, cidade, estado, termsAccepted])
+    }, [email, password, confirmPassword, fullName, phone, isCpfCnpjValid, isBirthDateValid, cep, rua, numero, cidade, estado, termsAccepted])
 
     const handleCpfCnpjChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCpfCnpj(maskCpfCnpj(e.target.value, personType))
@@ -208,6 +223,10 @@ function RegisterForm() {
             setCpfCnpj('')
             setCpfCnpjTouched(false)
         }
+    }
+
+    const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setPhone(maskPhone(e.target.value))
     }
 
     const handleBirthDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -247,6 +266,31 @@ function RegisterForm() {
         }
     }
 
+    const handleCnpjBlur = async () => {
+        if (personType !== 'CNPJ') return
+        const cleanCnpj = cpfCnpj.replace(/\D/g, '')
+        if (cleanCnpj.length === 14 && isCpfCnpjValid) {
+            setIsCnpjLoading(true)
+            try {
+                const result = await getDataByCnpj(cleanCnpj)
+                if (result.success && result.data) {
+                    setFullName(result.data.razao_social || '')
+                    setCep(maskCep(result.data.cep || ''))
+                    setRua(result.data.logradouro || '')
+                    setBairro(result.data.bairro || '')
+                    setCidade(result.data.municipio || '')
+                    setEstado(result.data.uf || '')
+                    setNumero(result.data.numero || '')
+                    setComplemento(result.data.complemento || '')
+                }
+            } catch (error) {
+                console.error('CNPJ Lookup failed', error)
+            } finally {
+                setIsCnpjLoading(false)
+            }
+        }
+    }
+
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!isFormValid) return
@@ -268,6 +312,7 @@ function RegisterForm() {
                 uid: user.uid,
                 email,
                 full_name: fullName,
+                phone,
                 cpf_cnpj: cpfCnpj,
                 person_type: personType,
                 birth_date: birthDate,
@@ -436,6 +481,18 @@ function RegisterForm() {
                                             onChange={(e) => setEmail(e.target.value)}
                                         />
                                     </motion.div>
+                                    <motion.div variants={inputVariants} custom={1.25} className="space-y-1">
+                                        <label className={labelClass}>WhatsApp / Telefone</label>
+                                        <input
+                                            type="text"
+                                            placeholder="(00) 00000-0000"
+                                            inputMode="numeric"
+                                            required
+                                            className={inputClass()}
+                                            value={phone}
+                                            onChange={handlePhoneChange}
+                                        />
+                                    </motion.div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <motion.div variants={inputVariants} custom={1.3} className="space-y-1">
                                             <label className={labelClass}>Senha</label>
@@ -513,10 +570,29 @@ function RegisterForm() {
                                             className={inputClass(cpfCnpjTouched && !isCpfCnpjValid)}
                                             value={cpfCnpj}
                                             onChange={handleCpfCnpjChange}
-                                            onBlur={() => setCpfCnpjTouched(true)}
+                                            onBlur={() => {
+                                                setCpfCnpjTouched(true)
+                                                handleCnpjBlur()
+                                            }}
                                             variants={inputVariants}
                                             custom={2.1}
                                         />
+                                        <AnimatePresence>
+                                            {isCnpjLoading && (
+                                                <motion.div
+                                                    initial={{ opacity: 0 }}
+                                                    animate={{ opacity: 1 }}
+                                                    exit={{ opacity: 0 }}
+                                                    className="mt-1 flex items-center gap-2 text-[#28b828]"
+                                                >
+                                                    <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
+                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                                    </svg>
+                                                    <span className="text-[9px] font-bold uppercase tracking-widest">Consultando BrasilAPI...</span>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
                                         {cpfCnpjTouched && !isCpfCnpjValid && (
                                             <p className="text-red-500 text-[9px] font-bold uppercase tracking-widest mt-1">
                                                 {personType === 'CPF' ? 'CPF inválido' : 'CNPJ inválido'}

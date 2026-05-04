@@ -14,7 +14,7 @@ interface CartStore {
     purchasedCourseIds: string[]
     notification: { message: string, type: 'error' | 'success' | 'info' } | null
     checkoutResult: any | null
-    addItem: (item: CartItem) => void
+    addItem: (item: CartItem, purchasedIdsOverride?: string[]) => void
     setPurchasedCourses: (ids: string[]) => void
     showNotification: (message: string, type?: 'error' | 'success' | 'info', duration?: number) => void
     hideNotification: () => void
@@ -33,13 +33,13 @@ export const useCartStore = create<CartStore>()(
             purchasedCourseIds: [],
             notification: null,
             checkoutResult: null,
-            addItem: (item) => {
+    addItem: (item: CartItem, purchasedIdsOverride?: string[]) => {
                 const currentItems = get().items
-                const purchasedIds = get().purchasedCourseIds
+                const purchasedIds = purchasedIdsOverride || get().purchasedCourseIds
 
                 // 1. Impede a adição se o curso já foi comprado
                 if (purchasedIds.includes(item.id)) {
-                    get().showNotification('Você já possui este curso e não pode comprá-lo novamente.', 'error')
+                    get().showNotification('Acesso verificado: Você já possui este curso.', 'error', 4000)
                     return
                 }
 
@@ -59,8 +59,25 @@ export const useCartStore = create<CartStore>()(
                 set({ notification: null })
             },
             setPurchasedCourses: (ids: string[]) => {
-
-                set({ purchasedCourseIds: ids })
+                const currentItems = get().items
+                const itemsToRemove = currentItems.filter(item => ids.includes(item.id))
+                
+                if (itemsToRemove.length > 0) {
+                    const filteredItems = currentItems.filter(item => !ids.includes(item.id))
+                    set({ 
+                        items: filteredItems, 
+                        purchasedCourseIds: ids 
+                    })
+                    
+                    // Mensagem Industrial: Cantos retos serão aplicados no componente
+                    if (itemsToRemove.length === 1) {
+                        get().showNotification('Acesso verificado: Você já possui este curso. O item foi removido do carrinho.', 'info', 6000)
+                    } else {
+                        get().showNotification('Acesso verificado: Alguns cursos já adquiridos foram removidos do seu carrinho.', 'info', 6000)
+                    }
+                } else {
+                    set({ purchasedCourseIds: ids })
+                }
             },
             removeItem: (id) => {
                 set({ items: get().items.filter((i) => i.id !== id) })

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Search, User as UserIcon, Loader2, ShieldCheck, ShieldAlert, ChevronRight, BookOpen, Clock, Medal } from 'lucide-react'
 import { toggleUserStatus } from '@/app/actions/admin'
+import StudentDetailsDrawer from './StudentDetailsDrawer'
 
 interface Student {
     id: string
@@ -57,6 +58,7 @@ export default function StudentManagement({ initialStudents }: StudentManagement
     const [searchTerm, setSearchTerm] = useState('')
     const [loadingId, setLoadingId] = useState<string | null>(null)
     const [isLoading, setIsLoading] = useState(false)
+    const [selectedStudentUid, setSelectedStudentUid] = useState<string | null>(null)
 
     const handleToggleStatus = async (uid: string, currentStatus: boolean) => {
         if (!confirm(`Deseja ${currentStatus ? 'desativar' : 'ativar'} este aluno?`)) return
@@ -152,11 +154,17 @@ export default function StudentManagement({ initialStudents }: StudentManagement
                                 >
                                     <td className="p-6">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0' }}>
-                                                <UserIcon size={20} style={{ color: '#1D5F31' }} />
-                                            </div>
-                                            <div className="flex flex-col">
-                                                <span className="font-bold uppercase tracking-tight text-sm" style={{ color: '#0f172a' }}>
+                                            <button 
+                                                onClick={() => setSelectedStudentUid(student.uid)}
+                                                className="w-12 h-12 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 group relative" 
+                                                style={{ backgroundColor: '#f1f5f9', border: '1px solid #e2e8f0' }}
+                                                title="Ver perfil completo"
+                                            >
+                                                <UserIcon size={20} className="group-hover:text-[#1D5F31] transition-colors" style={{ color: '#1D5F31' }} />
+                                                <div className="absolute inset-0 rounded-full border-2 border-transparent group-hover:border-[#1D5F31] transition-all" />
+                                            </button>
+                                            <div className="flex flex-col cursor-pointer" onClick={() => setSelectedStudentUid(student.uid)}>
+                                                <span className="font-bold uppercase tracking-tight text-sm hover:text-[#1D5F31] transition-colors" style={{ color: '#0f172a' }}>
                                                     {student.full_name || 'N/A'}
                                                 </span>
                                                 <span className="text-[10px] font-bold uppercase tracking-wider mt-1" style={{ color: '#64748b' }}>
@@ -237,6 +245,11 @@ export default function StudentManagement({ initialStudents }: StudentManagement
                     </tbody>
                 </table>
             </div>
+
+            <StudentDetailsDrawer 
+                uid={selectedStudentUid} 
+                onClose={() => setSelectedStudentUid(null)} 
+            />
         </div>
     )
 }

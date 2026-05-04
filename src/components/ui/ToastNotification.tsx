@@ -36,7 +36,7 @@ export function ToastNotification() {
                         initial={{ opacity: 0, y: -20, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                        className={`pointer-events-auto backdrop-blur-md border shadow-2xl rounded-md p-4 flex items-center justify-between gap-4 ${bgColors[notification.type]}`}
+                        className={`pointer-events-auto backdrop-blur-md border shadow-2xl rounded-none p-4 flex items-center justify-between gap-4 ${bgColors[notification.type]}`}
                     >
                         <div className="flex items-center gap-3">
                             <div className="bg-white p-1.5 rounded-md shadow-sm">

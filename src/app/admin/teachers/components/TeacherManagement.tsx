@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { Users, BookOpen, GraduationCap, Search, ChevronRight, Check, X, Mail, Calendar, MapPin, Briefcase, Monitor, ShieldCheck, AlertTriangle } from 'lucide-react'
-import { getTeacherStudents, banTeacher, reactivateTeacher, promoteTeacherToAdmin } from '@/app/actions/admin'
+import { getTeacherStudents, banTeacher, reactivateTeacher, promoteTeacherToAdmin, getTeacherDetails } from '@/app/actions/admin'
 import { AnimatePresence, motion } from 'framer-motion'
 import { toast } from 'sonner'
 
@@ -71,6 +71,7 @@ const HARDWARE_MAP: Record<string, string> = {
 export default function TeacherManagement({ initialTeachers }: TeacherManagementProps) {
     const [activeTab, setActiveTab] = useState<'ativos' | 'banidos'>('ativos')
     const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
+    const [teacherFullDetails, setTeacherFullDetails] = useState<any>(null)
     const [students, setStudents] = useState<Student[]>([])
     const [loading, setLoading] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
@@ -104,16 +105,26 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
 
     const handleSelectTeacher = async (teacher: Teacher) => {
         setSelectedTeacher(teacher)
-        if (activeTab === 'ativos') {
-            setLoading(true)
-            try {
+        setTeacherFullDetails(null)
+        setStudents([])
+        setLoading(true)
+        try {
+            // Busca detalhes completos (MFA, Auth, Profile)
+            const detailsRes = await getTeacherDetails(teacher.id)
+            if (detailsRes.success) {
+                setTeacherFullDetails(detailsRes.teacher)
+            }
+
+            // Se for ativo, busca também os alunos
+            if (activeTab === 'ativos') {
                 const res = await getTeacherStudents(teacher.id)
                 setStudents(res as Student[])
-            } catch (error) {
-                console.error("Erro ao buscar alunos:", error)
-            } finally {
-                setLoading(false)
             }
+        } catch (error) {
+            console.error("Erro ao buscar dados do professor:", error)
+            toast.error("Erro ao carregar detalhes")
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -185,6 +196,18 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
             month: 'short',
             year: 'numeric'
         })
+    }
+
+    const formatDocument = (doc?: string) => {
+        if (!doc) return 'N/A'
+        const clean = doc.replace(/\D/g, '')
+        if (clean.length === 11) {
+            return clean.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+        }
+        if (clean.length === 14) {
+            return clean.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
+        }
+        return doc
     }
 
     const formatAddress = (teacher: Teacher) => {
@@ -332,32 +355,76 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                         </div>
                     ) : selectedTeacher ? (
                         activeTab === 'ativos' ? (
-                            <div className="space-y-3 max-h-[650px] overflow-y-auto pr-2 custom-scrollbar">
-                                {students.length > 0 ? (
-                                    students.map((student) => (
-                                        <div key={student.id} className="bg-slate-50 p-5 rounded-xl border border-slate-200 hover:border-[#1D5F31] transition-all flex justify-between items-center group">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-lg bg-[#1D5F31] flex items-center justify-center text-white font-bold text-sm shadow-md">
-                                                    {student.full_name?.charAt(0)}
-                                                </div>
-                                                <div>
-                                                    <h4 className="font-bold text-[13px] uppercase tracking-tight text-[#000000]">{student.full_name}</h4>
-                                                    <p className="text-[11px] text-[#334155] font-bold tracking-tight">{student.email}</p>
-                                                </div>
+                            <div className="space-y-6 max-h-[650px] overflow-y-auto pr-2 custom-scrollbar">
+                                {teacherFullDetails && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-xl border border-slate-200">
+                                        <div className="space-y-4">
+                                            <div>
+                                                <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Identificação</label>
+                                                <p className="text-sm font-semibold text-slate-900">{formatDocument(teacherFullDetails.cpfCnpj)}</p>
                                             </div>
-                                            <div className="p-2 bg-white border border-slate-200 rounded-lg text-[#000000] group-hover:bg-[#1D5F31] group-hover:text-white transition-colors">
-                                                <BookOpen size={18} strokeWidth={2.5} />
+                                            <div>
+                                                <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">WhatsApp / Telefone</label>
+                                                <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.phone}</p>
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">E-mail de Contato</label>
+                                                <p className="text-sm font-semibold text-slate-900 break-all">{teacherFullDetails.email}</p>
                                             </div>
                                         </div>
-                                    ))
-                                ) : (
-                                    <div className="text-center py-20 px-10">
-                                        <p className="text-xs font-bold uppercase text-[#000000] tracking-wider">Nenhum aluno encontrado</p>
+                                        <div className="space-y-4">
+                                            <div>
+                                                <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Status de Segurança</label>
+                                                <div className="flex items-center gap-2">
+                                                    <div className={`w-2 h-2 rounded-full ${teacherFullDetails.security?.mfaEnabled ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                                                    <p className="text-sm font-semibold text-slate-900">
+                                                        {teacherFullDetails.security?.mfaEnabled ? '2FA ATIVO' : '2FA DESATIVADO'}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Último Acesso</label>
+                                                <p className="text-sm font-semibold text-slate-900">{formatDate(teacherFullDetails.security?.lastLogin)}</p>
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Localização</label>
+                                                <p className="text-sm font-semibold text-slate-900 uppercase">
+                                                    {teacherFullDetails.address?.cidade} - {teacherFullDetails.address?.uf}
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
                                 )}
 
+                                <div className="space-y-3">
+                                    <h4 className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#1D5F31] border-b border-slate-200 pb-2 mb-4">
+                                        Alunos Matriculados ({students.length})
+                                    </h4>
+                                    {students.length > 0 ? (
+                                        students.map((student) => (
+                                            <div key={student.id} className="bg-slate-50/50 p-4 rounded-xl border border-slate-100 hover:border-[#1D5F31] transition-all flex justify-between items-center group">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded bg-[#1D5F31]/10 flex items-center justify-center text-[#1D5F31] font-bold text-xs uppercase">
+                                                        {student.full_name?.charAt(0)}
+                                                    </div>
+                                                    <div>
+                                                        <h4 className="font-bold text-[12px] uppercase tracking-tight text-slate-900">{student.full_name}</h4>
+                                                        <p className="text-[10px] text-slate-500 font-medium">{student.email}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="p-1.5 text-slate-400 group-hover:text-[#1D5F31] transition-colors">
+                                                    <ChevronRight size={16} />
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-10 px-10 bg-slate-50 rounded-xl border border-dashed border-slate-300">
+                                            <p className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Nenhum aluno encontrado</p>
+                                        </div>
+                                    )}
+                                </div>
+
                                 <div className="mt-6 pt-6 border-t border-slate-200 space-y-4">
-                                    {/* Botão de Promoção - Estilo Industrial Clean */}
                                     <button
                                         onClick={() => setShowPromoteModal(true)}
                                         disabled={processingId === selectedTeacher.id}

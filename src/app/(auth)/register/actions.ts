@@ -7,6 +7,7 @@ interface CreateProfileData {
     uid: string
     email: string
     full_name: string
+    phone: string // Novo campo
     cpf_cnpj: string
     person_type: 'CPF' | 'CNPJ'
     birth_date: string
@@ -62,15 +63,50 @@ export async function getAddressByCep(cep: string) {
     }
 }
 
+export async function getDataByCnpj(cnpj: string) {
+    const cleanCnpj = sanitize(cnpj)
+    if (cleanCnpj.length !== 14) return { success: false, error: 'CNPJ inválido' }
+
+    try {
+        const response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cleanCnpj}`)
+        
+        if (!response.ok) {
+            if (response.status === 404) return { success: false, error: 'CNPJ não encontrado' }
+            return { success: false, error: 'Erro na BrasilAPI' }
+        }
+
+        const data = await response.json()
+
+        return {
+            success: true,
+            data: {
+                razao_social: data.razao_social,
+                cep: data.cep,
+                logradouro: data.logradouro,
+                numero: data.numero,
+                complemento: data.complemento,
+                bairro: data.bairro,
+                municipio: data.municipio,
+                uf: data.uf
+            }
+        }
+    } catch (error) {
+        console.error('BrasilAPI Error:', error)
+        return { success: false, error: 'Erro ao consultar CNPJ. Preencha manualmente.' }
+    }
+}
+
 export async function createProfile(data: CreateProfileData) {
     try {
         const sanitizedCpfCnpj = sanitize(data.cpf_cnpj)
         const sanitizedCep = data.cep ? sanitize(data.cep) : undefined
+        const sanitizedPhone = sanitize(data.phone)
 
         const payload: any = {
             ...data,
             cpf_cnpj: sanitizedCpfCnpj,
             cep: sanitizedCep,
+            phone: sanitizedPhone,
             id: data.uid,
             mfaEnabled: true,
             created_at: new Date(),
