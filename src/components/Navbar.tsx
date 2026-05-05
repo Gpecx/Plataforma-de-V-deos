@@ -43,6 +43,8 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from '@/context/AuthProvider'
+import { searchGlobal, SearchResult } from '@/app/actions/search'
+import { motion, AnimatePresence } from 'framer-motion'
 
 interface NavbarProps {
     transparent?: boolean
@@ -57,6 +59,14 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
     const router = useRouter()
     const searchParams = useSearchParams()
     const { isMfaPending } = useAuth()
+    
+    const isTeacherMode = pathname.startsWith('/dashboard-teacher') ||
+        pathname.startsWith('/instructor') ||
+        pathname.startsWith('/painel-professor')
+
+    const isTeacherLogin = pathname === '/auth/teacher/login' || 
+                         pathname === '/login/teacher' || 
+                         pathname === '/professor/login'
     // ... (no changes in inner hooks)
     const [userProfile, setUserProfile] = useState<{ full_name: string | null, role: string | null, created_at: any, photoURL?: string | null } | null>(null)
     const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -66,11 +76,50 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
     const [searchQuery, setSearchQuery] = useState('')
     const [isScrolled, setIsScrolled] = useState(false)
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+    const [searchResults, setSearchResults] = useState<SearchResult[]>([])
+    const [isSearching, setIsSearching] = useState(false)
+    const [showSearchDropdown, setShowSearchDropdown] = useState(false)
 
     useEffect(() => {
         const queryFromUrl = searchParams.get('s') || ''
         setSearchQuery(queryFromUrl)
     }, [searchParams])
+
+    // Debounced search logic for real-time results
+    useEffect(() => {
+        const timer = setTimeout(async () => {
+            if (searchQuery.length >= 2 && isSearchOpen && !isTeacherMode) {
+                setIsSearching(true)
+                setShowSearchDropdown(true)
+                try {
+                    const results = await searchGlobal(searchQuery)
+                    setSearchResults(results)
+                } catch (error) {
+                    console.error("Erro na busca:", error)
+                    setSearchResults([])
+                } finally {
+                    setIsSearching(false)
+                }
+            } else {
+                setSearchResults([])
+                setShowSearchDropdown(false)
+            }
+        }, 300)
+
+        return () => clearTimeout(timer)
+    }, [searchQuery, isSearchOpen, isTeacherMode])
+
+    // Close dropdown on click outside
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            const target = e.target as HTMLElement
+            if (!target.closest('.search-container')) {
+                setShowSearchDropdown(false)
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
 
     useEffect(() => {
         setMounted(true)
@@ -123,14 +172,6 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
         return new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }).format(date)
     }
 
-    const isTeacherMode = pathname.startsWith('/dashboard-teacher') ||
-        pathname.startsWith('/instructor') ||
-        pathname.startsWith('/painel-professor')
-
-    // Rotas de login de professor (baseadas no requisito)
-    const isTeacherLogin = pathname === '/auth/teacher/login' || 
-                         pathname === '/login/teacher' || 
-                         pathname === '/professor/login'
 
     const isEffectivelyLoggedIn = isLoggedIn && !isMfaPending;
 
@@ -235,7 +276,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                     <div className="flex items-center gap-3 md:gap-6 ml-auto">
 
                         {/* Search */}
-                        <div className={`flex items-center gap-2 relative ${isHomePage && !isLoggedIn ? '!hidden' : ''}`}>
+                        <div className={cn("flex items-center gap-2 relative search-container", isHomePage && !isLoggedIn && "!hidden")}>
                             <div className={cn(
                                 "flex items-center rounded-xl px-3 py-1.5 transition-all duration-300",
                                 light ? "bg-slate-100 border border-slate-200" : "bg-white/10 border border-white/20",
@@ -244,7 +285,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                 <Search size={16} className={cn(light ? "text-slate-400" : "text-white", "mr-2 shrink-0")} />
                                 <input
                                     type="text"
-                                    placeholder={isTeacherMode ? "BUSCAR MEUS CURSOS..." : "Buscar cursos..."}
+                                    placeholder={isTeacherMode ? "BUSCAR MEUS CURSOS..." : (userProfile?.role === 'student' || pathname.includes('/dashboard') ? "Procure por qualquer coisa" : "Buscar cursos...")}
                                     className={cn(
                                         // font-size mínimo 16px em mobile previne zoom automático do iOS
                                         "bg-transparent border-none outline-none text-base md:text-[10px] font-bold uppercase tracking-widest w-full",
@@ -254,34 +295,148 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                     onChange={e => {
                                         const value = e.target.value
                                         setSearchQuery(value)
-                                        
-                                        // Busca "live" (ao digitar) apenas para o modo aluno
-                                        if (!isTeacherMode) {
-                                            if (value.trim()) {
-                                                const encodedQuery = encodeURIComponent(value.trim())
-                                                if (pathname !== '/course') {
-                                                    router.push(`/course?s=${encodedQuery}` as any)
-                                                } else {
-                                                    router.replace(`/course?s=${encodedQuery}`, { scroll: false })
-                                                }
-                                            } else {
-                                                if (pathname === '/course') {
-                                                    router.replace('/course', { scroll: false })
-                                                }
-                                            }
-                                        }
+                                        // A navegação automática foi removida em favor do dropdown Udemy
+                                    }}
+                                    onFocus={() => {
+                                        if (searchResults.length > 0) setShowSearchDropdown(true)
                                     }}
                                     onKeyDown={e => {
                                         if (e.key === 'Enter') {
-                                            // Se for professor, o redirecionamento ocorre no Enter (conforme regra industrial)
                                             if (isTeacherMode && searchQuery.trim()) {
                                                 router.push(`/dashboard-teacher/courses?q=${encodeURIComponent(searchQuery.trim())}` as any)
+                                            } else if (searchQuery.trim()) {
+                                                router.push(`/course?s=${encodeURIComponent(searchQuery.trim())}` as any)
+                                                setShowSearchDropdown(false)
                                             }
                                             setIsSearchOpen(false)
                                         }
                                     }}
                                 />
                             </div>
+
+                            {/* Dropdown de Resultados Estilo Udemy */}
+                            <AnimatePresence>
+                                {showSearchDropdown && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 10 }}
+                                        className={cn(
+                                            "absolute top-full right-0 left-0 md:left-auto md:w-[450px] mt-2 shadow-2xl border z-[200] overflow-hidden rounded-xl search-container",
+                                            light ? "bg-white border-slate-200" : "bg-[#061629] border-white/10"
+                                        )}
+                                    >
+                                        <div className="max-h-[70vh] overflow-y-auto">
+                                            {/* Indicador de Carregamento */}
+                                            {isSearching && (
+                                                <div className="p-8 flex flex-col items-center justify-center gap-3">
+                                                    <div className="w-6 h-6 border-2 border-[#1D5F31] border-t-transparent rounded-full animate-spin" />
+                                                    <p className={cn("text-[10px] font-bold uppercase tracking-widest opacity-50", light ? "text-slate-900" : "text-white")}>Buscando...</p>
+                                                </div>
+                                            )}
+
+                                            {!isSearching && searchResults.length === 0 && searchQuery.length >= 2 && (
+                                                <div className="p-8 text-center">
+                                                    <p className={cn("text-[11px] font-bold uppercase tracking-widest opacity-50", light ? "text-slate-900" : "text-white")}>Nenhum resultado encontrado</p>
+                                                </div>
+                                            )}
+                                            {/* Resultados de Cursos */}
+                                            {searchResults.filter(r => r.type === 'course').length > 0 && (
+                                                <div className="p-2">
+                                                    <p className={cn("px-3 py-2 text-[10px] font-bold uppercase tracking-widest opacity-50", light ? "text-slate-900" : "text-white")}>Cursos Sugeridos</p>
+                                                    {searchResults.filter(r => r.type === 'course').map(result => (
+                                                        <button
+                                                            key={result.id}
+                                                            onClick={() => {
+                                                                router.push(`/course/${result.slug}` as any)
+                                                                setShowSearchDropdown(false)
+                                                                setIsSearchOpen(false)
+                                                            }}
+                                                            className={cn(
+                                                                "w-full flex items-center gap-4 p-3 rounded-xl transition-colors text-left group",
+                                                                light ? "hover:bg-slate-50" : "hover:bg-white/5"
+                                                            )}
+                                                        >
+                                                            <div className="w-16 aspect-video rounded-lg overflow-hidden border border-black/10 shrink-0">
+                                                                {result.image ? (
+                                                                    <img src={result.image} alt={result.title} className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    <div className="w-full h-full bg-slate-100 flex items-center justify-center">
+                                                                        <BookOpen size={16} className="text-slate-400" />
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex flex-col min-w-0">
+                                                                <span className={cn("text-[13px] font-bold leading-tight line-clamp-2 group-hover:text-[#1D5F31] transition-colors", light ? "text-slate-900" : "text-white")}>
+                                                                    {result.title}
+                                                                </span>
+                                                                <span className={cn("text-[10px] font-medium uppercase tracking-tight opacity-60 mt-1", light ? "text-slate-600" : "text-white/60")}>
+                                                                    {result.subtitle}
+                                                                </span>
+                                                            </div>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {/* Divisor se houver ambos */}
+                                            {searchResults.filter(r => r.type === 'course').length > 0 && searchResults.filter(r => r.type === 'teacher').length > 0 && (
+                                                <div className={cn("h-[1px] mx-4", light ? "bg-slate-100" : "bg-white/5")} />
+                                            )}
+
+                                            {/* Resultados de Instrutores */}
+                                            {searchResults.filter(r => r.type === 'teacher').length > 0 && (
+                                                <div className="p-2">
+                                                    <p className={cn("px-3 py-2 text-[10px] font-bold uppercase tracking-widest opacity-50", light ? "text-slate-900" : "text-white")}>Instrutores</p>
+                                                    {searchResults.filter(r => r.type === 'teacher').map(result => (
+                                                        <button
+                                                            key={result.id}
+                                                            onClick={() => {
+                                                                router.push(`/professor/${result.id}` as any)
+                                                                setShowSearchDropdown(false)
+                                                                setIsSearchOpen(false)
+                                                            }}
+                                                            className={cn(
+                                                                "w-full flex items-center gap-4 p-3 rounded-xl transition-colors text-left group",
+                                                                light ? "hover:bg-slate-50" : "hover:bg-white/5"
+                                                            )}
+                                                        >
+                                                            <div className="w-10 h-10 rounded-full overflow-hidden border border-black/10 shrink-0 bg-slate-100 flex items-center justify-center">
+                                                                {result.image ? (
+                                                                    <img src={result.image} alt={result.title} className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    <User size={20} className="text-slate-400" />
+                                                                )}
+                                                            </div>
+                                                            <div className="flex flex-col min-w-0">
+                                                                <span className={cn("text-[13px] font-bold leading-tight group-hover:text-[#1D5F31] transition-colors", light ? "text-slate-900" : "text-white")}>
+                                                                    {result.title}
+                                                                </span>
+                                                                <span className={cn("text-[10px] font-medium uppercase tracking-tight opacity-60 mt-1", light ? "text-slate-600" : "text-white/60")}>
+                                                                    {result.subtitle}
+                                                                </span>
+                                                            </div>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                router.push(`/course?s=${encodeURIComponent(searchQuery)}` as any)
+                                                setShowSearchDropdown(false)
+                                                setIsSearchOpen(false)
+                                            }}
+                                            className={cn(
+                                                "w-full p-4 text-[11px] font-bold uppercase tracking-widest text-center border-t hover:bg-[#1D5F31]/5 transition-colors",
+                                                light ? "text-[#1D5F31] border-slate-100 bg-slate-50/50" : "text-[#1D5F31] border-white/5 bg-white/5"
+                                            )}
+                                        >
+                                            Ver todos os resultados
+                                        </button>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                             <button
                                 onClick={() => {
                                     if (isSearchOpen && searchQuery) {
