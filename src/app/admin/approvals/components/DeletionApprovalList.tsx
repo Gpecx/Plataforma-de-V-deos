@@ -58,9 +58,6 @@ export default function DeletionApprovalList({ pendingCourses, pendingLessons, t
                         setLoadingType(null)
                     }
                 }
-            },
-            cancel: {
-                label: 'Cancelar'
             }
         })
     }
@@ -87,9 +84,6 @@ export default function DeletionApprovalList({ pendingCourses, pendingLessons, t
                         setLoadingType(null)
                     }
                 }
-            },
-            cancel: {
-                label: 'Cancelar'
             }
         })
     }
@@ -116,9 +110,6 @@ export default function DeletionApprovalList({ pendingCourses, pendingLessons, t
                         setLoadingType(null)
                     }
                 }
-            },
-            cancel: {
-                label: 'Cancelar'
             }
         })
     }
@@ -145,9 +136,6 @@ export default function DeletionApprovalList({ pendingCourses, pendingLessons, t
                         setLoadingType(null)
                     }
                 }
-            },
-            cancel: {
-                label: 'Cancelar'
             }
         })
     }

@@ -507,11 +507,6 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                         {/* Auth: Not logged in (desktop) */}
                         {!isEffectivelyLoggedIn && (
                             <div className="flex items-center gap-3">
-                                {!isHomePage && (
-                                    <Link href="/contact" className={cn("transition text-xs font-bold uppercase tracking-widest", light ? "text-slate-600 hover:text-slate-900" : "text-white/70 hover:text-white")}>
-                                        Contato
-                                    </Link>
-                                )}
                                 <Link href="/login">
                                     <button className="text-[10px] font-bold uppercase tracking-widest px-3 md:px-4 py-2 rounded-xl transition-all bg-[#1D5F31] text-white hover:brightness-110">
                                         Login
@@ -619,13 +614,6 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                                 <DropdownMenuItem onSelect={() => router.push("/dashboard-student/my-list")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
                                                     <Heart size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Minha Lista</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuSeparator className={cn("my-2", light ? "bg-slate-100" : "bg-white/5")} />
-                                                <DropdownMenuItem onSelect={() => router.push("/contact")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <HelpCircle size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Central de Ajuda</span>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/sugestoes")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <MessageSquare size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Sugestões</span>
-                                                </DropdownMenuItem>
                                             </>
                                         )}
                                     </div>
@@ -652,14 +640,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                 </DropdownMenuContent>
                             </DropdownMenuPortal>
                         </DropdownMenu>
-                        ) : (
-                            /* Mobile: icon for contact when not logged in */
-                            <div className={`md:hidden ${'hidden'}`}>
-                                <Link href="/contact" className="text-slate-500 hover:text-slate-900 transition">
-                                    <User size={22} />
-                                </Link>
-                            </div>
-                        )}
+                        ) : null}
 
                         {/* Hamburger Button (mobile only) */}
                         {!isHomePage && (
@@ -701,14 +682,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                 "pt-3 space-y-2 border-t mt-3",
                                 light ? "border-slate-100" : "border-white/10"
                             )}>
-                                {!isHomePage && (
-                                    <Link href="/contact" onClick={() => setIsMobileMenuOpen(false)} className={cn(
-                                        "flex items-center px-4 py-3 rounded-xl font-bold text-sm transition",
-                                        light ? "text-slate-500 hover:!text-[#1D5F31]" : "text-white/80 hover:!text-[#1D5F31]"
-                                    )}>
-                                        Contato
-                                    </Link>
-                                )}
+
                                 <div className="flex gap-2">
                                     <Link href="/login" className="flex-1" onClick={() => setIsMobileMenuOpen(false)}>
                                         <button className="w-full text-[10px] font-bold uppercase tracking-widest px-4 py-2.5 rounded-xl transition bg-[#1D5F31] text-white hover:brightness-110">

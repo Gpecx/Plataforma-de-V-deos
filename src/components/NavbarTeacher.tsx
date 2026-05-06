@@ -238,11 +238,7 @@ export default function NavbarTeacher() {
 
                                     <div className="px-3 py-2">
                                         <p className="text-[9px] font-bold uppercase tracking-[2px] text-slate-400 mb-2 px-2">Suporte & Ajuda</p>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <DropdownMenuItem onSelect={() => router.push("/contact")} className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 hover:bg-green-50 hover:text-[#1D5F31] text-slate-600 transition-colors cursor-pointer focus:bg-green-50 focus:text-[#1D5F31]">
-                                                <HelpCircle size={20} className="mb-2 text-slate-400" />
-                                                <span className="text-[9px] font-bold uppercase tracking-widest">FAQ</span>
-                                            </DropdownMenuItem>
+                                        <div className="grid grid-cols-1 gap-2">
                                             <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/chat")} className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 hover:bg-green-50 hover:text-[#1D5F31] text-[#1D5F31] transition-colors cursor-pointer focus:bg-green-50 focus:text-[#1D5F31]">
                                                 <MessageSquare size={20} className="mb-2" />
                                                 <span className="text-[9px] font-bold uppercase tracking-widest text-slate-600">Chat</span>
