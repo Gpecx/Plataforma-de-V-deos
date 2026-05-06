@@ -127,6 +127,11 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
         pathname.startsWith('/instructor') ||
         pathname.startsWith('/painel-professor')
 
+    // Rotas de login de professor (baseadas no requisito)
+    const isTeacherLogin = pathname === '/auth/teacher/login' || 
+                         pathname === '/login/teacher' || 
+                         pathname === '/professor/login'
+
     const isEffectivelyLoggedIn = isLoggedIn && !isMfaPending;
 
     const getInitials = (name: string) => {
@@ -159,9 +164,12 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
     const isHomePage = pathname === '/'
 
     // Filter out 'Cursos' on the home page as requested
+    // And hide all links on teacher login pages
     const filteredNavLinks = isHomePage
         ? navLinks.filter(link => link.label !== 'Cursos')
-        : navLinks
+        : isTeacherLogin 
+            ? [] 
+            : navLinks
 
     if (isHidden) {
         return null
@@ -185,7 +193,11 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                 )}>
                     {/* Left: Logo + Desktop Nav */}
                     <div className="flex items-center gap-6 lg:gap-10">
-                        <Logo className="h-14" light={light} href={isEffectivelyLoggedIn ? (isTeacherMode || userProfile?.role === 'teacher' || userProfile?.role === 'admin' ? '/dashboard-teacher/courses' : '/course') : '/'} />
+                        <Logo 
+                            className="h-14" 
+                            light={light} 
+                            href={isTeacherLogin ? null : (isEffectivelyLoggedIn ? (isTeacherMode || userProfile?.role === 'teacher' || userProfile?.role === 'admin' ? '/dashboard-teacher/courses' : '/course') : '/')} 
+                        />
                         {isTeacherMode && isEffectivelyLoggedIn && (
                             <span className={cn(
                                 "hidden sm:inline ml-1 text-[8px] px-2 py-0.5 rounded-xl font-bold tracking-widest uppercase",

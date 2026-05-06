@@ -8,7 +8,7 @@ export default function TeacherFooter() {
             <div className="max-w-7xl mx-auto px-8 md:px-12 relative z-10 flex flex-col items-center space-y-12">
                 {/* Logo Principal */}
                 <div className="hover:scale-105 transition-transform duration-500">
-                    <Logo className="h-24 w-auto" href="/dashboard-teacher" />
+                    <Logo className="h-24 w-auto" href={null} />
                 </div>
 
                 {/* Navegação de Gestão */}

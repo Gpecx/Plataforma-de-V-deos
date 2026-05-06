@@ -41,7 +41,7 @@ export default function HomeHeader() {
                 alignItems: 'center',
                 justifyContent: 'space-between',
             }}>
-                <Logo className="h-8 md:h-10" href={user ? '/course' : '/'} />
+                <Logo className="h-8 md:h-10" href={null} />
 
                 {!user && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>

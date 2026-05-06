@@ -117,7 +117,7 @@ export default function AdminSidebar() {
     return (
         <aside className="fixed left-0 top-0 h-screen w-72 bg-[#F8F9FA] border-r border-[#D1D7DC] flex flex-col z-50">
             <div className="p-8 border-b border-slate-200">
-                <Logo href="/dashboard-teacher/courses" light />
+                <Logo href={null} light />
 
             </div>
 
