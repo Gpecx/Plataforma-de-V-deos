@@ -7,6 +7,8 @@ import { Trash2, PlaySquare, LayoutGrid, Loader2, AlertTriangle, X, Check, Play 
 import Logo from '@/components/Logo'
 import SecureMuxPlayer from '@/components/SecureMuxPlayer'
 
+import { toast } from 'sonner'
+
 export interface LessonData {
     id: string;
     title: string;
@@ -35,83 +37,119 @@ export default function DeletionApprovalList({ pendingCourses, pendingLessons, t
     const isEmpty = courses.length === 0 && lessons.length === 0
 
     const handleApproveCourse = async (id: string) => {
-        if (!confirm('Confirmar exclusão PERMANENTE deste curso? Esta ação não pode ser desfeita.')) return
-        
-        setLoadingId(id)
-        setLoadingType('course')
-        try {
-            const res = await approveCourseDeletion(id)
-            if (res.success) {
-                setCourses(courses.filter(c => c.id !== id))
-            } else {
-                alert(res.error)
+        toast.warning('Confirmar exclusão PERMANENTE deste curso? Esta ação não pode ser desfeita.', {
+            action: {
+                label: 'Excluir Agora',
+                onClick: async () => {
+                    setLoadingId(id)
+                    setLoadingType('course')
+                    try {
+                        const res = await approveCourseDeletion(id)
+                        if (res.success) {
+                            setCourses(courses.filter(c => c.id !== id))
+                            toast.success('Curso excluído permanentemente com sucesso!')
+                        } else {
+                            toast.error(res.error || 'Erro ao excluir curso')
+                        }
+                    } catch (error) {
+                        toast.error('Erro ao excluir curso')
+                    } finally {
+                        setLoadingId(null)
+                        setLoadingType(null)
+                    }
+                }
+            },
+            cancel: {
+                label: 'Cancelar'
             }
-        } catch (error) {
-            alert('Erro ao excluir curso')
-        } finally {
-            setLoadingId(null)
-            setLoadingType(null)
-        }
+        })
     }
 
     const handleRejectCourse = async (id: string) => {
-        if (!confirm('Rejeitar a solicitação de exclusão? O curso voltará a estar ativo.')) return
-        
-        setLoadingId(id)
-        setLoadingType('course')
-        try {
-            const res = await rejectCourseDeletion(id)
-            if (res.success) {
-                setCourses(courses.filter(c => c.id !== id))
-            } else {
-                alert(res.error)
+        toast.info('Deseja rejeitar a solicitação de exclusão? O curso voltará a estar ativo.', {
+            action: {
+                label: 'Rejeitar Exclusão',
+                onClick: async () => {
+                    setLoadingId(id)
+                    setLoadingType('course')
+                    try {
+                        const res = await rejectCourseDeletion(id)
+                        if (res.success) {
+                            setCourses(courses.filter(c => c.id !== id))
+                            toast.success('Solicitação rejeitada. Curso mantido na plataforma.')
+                        } else {
+                            toast.error(res.error || 'Erro ao rejeitar exclusão')
+                        }
+                    } catch (error) {
+                        toast.error('Erro ao rejeitar exclusão')
+                    } finally {
+                        setLoadingId(null)
+                        setLoadingType(null)
+                    }
+                }
+            },
+            cancel: {
+                label: 'Cancelar'
             }
-        } catch (error) {
-            alert('Erro ao rejeitar exclusão')
-        } finally {
-            setLoadingId(null)
-            setLoadingType(null)
-        }
+        })
     }
 
     const handleApproveLesson = async (id: string) => {
-        if (!confirm('Confirmar exclusão PERMANENTE desta aula? Esta ação não pode ser desfeita.')) return
-        
-        setLoadingId(id)
-        setLoadingType('lesson')
-        try {
-            const res = await approveLessonDeletion(id)
-            if (res.success) {
-                setLessons(lessons.filter(l => l.id !== id))
-            } else {
-                alert(res.error)
+        toast.warning('Confirmar exclusão PERMANENTE desta aula? Esta ação não pode ser desfeita.', {
+            action: {
+                label: 'Excluir Aula',
+                onClick: async () => {
+                    setLoadingId(id)
+                    setLoadingType('lesson')
+                    try {
+                        const res = await approveLessonDeletion(id)
+                        if (res.success) {
+                            setLessons(lessons.filter(l => l.id !== id))
+                            toast.success('Aula excluída permanentemente com sucesso!')
+                        } else {
+                            toast.error(res.error || 'Erro ao excluir aula')
+                        }
+                    } catch (error) {
+                        toast.error('Erro ao excluir aula')
+                    } finally {
+                        setLoadingId(null)
+                        setLoadingType(null)
+                    }
+                }
+            },
+            cancel: {
+                label: 'Cancelar'
             }
-        } catch (error) {
-            alert('Erro ao excluir aula')
-        } finally {
-            setLoadingId(null)
-            setLoadingType(null)
-        }
+        })
     }
 
     const handleRejectLesson = async (id: string) => {
-        if (!confirm('Rejeitar a solicitação de exclusão? A aula voltará a estar ativa.')) return
-        
-        setLoadingId(id)
-        setLoadingType('lesson')
-        try {
-            const res = await rejectLessonDeletion(id)
-            if (res.success) {
-                setLessons(lessons.filter(l => l.id !== id))
-            } else {
-                alert(res.error)
+        toast.info('Rejeitar a solicitação de exclusão? A aula voltará a estar ativa.', {
+            action: {
+                label: 'Rejeitar Exclusão',
+                onClick: async () => {
+                    setLoadingId(id)
+                    setLoadingType('lesson')
+                    try {
+                        const res = await rejectLessonDeletion(id)
+                        if (res.success) {
+                            setLessons(lessons.filter(l => l.id !== id))
+                            toast.success('Solicitação rejeitada. Aula mantida no curso.')
+                        } else {
+                            toast.error(res.error || 'Erro ao rejeitar exclusão')
+                        }
+                    } catch (error) {
+                        toast.error('Erro ao rejeitar exclusão')
+                    } finally {
+                        setLoadingId(null)
+                        setLoadingType(null)
+                    }
+                }
+            },
+            cancel: {
+                label: 'Cancelar'
             }
-        } catch (error) {
-            alert('Erro ao rejeitar exclusão')
-        } finally {
-            setLoadingId(null)
-            setLoadingType(null)
-        }
+        })
     }
 
     if (isEmpty) {

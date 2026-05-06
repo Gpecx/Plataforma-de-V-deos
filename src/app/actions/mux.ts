@@ -18,12 +18,8 @@ export async function getMuxUploadUrl(context?: 'intro' | 'lesson') {
 
     if (context === 'intro') {
         playbackPolicy = ['public']
-        console.log('[MuxUpload]Criando upload PÚBLICO para vídeo de introdução')
     } else {
         playbackPolicy = ['signed']
-        if (context) {
-            console.log('[MuxUpload]Criando upload SIGNED para aulas')
-        }
     }
 
     try {

@@ -335,7 +335,7 @@ export async function processCertificateIssuance(courseId: string, userId: strin
             })
             certificate.status = 'issued'
         } catch (firestoreError) {
-            console.log('Certificado preparado mas gravação no Firestore aguardando liberação das Security Rules:', firestoreError)
+            console.error('Certificado preparado mas gravação no Firestore aguardando liberação das Security Rules:', firestoreError)
         }
         */
 

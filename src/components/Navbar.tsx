@@ -41,10 +41,12 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
+    DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from '@/context/AuthProvider'
 import { searchGlobal, SearchResult } from '@/app/actions/search'
 import { motion, AnimatePresence } from 'framer-motion'
+import NextImage from 'next/image'
 
 interface NavbarProps {
     transparent?: boolean
@@ -68,7 +70,12 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                          pathname === '/login/teacher' || 
                          pathname === '/professor/login'
     // ... (no changes in inner hooks)
-    const [userProfile, setUserProfile] = useState<{ full_name: string | null, role: string | null, created_at: any, photoURL?: string | null } | null>(null)
+    const [userProfile, setUserProfile] = useState<{ 
+        full_name: string | null; 
+        role: 'student' | 'teacher' | 'admin' | null; 
+        created_at: string | { seconds: number } | null; 
+        photoURL?: string | null; 
+    } | null>(null)
     const [isLoggedIn, setIsLoggedIn] = useState(false)
     const { items } = useCartStore()
     const [mounted, setMounted] = useState(false)
@@ -85,20 +92,22 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
         setSearchQuery(queryFromUrl)
     }, [searchParams])
 
-    // Debounced search logic for real-time results
+    // Debounced search logic with stale-result cancellation (BUG-01 fix)
     useEffect(() => {
+        let cancelled = false
+
         const timer = setTimeout(async () => {
             if (searchQuery.length >= 2 && isSearchOpen && !isTeacherMode) {
                 setIsSearching(true)
                 setShowSearchDropdown(true)
                 try {
                     const results = await searchGlobal(searchQuery)
-                    setSearchResults(results)
+                    if (!cancelled) setSearchResults(results)
                 } catch (error) {
                     console.error("Erro na busca:", error)
-                    setSearchResults([])
+                    if (!cancelled) setSearchResults([])
                 } finally {
-                    setIsSearching(false)
+                    if (!cancelled) setIsSearching(false)
                 }
             } else {
                 setSearchResults([])
@@ -106,7 +115,10 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
             }
         }, 300)
 
-        return () => clearTimeout(timer)
+        return () => {
+            cancelled = true
+            clearTimeout(timer)
+        }
     }, [searchQuery, isSearchOpen, isTeacherMode])
 
     // Close dropdown on click outside
@@ -135,9 +147,9 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                 if (data) {
                     setUserProfile({
                         full_name: data.full_name || null,
-                        role: data.role as any || null,
-                        created_at: (data as any).created_at,
-                        photoURL: (data as any).photoURL || null
+                        role: (data.role as 'student' | 'teacher' | 'admin') || null,
+                        created_at: data.created_at || null,
+                        photoURL: data.photoURL || null
                     })
                 }
             } catch (error) {
@@ -166,9 +178,13 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
         setIsMobileMenuOpen(false)
     }, [pathname])
 
-    const formatDate = (dateString: string | null) => {
-        if (!dateString) return ''
-        const date = new Date(dateString)
+    const formatDate = (dateInput: string | { seconds: number } | null) => {
+        if (!dateInput) return ''
+        // BUG-05 fix: suporte a Firestore Timestamp ({ seconds, nanoseconds })
+        const date = typeof dateInput === 'object' && 'seconds' in dateInput
+            ? new Date(dateInput.seconds * 1000)
+            : new Date(dateInput as string)
+        if (isNaN(date.getTime())) return ''
         return new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }).format(date)
     }
 
@@ -357,9 +373,9 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                                                 light ? "hover:bg-slate-50" : "hover:bg-white/5"
                                                             )}
                                                         >
-                                                            <div className="w-16 aspect-video rounded-lg overflow-hidden border border-black/10 shrink-0">
+                                                            <div className="w-16 aspect-video rounded-lg overflow-hidden border border-black/10 shrink-0 relative">
                                                                 {result.image ? (
-                                                                    <img src={result.image} alt={result.title} className="w-full h-full object-cover" />
+                                                                    <NextImage src={result.image} alt={result.title} fill className="object-cover" sizes="64px" />
                                                                 ) : (
                                                                     <div className="w-full h-full bg-slate-100 flex items-center justify-center">
                                                                         <BookOpen size={16} className="text-slate-400" />
@@ -401,9 +417,9 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                                                 light ? "hover:bg-slate-50" : "hover:bg-white/5"
                                                             )}
                                                         >
-                                                            <div className="w-10 h-10 rounded-full overflow-hidden border border-black/10 shrink-0 bg-slate-100 flex items-center justify-center">
+                                                            <div className="w-10 h-10 rounded-full overflow-hidden border border-black/10 shrink-0 bg-slate-100 flex items-center justify-center relative">
                                                                 {result.image ? (
-                                                                    <img src={result.image} alt={result.title} className="w-full h-full object-cover" />
+                                                                    <NextImage src={result.image} alt={result.title} fill className="object-cover" sizes="40px" />
                                                                 ) : (
                                                                     <User size={20} className="text-slate-400" />
                                                                 )}
@@ -439,13 +455,16 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                             </AnimatePresence>
                             <button
                                 onClick={() => {
-                                    if (isSearchOpen && searchQuery) {
-                                        setSearchQuery('')
-                                        if (pathname === '/course') {
+                                    if (isSearchOpen) {
+                                        // BUG-04 fix: sempre limpa o dropdown ao fechar
+                                        if (searchQuery && pathname === '/course') {
                                             router.replace('/course', { scroll: false })
                                         }
+                                        setSearchQuery('')
+                                        setShowSearchDropdown(false)
+                                        setSearchResults([])
                                     }
-                                    setIsSearchOpen(!isSearchOpen)
+                                    setIsSearchOpen(prev => !prev)
                                 }}
                                 className={cn(
                                     "transition cursor-pointer outline-none flex items-center justify-center",
@@ -511,11 +530,11 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                             <DropdownMenu modal={false}>
                                 <DropdownMenuTrigger asChild>
                                     <div className={cn(
-                                        "w-9 h-9 md:w-10 md:h-10 flex items-center justify-center font-bold transition-all cursor-pointer border-2 outline-none hover:scale-105 shadow-sm overflow-hidden rounded-full",
+                                        "w-9 h-9 md:w-10 md:h-10 flex items-center justify-center font-bold transition-all cursor-pointer border-2 outline-none hover:scale-105 shadow-sm overflow-hidden rounded-full relative",
                                         light ? "bg-white text-slate-900 border-black/20" : "bg-slate-900 text-white border-black/20"
                                     )}>
                                         {userProfile?.photoURL ? (
-                                            <img src={userProfile.photoURL} alt="Avatar" className="w-full h-full object-cover" />
+                                            <NextImage src={userProfile.photoURL} alt="Avatar" fill className="object-cover" sizes="40px" />
                                         ) : (
                                             <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest">
                                                 {getInitials(userProfile?.full_name || '')}
@@ -523,29 +542,30 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                         )}
                                     </div>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent className={cn(
-                                    "w-[calc(100vw-2rem)] sm:w-64 max-h-[85vh] overflow-y-auto shadow-sm border rounded-2xl p-3 z-[120] mt-2",
-                                    light ? "bg-white text-slate-900 border-slate-200" : "bg-[#061629] text-white border-white/10"
-                                )} align="end" alignOffset={-30} sideOffset={10}>
+                                <DropdownMenuPortal>
+                                    <DropdownMenuContent className={cn(
+                                        "w-[calc(100vw-2rem)] sm:w-64 max-h-[85vh] overflow-y-auto shadow-sm border rounded-2xl p-3 z-[9999] mt-2",
+                                        light ? "bg-white text-slate-900 border-slate-200" : "bg-[#061629] text-white border-white/10"
+                                    )} align="end" alignOffset={-30} sideOffset={10}>
                                     <div className={cn(
                                         "px-5 py-6 mb-2 rounded-xl",
                                         light ? "bg-slate-50" : "bg-white/5"
                                     )}>
                                         <p className={cn(
                                             "font-bold uppercase tracking-tighter text-sm line-clamp-1",
-                                            light ? "text-slate-900" : "text-white"
+                                            light ? "!text-black opacity-100" : "text-white"
                                         )}>
                                             {isTeacherMode || userProfile?.role === 'teacher' || userProfile?.role === 'admin' ? 'PROFESSOR POWERPLAY' : 'ESTUDANTE POWERPLAY'}
                                         </p>
                                         <p className={cn(
                                             "text-[10px] font-bold uppercase tracking-widest mt-1 line-clamp-1",
-                                            light ? "text-slate-900" : "text-white"
+                                            light ? "!text-black opacity-100" : "text-white"
                                         )}>
                                             {userProfile?.full_name || 'Membro PowerPlay'}
                                         </p>
                                         <p className={cn(
                                             "text-[9px] font-bold uppercase tracking-[2px] mt-2",
-                                            light ? "text-slate-600" : "text-white/70"
+                                            light ? "!text-slate-900 opacity-100" : "text-white/70"
                                         )}>
                                             Registrado em {formatDate(userProfile?.created_at || null)}
                                         </p>
@@ -566,45 +586,45 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                                     </>
                                                 )}
                                                 <DropdownMenuSeparator className={cn("my-2", light ? "bg-slate-100" : "bg-white/5")} />
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/profile")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <UserCog size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Editar Perfil</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/profile")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <UserCog size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Editar Perfil</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/students")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <Users size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Alunos</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/students")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <Users size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Alunos</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/courses")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <BookOpen size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Cursos</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/courses")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <BookOpen size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Cursos</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/analytics")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <TrendingUp size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Vendas</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/analytics")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <TrendingUp size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Vendas</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/chat")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <MessageSquare size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Mensagens</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/chat")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <MessageSquare size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Mensagens</span>
                                                 </DropdownMenuItem>
                                             </>
                                         ) : (
                                             <>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/profile")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <User size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Meu Perfil</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/profile")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <User size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Meu Perfil</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/certificates")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <Award size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Meus Certificados</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/certificates")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <Award size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Meus Certificados</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/payments")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <CreditCard size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Pagamentos</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/payments")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <CreditCard size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Pagamentos</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/subscriptions")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <Zap size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Assinaturas</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/subscriptions")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <Zap size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Assinaturas</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/my-list")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <Heart size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Minha Lista</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/my-list")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <Heart size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Minha Lista</span>
                                                 </DropdownMenuItem>
                                                 <DropdownMenuSeparator className={cn("my-2", light ? "bg-slate-100" : "bg-white/5")} />
-                                                <DropdownMenuItem onSelect={() => router.push("/contact")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <HelpCircle size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Central de Ajuda</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/contact")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <HelpCircle size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Central de Ajuda</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/sugestoes")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <MessageSquare size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Sugestões</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/sugestoes")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <MessageSquare size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Sugestões</span>
                                                 </DropdownMenuItem>
                                             </>
                                         )}
@@ -630,7 +650,8 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                         <span className="text-[12px] font-bold uppercase tracking-[2px]">Encerrar Sessão</span>
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
-                            </DropdownMenu>
+                            </DropdownMenuPortal>
+                        </DropdownMenu>
                         ) : (
                             /* Mobile: icon for contact when not logged in */
                             <div className={`md:hidden ${'hidden'}`}>

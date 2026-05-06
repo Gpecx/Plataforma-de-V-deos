@@ -12,6 +12,7 @@ import { BannerWrapper } from "@/components/ui/BannerWrapper";
 import { useAuth } from "@/context/AuthProvider";
 import { motion, AnimatePresence } from "framer-motion";
 import WishlistButton from "@/components/WishlistButton";
+import NextImage from "next/image";
 
 const heroSlides = [
     {
@@ -140,7 +141,7 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: Cou
                     {displaySlides.map((slide, index) => (
                         <div key={index} className={`absolute inset-0 transition-opacity duration-1000 ${index === currentSlide ? "opacity-100" : "opacity-0"}`}>
                             <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent z-10" />
-                            <img src={slide.image} className="w-full h-full object-cover scale-105" alt={slide.title} />
+                            <NextImage src={slide.image} fill priority={index === 0} className="object-cover scale-105" alt={slide.title} sizes="100vw" />
                         </div>
                     ))}
 
@@ -279,9 +280,9 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: Cou
                                 onClick={() => router.push(`/professor/${teacher.id}` as any)}
                                 className="group flex items-center gap-4 p-4 bg-white border border-black rounded-xl hover:border-[#1D5F31] transition-all cursor-pointer"
                             >
-                                <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-black overflow-hidden shrink-0 group-hover:border-[#1D5F31] transition-all">
+                                <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-black overflow-hidden shrink-0 group-hover:border-[#1D5F31] transition-all relative">
                                     {teacher.photoURL ? (
-                                        <img src={teacher.photoURL} alt={teacher.full_name} className="w-full h-full object-cover" />
+                                        <NextImage src={teacher.photoURL} alt={teacher.full_name} fill className="object-cover" sizes="48px" />
                                     ) : (
                                         <User className="text-black" size={20} />
                                     )}
@@ -340,10 +341,12 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: Cou
                                             className="group bg-white border border-black p-0 rounded-xl overflow-hidden hover:border-[#1D5F31]/30 transition-all duration-300 flex flex-col hover:shadow-lg cursor-pointer"
                                         >
                                             <div className="aspect-video relative overflow-hidden">
-                                                <img
+                                                <NextImage
                                                     src={course.image_url || "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=2070"}
                                                     alt={course.title}
-                                                    className="object-cover w-full h-full group-hover:scale-105 transition duration-500"
+                                                    fill
+                                                    className="object-cover group-hover:scale-105 transition duration-500"
+                                                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
                                                 />
                                                 <WishlistButton 
                                                     courseId={course.id} 

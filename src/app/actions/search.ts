@@ -18,6 +18,7 @@ export async function searchGlobal(query: string): Promise<SearchResult[]> {
         const normalizedQuery = query.trim();
         const capitalizedQuery = normalizedQuery.charAt(0).toUpperCase() + normalizedQuery.slice(1).toLowerCase();
         const upperQuery = normalizedQuery.toUpperCase();
+        const lowerQuery = normalizedQuery.toLowerCase();
 
         // Buscas paralelas tentando variações comuns (Original, Capitalizada, Tudo Maiúsculo)
         // Nota: Firestore é case-sensitive, então tentamos as 3 formas mais prováveis
@@ -102,6 +103,27 @@ export async function searchGlobal(query: string): Promise<SearchResult[]> {
             ]);
             addResults(cSnap3, 'course');
             addResults(tSnap3, 'teacher');
+        }
+
+        // BUG-03 fix: 4ª tentativa com tudo minúsculo (cobre dados salvos em lowercase)
+        if (results.length === 0 && normalizedQuery !== lowerQuery) {
+            const [cSnap4, tSnap4] = await Promise.all([
+                adminDb.collection('courses')
+                    .where('status', '==', 'APROVADO')
+                    .orderBy('title')
+                    .startAt(lowerQuery)
+                    .endAt(lowerQuery + '\uf8ff')
+                    .limit(5)
+                    .get(),
+                adminDb.collection('profiles')
+                    .orderBy('full_name')
+                    .startAt(lowerQuery)
+                    .endAt(lowerQuery + '\uf8ff')
+                    .limit(10)
+                    .get()
+            ]);
+            addResults(cSnap4, 'course');
+            addResults(tSnap4, 'teacher');
         }
 
         return results.slice(0, 10);
