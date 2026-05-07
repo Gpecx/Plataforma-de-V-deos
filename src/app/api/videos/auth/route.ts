@@ -99,14 +99,6 @@ export async function POST(request: NextRequest) {
             hasEnrollment = !enrollmentsSnapshot.empty
         }
 
-        // LOG DE DEPURAÇÃO PARA ALUNOS
-        console.log(`[MUX AUTH] Solicitação de vídeo por usuário: ${uid} | Perfil: ${profileData?.role} | Curso: ${cursoId}`)
-        console.log(`[MUX AUTH] Stats: isAdmin=${isAdmin}, isAuthor=${isAuthor}, hasPurchased=${hasPurchased}, hasEnrollment=${hasEnrollment}`)
-        
-        if (!hasPurchased && !hasEnrollment) {
-            console.log(`[MUX AUTH] Cursos liberados para este usuário no perfil:`, cursos_comprados)
-        }
-
         if (!isAdmin && !isAuthor && !hasPurchased && !hasEnrollment) {
             console.warn(`[MUX AUTH] ACESSO NEGADO: Usuário ${uid} tentou acessar curso ${cursoId} sem permissão (Perfil ou Enrollment).`)
             return NextResponse.json(

@@ -3,6 +3,7 @@ import { ArrowLeft, Globe, Linkedin, Twitter, Youtube, Facebook } from 'lucide-r
 import Link from 'next/link'
 import { getInstructorProfile, getInstructorStats, getInstructorCourses } from '@/app/actions/instructor'
 import { Button } from '@/components/ui/button'
+import NextImage from 'next/image'
 
 export const dynamic = 'force-dynamic'
 
@@ -105,10 +106,12 @@ export default async function ProfessorProfilePage({ params }: PageProps) {
                                         >
                                             <div className="aspect-video relative overflow-hidden bg-slate-100 rounded-t-xl">
                                                 {course.image_url ? (
-                                                    <img
+                                                    <NextImage
                                                         src={course.image_url}
                                                         alt={course.title}
-                                                        className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                                                        fill
+                                                        className="object-cover group-hover:scale-105 transition duration-500"
+                                                        sizes="(max-width: 768px) 100vw, 400px"
                                                     />
                                                 ) : (
                                                     <div className="w-full h-full flex items-center justify-center text-slate-300">
@@ -150,12 +153,15 @@ export default async function ProfessorProfilePage({ params }: PageProps) {
                     <aside className="lg:sticky lg:top-8 h-fit">
                         <div className="bg-white rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.04)] p-6 space-y-8">
                             {/* Avatar */}
-                            <div className="w-full aspect-square bg-slate-100 overflow-hidden rounded-2xl">
+                            <div className="w-full aspect-square bg-slate-100 overflow-hidden rounded-2xl relative">
                                 {profile.avatar_url ? (
-                                    <img
+                                    <NextImage
                                         src={profile.avatar_url}
                                         alt={profile.full_name}
-                                        className="w-full h-full object-cover"
+                                        fill
+                                        className="object-cover"
+                                        sizes="(max-width: 768px) 100vw, 300px"
+                                        priority
                                     />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center text-slate-300">

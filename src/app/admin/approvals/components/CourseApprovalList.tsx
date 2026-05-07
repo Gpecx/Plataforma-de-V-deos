@@ -5,6 +5,8 @@ import { approveCourse, rejectCourse } from '@/app/actions/admin'
 import { X, Play, AlertCircle, Loader2, LayoutGrid, PlaySquare } from 'lucide-react'
 import Logo from '@/components/Logo'
 
+import { toast } from 'sonner'
+
 interface CourseApprovalListProps {
     initialCourses: any[]
     teachersMap: Record<string, string>
@@ -42,11 +44,12 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
             if (res.success) {
                 setCourses(courses.filter(c => c.id !== id))
                 setReviewingCourse(null)
+                toast.success('Curso aprovado com sucesso! Já está disponível na plataforma.')
             } else {
-                alert(res.error)
+                toast.error(res.error || 'Erro ao aprovar curso')
             }
         } catch (error) {
-            alert('Erro ao aprovar curso')
+            toast.error('Erro técnico ao processar aprovação')
         } finally {
             setLoadingId(null)
         }
@@ -54,7 +57,7 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
 
     const handleReject = async (id: string) => {
         if (!rejectionReason.trim()) {
-            alert('Por favor, informe o motivo da rejeição.')
+            toast.warning('Por favor, informe o motivo da rejeição para orientar o instrutor.')
             return
         }
 
@@ -65,11 +68,12 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
                 setCourses(courses.filter(c => c.id !== id))
                 setReviewingCourse(null)
                 setRejectionReason('')
+                toast.success('Conteúdo reprovado. O instrutor receberá o feedback.')
             } else {
-                alert(res.error)
+                toast.error(res.error || 'Erro ao rejeitar curso')
             }
         } catch (error) {
-            alert('Erro ao rejeitar curso')
+            toast.error('Erro técnico ao processar reprovação')
         } finally {
             setLoadingId(null)
         }

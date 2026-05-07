@@ -55,7 +55,7 @@ export function TeacherStatusGuard({ status, userName }: TeacherStatusGuardProps
 
           <div className="flex flex-col gap-3 w-full max-w-xs">
             <button
-              onClick={() => window.location.href = '/contact'}
+              onClick={() => window.location.href = 'mailto:suporte@gpecx.com.br'}
               className="flex items-center justify-center gap-2 px-6 py-3 bg-[#061629] text-white font-bold text-sm uppercase tracking-wider rounded-lg hover:bg-[#0a1f33] transition-all"
             >
               <Mail size={16} />

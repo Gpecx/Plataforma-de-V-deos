@@ -8,11 +8,13 @@ export const revalidate = 0;
 
 export default async function CoursesPage() {
     let courses: any[] = [];
+    let teachers: any[] = [];
     let heroBanners: string[] = [];
 
     try {
-        const [snapshot, banners] = await Promise.all([
+        const [snapshot, teachersSnapshot, banners] = await Promise.all([
             adminDb.collection('courses').where('status', '==', 'APROVADO').get(),
+            adminDb.collection('profiles').where('role', '==', 'teacher').get(),
             getBanners()
         ]);
 
@@ -41,9 +43,19 @@ export default async function CoursesPage() {
                 created_at: parseFirebaseDate(data.created_at)?.toISOString() || null,
             };
         });
+
+        teachers = teachersSnapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                full_name: data.full_name || '',
+                photoURL: data.photoURL || data.avatar_url || data.image_url || null,
+                specialty: data.specialty || 'Especialista PowerPlay',
+            };
+        });
     } catch (error) {
         console.error("Erro ao buscar cursos no servidor:", error);
     }
 
-    return <CoursesClient initialCourses={courses} heroBanners={heroBanners} />;
+    return <CoursesClient initialCourses={courses} initialTeachers={teachers} heroBanners={heroBanners} />;
 }

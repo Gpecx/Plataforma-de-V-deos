@@ -3,8 +3,8 @@
 import { useState, Suspense, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { useSearchParams } from "next/navigation";
-import { Info, ChevronRight, Loader2, Search } from "lucide-react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { Info, ChevronRight, Loader2, Search, User } from "lucide-react";
 import { isNewCourse } from "@/lib/date-utils";
 import Navbar from "@/components/Navbar";
 import CourseModal from "@/components/CourseModal";
@@ -12,6 +12,7 @@ import { BannerWrapper } from "@/components/ui/BannerWrapper";
 import { useAuth } from "@/context/AuthProvider";
 import { motion, AnimatePresence } from "framer-motion";
 import WishlistButton from "@/components/WishlistButton";
+import NextImage from "next/image";
 
 const heroSlides = [
     {
@@ -50,13 +51,23 @@ interface Course {
     created_at?: any;
 }
 
+interface Teacher {
+    id: string;
+    full_name: string;
+    photoURL?: string | null;
+    specialty?: string;
+    role?: string;
+}
+
 interface CoursesClientProps {
     initialCourses: Course[];
+    initialTeachers?: Teacher[];
     heroBanners?: string[];
 }
 
-function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
+function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: CoursesClientProps) {
     const searchParams = useSearchParams();
+    const router = useRouter();
     const searchQuery = searchParams.get('s')?.toLowerCase() || "";
     const { user, profile, loading } = useAuth();
 
@@ -84,25 +95,36 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
         return () => clearInterval(timer);
     }, [displaySlides.length]);
 
-    const filteredCourses = initialCourses.filter(c => {
-        if (c.status !== 'APROVADO') return false;
-
+    const filteredResults = (() => {
         const query = (localSearch || searchQuery).toLowerCase().trim();
-        const matchesSearch = query ? (
-            c.title?.toLowerCase().includes(query) ||
-            c.category?.toLowerCase().includes(query) ||
-            c.teacher_name?.toLowerCase().includes(query) ||
-            (c.tags && c.tags.some((tag: string) => tag.toLowerCase().includes(query)))
-        ) : true;
+        
+        const courses = initialCourses.filter(c => {
+            if (c.status !== 'APROVADO') return false;
+            const matchesSearch = query ? (
+                c.title?.toLowerCase().includes(query) ||
+                c.category?.toLowerCase().includes(query) ||
+                c.teacher_name?.toLowerCase().includes(query) ||
+                (c.tags && c.tags.some((tag: string) => tag.toLowerCase().includes(query)))
+            ) : true;
+            if (!matchesSearch) return false;
+            if (activeFilter === 'premium') return c.pricing_type === 'premium';
+            if (activeFilter === 'free') return c.pricing_type === 'free';
+            if (activeFilter === 'new') return isNewCourse(c.created_at);
+            return true;
+        }).map(c => ({ data: c, type: 'course' as const }));
 
-        if (!matchesSearch) return false;
+        const teachers = initialTeachers.filter(t => {
+            // Professores só aparecem se houver uma busca ativa ou se não houver filtros de preço/novidade
+            if (!query) return false;
+            return t.full_name?.toLowerCase().includes(query) || 
+                   t.specialty?.toLowerCase().includes(query);
+        }).map(t => ({ data: t, type: 'teacher' as const }));
 
-        if (activeFilter === 'premium') return c.pricing_type === 'premium';
-        if (activeFilter === 'free') return c.pricing_type === 'free';
-        if (activeFilter === 'new') return isNewCourse(c.created_at);
+        return [...courses, ...teachers];
+    })();
 
-        return true;
-    });
+    const filteredCourses = filteredResults.filter(r => r.type === 'course').map(r => r.data as Course);
+    const filteredTeachers = filteredResults.filter(r => r.type === 'teacher').map(r => r.data as Teacher);
 
     const handleCourseClick = (course: Course) => {
         setSelectedCourse(course);
@@ -119,7 +141,7 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
                     {displaySlides.map((slide, index) => (
                         <div key={index} className={`absolute inset-0 transition-opacity duration-1000 ${index === currentSlide ? "opacity-100" : "opacity-0"}`}>
                             <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent z-10" />
-                            <img src={slide.image} className="w-full h-full object-cover scale-105" alt={slide.title} />
+                            <NextImage src={slide.image} fill priority={index === 0} className="object-cover scale-105" alt={slide.title} sizes="100vw" />
                         </div>
                     ))}
 
@@ -244,9 +266,45 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
                 </h2>
             </div>
 
+            {/* Resultados de Professores */}
+            {filteredTeachers.length > 0 && (
+                <div className="px-6 md:px-12 mb-12">
+                    <div className="flex items-center gap-4 mb-8">
+                        <div className="w-12 h-[2px] bg-[#1D5F31]"></div>
+                        <span className="text-sm font-bold uppercase tracking-tight text-[#1D5F31]">Professores Encontrados</span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {filteredTeachers.map(teacher => (
+                            <div 
+                                key={teacher.id} 
+                                onClick={() => router.push(`/professor/${teacher.id}` as any)}
+                                className="group flex items-center gap-4 p-4 bg-white border border-black rounded-xl hover:border-[#1D5F31] transition-all cursor-pointer"
+                            >
+                                <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-black overflow-hidden shrink-0 group-hover:border-[#1D5F31] transition-all relative">
+                                    {teacher.photoURL ? (
+                                        <NextImage src={teacher.photoURL} alt={teacher.full_name} fill className="object-cover" sizes="48px" />
+                                    ) : (
+                                        <User className="text-black" size={20} />
+                                    )}
+                                </div>
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-bold uppercase tracking-tight text-black group-hover:text-[#1D5F31] transition-colors">
+                                        {teacher.full_name}
+                                    </span>
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
+                                        {teacher.specialty || (teacher.role === 'admin' ? 'Administrador' : 'Instrutor')}
+                                    </span>
+                                </div>
+                                <ChevronRight className="ml-auto text-slate-300 group-hover:text-[#1D5F31] transition-all" size={18} />
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             {/* Lista de Cursos */}
             <div className="px-6 md:px-12 relative z-30 space-y-16 pb-32">
-                {filteredCourses.length === 0 ? (
+                {filteredCourses.length === 0 && filteredTeachers.length === 0 ? (
                     <div className="text-center py-20 bg-white border border-slate-200 rounded-xl shadow-sm space-y-6">
                         <div className="w-20 h-20 bg-[#1D5F31]/20 flex items-center justify-center mx-auto rounded-full">
                             <Info size={32} className="text-slate-700" />
@@ -283,10 +341,12 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
                                             className="group bg-white border border-black p-0 rounded-xl overflow-hidden hover:border-[#1D5F31]/30 transition-all duration-300 flex flex-col hover:shadow-lg cursor-pointer"
                                         >
                                             <div className="aspect-video relative overflow-hidden">
-                                                <img
+                                                <NextImage
                                                     src={course.image_url || "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=2070"}
                                                     alt={course.title}
-                                                    className="object-cover w-full h-full group-hover:scale-105 transition duration-500"
+                                                    fill
+                                                    className="object-cover group-hover:scale-105 transition duration-500"
+                                                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
                                                 />
                                                 <WishlistButton 
                                                     courseId={course.id} 
@@ -350,7 +410,7 @@ function CoursesInner({ initialCourses, heroBanners }: CoursesClientProps) {
     );
 }
 
-export default function CoursesClient({ initialCourses, heroBanners }: CoursesClientProps) {
+export default function CoursesClient({ initialCourses, initialTeachers, heroBanners }: CoursesClientProps) {
     return (
         <Suspense fallback={
             <div className="min-h-screen bg-white flex items-center justify-center">
@@ -360,7 +420,7 @@ export default function CoursesClient({ initialCourses, heroBanners }: CoursesCl
                 </div>
             </div>
         }>
-            <CoursesInner initialCourses={initialCourses} heroBanners={heroBanners} />
+            <CoursesInner initialCourses={initialCourses} initialTeachers={initialTeachers} heroBanners={heroBanners} />
         </Suspense>
     );
 }

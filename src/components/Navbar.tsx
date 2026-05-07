@@ -41,8 +41,12 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
+    DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from '@/context/AuthProvider'
+import { searchGlobal, SearchResult } from '@/app/actions/search'
+import { motion, AnimatePresence } from 'framer-motion'
+import NextImage from 'next/image'
 
 interface NavbarProps {
     transparent?: boolean
@@ -57,8 +61,21 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
     const router = useRouter()
     const searchParams = useSearchParams()
     const { isMfaPending } = useAuth()
+    
+    const isTeacherMode = pathname.startsWith('/dashboard-teacher') ||
+        pathname.startsWith('/instructor') ||
+        pathname.startsWith('/painel-professor')
+
+    const isTeacherLogin = pathname === '/auth/teacher/login' || 
+                         pathname === '/login/teacher' || 
+                         pathname === '/professor/login'
     // ... (no changes in inner hooks)
-    const [userProfile, setUserProfile] = useState<{ full_name: string | null, role: string | null, created_at: any, photoURL?: string | null } | null>(null)
+    const [userProfile, setUserProfile] = useState<{ 
+        full_name: string | null; 
+        role: 'student' | 'teacher' | 'admin' | null; 
+        created_at: string | { seconds: number } | null; 
+        photoURL?: string | null; 
+    } | null>(null)
     const [isLoggedIn, setIsLoggedIn] = useState(false)
     const { items } = useCartStore()
     const [mounted, setMounted] = useState(false)
@@ -66,11 +83,55 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
     const [searchQuery, setSearchQuery] = useState('')
     const [isScrolled, setIsScrolled] = useState(false)
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+    const [searchResults, setSearchResults] = useState<SearchResult[]>([])
+    const [isSearching, setIsSearching] = useState(false)
+    const [showSearchDropdown, setShowSearchDropdown] = useState(false)
 
     useEffect(() => {
         const queryFromUrl = searchParams.get('s') || ''
         setSearchQuery(queryFromUrl)
     }, [searchParams])
+
+    // Debounced search logic with stale-result cancellation (BUG-01 fix)
+    useEffect(() => {
+        let cancelled = false
+
+        const timer = setTimeout(async () => {
+            if (searchQuery.length >= 2 && isSearchOpen && !isTeacherMode) {
+                setIsSearching(true)
+                setShowSearchDropdown(true)
+                try {
+                    const results = await searchGlobal(searchQuery)
+                    if (!cancelled) setSearchResults(results)
+                } catch (error) {
+                    console.error("Erro na busca:", error)
+                    if (!cancelled) setSearchResults([])
+                } finally {
+                    if (!cancelled) setIsSearching(false)
+                }
+            } else {
+                setSearchResults([])
+                setShowSearchDropdown(false)
+            }
+        }, 300)
+
+        return () => {
+            cancelled = true
+            clearTimeout(timer)
+        }
+    }, [searchQuery, isSearchOpen, isTeacherMode])
+
+    // Close dropdown on click outside
+    useEffect(() => {
+        const handleClickOutside = (e: MouseEvent) => {
+            const target = e.target as HTMLElement
+            if (!target.closest('.search-container')) {
+                setShowSearchDropdown(false)
+            }
+        }
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [])
 
     useEffect(() => {
         setMounted(true)
@@ -86,9 +147,9 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                 if (data) {
                     setUserProfile({
                         full_name: data.full_name || null,
-                        role: data.role as any || null,
-                        created_at: (data as any).created_at,
-                        photoURL: (data as any).photoURL || null
+                        role: (data.role as 'student' | 'teacher' | 'admin') || null,
+                        created_at: data.created_at || null,
+                        photoURL: data.photoURL || null
                     })
                 }
             } catch (error) {
@@ -117,20 +178,16 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
         setIsMobileMenuOpen(false)
     }, [pathname])
 
-    const formatDate = (dateString: string | null) => {
-        if (!dateString) return ''
-        const date = new Date(dateString)
+    const formatDate = (dateInput: string | { seconds: number } | null) => {
+        if (!dateInput) return ''
+        // BUG-05 fix: suporte a Firestore Timestamp ({ seconds, nanoseconds })
+        const date = typeof dateInput === 'object' && 'seconds' in dateInput
+            ? new Date(dateInput.seconds * 1000)
+            : new Date(dateInput as string)
+        if (isNaN(date.getTime())) return ''
         return new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' }).format(date)
     }
 
-    const isTeacherMode = pathname.startsWith('/dashboard-teacher') ||
-        pathname.startsWith('/instructor') ||
-        pathname.startsWith('/painel-professor')
-
-    // Rotas de login de professor (baseadas no requisito)
-    const isTeacherLogin = pathname === '/auth/teacher/login' || 
-                         pathname === '/login/teacher' || 
-                         pathname === '/professor/login'
 
     const isEffectivelyLoggedIn = isLoggedIn && !isMfaPending;
 
@@ -235,7 +292,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                     <div className="flex items-center gap-3 md:gap-6 ml-auto">
 
                         {/* Search */}
-                        <div className={`flex items-center gap-2 relative ${isHomePage && !isLoggedIn ? '!hidden' : ''}`}>
+                        <div className={cn("flex items-center gap-2 relative search-container", isHomePage && !isLoggedIn && "!hidden")}>
                             <div className={cn(
                                 "flex items-center rounded-xl px-3 py-1.5 transition-all duration-300",
                                 light ? "bg-slate-100 border border-slate-200" : "bg-white/10 border border-white/20",
@@ -244,7 +301,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                 <Search size={16} className={cn(light ? "text-slate-400" : "text-white", "mr-2 shrink-0")} />
                                 <input
                                     type="text"
-                                    placeholder={isTeacherMode ? "BUSCAR MEUS CURSOS..." : "Buscar cursos..."}
+                                    placeholder={isTeacherMode ? "BUSCAR MEUS CURSOS..." : (userProfile?.role === 'student' || pathname.includes('/dashboard') ? "Procure por qualquer coisa" : "Buscar cursos...")}
                                     className={cn(
                                         // font-size mínimo 16px em mobile previne zoom automático do iOS
                                         "bg-transparent border-none outline-none text-base md:text-[10px] font-bold uppercase tracking-widest w-full",
@@ -254,43 +311,160 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                     onChange={e => {
                                         const value = e.target.value
                                         setSearchQuery(value)
-                                        
-                                        // Busca "live" (ao digitar) apenas para o modo aluno
-                                        if (!isTeacherMode) {
-                                            if (value.trim()) {
-                                                const encodedQuery = encodeURIComponent(value.trim())
-                                                if (pathname !== '/course') {
-                                                    router.push(`/course?s=${encodedQuery}` as any)
-                                                } else {
-                                                    router.replace(`/course?s=${encodedQuery}`, { scroll: false })
-                                                }
-                                            } else {
-                                                if (pathname === '/course') {
-                                                    router.replace('/course', { scroll: false })
-                                                }
-                                            }
-                                        }
+                                        // A navegação automática foi removida em favor do dropdown Udemy
+                                    }}
+                                    onFocus={() => {
+                                        if (searchResults.length > 0) setShowSearchDropdown(true)
                                     }}
                                     onKeyDown={e => {
                                         if (e.key === 'Enter') {
-                                            // Se for professor, o redirecionamento ocorre no Enter (conforme regra industrial)
                                             if (isTeacherMode && searchQuery.trim()) {
                                                 router.push(`/dashboard-teacher/courses?q=${encodeURIComponent(searchQuery.trim())}` as any)
+                                            } else if (searchQuery.trim()) {
+                                                router.push(`/course?s=${encodeURIComponent(searchQuery.trim())}` as any)
+                                                setShowSearchDropdown(false)
                                             }
                                             setIsSearchOpen(false)
                                         }
                                     }}
                                 />
                             </div>
+
+                            {/* Dropdown de Resultados Estilo Udemy */}
+                            <AnimatePresence>
+                                {showSearchDropdown && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 10 }}
+                                        className={cn(
+                                            "absolute top-full right-0 left-0 md:left-auto md:w-[450px] mt-2 shadow-2xl border z-[200] overflow-hidden rounded-xl search-container",
+                                            light ? "bg-white border-slate-200" : "bg-[#061629] border-white/10"
+                                        )}
+                                    >
+                                        <div className="max-h-[70vh] overflow-y-auto">
+                                            {/* Indicador de Carregamento */}
+                                            {isSearching && (
+                                                <div className="p-8 flex flex-col items-center justify-center gap-3">
+                                                    <div className="w-6 h-6 border-2 border-[#1D5F31] border-t-transparent rounded-full animate-spin" />
+                                                    <p className={cn("text-[10px] font-bold uppercase tracking-widest opacity-50", light ? "text-slate-900" : "text-white")}>Buscando...</p>
+                                                </div>
+                                            )}
+
+                                            {!isSearching && searchResults.length === 0 && searchQuery.length >= 2 && (
+                                                <div className="p-8 text-center">
+                                                    <p className={cn("text-[11px] font-bold uppercase tracking-widest opacity-50", light ? "text-slate-900" : "text-white")}>Nenhum resultado encontrado</p>
+                                                </div>
+                                            )}
+                                            {/* Resultados de Cursos */}
+                                            {searchResults.filter(r => r.type === 'course').length > 0 && (
+                                                <div className="p-2">
+                                                    <p className={cn("px-3 py-2 text-[10px] font-bold uppercase tracking-widest opacity-50", light ? "text-slate-900" : "text-white")}>Cursos Sugeridos</p>
+                                                    {searchResults.filter(r => r.type === 'course').map(result => (
+                                                        <button
+                                                            key={result.id}
+                                                            onClick={() => {
+                                                                router.push(`/course/${result.slug}` as any)
+                                                                setShowSearchDropdown(false)
+                                                                setIsSearchOpen(false)
+                                                            }}
+                                                            className={cn(
+                                                                "w-full flex items-center gap-4 p-3 rounded-xl transition-colors text-left group",
+                                                                light ? "hover:bg-slate-50" : "hover:bg-white/5"
+                                                            )}
+                                                        >
+                                                            <div className="w-16 aspect-video rounded-lg overflow-hidden border border-black/10 shrink-0 relative">
+                                                                {result.image ? (
+                                                                    <NextImage src={result.image} alt={result.title} fill className="object-cover" sizes="64px" />
+                                                                ) : (
+                                                                    <div className="w-full h-full bg-slate-100 flex items-center justify-center">
+                                                                        <BookOpen size={16} className="text-slate-400" />
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <div className="flex flex-col min-w-0">
+                                                                <span className={cn("text-[13px] font-bold leading-tight line-clamp-2 group-hover:text-[#1D5F31] transition-colors", light ? "text-slate-900" : "text-white")}>
+                                                                    {result.title}
+                                                                </span>
+                                                                <span className={cn("text-[10px] font-medium uppercase tracking-tight opacity-60 mt-1", light ? "text-slate-600" : "text-white/60")}>
+                                                                    {result.subtitle}
+                                                                </span>
+                                                            </div>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {/* Divisor se houver ambos */}
+                                            {searchResults.filter(r => r.type === 'course').length > 0 && searchResults.filter(r => r.type === 'teacher').length > 0 && (
+                                                <div className={cn("h-[1px] mx-4", light ? "bg-slate-100" : "bg-white/5")} />
+                                            )}
+
+                                            {/* Resultados de Instrutores */}
+                                            {searchResults.filter(r => r.type === 'teacher').length > 0 && (
+                                                <div className="p-2">
+                                                    <p className={cn("px-3 py-2 text-[10px] font-bold uppercase tracking-widest opacity-50", light ? "text-slate-900" : "text-white")}>Instrutores</p>
+                                                    {searchResults.filter(r => r.type === 'teacher').map(result => (
+                                                        <button
+                                                            key={result.id}
+                                                            onClick={() => {
+                                                                router.push(`/professor/${result.id}` as any)
+                                                                setShowSearchDropdown(false)
+                                                                setIsSearchOpen(false)
+                                                            }}
+                                                            className={cn(
+                                                                "w-full flex items-center gap-4 p-3 rounded-xl transition-colors text-left group",
+                                                                light ? "hover:bg-slate-50" : "hover:bg-white/5"
+                                                            )}
+                                                        >
+                                                            <div className="w-10 h-10 rounded-full overflow-hidden border border-black/10 shrink-0 bg-slate-100 flex items-center justify-center relative">
+                                                                {result.image ? (
+                                                                    <NextImage src={result.image} alt={result.title} fill className="object-cover" sizes="40px" />
+                                                                ) : (
+                                                                    <User size={20} className="text-slate-400" />
+                                                                )}
+                                                            </div>
+                                                            <div className="flex flex-col min-w-0">
+                                                                <span className={cn("text-[13px] font-bold leading-tight group-hover:text-[#1D5F31] transition-colors", light ? "text-slate-900" : "text-white")}>
+                                                                    {result.title}
+                                                                </span>
+                                                                <span className={cn("text-[10px] font-medium uppercase tracking-tight opacity-60 mt-1", light ? "text-slate-600" : "text-white/60")}>
+                                                                    {result.subtitle}
+                                                                </span>
+                                                            </div>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                router.push(`/course?s=${encodeURIComponent(searchQuery)}` as any)
+                                                setShowSearchDropdown(false)
+                                                setIsSearchOpen(false)
+                                            }}
+                                            className={cn(
+                                                "w-full p-4 text-[11px] font-bold uppercase tracking-widest text-center border-t hover:bg-[#1D5F31]/5 transition-colors",
+                                                light ? "text-[#1D5F31] border-slate-100 bg-slate-50/50" : "text-[#1D5F31] border-white/5 bg-white/5"
+                                            )}
+                                        >
+                                            Ver todos os resultados
+                                        </button>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                             <button
                                 onClick={() => {
-                                    if (isSearchOpen && searchQuery) {
-                                        setSearchQuery('')
-                                        if (pathname === '/course') {
+                                    if (isSearchOpen) {
+                                        // BUG-04 fix: sempre limpa o dropdown ao fechar
+                                        if (searchQuery && pathname === '/course') {
                                             router.replace('/course', { scroll: false })
                                         }
+                                        setSearchQuery('')
+                                        setShowSearchDropdown(false)
+                                        setSearchResults([])
                                     }
-                                    setIsSearchOpen(!isSearchOpen)
+                                    setIsSearchOpen(prev => !prev)
                                 }}
                                 className={cn(
                                     "transition cursor-pointer outline-none flex items-center justify-center",
@@ -333,11 +507,6 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                         {/* Auth: Not logged in (desktop) */}
                         {!isEffectivelyLoggedIn && (
                             <div className="flex items-center gap-3">
-                                {!isHomePage && (
-                                    <Link href="/contact" className={cn("transition text-xs font-bold uppercase tracking-widest", light ? "text-slate-600 hover:text-slate-900" : "text-white/70 hover:text-white")}>
-                                        Contato
-                                    </Link>
-                                )}
                                 <Link href="/login">
                                     <button className="text-[10px] font-bold uppercase tracking-widest px-3 md:px-4 py-2 rounded-xl transition-all bg-[#1D5F31] text-white hover:brightness-110">
                                         Login
@@ -356,11 +525,11 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                             <DropdownMenu modal={false}>
                                 <DropdownMenuTrigger asChild>
                                     <div className={cn(
-                                        "w-9 h-9 md:w-10 md:h-10 flex items-center justify-center font-bold transition-all cursor-pointer border-2 outline-none hover:scale-105 shadow-sm overflow-hidden rounded-full",
+                                        "w-9 h-9 md:w-10 md:h-10 flex items-center justify-center font-bold transition-all cursor-pointer border-2 outline-none hover:scale-105 shadow-sm overflow-hidden rounded-full relative",
                                         light ? "bg-white text-slate-900 border-black/20" : "bg-slate-900 text-white border-black/20"
                                     )}>
                                         {userProfile?.photoURL ? (
-                                            <img src={userProfile.photoURL} alt="Avatar" className="w-full h-full object-cover" />
+                                            <NextImage src={userProfile.photoURL} alt="Avatar" fill className="object-cover" sizes="40px" />
                                         ) : (
                                             <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest">
                                                 {getInitials(userProfile?.full_name || '')}
@@ -368,29 +537,30 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                         )}
                                     </div>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent className={cn(
-                                    "w-[calc(100vw-2rem)] sm:w-64 max-h-[85vh] overflow-y-auto shadow-sm border rounded-2xl p-3 z-[120] mt-2",
-                                    light ? "bg-white text-slate-900 border-slate-200" : "bg-[#061629] text-white border-white/10"
-                                )} align="end" alignOffset={-30} sideOffset={10}>
+                                <DropdownMenuPortal>
+                                    <DropdownMenuContent className={cn(
+                                        "w-[calc(100vw-2rem)] sm:w-64 max-h-[85vh] overflow-y-auto shadow-sm border rounded-2xl p-3 z-[9999] mt-2",
+                                        light ? "bg-white text-slate-900 border-slate-200" : "bg-[#061629] text-white border-white/10"
+                                    )} align="end" alignOffset={-30} sideOffset={10}>
                                     <div className={cn(
                                         "px-5 py-6 mb-2 rounded-xl",
                                         light ? "bg-slate-50" : "bg-white/5"
                                     )}>
                                         <p className={cn(
                                             "font-bold uppercase tracking-tighter text-sm line-clamp-1",
-                                            light ? "text-slate-900" : "text-white"
+                                            light ? "!text-black opacity-100" : "text-white"
                                         )}>
                                             {isTeacherMode || userProfile?.role === 'teacher' || userProfile?.role === 'admin' ? 'PROFESSOR POWERPLAY' : 'ESTUDANTE POWERPLAY'}
                                         </p>
                                         <p className={cn(
                                             "text-[10px] font-bold uppercase tracking-widest mt-1 line-clamp-1",
-                                            light ? "text-slate-900" : "text-white"
+                                            light ? "!text-black opacity-100" : "text-white"
                                         )}>
                                             {userProfile?.full_name || 'Membro PowerPlay'}
                                         </p>
                                         <p className={cn(
                                             "text-[9px] font-bold uppercase tracking-[2px] mt-2",
-                                            light ? "text-slate-600" : "text-white/70"
+                                            light ? "!text-slate-900 opacity-100" : "text-white/70"
                                         )}>
                                             Registrado em {formatDate(userProfile?.created_at || null)}
                                         </p>
@@ -411,45 +581,38 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                                     </>
                                                 )}
                                                 <DropdownMenuSeparator className={cn("my-2", light ? "bg-slate-100" : "bg-white/5")} />
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/profile")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <UserCog size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Editar Perfil</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/profile")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <UserCog size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Editar Perfil</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/students")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <Users size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Alunos</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/students")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <Users size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Alunos</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/courses")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <BookOpen size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Cursos</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/courses")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <BookOpen size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Cursos</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/analytics")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <TrendingUp size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Vendas</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/analytics")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <TrendingUp size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Vendas</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/chat")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <MessageSquare size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Mensagens</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/chat")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <MessageSquare size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Mensagens</span>
                                                 </DropdownMenuItem>
                                             </>
                                         ) : (
                                             <>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/profile")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <User size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Meu Perfil</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/profile")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <User size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Meu Perfil</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/certificates")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <Award size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Meus Certificados</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/certificates")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <Award size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Meus Certificados</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/payments")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <CreditCard size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Pagamentos</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/payments")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <CreditCard size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Pagamentos</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/subscriptions")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <Zap size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Assinaturas</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/subscriptions")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <Zap size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Assinaturas</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/my-list")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <Heart size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Minha Lista</span>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuSeparator className={cn("my-2", light ? "bg-slate-100" : "bg-white/5")} />
-                                                <DropdownMenuItem onSelect={() => router.push("/contact")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <HelpCircle size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Central de Ajuda</span>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/sugestoes")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-slate-900 hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <MessageSquare size={18} className={light ? "text-slate-600" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Sugestões</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/my-list")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <Heart size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Minha Lista</span>
                                                 </DropdownMenuItem>
                                             </>
                                         )}
@@ -475,15 +638,9 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                         <span className="text-[12px] font-bold uppercase tracking-[2px]">Encerrar Sessão</span>
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
-                            </DropdownMenu>
-                        ) : (
-                            /* Mobile: icon for contact when not logged in */
-                            <div className={`md:hidden ${'hidden'}`}>
-                                <Link href="/contact" className="text-slate-500 hover:text-slate-900 transition">
-                                    <User size={22} />
-                                </Link>
-                            </div>
-                        )}
+                            </DropdownMenuPortal>
+                        </DropdownMenu>
+                        ) : null}
 
                         {/* Hamburger Button (mobile only) */}
                         {!isHomePage && (
@@ -525,14 +682,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                 "pt-3 space-y-2 border-t mt-3",
                                 light ? "border-slate-100" : "border-white/10"
                             )}>
-                                {!isHomePage && (
-                                    <Link href="/contact" onClick={() => setIsMobileMenuOpen(false)} className={cn(
-                                        "flex items-center px-4 py-3 rounded-xl font-bold text-sm transition",
-                                        light ? "text-slate-500 hover:!text-[#1D5F31]" : "text-white/80 hover:!text-[#1D5F31]"
-                                    )}>
-                                        Contato
-                                    </Link>
-                                )}
+
                                 <div className="flex gap-2">
                                     <Link href="/login" className="flex-1" onClick={() => setIsMobileMenuOpen(false)}>
                                         <button className="w-full text-[10px] font-bold uppercase tracking-widest px-4 py-2.5 rounded-xl transition bg-[#1D5F31] text-white hover:brightness-110">

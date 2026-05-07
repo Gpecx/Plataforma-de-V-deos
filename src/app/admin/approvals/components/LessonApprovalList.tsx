@@ -7,6 +7,8 @@ import Logo from '@/components/Logo'
 import { Question } from '@/lib/types/quiz'
 import SecureMuxPlayer from '@/components/SecureMuxPlayer'
 
+import { toast } from 'sonner'
+
 interface Lesson {
     id: string
     title: string
@@ -63,11 +65,12 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
             if (res.success) {
                 setLessonList(lessonList.filter(l => l.id !== id))
                 setReviewingLesson(null)
+                toast.success('Aula aprovada com sucesso!')
             } else {
-                alert(res.error)
+                toast.error(res.error || 'Erro ao aprovar aula')
             }
         } catch (error) {
-            alert('Erro ao aprovar aula')
+            toast.error('Erro técnico ao processar aprovação')
         } finally {
             setLoadingId(null)
         }
@@ -75,7 +78,7 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
 
     const handleReject = async (id: string) => {
         if (!rejectionReason.trim()) {
-            alert('Por favor, informe o motivo da rejeição.')
+            toast.warning('Por favor, informe o motivo da rejeição.')
             return
         }
         setLoadingId(id)
@@ -85,11 +88,12 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
                 setLessonList(lessonList.filter(l => l.id !== id))
                 setReviewingLesson(null)
                 setRejectionReason('')
+                toast.success('Unidade reprovada com sucesso.')
             } else {
-                alert(res.error)
+                toast.error(res.error || 'Erro ao rejeitar aula')
             }
         } catch (error) {
-            alert('Erro ao rejeitar aula')
+            toast.error('Erro técnico ao processar reprovação')
         } finally {
             setLoadingId(null)
         }
