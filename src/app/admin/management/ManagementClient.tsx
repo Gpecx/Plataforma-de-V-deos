@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, User, Mail, Lock, Shield, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react'
-import { createAdminUser } from './actions'
+import { Plus, User, Mail, Lock, Shield, ArrowRight, Loader2, CheckCircle2, Key, X as CloseIcon } from 'lucide-react'
+import { createAdminUser, updateAdminPassword } from './actions'
 import { toast } from 'sonner'
 import { motion, AnimatePresence } from 'framer-motion'
 
@@ -26,6 +26,11 @@ export default function ManagementClient({ initialAdmins }: ManagementClientProp
     const [fullName, setFullName] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+
+    // Password update state
+    const [updatingPasswordId, setUpdatingPasswordId] = useState<string | null>(null)
+    const [newAdminPassword, setNewAdminPassword] = useState('')
+    const [isUpdating, setIsUpdating] = useState(false)
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -52,6 +57,29 @@ export default function ManagementClient({ initialAdmins }: ManagementClientProp
         }
     }
 
+    const handleUpdatePassword = async (adminId: string) => {
+        if (!newAdminPassword || newAdminPassword.length < 6) {
+            toast.error('A senha deve ter pelo menos 6 caracteres')
+            return
+        }
+
+        setIsUpdating(true)
+        try {
+            const result = await updateAdminPassword(adminId, newAdminPassword)
+            if (result.success) {
+                toast.success(result.message)
+                setUpdatingPasswordId(null)
+                setNewAdminPassword('')
+            } else {
+                toast.error(result.error)
+            }
+        } catch (error) {
+            toast.error('Erro ao atualizar senha')
+        } finally {
+            setIsUpdating(false)
+        }
+    }
+
     return (
         <div className="grid lg:grid-cols-12 gap-8 max-w-[1400px] mx-auto w-full">
             {/* Lista de Admins */}
@@ -71,27 +99,74 @@ export default function ManagementClient({ initialAdmins }: ManagementClientProp
 
                     <div className="space-y-4">
                         {admins.map((admin) => (
-                            <div 
-                                key={admin.id}
-                                className="group border border-slate-100 p-4 rounded-xl hover:border-[#1D5F31] hover:bg-[#1D5F31]/5 transition-all flex items-center justify-between bg-slate-50/50"
-                            >
-                                <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 bg-[#1D5F31]/10 flex items-center justify-center text-[#1D5F31] rounded-lg font-black text-sm">
-                                        {admin.full_name?.charAt(0).toUpperCase()}
+                            <div key={admin.id} className="space-y-3">
+                                <div 
+                                    className="group border border-slate-100 p-4 rounded-xl hover:border-[#1D5F31] hover:bg-[#1D5F31]/5 transition-all flex items-center justify-between bg-slate-50/50"
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-10 h-10 bg-[#1D5F31]/10 flex items-center justify-center text-[#1D5F31] rounded-lg font-black text-sm">
+                                            {admin.full_name?.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-slate-900 uppercase text-sm tracking-tight">
+                                                {admin.full_name}
+                                            </h3>
+                                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                                                {admin.email}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h3 className="font-bold text-slate-900 uppercase text-sm tracking-tight">
-                                            {admin.full_name}
-                                        </h3>
-                                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                                            {admin.email}
-                                        </p>
+                                    <div className="flex items-center gap-6">
+                                        <button
+                                            onClick={() => setUpdatingPasswordId(updatingPasswordId === admin.id ? null : admin.id)}
+                                            className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#1D5F31] hover:text-black transition-colors"
+                                        >
+                                            <Key size={12} />
+                                            Trocar Senha
+                                        </button>
+                                        <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">
+                                            Iniciado em <br />
+                                            {admin.created_at ? new Date(admin.created_at).toLocaleDateString('pt-BR') : 'N/A'}
+                                        </div>
                                     </div>
                                 </div>
-                                <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">
-                                    Iniciado em <br />
-                                    {admin.created_at ? new Date(admin.created_at).toLocaleDateString('pt-BR') : 'N/A'}
-                                </div>
+
+                                <AnimatePresence>
+                                    {updatingPasswordId === admin.id && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            className="overflow-hidden"
+                                        >
+                                            <div className="p-6 bg-slate-100 rounded-xl border-2 border-[#1D5F31] flex items-center gap-4">
+                                                <div className="flex-1 relative">
+                                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
+                                                    <input 
+                                                        type="password"
+                                                        placeholder="NOVA SENHA DO OPERADOR"
+                                                        value={newAdminPassword}
+                                                        onChange={(e) => setNewAdminPassword(e.target.value)}
+                                                        className="w-full bg-white border border-slate-200 rounded-lg p-3 pl-10 text-slate-900 text-[10px] font-bold uppercase tracking-wider focus:border-[#1D5F31] focus:outline-none transition-all"
+                                                    />
+                                                </div>
+                                                <button
+                                                    onClick={() => handleUpdatePassword(admin.id)}
+                                                    disabled={isUpdating}
+                                                    className="bg-[#1D5F31] text-white px-6 py-3 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all disabled:opacity-50"
+                                                >
+                                                    {isUpdating ? <Loader2 className="animate-spin" size={14} /> : 'Salvar'}
+                                                </button>
+                                                <button
+                                                    onClick={() => { setUpdatingPasswordId(null); setNewAdminPassword(''); }}
+                                                    className="p-3 text-slate-400 hover:text-red-500 transition-colors"
+                                                >
+                                                    <CloseIcon size={16} />
+                                                </button>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
                         ))}
                     </div>
@@ -148,7 +223,7 @@ export default function ManagementClient({ initialAdmins }: ManagementClientProp
 
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-700 block">
-                                    Senha Temporária
+                                    Senha de Acesso
                                 </label>
                                 <div className="relative">
                                     <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
@@ -161,9 +236,6 @@ export default function ManagementClient({ initialAdmins }: ManagementClientProp
                                         className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 pl-12 text-slate-900 text-xs font-bold tracking-wider focus:border-[#1D5F31] focus:bg-white focus:outline-none transition-all"
                                     />
                                 </div>
-                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1">
-                                    * O usuário deverá alterar esta senha no primeiro acesso.
-                                </p>
                             </div>
 
                             <button

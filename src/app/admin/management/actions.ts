@@ -92,3 +92,28 @@ export async function getAdmins() {
         return []
     }
 }
+
+/**
+ * Altera a senha de um administrador.
+ */
+export async function updateAdminPassword(adminId: string, newPassword: string) {
+    try {
+        const session = await getSessionUser()
+        if (!session || session.role !== 'admin') {
+            return { success: false, error: 'Não autorizado.' }
+        }
+
+        if (!newPassword || newPassword.length < 6) {
+            return { success: false, error: 'A senha deve ter pelo menos 6 caracteres.' }
+        }
+
+        await adminAuth.updateUser(adminId, {
+            password: newPassword
+        })
+
+        return { success: true, message: 'Senha do administrador atualizada com sucesso!' }
+    } catch (error: any) {
+        console.error('[updateAdminPassword] Erro:', error)
+        return { success: false, error: error.message || 'Erro ao atualizar senha.' }
+    }
+}
