@@ -156,7 +156,9 @@ function LoginContent() {
             const profileDoc = await getDoc(doc(db, 'profiles', user.uid))
             const profileData = profileDoc.data()
 
-            if (profileData?.role === 'teacher' || profileData?.role === 'admin') {
+            if (profileData?.role === 'admin') {
+                router.push('/admin/dashboard')
+            } else if (profileData?.role === 'teacher') {
                 router.push('/dashboard-teacher/courses')
             } else if (profileData?.role === 'student') {
                 router.push('/course')
