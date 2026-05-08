@@ -65,6 +65,10 @@ export async function updateTeacherSettings(prevState: any, formData: FormData) 
 
     try {
         const pixKey = formData.get('pix_key') as string
+        const bankName = formData.get('bank_name') as string
+        const bankAgency = formData.get('bank_agency') as string
+        const bankAccount = formData.get('bank_account') as string
+        const bankAccountType = formData.get('bank_account_type') as string
         const cep = formData.get('cep') as string
         const logradouro = formData.get('logradouro') as string
         const numero = formData.get('numero') as string
@@ -80,7 +84,11 @@ export async function updateTeacherSettings(prevState: any, formData: FormData) 
             notifications_push
         }
 
-        if (pixKey) updateData.pix_key = pixKey
+        if (pixKey !== null) updateData.pix_key = pixKey
+        if (bankName !== null) updateData.bank_name = bankName
+        if (bankAgency !== null) updateData.bank_agency = bankAgency
+        if (bankAccount !== null) updateData.bank_account = bankAccount
+        if (bankAccountType !== null) updateData.bank_account_type = bankAccountType
         if (cep) updateData.cep = cep
         if (logradouro) updateData.logradouro = logradouro
         if (numero) updateData.numero = numero

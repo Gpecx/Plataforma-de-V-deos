@@ -1,11 +1,15 @@
 "use client"
 
 import { Zap, CheckCircle2, ArrowRight, ShieldCheck, Star } from 'lucide-react'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getFinancialSettings, PlanData } from '@/app/actions/financial'
 import { useState, useEffect } from 'react'
 
 export default function SubscriptionsPage() {
+    // Desativado conforme solicitação do usuário
+    redirect('/dashboard-student')
+
     const [premiumPlan, setPremiumPlan] = useState<PlanData | null>(null)
 
     useEffect(() => {

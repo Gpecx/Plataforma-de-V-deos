@@ -16,8 +16,8 @@ export default async function AdminManagementPage() {
                         <h1 className="text-2xl md:text-3xl font-black tracking-tighter uppercase leading-tight !text-[#000000]">
                             Gestão de <span className="text-[#1D5F31]">Administradores</span>
                         </h1>
-                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em] mt-1">
-                            Nível de Acesso: Segurança Máxima (L0)
+                        <p className="text-[10px] font-bold !text-black uppercase tracking-[0.4em] mt-1">
+                            Nível de Acesso: Segurança Máxima
                         </p>
                     </div>
                 </div>

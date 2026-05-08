@@ -4,19 +4,11 @@ import { useState } from 'react'
 import { Download, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
-interface Payment {
-    id: string
-    courseName: string
-    teacherName: string
-    grossValue: number
-    platformShare: number
-    teacherShare: number
-    date: string
-}
-
-interface Props {
-    payments: Payment[]
-}
+import { Payment } from '@/types/financial'
+ 
+ interface Props {
+     payments: Payment[]
+ }
 
 export function AdminFinanceExportButton({ payments }: Props) {
     const [isLoading, setIsLoading] = useState(false)
@@ -33,8 +25,8 @@ export function AdminFinanceExportButton({ payments }: Props) {
             
             const rows = payments.map(p => {
                 // Formatar data localmente se possível, caso venha como ISO string
-                const dateObj = new Date(p.date)
-                const formattedDate = !isNaN(dateObj.getTime()) 
+                const dateObj = p.date ? new Date(p.date) : null
+                const formattedDate = dateObj && !isNaN(dateObj.getTime()) 
                     ? dateObj.toLocaleDateString('pt-BR') 
                     : 'N/A'
 

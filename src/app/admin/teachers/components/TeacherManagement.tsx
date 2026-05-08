@@ -29,6 +29,13 @@ interface Teacher {
     bairro?: string
     cidade?: string
     estado?: string
+    pix_key?: string
+    bank?: {
+        name?: string
+        agency?: string
+        account?: string
+        type?: string
+    }
 }
 
 interface Student {
@@ -391,6 +398,31 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                                                 <p className="text-sm font-semibold text-slate-900 uppercase">
                                                     {teacherFullDetails.address?.cidade} - {teacherFullDetails.address?.uf}
                                                 </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="md:col-span-2 pt-4 border-t border-slate-200">
+                                            <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#1D5F31] mb-4">Dados Financeiros</h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Chave PIX</label>
+                                                    <p className="text-sm font-semibold text-slate-900 break-all">{teacherFullDetails.pix_key || 'NÃO INFORMADA'}</p>
+                                                </div>
+                                                {teacherFullDetails.bank?.name && (
+                                                    <div>
+                                                        <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Conta Bancária</label>
+                                                        <p className="text-sm font-semibold text-slate-900">
+                                                            {teacherFullDetails.bank.name} - Ag: {teacherFullDetails.bank.agency} / Cc: {teacherFullDetails.bank.account}
+                                                            <span className="block text-[10px] text-slate-500 uppercase">Tipo: {teacherFullDetails.bank.type || 'N/A'}</span>
+                                                        </p>
+                                                    </div>
+                                                )}
+                                                {!teacherFullDetails.bank?.name && (
+                                                    <div>
+                                                        <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Conta Bancária</label>
+                                                        <p className="text-sm font-semibold text-slate-500 uppercase italic">Não informada</p>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>

@@ -92,7 +92,7 @@ export default function ManagementClient({ initialAdmins }: ManagementClientProp
                                 Operadores Ativos
                             </h2>
                         </div>
-                        <span className="bg-slate-100 text-slate-600 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">
+                        <span className="bg-slate-100 !text-black text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">
                             {admins.length} Total
                         </span>
                     </div>
@@ -108,10 +108,10 @@ export default function ManagementClient({ initialAdmins }: ManagementClientProp
                                             {admin.full_name?.charAt(0).toUpperCase()}
                                         </div>
                                         <div>
-                                            <h3 className="font-bold text-slate-900 uppercase text-sm tracking-tight">
+                                            <h3 className="font-bold text-black uppercase text-sm tracking-tight">
                                                 {admin.full_name}
                                             </h3>
-                                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                                            <p className="text-[10px] !text-black font-bold uppercase tracking-wider">
                                                 {admin.email}
                                             </p>
                                         </div>
@@ -124,7 +124,7 @@ export default function ManagementClient({ initialAdmins }: ManagementClientProp
                                             <Key size={12} />
                                             Trocar Senha
                                         </button>
-                                        <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">
+                                        <div className="text-[9px] font-black !text-black uppercase tracking-widest text-right">
                                             Iniciado em <br />
                                             {admin.created_at ? new Date(admin.created_at).toLocaleDateString('pt-BR') : 'N/A'}
                                         </div>
@@ -141,13 +141,13 @@ export default function ManagementClient({ initialAdmins }: ManagementClientProp
                                         >
                                             <div className="p-6 bg-slate-100 rounded-xl border-2 border-[#1D5F31] flex items-center gap-4">
                                                 <div className="flex-1 relative">
-                                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={14} />
+                                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-black" size={14} />
                                                     <input 
                                                         type="password"
                                                         placeholder="NOVA SENHA DO OPERADOR"
                                                         value={newAdminPassword}
                                                         onChange={(e) => setNewAdminPassword(e.target.value)}
-                                                        className="w-full bg-white border border-slate-200 rounded-lg p-3 pl-10 text-slate-900 text-[10px] font-bold uppercase tracking-wider focus:border-[#1D5F31] focus:outline-none transition-all"
+                                                        className="w-full bg-white border border-slate-200 rounded-lg p-3 pl-10 text-black text-[10px] font-black uppercase tracking-wider focus:border-[#1D5F31] focus:outline-none transition-all placeholder:text-black/40"
                                                     />
                                                 </div>
                                                 <button
@@ -159,7 +159,7 @@ export default function ManagementClient({ initialAdmins }: ManagementClientProp
                                                 </button>
                                                 <button
                                                     onClick={() => { setUpdatingPasswordId(null); setNewAdminPassword(''); }}
-                                                    className="p-3 text-slate-400 hover:text-red-500 transition-colors"
+                                                    className="p-3 text-black hover:text-red-500 transition-colors"
                                                 >
                                                     <CloseIcon size={16} />
                                                 </button>
@@ -188,28 +188,28 @@ export default function ManagementClient({ initialAdmins }: ManagementClientProp
 
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-700 block">
+                                <label className="text-[10px] font-black uppercase tracking-[0.2em] !text-black block">
                                     Nome Completo
                                 </label>
                                 <div className="relative">
-                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 text-black" size={16} />
                                     <input 
                                         required
                                         type="text"
                                         placeholder="EX: JOÃO DA SILVA"
                                         value={fullName}
                                         onChange={(e) => setFullName(e.target.value.toUpperCase())}
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 pl-12 text-slate-900 text-xs font-bold uppercase tracking-wider focus:border-[#1D5F31] focus:bg-white focus:outline-none transition-all"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 pl-12 text-black text-xs font-bold uppercase tracking-wider focus:border-[#1D5F31] focus:bg-white focus:outline-none transition-all placeholder:text-black/40"
                                     />
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-700 block">
+                                <label className="text-[10px] font-black uppercase tracking-[0.2em] !text-black block">
                                     E-mail Corporativo
                                 </label>
                                 <div className="relative">
-                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-black" size={16} />
                                     <input 
                                         required
                                         type="email"
@@ -222,11 +222,11 @@ export default function ManagementClient({ initialAdmins }: ManagementClientProp
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-700 block">
+                                <label className="text-[10px] font-black uppercase tracking-[0.2em] !text-black block">
                                     Senha de Acesso
                                 </label>
                                 <div className="relative">
-                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-black" size={16} />
                                     <input 
                                         required
                                         type="password"
@@ -261,7 +261,7 @@ export default function ManagementClient({ initialAdmins }: ManagementClientProp
                                 </div>
                                 <div>
                                     <h4 className="text-[10px] font-black !text-[#000000] uppercase tracking-wider mb-1">Nota de Segurança</h4>
-                                    <p className="text-[9px] text-slate-500 font-bold uppercase leading-relaxed">
+                                    <p className="text-[9px] !text-black font-bold uppercase leading-relaxed">
                                         Ao criar um novo administrador, você concede permissões totais sobre o sistema. Esta ação é auditada e vinculada ao seu perfil atual.
                                     </p>
                                 </div>

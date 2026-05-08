@@ -91,7 +91,7 @@ export async function saveFinancialSettings(settings: FinancialSettings) {
 
         revalidatePath('/admin/dashboard')
         revalidatePath('/admin/financial')
-        revalidatePath('/dashboard-student/subscriptions')
+        // revalidatePath('/dashboard-student/subscriptions')
         
         return { success: true }
     } catch (error) {

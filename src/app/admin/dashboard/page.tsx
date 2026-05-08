@@ -9,6 +9,7 @@ import {
 import RevenueChart from './components/RevenueChart'
 import TaxSettings from './components/TaxSettings'
 import { AdminFinanceExportButton } from './components/AdminFinanceExportButton'
+import { FinancialTable } from './components/FinancialTable'
 
 export default async function AdminDashboardPage() {
     const data = await getFinancialData()
@@ -57,59 +58,7 @@ export default async function AdminDashboardPage() {
             <div className="grid lg:grid-cols-3 gap-10">
                 {/* Main Content: Table com bordas pretas sutis */}
                 <div className="lg:col-span-2 space-y-8">
-                    <div className="bg-white p-10 rounded-[32px] border border-black/20">
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-                            <h2 className="text-xl font-bold uppercase tracking-tighter !text-[#000000]">Histórico de Pagamentos</h2>
-                            <div className="flex items-center gap-4">
-                                <AdminFinanceExportButton payments={data.payments} />
-                                <div className="flex items-center gap-3 bg-slate-50 px-5 py-2 rounded-xl border border-black/20">
-                                    <Search size={16} className="!text-[#000000]" />
-                                    <span className="text-sm font-bold !text-[#000000] uppercase tracking-tight">{data.payments.length} Transações</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left">
-                                <thead>
-                                    <tr className="border-b-2 border-black/20 text-sm font-bold !text-[#000000] uppercase tracking-tight">
-                                        <th className="pb-6 px-4">Data</th>
-                                        <th className="pb-6 px-4">Curso</th>
-                                        <th className="pb-6 px-4">Professor</th>
-                                        <th className="pb-6 px-4">Bruto</th>
-                                        <th className="pb-6 px-4 text-[#1D5F31]">Lucro</th>
-                                        <th className="pb-6 px-4">Repasse</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-black/10">
-                                    {data.payments.map((p: any) => (
-                                        <tr key={p.id} className="group hover:bg-slate-50 transition-colors">
-                                            <td className="py-6 px-4 text-xs font-bold !text-[#000000] opacity-60">
-                                                {p.date ? new Date(p.date).toLocaleDateString('pt-BR') : '---'}
-                                            </td>
-                                            <td className="py-6 px-4">
-                                                <div className="text-sm font-bold !text-[#000000] uppercase truncate max-w-[180px]">
-                                                    {p.courseName}
-                                                </div>
-                                            </td>
-                                            <td className="py-6 px-4 font-bold !text-[#000000] text-sm uppercase">
-                                                {p.teacherName}
-                                            </td>
-                                            <td className="py-6 px-4 text-sm font-bold !text-[#000000]">
-                                                R$ {p.grossValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                            </td>
-                                            <td className="py-6 px-4 text-sm font-bold text-[#1D5F31]">
-                                                R$ {p.platformShare.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                            </td>
-                                            <td className="py-6 px-4 text-sm font-bold !text-[#000000]">
-                                                R$ {p.teacherShare.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                    <FinancialTable payments={data.payments} />
                 </div>
 
                 {/* Sidebar com Contornos e Textos Pretos */}

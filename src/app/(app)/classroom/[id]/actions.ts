@@ -245,6 +245,7 @@ export async function getClassroomData(courseId: string, userId: string) {
             course: courseData, 
             lessons: lessonsData,
             completedLessons,
+            username: profileData?.username || null,
             progress: {
                 lastLessonId: progressResult.lastLessonId,
                 lastTimestamp: progressResult.lastTimestamp

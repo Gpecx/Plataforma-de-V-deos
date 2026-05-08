@@ -906,7 +906,7 @@ function RegisterForm() {
                                                     </div>
                                                 </div>
                                                 <p className="text-[10px] text-white/40 uppercase tracking-wider leading-relaxed">
-                                                    Concordo com os <Link href="/termos" className="text-white hover:text-[#28b828] transition-colors underline underline-offset-2">Termos de Uso</Link> e a <Link href="/privacidade" className="text-white hover:text-[#28b828] transition-colors underline underline-offset-2">Política de Privacidade</Link>.
+                                                    Concordo com os <Link href="/termos" target="_blank" rel="noopener noreferrer" className="text-white hover:text-[#28b828] transition-colors underline underline-offset-2">Termos de Uso</Link> e a <Link href="/privacidade" target="_blank" rel="noopener noreferrer" className="text-white hover:text-[#28b828] transition-colors underline underline-offset-2">Política de Privacidade</Link>.
                                                 </p>
                                             </label>
                                         </div>

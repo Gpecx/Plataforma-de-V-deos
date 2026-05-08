@@ -23,7 +23,6 @@ import { getClassroomData, toggleLessonCompletion, processCertificateIssuance, s
 import { QuizPlayer } from './QuizPlayer'
 import { useProgressStore } from '@/store/useProgressStore'
 import SecureMuxPlayer from '@/components/SecureMuxPlayer'
-import { VideoWatermark } from '@/components/VideoWatermark'
 
 const scrollbarHideStyle = {
     msOverflowStyle: 'none',
@@ -52,6 +51,7 @@ export default function ClassroomPage() {
     const [showCongratulations, setShowCongratulations] = useState(false)
     const [isToggling, setIsToggling] = useState(false)
     const [currentUser, setCurrentUser] = useState<any>(null)
+    const [username, setUsername] = useState<string | null>(null)
     const [lastTimestamp, setLastTimestamp] = useState(0)
     const [redirectDone, setRedirectDone] = useState(false)
     const videoRef = useRef<HTMLVideoElement>(null)
@@ -119,6 +119,7 @@ export default function ClassroomPage() {
                 setCourse(result.course)
                 setLessons(result.lessons || [])
                 setCompletedLessons(result.completedLessons || [])
+                setUsername(result.username)
 
                 if (result.lessons && result.lessons.length > 0) {
                     const lessonIdParam = searchParams.get('lessonId')
@@ -392,9 +393,13 @@ export default function ClassroomPage() {
                 {/* Esquerda: Logo */}
                 <div className="flex items-center gap-3 text-slate-400 group min-w-0">
                     <Logo />
+                    <div className="flex flex-col border-l border-slate-800 pl-4 ml-1 hidden xl:flex">
+                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Aluno</span>
+                        <span className="text-[10px] font-medium text-slate-300 truncate max-w-[180px]">{currentUser?.email}</span>
+                    </div>
                     <Link
                         href="/course"
-                        className="text-xs font-bold uppercase tracking-widest group-hover:text-white transition-colors hidden md:block"
+                        className="text-xs font-bold uppercase tracking-widest group-hover:text-white transition-colors hidden md:block ml-2"
                     >
                         Sair
                     </Link>
@@ -410,6 +415,7 @@ export default function ClassroomPage() {
                 {/* Direita: Progresso + Botão sidebar (apenas desktop lg+) */}
                 <div className="flex items-center justify-end gap-4">
                     <div className="hidden lg:flex flex-col items-end">
+                        <span className="text-[10px] font-mono text-slate-500 uppercase tracking-tighter opacity-60 mb-0.5">ID: {username || currentUser?.uid}</span>
                         <div className="flex items-center gap-2">
                             <span className="text-[9px] font-bold uppercase tracking-widest text-slate-200">Progresso</span>
                             <span className="text-xs font-bold text-[#1D5F31]">{progressPercent}%</span>
@@ -555,10 +561,7 @@ export default function ClassroomPage() {
                                     </>
                                 )}
 
-                                {/* Watermark */}
-                                {currentLesson?.type !== 'quiz' && (
-                                    <VideoWatermark userEmail={currentUser?.email} userId={currentUser?.uid} />
-                                )}
+
                             </div>
                         </div>
                     </div>
@@ -574,14 +577,20 @@ export default function ClassroomPage() {
                         </h2>
 
                         {/* Barra de progresso mobile */}
-                        <div className="flex items-center gap-3 mt-3 lg:hidden">
-                            <div className="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden">
-                                <div
-                                    className="h-full bg-[#1D5F31] transition-all duration-700"
-                                    style={{ width: `${progressPercent}%` }}
-                                />
+                        <div className="flex flex-col gap-1.5 mt-4 lg:hidden">
+                            <div className="flex items-center justify-between px-0.5">
+                                <span className="text-[10px] font-mono text-slate-500 uppercase tracking-tighter opacity-60">ID: {username || currentUser?.uid}</span>
+                                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest truncate max-w-[150px]">{currentUser?.email}</span>
                             </div>
-                            <span className="text-xs font-bold text-[#1D5F31] shrink-0">{progressPercent}%</span>
+                            <div className="flex items-center gap-3">
+                                <div className="flex-1 h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                                    <div
+                                        className="h-full bg-[#1D5F31] transition-all duration-700"
+                                        style={{ width: `${progressPercent}%` }}
+                                    />
+                                </div>
+                                <span className="text-xs font-bold text-[#1D5F31] shrink-0">{progressPercent}%</span>
+                            </div>
                         </div>
                     </div>
 

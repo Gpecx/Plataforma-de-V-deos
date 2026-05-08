@@ -6,6 +6,7 @@ import { Heart } from 'lucide-react'
 import { toggleWishlist, getWishlistCourseIds } from '@/app/actions/wishlist'
 import { auth } from '@/lib/firebase'
 import { onAuthStateChanged } from 'firebase/auth'
+import { toast } from 'sonner'
 
 interface WishlistButtonProps {
     courseId: string
@@ -45,7 +46,13 @@ export default function WishlistButton({ courseId, className = '', isPurchased =
         setIsToggling(true)
         try {
             const result = await toggleWishlist(courseId)
+            if (result.action === 'none') {
+                toast.error(result.message || 'Curso já adquirido')
+                setIsInWishlist(false)
+                return
+            }
             setIsInWishlist(result.action === 'added')
+            toast.success(result.action === 'added' ? 'Adicionado à lista de desejos!' : 'Removido da lista de desejos!')
         } catch (error) {
             console.error('Erro ao atualizar wishlist:', error)
         } finally {

@@ -80,97 +80,117 @@ export default async function MyListPage() {
                 </div>
             </div>
 
-            <div className="px-6 md:px-12 py-12 max-w-[1600px] mx-auto">
+            <div className="px-6 md:px-12 py-12 max-w-[1600px] mx-auto w-full">
                 {wishlistCourses.length === 0 ? (
-                    <div className="text-center py-20">
-                        <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-6">
-                            <Heart size={40} className="text-slate-400" />
+                    <div className="text-center py-24 bg-white rounded-[32px] border border-black/5 shadow-sm">
+                        <div className="w-24 h-24 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-8 border border-slate-100 shadow-inner">
+                            <Heart size={44} className="text-slate-300" />
                         </div>
-                        <h2 className="text-xl font-bold uppercase tracking-tighter text-black mb-3">
-                            Nenhum curso favoritado
+                        <h2 className="text-2xl font-bold uppercase tracking-tighter text-black mb-4">
+                            Sua lista está vazia
                         </h2>
-                        <p className="text-slate-500 font-medium mb-8 max-w-md mx-auto">
-                            Explore nosso catálogo e adicione cursos à sua lista para salvá-los aqui.
+                        <p className="text-slate-500 font-medium mb-10 max-w-md mx-auto leading-relaxed">
+                            Explore nosso catálogo técnico e salve os cursos que mais te interessam para acessá-los rapidamente aqui.
                         </p>
                         <Link
                             href="/course"
-                            className="inline-flex items-center gap-2 bg-[#1D5F31] text-white px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:brightness-110 transition-all"
+                            className="inline-flex items-center gap-3 bg-[#1D5F31] text-white px-8 py-4 rounded-xl font-bold uppercase tracking-widest text-[11px] hover:brightness-110 transition-all shadow-xl shadow-[#1D5F31]/20 group"
                         >
-                            <GraduationCap size={18} />
-                            Explorar Cursos
+                            <GraduationCap size={20} className="group-hover:rotate-12 transition-transform" />
+                            Explorar Catálogo
                         </Link>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                        {wishlistCourses.map((curso) => {
-                            const hasPurchased = purchasedCourseIds.includes(curso.id)
-                            return (
-                            <div key={curso.id} className="group bg-white rounded-[24px] overflow-hidden border border-black shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col">
-                                <div className="relative h-48 overflow-hidden bg-slate-100">
-                                    <img
-                                        src={curso.image_url || "https://images.unsplash.com/photo-1558655146-d09347e92766?w=400"}
-                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                                        alt={curso.title}
-                                    />
-                                    {hasPurchased ? (
-                                        <div className="absolute top-4 left-4 bg-[#1D5F31] px-3 py-1.5 rounded-lg z-10">
-                                            <span className="text-[8px] font-bold text-white tracking-widest uppercase flex items-center gap-1">
-                                                <BookOpen size={10} />
-                                                Já Possui
-                                            </span>
-                                        </div>
-                                    ) : (
-                                        <>
-                                            <div className="absolute top-4 left-4 bg-[#1D5F31]/90 backdrop-blur-md px-3 py-1.5 rounded-lg z-10">
-                                                <span className="text-[8px] font-bold text-white tracking-widest uppercase flex items-center gap-1">
-                                                    <Heart size={10} className="fill-white" />
-                                                    Favorito
-                                                </span>
-                                            </div>
-                                            <div className="absolute top-4 right-4 z-10">
-                                                <AddToCartButton 
-                                                    course={{
-                                                        id: curso.id,
-                                                        title: curso.title,
-                                                        price: Number(curso.price || 0),
-                                                        image_url: curso.image_url
-                                                    }} 
-                                                    purchasedCourseIds={purchasedCourseIds}
-                                                    iconOnly={true}
-                                                />
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-
-                                <div className="p-6 flex-grow flex flex-col">
-                                    <h3 className="font-bold text-base mb-2 !text-black uppercase leading-tight line-clamp-2 group-hover:text-[#1D5F31] transition-colors">{curso.title}</h3>
-                                    <p className="!text-black text-[10px] font-bold uppercase line-clamp-2 mb-6">
-                                        {curso.description || 'Domine esta habilidade com o método PowerPlay.'}
-                                    </p>
-
-                                    <div className="mt-auto pt-4 border-t border-black flex items-center justify-between mb-4">
-                                        <div className="flex flex-col">
-                                            <span className="text-[8px] font-bold !text-black uppercase tracking-tighter">Investimento</span>
-                                            <span className="!text-black font-bold text-xl tracking-tight">
-                                                R$ {Number(curso.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                            </span>
-                                        </div>
-                                        <Link href={`/course/${curso.id}`} className="p-2.5 bg-slate-50 border border-black rounded-xl !text-black hover:text-[#1D5F31] transition-colors">
-                                            <BookOpen size={18} />
-                                        </Link>
-                                    </div>
-                                </div>
-
-                                {!hasPurchased && (
-                                    <div className="w-full p-4 bg-slate-50 border-t border-black">
-                                        <RemoveFromWishlistButton courseId={curso.id} />
-                                    </div>
-                                )}
+                    <>
+                        <div className="flex flex-col gap-3 mb-12">
+                            <div className="flex items-center gap-3">
+                                <div className="w-12 h-px bg-[#1D5F31]" />
+                                <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-[#1D5F31]">Seleção</span>
                             </div>
-                            )
-                        })}
-                    </div>
+                            <h2 className="text-3xl font-bold uppercase tracking-tighter text-black">
+                                Cursos <br className="md:hidden" /> Favoritados
+                            </h2>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 justify-items-start">
+                            {wishlistCourses.map((curso) => {
+                                const hasPurchased = purchasedCourseIds.includes(curso.id)
+                                return (
+                                    <div key={curso.id} className="group w-full max-w-[320px] bg-white rounded-[24px] overflow-hidden border border-black shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col h-full">
+                                        <div className="relative h-48 overflow-hidden bg-slate-100">
+                                            <img
+                                                src={curso.image_url || "https://images.unsplash.com/photo-1558655146-d09347e92766?w=400"}
+                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                                alt={curso.title}
+                                            />
+                                            {hasPurchased ? (
+                                                <div className="absolute top-4 left-4 bg-[#1D5F31] px-4 py-2 rounded-xl z-10 shadow-lg">
+                                                    <span className="text-[9px] font-bold text-white tracking-widest uppercase flex items-center gap-2">
+                                                        <BookOpen size={12} />
+                                                        Já Adquirido
+                                                    </span>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-4 py-2 rounded-xl z-10 border border-white/20">
+                                                        <span className="text-[9px] font-bold text-white tracking-widest uppercase flex items-center gap-2">
+                                                            <Heart size={12} className="fill-[#00c853] text-[#00c853]" />
+                                                            Favorito
+                                                        </span>
+                                                    </div>
+                                                    <div className="absolute top-4 right-4 z-10">
+                                                        <AddToCartButton 
+                                                            course={{
+                                                                id: curso.id,
+                                                                title: curso.title,
+                                                                price: Number(curso.price || 0),
+                                                                image_url: curso.image_url
+                                                            }} 
+                                                            purchasedCourseIds={purchasedCourseIds}
+                                                            iconOnly={true}
+                                                        />
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
+
+                                        <div className="p-7 flex-grow flex flex-col">
+                                            <div className="flex flex-col gap-1 mb-4">
+                                                <span className="text-[9px] font-bold uppercase text-[#1D5F31] tracking-widest">Treinamento</span>
+                                                <h3 className="font-bold text-lg !text-black uppercase leading-[1.1] line-clamp-2 group-hover:text-[#1D5F31] transition-colors">{curso.title}</h3>
+                                            </div>
+                                            
+                                            <p className="!text-slate-600 text-xs font-medium leading-relaxed line-clamp-2 mb-8">
+                                                {curso.description || 'Domine esta habilidade técnica com o método exclusivo da PowerPlay.'}
+                                            </p>
+
+                                            <div className="mt-auto pt-6 border-t border-slate-100 flex items-center justify-between">
+                                                <div className="flex flex-col">
+                                                    <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Investimento</span>
+                                                    <span className="!text-black font-bold text-2xl tracking-tighter">
+                                                        R$ {Number(curso.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                    </span>
+                                                </div>
+                                                <Link 
+                                                    href={`/course/${curso.id}`} 
+                                                    className="w-10 h-10 bg-[#1D5F31] hover:bg-[#1D5F31]/80 rounded-xl flex items-center justify-center text-white transition-all shadow-lg hover:shadow-[#1D5F31]/20 active:scale-95"
+                                                    title="Ver Detalhes"
+                                                >
+                                                    <ArrowLeft size={18} className="rotate-180" />
+                                                </Link>
+                                            </div>
+                                        </div>
+
+                                        {!hasPurchased && (
+                                            <div className="p-4 bg-slate-50 border-t border-slate-100 mt-2">
+                                                <RemoveFromWishlistButton courseId={curso.id} />
+                                            </div>
+                                        )}
+                                    </div>
+                                )
+                            })}
+                        </div>
+                    </>
                 )}
             </div>
         </div>
