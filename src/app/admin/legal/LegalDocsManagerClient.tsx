@@ -83,7 +83,7 @@ export default function LegalDocsManagerClient({ initialData }: { initialData: L
                         <div className="flex flex-col md:flex-row gap-8">
                             <div className="md:w-1/4">
                                 <div className="sticky top-8">
-                                    <div className="bg-black text-white p-4 inline-flex mb-6 shadow-[4px_4px_0px_0px_rgba(29,95,49,1)]">
+                                    <div className="bg-black text-white p-4 inline-flex mb-6 rounded-xl shadow-[4px_4px_0px_0px_rgba(29,95,49,1)]">
                                         {section.icon}
                                     </div>
                                     <h2 className="text-2xl font-black uppercase tracking-tight text-black mb-2">
@@ -97,7 +97,7 @@ export default function LegalDocsManagerClient({ initialData }: { initialData: L
                                         <button 
                                             onClick={() => handleSave(section.id)}
                                             disabled={!!isSaving}
-                                            className="w-full flex items-center justify-center gap-3 bg-[#1D5F31] text-white px-6 py-4 text-[11px] font-black uppercase tracking-[2px] hover:bg-black transition-all disabled:opacity-50 rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1"
+                                            className="w-full flex items-center justify-center gap-3 bg-[#1D5F31] text-white px-6 py-4 text-[11px] font-black uppercase tracking-[2px] hover:bg-black transition-all disabled:opacity-50 rounded-xl shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1"
                                         >
                                             {isSaving === section.id ? (
                                                 <Loader2 size={16} className="animate-spin" />
@@ -131,7 +131,7 @@ export default function LegalDocsManagerClient({ initialData }: { initialData: L
                                     />
                                 </div>
                                 
-                                <div className="mt-4 flex items-start gap-3 bg-slate-50 p-4 border border-slate-200">
+                                <div className="mt-4 flex items-start gap-3 bg-slate-50 p-4 border border-slate-200 rounded-xl">
                                     <AlertTriangle size={14} className="text-slate-400 mt-0.5 shrink-0" />
                                     <p className="text-[10px] text-slate-500 leading-normal font-medium">
                                         As alterações neste documento refletem instantaneamente em toda a plataforma. 
@@ -151,9 +151,9 @@ export default function LegalDocsManagerClient({ initialData }: { initialData: L
                     <span className="text-[10px] font-black uppercase tracking-[4px]">Auth: Admin_Encrypted</span>
                 </div>
                 <div className="flex gap-4">
-                    <div className="w-8 h-8 border border-slate-200" />
-                    <div className="w-8 h-8 border border-slate-200 bg-slate-50" />
-                    <div className="w-8 h-8 border border-slate-200 bg-slate-100" />
+                    <div className="w-8 h-8 border border-slate-200 rounded-lg" />
+                    <div className="w-8 h-8 border border-slate-200 bg-slate-50 rounded-lg" />
+                    <div className="w-8 h-8 border border-slate-200 bg-slate-100 rounded-lg" />
                 </div>
             </div>
 

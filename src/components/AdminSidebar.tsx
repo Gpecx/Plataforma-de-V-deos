@@ -62,6 +62,12 @@ const menuItems: MenuItem[] = [
         description: 'Métricas e Acessos'
     },
     {
+        title: 'Gestão Admin',
+        icon: ShieldAlert,
+        href: '/admin/management',
+        description: 'Operadores e Segurança'
+    },
+    {
         title: 'Branding & Banners',
         icon: LayoutDashboard,
         href: '/admin/settings',

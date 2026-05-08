@@ -22,9 +22,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Verify the ID token and extract uid
     const decodedToken = await adminAuth.verifyIdToken(idToken);
     const { uid } = decodedToken;
+
+    // Bloqueio de segurança para professores banidos
+    const profileDoc = await adminDb.collection("profiles").doc(uid).get();
+    const profileData = profileDoc.data();
+    
+    if (profileData?.role === 'teacher' && profileData?.teacher_status === 'banned') {
+      console.warn(`[/api/auth/session] Tentativa de login bloqueada: Usuário ${uid} banido.`);
+      return NextResponse.json(
+        { error: "ACCOUNT_BANNED" },
+        { status: 403 }
+      );
+    }
 
     // (Maneuver) Permite a criação da sessão mesmo sem e-mail verificado para que o 
     // usuário possa acessar a rota /verify-email com estado autenticado.
