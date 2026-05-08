@@ -9,7 +9,7 @@ import { createProfile, getAddressByCep, getDataByCnpj, checkUsernameAvailabilit
 import Logo from '@/components/Logo'
 import { ArrowRight, AlertCircle, Eye, EyeOff, ChevronLeft, Building2, User } from 'lucide-react'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
-import { RegisterSchema } from '@/lib/validations/register'
+import { RegisterSchema, Step1Schema, Step2Schema, Step3Schema } from '@/lib/validations/register'
 import { validateCPF, validateCNPJ, maskCPF, maskCNPJ } from '@/lib/document-utils'
 import { generateSlug } from '@/lib/utils'
 
@@ -23,59 +23,7 @@ const inputVariants: Variants = {
     visible: { opacity: 1, y: 0, transition: { duration: 0.35 } }
 }
 
-// ─── Validação CPF ──────────────────────────────────────────────────────────
-function validateCpf(cpf: string): boolean {
-    const digits = cpf.replace(/\D/g, '')
-    if (digits.length !== 11) return false
-    if (/^(\d)\1{10}$/.test(digits)) return false // Rejeita sequências iguais
 
-    let sum = 0
-    let rest
-    for (let i = 1; i <= 9; i++) sum += parseInt(digits.substring(i - 1, i)) * (11 - i)
-    rest = (sum * 10) % 11
-    if (rest === 10 || rest === 11) rest = 0
-    if (rest !== parseInt(digits.substring(9, 10))) return false
-
-    sum = 0
-    for (let i = 1; i <= 10; i++) sum += parseInt(digits.substring(i - 1, i)) * (12 - i)
-    rest = (sum * 10) % 11
-    if (rest === 10 || rest === 11) rest = 0
-    if (rest !== parseInt(digits.substring(10, 11))) return false
-
-    return true
-}
-
-// ─── Validação CNPJ ─────────────────────────────────────────────────────────
-function validateCnpj(cnpj: string): boolean {
-    const digits = cnpj.replace(/\D/g, '')
-    if (digits.length !== 14) return false
-    if (/^(\d)\1{13}$/.test(digits)) return false
-
-    let length = digits.length - 2
-    let numbers = digits.substring(0, length)
-    let checkDigits = digits.substring(length)
-    let sum = 0
-    let pos = length - 7
-    for (let i = length; i >= 1; i--) {
-        sum += parseInt(numbers.charAt(length - i)) * pos--
-        if (pos < 2) pos = 9
-    }
-    let result = sum % 11 < 2 ? 0 : 11 - (sum % 11)
-    if (result !== parseInt(checkDigits.charAt(0))) return false
-
-    length = length + 1
-    numbers = digits.substring(0, length)
-    sum = 0
-    pos = length - 7
-    for (let i = length; i >= 1; i--) {
-        sum += parseInt(numbers.charAt(length - i)) * pos--
-        if (pos < 2) pos = 9
-    }
-    result = sum % 11 < 2 ? 0 : 11 - (sum % 11)
-    if (result !== parseInt(checkDigits.charAt(1))) return false
-
-    return true
-}
 
 // ─── Máscaras ───────────────────────────────────────────────────────────────
 function maskCpfCnpj(value: string, type: 'CPF' | 'CNPJ'): string {
@@ -205,9 +153,8 @@ function RegisterForm() {
     const [cepError, setCepError] = useState('')
 
     const validateStep1 = () => {
-        const result = RegisterSchema.safeParse({
-            fullName, email, phone, password, confirmPassword,
-            personType, cep: '00000-000', rua: 'Rua', numero: '1', bairro: 'Bairro', cidade: 'Cidade', estado: 'UF', termsAccepted: true
+        const result = Step1Schema.safeParse({
+            fullName, email, phone, password, confirmPassword, username
         })
         if (!result.success) {
             const errors = result.error.flatten().fieldErrors
@@ -216,6 +163,7 @@ function RegisterForm() {
             if (errors.phone) return errors.phone[0]
             if (errors.password) return errors.password[0]
             if (errors.confirmPassword) return errors.confirmPassword[0]
+            return "Verifique os dados informados"
         }
         return null
     }
@@ -241,11 +189,7 @@ function RegisterForm() {
     }
 
     const validateStep2 = () => {
-        const data: any = {
-            fullName, email, phone, password, confirmPassword,
-            personType, 
-            cep: '00000-000', rua: 'Rua', numero: '1', bairro: 'Bairro', cidade: 'Cidade', estado: 'UF', termsAccepted: true
-        }
+        const data: any = { personType }
         if (personType === 'CPF') {
             data.cpf = cpfCnpj
             data.birthDate = birthDate
@@ -254,7 +198,7 @@ function RegisterForm() {
             data.razaoSocial = razaoSocial
         }
         
-        const result = RegisterSchema.safeParse(data)
+        const result = Step2Schema.safeParse(data)
         if (!result.success) {
             const errors = result.error.flatten().fieldErrors
             if (personType === 'CPF') {
@@ -264,6 +208,7 @@ function RegisterForm() {
                 if (errors.cnpj) return errors.cnpj[0]
                 if (errors.razaoSocial) return errors.razaoSocial[0]
             }
+            return "Documento ou dados inválidos"
         }
         return null
     }
@@ -390,8 +335,7 @@ function RegisterForm() {
                 displayName: fullName
             })
 
-            await sendEmailVerification(user)
-
+            // 1. Criar Perfil no Firestore (Essencial)
             const result = await createProfile({
                 uid: user.uid,
                 email,
@@ -416,6 +360,14 @@ function RegisterForm() {
 
             if (!result.success) {
                 throw new Error(result.error)
+            }
+
+            // 2. Tentar enviar e-mail de verificação (Não bloqueante)
+            try {
+                await sendEmailVerification(user)
+            } catch (verifyError: any) {
+                console.warn('Falha ao enviar e-mail de verificação (provável limite de cota):', verifyError)
+                // Não lançamos erro aqui para não interromper o fluxo do usuário
             }
 
             const idToken = await user.getIdToken(true)
@@ -926,7 +878,7 @@ function RegisterForm() {
                             {step === 1 && (
                                 <button
                                     type="button"
-                                    onClick={() => router.push('/register/be-a-teacher' as any)}
+                                    onClick={() => router.push(`/register/be-a-teacher?email=${encodeURIComponent(email)}` as any)}
                                     className="w-full py-5 text-white bg-transparent border border-[#28b828] font-bold uppercase tracking-[3px] text-xs rounded-lg transition-all hover:bg-white/5"
                                 >
                                     Seja um Professor PowerPlay

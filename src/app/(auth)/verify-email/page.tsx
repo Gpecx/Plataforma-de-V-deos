@@ -29,9 +29,15 @@ export default function VerifyEmailPage() {
             await sendEmailVerification(auth.currentUser)
             setEmailSent(true)
             toast.success("E-mail de verificação reenviado! Verifique sua caixa de entrada.")
-        } catch (error) {
+        } catch (error: any) {
             console.error(error)
-            toast.error("Erro interno. Tente novamente.")
+            const isQuotaExceeded = error?.message?.includes('-26') || error?.code === 'auth/quota-exceeded';
+            
+            if (isQuotaExceeded) {
+                toast.error("Limite de e-mails atingido para hoje. Tente novamente amanhã ou entre em contato com o suporte.")
+            } else {
+                toast.error("Erro ao enviar e-mail. Tente novamente em alguns minutos.")
+            }
         } finally {
             setLoading(false)
         }

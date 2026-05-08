@@ -54,7 +54,7 @@ export async function getFinancialSettings(): Promise<FinancialSettings> {
             }
         }
 
-        return { platformTax, plans }
+        return JSON.parse(JSON.stringify({ platformTax, plans }))
     } catch (error) {
         console.error("Error fetching financial settings:", error)
         return { platformTax: 20, plans: DEFAULT_PLANS }

@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Logo from '@/components/Logo'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
@@ -53,7 +53,22 @@ const QUESTIONS = [
 ]
 
 export default function BeATeacherPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen w-full flex items-center justify-center bg-[var(--background-color)]">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-[#28b828]"></div>
+            </div>
+        }>
+            <BeATeacherForm />
+        </Suspense>
+    )
+}
+
+function BeATeacherForm() {
     const router = useRouter()
+    const searchParams = useSearchParams()
+    const initialEmail = searchParams.get('email') || ''
+    
     const [currentStep, setCurrentStep] = useState(0)
     const [answers, setAnswers] = useState<Record<string, string>>({})
 
@@ -74,7 +89,10 @@ export default function BeATeacherPage() {
     const handleFinish = () => {
         console.log('Teacher Application Data:', answers)
         localStorage.setItem('powerplay_teacher_quiz', JSON.stringify(answers))
-        router.push('/register?type=teacher' as any)
+        const redirectUrl = initialEmail 
+            ? `/register?type=teacher&email=${encodeURIComponent(initialEmail)}`
+            : '/register?type=teacher'
+        router.push(redirectUrl as any)
     }
 
     const handleChange = (val: string) => {

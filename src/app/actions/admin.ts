@@ -1022,7 +1022,7 @@ export async function getStudentDetails(uid: string) {
         })
 
         // 4. Montar Objeto Final (Padrão Industrial)
-        return {
+        return JSON.parse(JSON.stringify({
             success: true,
             student: {
                 uid: profileData.uid,
@@ -1049,7 +1049,7 @@ export async function getStudentDetails(uid: string) {
                 },
                 academic: academicData
             }
-        }
+        }))
     } catch (error: any) {
         console.error('Error fetching student details:', error)
         return { success: false, error: error.message || 'Falha ao buscar detalhes do aluno.' }
@@ -1090,7 +1090,7 @@ export async function getTeacherDetails(uid: string) {
         }))
 
         // 4. Montar Objeto Final (Padrão Industrial)
-        return {
+        return JSON.parse(JSON.stringify({
             success: true,
             teacher: {
                 uid: profileData.uid || uid,
@@ -1126,7 +1126,7 @@ export async function getTeacherDetails(uid: string) {
                 },
                 courses: courses
             }
-        }
+        }))
     } catch (error: any) {
         console.error('Error fetching teacher details:', error)
         return { success: false, error: error.message || 'Falha ao buscar detalhes do professor.' }
