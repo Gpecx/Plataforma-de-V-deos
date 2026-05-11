@@ -31,6 +31,10 @@ export default function TeacherSettingsPage() {
     const [loading, setLoading] = useState(true)
     const [user, setUser] = useState<any>(null)
     const [pixKey, setPixKey] = useState('')
+    const [bankName, setBankName] = useState('')
+    const [bankAgency, setBankAgency] = useState('')
+    const [bankAccount, setBankAccount] = useState('')
+    const [bankAccountType, setBankAccountType] = useState('')
     const [addressData, setAddressData] = useState<AddressData>({})
     const [state, formAction, isPending] = useActionState(updateTeacherSettings, initialState)
 
@@ -62,6 +66,10 @@ export default function TeacherSettingsPage() {
                     const result = await getTeacherProfile()
                     if (result.success && result.data) {
                         setPixKey(result.data.pix_key || '')
+                        setBankName(result.data.bank_name || '')
+                        setBankAgency(result.data.bank_agency || '')
+                        setBankAccount(result.data.bank_account || '')
+                        setBankAccountType(result.data.bank_account_type || '')
                         setAddressData({
                             logradouro: result.data.logradouro || '',
                             numero: result.data.numero || '',
@@ -209,15 +217,74 @@ export default function TeacherSettingsPage() {
 
                         <div className="space-y-6">
                             <div className="space-y-3">
-                                <label className="text-sm font-bold uppercase tracking-tight text-slate-900 px-1">Chave PIX Estratégica</label>
+                                <label className="text-sm font-bold uppercase tracking-tight text-slate-900 px-1">Chave PIX</label>
                                 <div className="relative group">
                                     <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#1D5F31] transition-colors" size={20} />
                                     <Input
                                         name="pix_key"
-                                        defaultValue={pixKey}
+                                        value={pixKey}
+                                        onChange={(e) => setPixKey(e.target.value)}
                                         placeholder="CPF, E-mail ou Chave Aleatória"
                                         className="bg-slate-50 border-black rounded-xl pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
                                     />
+                                </div>
+                            </div>
+
+                            <div className="pt-6 border-t border-slate-100 space-y-6">
+                                <div className="flex items-center gap-4 mb-2">
+                                    <div className="p-3 bg-slate-50 rounded-xl text-[#1D5F31] border border-black">
+                                        <Wallet size={20} strokeWidth={2.5} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-bold uppercase tracking-tight text-slate-900 leading-none">Conta Bancária</h3>
+                                        <p className="text-sm font-medium tracking-tight text-slate-500 mt-1">Para depósitos via transferência.</p>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-3">
+                                        <label className="text-sm font-bold uppercase tracking-tight text-slate-900 px-1">Banco</label>
+                                        <Input
+                                            name="bank_name"
+                                            value={bankName}
+                                            onChange={(e) => setBankName(e.target.value)}
+                                            placeholder="Ex: Nubank, Itaú..."
+                                            className="bg-slate-50 border-black rounded-xl px-6 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
+                                        />
+                                    </div>
+                                    <div className="space-y-3">
+                                        <label className="text-sm font-bold uppercase tracking-tight text-slate-900 px-1">Tipo de Conta</label>
+                                        <select
+                                            name="bank_account_type"
+                                            value={bankAccountType}
+                                            onChange={(e) => setBankAccountType(e.target.value)}
+                                            className="w-full bg-slate-50 border border-black rounded-xl px-6 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 outline-none appearance-none"
+                                        >
+                                            <option value="">Selecione...</option>
+                                            <option value="corrente">Conta Corrente</option>
+                                            <option value="poupanca">Conta Poupança</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <label className="text-sm font-bold uppercase tracking-tight text-slate-900 px-1">Agência</label>
+                                        <Input
+                                            name="bank_agency"
+                                            value={bankAgency}
+                                            onChange={(e) => setBankAgency(e.target.value)}
+                                            placeholder="0001"
+                                            className="bg-slate-50 border-black rounded-xl px-6 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
+                                        />
+                                    </div>
+                                    <div className="space-y-3">
+                                        <label className="text-sm font-bold uppercase tracking-tight text-slate-900 px-1">Número da Conta</label>
+                                        <Input
+                                            name="bank_account"
+                                            value={bankAccount}
+                                            onChange={(e) => setBankAccount(e.target.value)}
+                                            placeholder="000000-0"
+                                            className="bg-slate-50 border-black rounded-xl px-6 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
+                                        />
+                                    </div>
                                 </div>
                             </div>
                         </div>

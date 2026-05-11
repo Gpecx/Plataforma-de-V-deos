@@ -13,6 +13,7 @@ import { useAuth } from "@/context/AuthProvider";
 import { motion, AnimatePresence } from "framer-motion";
 import WishlistButton from "@/components/WishlistButton";
 import NextImage from "next/image";
+import { useCartStore } from "@/store/useCartStore";
 
 const heroSlides = [
     {
@@ -45,6 +46,7 @@ interface Course {
     tag?: string;
     image_url?: string | null;
     status: 'APROVADO' | 'PENDENTE' | 'DESATIVADO';
+    teacher_id?: string;
     teacher_name?: string;
     tags?: string[];
     pricing_type?: 'premium' | 'free' | 'standard';
@@ -70,6 +72,7 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: Cou
     const router = useRouter();
     const searchQuery = searchParams.get('s')?.toLowerCase() || "";
     const { user, profile, loading } = useAuth();
+    const purchasedCourseIds = useCartStore(state => state.purchasedCourseIds);
 
     const [currentSlide, setCurrentSlide] = useState(0);
     const [selectedCourse, setSelectedCourse] = useState<any>(null);
@@ -350,10 +353,18 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: Cou
                                                 />
                                                 <WishlistButton 
                                                     courseId={course.id} 
-                                                    isPurchased={profile?.cursos_comprados?.includes(course.id)} 
+                                                    isPurchased={profile?.role === 'admin' || (profile?.role === 'teacher' && course.teacher_id === user?.uid) || profile?.cursos_comprados?.includes(course.id) || purchasedCourseIds.includes(course.id)} 
                                                 />
                                                 {/* Badge Logic */}
                                                 {(() => {
+                                                    const isPurchased = profile?.role === 'admin' || (profile?.role === 'teacher' && course.teacher_id === user?.uid) || profile?.cursos_comprados?.includes(course.id) || purchasedCourseIds.includes(course.id);
+                                                    if (isPurchased) {
+                                                        return (
+                                                            <div className="absolute top-2 left-2 bg-[#1D5F31] !text-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm z-10 shadow-lg no-theme-override">
+                                                                ADQUIRIDO
+                                                            </div>
+                                                        )
+                                                    }
                                                     if (course.pricing_type === 'premium') {
                                                         return (
                                                             <div className="absolute top-2 left-2 bg-[#1D5F31] !text-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm z-10 shadow-lg no-theme-override">

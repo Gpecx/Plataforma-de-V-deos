@@ -25,8 +25,9 @@ import { cn } from '@/lib/utils'
 import Logo from './Logo'
 import { useState, useEffect } from 'react'
 import { auth, db } from '@/lib/firebase'
-import { onAuthStateChanged } from 'firebase/auth'
+import { onAuthStateChanged, signOut } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
+import { removeSessionCookie } from '@/app/actions/auth'
 
 interface MenuItem {
     title: string;
@@ -59,6 +60,12 @@ const menuItems: MenuItem[] = [
         icon: Users,
         href: '/admin/students',
         description: 'Métricas e Acessos'
+    },
+    {
+        title: 'Gestão Admin',
+        icon: ShieldAlert,
+        href: '/admin/management',
+        description: 'Operadores e Segurança'
     },
     {
         title: 'Branding & Banners',
@@ -109,9 +116,17 @@ export default function AdminSidebar() {
         return () => unsubscribe()
     }, [])
 
-    const handleExitPanel = () => {
+    const handleExitPanel = async () => {
         setIsLoggingOut(true)
-        router.push('/dashboard-teacher')
+        try {
+            await signOut(auth)
+            await removeSessionCookie()
+            router.push('/')
+            router.refresh()
+        } catch (error) {
+            console.error("Erro ao sair:", error)
+            setIsLoggingOut(false)
+        }
     }
 
     return (
@@ -186,6 +201,13 @@ export default function AdminSidebar() {
                     <DropdownMenuContent align="start" className="w-56 bg-white border border-slate-200 rounded-xl p-2 shadow-sm z-[200]">
                         {userProfile?.role === 'admin' && (
                             <>
+                                <DropdownMenuItem 
+                                    onSelect={() => router.push('/dashboard-teacher/courses')}
+                                    className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer hover:bg-green-50 hover:text-[#1D5F31] text-slate-700 transition-colors outline-none focus:bg-green-50 focus:text-[#1D5F31]"
+                                >
+                                    <BookOpen size={18} className="text-[#1D5F31]" />
+                                    <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Modo Professor</span>
+                                </DropdownMenuItem>
                                 <DropdownMenuItem 
                                     onSelect={() => router.push('/dashboard-student')}
                                     className="flex items-center gap-3 px-4 py-3 rounded-xl cursor-pointer hover:bg-green-50 hover:text-[#1D5F31] text-slate-700 transition-colors outline-none focus:bg-green-50 focus:text-[#1D5F31]"

@@ -9,10 +9,12 @@ export const dynamic = 'force-dynamic'
 
 interface PageProps {
     params: Promise<{ id: string }>
+    searchParams: Promise<{ fromCourse?: string }>
 }
 
-export default async function ProfessorProfilePage({ params }: PageProps) {
+export default async function ProfessorProfilePage({ params, searchParams }: PageProps) {
     const { id } = await params
+    const { fromCourse } = await searchParams
     
     const [profile, stats] = await Promise.all([
         getInstructorProfile(id),
@@ -30,13 +32,13 @@ export default async function ProfessorProfilePage({ params }: PageProps) {
             {/* Header com botão voltar - Sem borda para visual Clean */}
             <div className="">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
-                    <Link href="/course">
+                    <Link href={fromCourse ? `/course/${fromCourse}` : "/course"}>
                         <Button 
                             variant="ghost" 
                             className="rounded-none text-gray-600 hover:text-gray-900 hover:bg-gray-100 h-10 px-4 text-sm font-bold uppercase tracking-wide"
                         >
                             <ArrowLeft size={18} className="mr-2" />
-                            Voltar ao Catálogo
+                            {fromCourse ? "Voltar ao Curso" : "Voltar ao Catálogo"}
                         </Button>
                     </Link>
                 </div>

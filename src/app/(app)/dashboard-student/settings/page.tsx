@@ -286,12 +286,12 @@ export default function SettingsPage() {
                             <div className="space-y-2">
                                 <label className="text-[10px] font-bold uppercase tracking-widest text-slate-900 ml-1">CPF ou CNPJ</label>
                                 <Input 
-                                    name="cpf_cnpj"
+                                    readOnly
                                     defaultValue={settingsData.cpf_cnpj || ''}
-                                    className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-600 font-medium focus-visible:ring-[#1D5F31]/20 focus-visible:border-black" 
+                                    className="bg-slate-50 border-black rounded-xl h-14 text-slate-500 placeholder:text-slate-600 font-medium cursor-not-allowed select-none opacity-70" 
                                     placeholder="000.000.000-00"
                                 />
-                                <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Necessário para emissão de notas fiscais.</p>
+                                <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">O CPF/CNPJ é vinculado à sua conta e não pode ser alterado por segurança.</p>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

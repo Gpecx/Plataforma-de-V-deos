@@ -5,10 +5,13 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { auth } from '@/lib/firebase'
 import { createUserWithEmailAndPassword, updateProfile as firebaseUpdateProfile, sendEmailVerification } from 'firebase/auth'
-import { createProfile, getAddressByCep, getDataByCnpj } from './actions'
+import { createProfile, getAddressByCep, getDataByCnpj, checkUsernameAvailability } from './actions'
 import Logo from '@/components/Logo'
-import { ArrowRight, AlertCircle, Eye, EyeOff } from 'lucide-react'
+import { ArrowRight, AlertCircle, Eye, EyeOff, ChevronLeft, Building2, User } from 'lucide-react'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
+import { RegisterSchema, Step1Schema, Step2Schema, Step3Schema } from '@/lib/validations/register'
+import { validateCPF, validateCNPJ, maskCPF, maskCNPJ } from '@/lib/document-utils'
+import { generateSlug } from '@/lib/utils'
 
 const fadeUp: Variants = {
     hidden: { opacity: 0, y: 20 },
@@ -20,59 +23,7 @@ const inputVariants: Variants = {
     visible: { opacity: 1, y: 0, transition: { duration: 0.35 } }
 }
 
-// ─── Validação CPF ──────────────────────────────────────────────────────────
-function validateCpf(cpf: string): boolean {
-    const digits = cpf.replace(/\D/g, '')
-    if (digits.length !== 11) return false
-    if (/^(\d)\1{10}$/.test(digits)) return false // Rejeita sequências iguais
 
-    let sum = 0
-    let rest
-    for (let i = 1; i <= 9; i++) sum += parseInt(digits.substring(i - 1, i)) * (11 - i)
-    rest = (sum * 10) % 11
-    if (rest === 10 || rest === 11) rest = 0
-    if (rest !== parseInt(digits.substring(9, 10))) return false
-
-    sum = 0
-    for (let i = 1; i <= 10; i++) sum += parseInt(digits.substring(i - 1, i)) * (12 - i)
-    rest = (sum * 10) % 11
-    if (rest === 10 || rest === 11) rest = 0
-    if (rest !== parseInt(digits.substring(10, 11))) return false
-
-    return true
-}
-
-// ─── Validação CNPJ ─────────────────────────────────────────────────────────
-function validateCnpj(cnpj: string): boolean {
-    const digits = cnpj.replace(/\D/g, '')
-    if (digits.length !== 14) return false
-    if (/^(\d)\1{13}$/.test(digits)) return false
-
-    let length = digits.length - 2
-    let numbers = digits.substring(0, length)
-    let checkDigits = digits.substring(length)
-    let sum = 0
-    let pos = length - 7
-    for (let i = length; i >= 1; i--) {
-        sum += parseInt(numbers.charAt(length - i)) * pos--
-        if (pos < 2) pos = 9
-    }
-    let result = sum % 11 < 2 ? 0 : 11 - (sum % 11)
-    if (result !== parseInt(checkDigits.charAt(0))) return false
-
-    length = length + 1
-    numbers = digits.substring(0, length)
-    sum = 0
-    pos = length - 7
-    for (let i = length; i >= 1; i--) {
-        sum += parseInt(numbers.charAt(length - i)) * pos--
-        if (pos < 2) pos = 9
-    }
-    result = sum % 11 < 2 ? 0 : 11 - (sum % 11)
-    if (result !== parseInt(checkDigits.charAt(1))) return false
-
-    return true
-}
 
 // ─── Máscaras ───────────────────────────────────────────────────────────────
 function maskCpfCnpj(value: string, type: 'CPF' | 'CNPJ'): string {
@@ -155,6 +106,16 @@ function RegisterForm() {
     const [teacherData, setTeacherData] = useState<any>(null)
     const [isTeacherFlow, setIsTeacherFlow] = useState(false)
     const [termsAccepted, setTermsAccepted] = useState(false)
+    const [username, setUsername] = useState('')
+    const [isCheckingUsername, setIsCheckingUsername] = useState(false)
+
+    useEffect(() => {
+        if (fullName && fullName.length > 2) {
+            setUsername(generateSlug(fullName))
+        } else {
+            setUsername('')
+        }
+    }, [fullName])
 
     useEffect(() => {
         const stored = localStorage.getItem('powerplay_teacher_quiz')
@@ -176,6 +137,9 @@ function RegisterForm() {
         }
     }, [searchParams])
 
+    const [step, setStep] = useState(1)
+    const [razaoSocial, setRazaoSocial] = useState('')
+
     // Novos estados de endereço
     const [cep, setCep] = useState('')
     const [rua, setRua] = useState('')
@@ -188,33 +152,83 @@ function RegisterForm() {
     const [isCnpjLoading, setIsCnpjLoading] = useState(false)
     const [cepError, setCepError] = useState('')
 
-    // Validação em tempo real
-    const isCpfCnpjValid = useMemo(() => {
-        if (!cpfCnpj) return false
-        return personType === 'CPF' ? validateCpf(cpfCnpj) : validateCnpj(cpfCnpj)
-    }, [cpfCnpj, personType])
+    const validateStep1 = () => {
+        const result = Step1Schema.safeParse({
+            fullName, email, phone, password, confirmPassword, username
+        })
+        if (!result.success) {
+            const errors = result.error.flatten().fieldErrors
+            if (errors.fullName) return errors.fullName[0]
+            if (errors.email) return errors.email[0]
+            if (errors.phone) return errors.phone[0]
+            if (errors.password) return errors.password[0]
+            if (errors.confirmPassword) return errors.confirmPassword[0]
+            return "Verifique os dados informados"
+        }
+        return null
+    }
 
-    // Validação da data básica (apenas tamanho para este passo)
-    const isBirthDateValid = birthDate.length === 10
+    const validateStep1WithUsername = async () => {
+        const error = validateStep1()
+        if (error) return error
+
+        if (!username) return 'O Nome Completo é obrigatório para gerar seu ID.'
+
+        setIsCheckingUsername(true)
+        try {
+            const result = await checkUsernameAvailability(username)
+            if (!result.success) return result.error
+            if (!result.available) return 'Este ID (@' + username + ') já está em uso por outro usuário. Tente adicionar um sobrenome ou número ao seu nome.'
+        } catch (e) {
+            return 'Erro ao validar disponibilidade do ID.'
+        } finally {
+            setIsCheckingUsername(false)
+        }
+
+        return null
+    }
+
+    const validateStep2 = () => {
+        const data: any = { personType }
+        if (personType === 'CPF') {
+            data.cpf = cpfCnpj
+            data.birthDate = birthDate
+        } else {
+            data.cnpj = cpfCnpj
+            data.razaoSocial = razaoSocial
+        }
+        
+        const result = Step2Schema.safeParse(data)
+        if (!result.success) {
+            const errors = result.error.flatten().fieldErrors
+            if (personType === 'CPF') {
+                if (errors.cpf) return errors.cpf[0]
+                if (errors.birthDate) return errors.birthDate[0]
+            } else {
+                if (errors.cnpj) return errors.cnpj[0]
+                if (errors.razaoSocial) return errors.razaoSocial[0]
+            }
+            return "Documento ou dados inválidos"
+        }
+        return null
+    }
 
     const isFormValid = useMemo(() => {
-        return email.includes('@') &&
-            password.length >= 6 &&
-            password === confirmPassword &&
-            fullName.length > 3 &&
-            isCpfCnpjValid &&
-            isBirthDateValid &&
-            phone.length >= 14 &&
-            cep.length === 9 &&
-            rua.length > 2 &&
-            numero.length > 0 &&
-            cidade.length > 2 &&
-            estado.length === 2 &&
-            termsAccepted
-    }, [email, password, confirmPassword, fullName, phone, isCpfCnpjValid, isBirthDateValid, cep, rua, numero, cidade, estado, termsAccepted])
+        const data = {
+            fullName, email, phone, password, confirmPassword,
+            personType, 
+            cpf: personType === 'CPF' ? cpfCnpj : undefined,
+            cnpj: personType === 'CNPJ' ? cpfCnpj : undefined,
+            birthDate: personType === 'CPF' ? birthDate : undefined,
+            razaoSocial: personType === 'CNPJ' ? razaoSocial : undefined,
+            cep, rua, numero, complemento, bairro, cidade, estado, 
+            termsAccepted, username
+        }
+        return RegisterSchema.safeParse(data).success
+    }, [email, password, confirmPassword, fullName, phone, personType, cpfCnpj, birthDate, razaoSocial, cep, rua, numero, complemento, bairro, cidade, estado, termsAccepted])
 
     const handleCpfCnpjChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setCpfCnpj(maskCpfCnpj(e.target.value, personType))
+        setCpfCnpj(personType === 'CPF' ? maskCPF(e.target.value) : maskCNPJ(e.target.value))
     }
 
     const handleTypeChange = (type: 'CPF' | 'CNPJ') => {
@@ -266,32 +280,47 @@ function RegisterForm() {
         }
     }
 
-    const handleCnpjBlur = async () => {
-        if (personType !== 'CNPJ') return
-        const cleanCnpj = cpfCnpj.replace(/\D/g, '')
-        if (cleanCnpj.length === 14 && isCpfCnpjValid) {
-            setIsCnpjLoading(true)
-            try {
-                const result = await getDataByCnpj(cleanCnpj)
-                if (result.success && result.data) {
-                    setFullName(result.data.razao_social || '')
-                    setCep(maskCep(result.data.cep || ''))
-                    setRua(result.data.logradouro || '')
-                    setBairro(result.data.bairro || '')
-                    setCidade(result.data.municipio || '')
-                    setEstado(result.data.uf || '')
-                    setNumero(result.data.numero || '')
-                    setComplemento(result.data.complemento || '')
+    // Busca automática de CNPJ - Refatorado para fetch direto (Instrução do Usuário)
+    useEffect(() => {
+        const triggerCnpjLookup = async () => {
+            if (personType !== 'CNPJ') return
+            
+            // Limpeza Obrigatória: extrair apenas os números
+            const cnpjLimpo = cpfCnpj.replace(/\D/g, '') 
+            
+            // Condição de Disparo: exatamente 14 dígitos numéricos
+            if (cnpjLimpo.length === 14) {
+                setIsCnpjLoading(true)
+                try {
+                    const response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpjLimpo}`)
+                    
+                    if (response.ok) {
+                        const data = await response.json()
+                        
+                        // Ajuste de Valor: preencher campos de Razão Social e Endereço
+                        setRazaoSocial(data.razao_social || data.nome_fantasia || '')
+                        
+                        if (data.cep) setCep(maskCep(data.cep))
+                        if (data.logradouro) setRua(data.logradouro)
+                        if (data.bairro) setBairro(data.logradouro) // Fallback para bairro se necessário
+                        if (data.bairro) setBairro(data.bairro)
+                        if (data.municipio) setCidade(data.municipio)
+                        if (data.uf) setEstado(data.uf)
+                        if (data.numero) setNumero(data.numero)
+                        if (data.complemento) setComplemento(data.complemento)
+                    }
+                } catch (error) {
+                    console.error('Brasil API Client Error:', error)
+                } finally {
+                    setIsCnpjLoading(false)
                 }
-            } catch (error) {
-                console.error('CNPJ Lookup failed', error)
-            } finally {
-                setIsCnpjLoading(false)
             }
         }
-    }
 
-    const handleRegister = async (e: React.FormEvent) => {
+        triggerCnpjLookup()
+    }, [cpfCnpj, personType])
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         if (!isFormValid) return
 
@@ -306,8 +335,7 @@ function RegisterForm() {
                 displayName: fullName
             })
 
-            await sendEmailVerification(user)
-
+            // 1. Criar Perfil no Firestore (Essencial)
             const result = await createProfile({
                 uid: user.uid,
                 email,
@@ -315,6 +343,8 @@ function RegisterForm() {
                 phone,
                 cpf_cnpj: cpfCnpj,
                 person_type: personType,
+                razao_social: razaoSocial,
+                username,
                 birth_date: birthDate,
                 role,
                 cep,
@@ -330,6 +360,14 @@ function RegisterForm() {
 
             if (!result.success) {
                 throw new Error(result.error)
+            }
+
+            // 2. Tentar enviar e-mail de verificação (Não bloqueante)
+            try {
+                await sendEmailVerification(user)
+            } catch (verifyError: any) {
+                console.warn('Falha ao enviar e-mail de verificação (provável limite de cota):', verifyError)
+                // Não lançamos erro aqui para não interromper o fluxo do usuário
             }
 
             const idToken = await user.getIdToken(true)
@@ -365,11 +403,11 @@ function RegisterForm() {
         }
     }
 
-    const inputClass = (hasError: boolean = false, isCepLoading: boolean = false) =>
-        `w-full p-4 bg-white/5 text-white border border-white/10 shadow-sm transition-all outline-none text-sm font-medium placeholder:text-white/30 focus:border-[#28b828] focus:bg-white/10 rounded-xl relative overflow-hidden ${hasError ? 'border-red-500/60' : ''}`
+    const inputClass = (hasError: boolean = false, isFieldLoading: boolean = false) =>
+        `w-full p-4 bg-white/5 text-white border border-white/10 shadow-sm transition-all outline-none text-sm font-medium placeholder:text-white/30 focus:border-[#28b828] focus:bg-white/10 rounded-lg relative overflow-hidden ${hasError ? 'border-red-500/60' : ''} ${isFieldLoading ? 'opacity-50 animate-pulse' : ''}`
 
-    const sectionTitleClass = 'text-white/40 text-xs uppercase tracking-widest font-bold mb-4 block'
-    const labelClass = 'text-[9px] font-bold uppercase tracking-widest text-white mb-1 block'
+    const sectionTitleClass = 'text-white/40 text-[10px] uppercase tracking-widest font-bold mb-4 block border-b border-white/5 pb-2'
+    const labelClass = 'text-[9px] font-bold uppercase tracking-widest text-white/60 mb-1 block'
 
     return (
         <div className="min-h-screen w-full flex flex-row bg-[var(--background-color)] overflow-hidden font-montserrat">
@@ -408,10 +446,23 @@ function RegisterForm() {
                         </div>
                     </motion.div>
 
-                    {/* Form Container */}
-                    <div className="bg-transparent p-0 border-t border-white/5">
-                        <form onSubmit={handleRegister} className="space-y-10 py-8">
+                    {/* Progress Indicator */}
+                    <div className="flex items-center justify-between mb-8 px-2">
+                        {[1, 2, 3].map((s) => (
+                            <div key={s} className="flex items-center flex-1 last:flex-none">
+                                <div className={`w-8 h-8 flex items-center justify-center font-bold text-xs transition-all rounded-md ${step >= s ? 'bg-[#28b828] text-white shadow-[0_0_15px_rgba(40,184,40,0.4)]' : 'bg-white/5 text-white/20 border border-white/10'}`}>
+                                    {s}
+                                </div>
+                                {s < 3 && (
+                                    <div className={`h-[1px] flex-1 mx-2 transition-all ${step > s ? 'bg-[#28b828]' : 'bg-white/5'}`} />
+                                )}
+                            </div>
+                        ))}
+                    </div>
 
+                    {/* Form Container */}
+                    <div className="bg-transparent p-0">
+                        <form onSubmit={handleSubmit} className="space-y-6">
                             {/* Banner de Erro Inline */}
                             <AnimatePresence mode="wait">
                                 {formError && (
@@ -421,9 +472,9 @@ function RegisterForm() {
                                         animate={{ opacity: 1, y: 0, height: 'auto' }}
                                         exit={{ opacity: 0, y: -8, height: 0 }}
                                         transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-                                        className="overflow-hidden"
+                                        className="overflow-hidden mb-6"
                                     >
-                                        <div className={`flex items-start gap-3 p-4 rounded-xl border ${
+                                        <div className={`flex items-start gap-3 p-4 rounded-lg border ${
                                             formError.isEmailConflict
                                                 ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
                                                 : 'bg-red-500/10 border-red-500/30 text-red-300'
@@ -450,380 +501,390 @@ function RegisterForm() {
                                 )}
                             </AnimatePresence>
 
-                            {/* Grupo 1: Dados de Acesso */}
-                            <motion.section
-                                initial="hidden"
-                                animate="visible"
-                                variants={fadeUp}
-                                custom={1}
-                            >
-                                <span className={sectionTitleClass}>Dados de Acesso</span>
-                                <div className="space-y-4">
-                                    <motion.div variants={inputVariants} custom={1.1} className="space-y-1">
-                                        <label className={labelClass}>Nome Completo</label>
-                                        <input
-                                            type="text"
-                                            placeholder="NOME PARA CERTIFICADOS"
-                                            required
-                                            className={inputClass()}
-                                            value={fullName}
-                                            onChange={(e) => setFullName(e.target.value)}
-                                        />
-                                    </motion.div>
-                                    <motion.div variants={inputVariants} custom={1.2} className="space-y-1">
-                                        <label className={labelClass}>E-mail</label>
-                                        <input
-                                            type="email"
-                                            placeholder="seu@email.com"
-                                            required
-                                            className={inputClass()}
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                        />
-                                    </motion.div>
-                                    <motion.div variants={inputVariants} custom={1.25} className="space-y-1">
-                                        <label className={labelClass}>WhatsApp / Telefone</label>
-                                        <input
-                                            type="text"
-                                            placeholder="(00) 00000-0000"
-                                            inputMode="numeric"
-                                            required
-                                            className={inputClass()}
-                                            value={phone}
-                                            onChange={handlePhoneChange}
-                                        />
-                                    </motion.div>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <motion.div variants={inputVariants} custom={1.3} className="space-y-1">
-                                            <label className={labelClass}>Senha</label>
-                                            <div className="relative">
-                                                <input
-                                                    type={showPassword ? "text" : "password"}
-                                                    placeholder="••••••••"
-                                                    required
-                                                    className={`${inputClass()} pr-12`}
-                                                    value={password}
-                                                    onChange={(e) => setPassword(e.target.value)}
-                                                />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setShowPassword(!showPassword)}
-                                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-green-200 hover:text-white transition-colors p-1"
-                                                >
-                                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                                </button>
-                                            </div>
-                                        </motion.div>
-                                        <motion.div variants={inputVariants} custom={1.4} className="space-y-1">
-                                            <label className={labelClass}>Confirmar Senha</label>
-                                            <div className="relative">
-                                                <input
-                                                    type={showConfirmPassword ? "text" : "password"}
-                                                    placeholder="••••••••"
-                                                    required
-                                                    className={inputClass(confirmPassword !== "" && password !== confirmPassword)}
-                                                    value={confirmPassword}
-                                                    onChange={(e) => setConfirmPassword(e.target.value)}
-                                                />
-                                            </div>
-                                            {confirmPassword !== "" && password !== confirmPassword && (
-                                                <p className="text-red-500 text-[9px] font-bold uppercase tracking-widest mt-1">As senhas não coincidem</p>
-                                            )}
-                                        </motion.div>
-                                    </div>
-                                </div>
-                            </motion.section>
-
-                            {/* Grupo 2: Identificação */}
-                            <motion.section
-                                initial="hidden"
-                                animate="visible"
-                                variants={fadeUp}
-                                custom={2}
-                            >
-                                <span className={sectionTitleClass}>Identificação</span>
-                                <div className="grid grid-cols-12 gap-4">
-                                    <div className="col-span-12 md:col-span-7 space-y-1">
-                                        <div className="flex justify-between items-center mb-1 h-[22px]">
-                                            <label className={labelClass}>Documento</label>
-                                            <div className="flex gap-1 bg-[#153b1b] p-0.5 border border-[#266d35]">
-                                                {['CPF', 'CNPJ'].map((type) => (
-                                                    <button
-                                                        key={type}
-                                                        type="button"
-                                                        onClick={() => handleTypeChange(type as 'CPF' | 'CNPJ')}
-                                                        className={`px-3 py-1 text-[8px] font-bold uppercase transition-all ${personType === type
-                                                            ? 'bg-[#1D5F31] text-white shadow'
-                                                            : 'text-green-700 hover:text-green-200'
-                                                            }`}
-                                                    >
-                                                        {type}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                        <motion.input
-                                            type="text"
-                                            placeholder={personType === 'CPF' ? '000.000.000-00' : '00.000.000/0000-00'}
-                                            inputMode="numeric"
-                                            required
-                                            className={inputClass(cpfCnpjTouched && !isCpfCnpjValid)}
-                                            value={cpfCnpj}
-                                            onChange={handleCpfCnpjChange}
-                                            onBlur={() => {
-                                                setCpfCnpjTouched(true)
-                                                handleCnpjBlur()
-                                            }}
-                                            variants={inputVariants}
-                                            custom={2.1}
-                                        />
-                                        <AnimatePresence>
-                                            {isCnpjLoading && (
-                                                <motion.div
-                                                    initial={{ opacity: 0 }}
-                                                    animate={{ opacity: 1 }}
-                                                    exit={{ opacity: 0 }}
-                                                    className="mt-1 flex items-center gap-2 text-[#28b828]"
-                                                >
-                                                    <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24">
-                                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                                                    </svg>
-                                                    <span className="text-[9px] font-bold uppercase tracking-widest">Consultando BrasilAPI...</span>
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
-                                        {cpfCnpjTouched && !isCpfCnpjValid && (
-                                            <p className="text-red-500 text-[9px] font-bold uppercase tracking-widest mt-1">
-                                                {personType === 'CPF' ? 'CPF inválido' : 'CNPJ inválido'}
-                                            </p>
-                                        )}
-                                    </div>
-                                    <div className="col-span-12 md:col-span-5 space-y-1">
-                                        <div className="flex items-center mb-1 h-[22px]">
-                                            <label className={labelClass}>Data de Nascimento</label>
-                                        </div>
-                                        <motion.input
-                                            type="text"
-                                            placeholder="DD/MM/AAAA"
-                                            inputMode="numeric"
-                                            required
-                                            maxLength={10}
-                                            className={inputClass()}
-                                            value={birthDate}
-                                            onChange={handleBirthDateChange}
-                                            variants={inputVariants}
-                                            custom={2.2}
-                                        />
-                                    </div>
-                                </div>
-                            </motion.section>
-
-                            {/* Grupo 3: Endereço */}
-                            <motion.section
-                                initial="hidden"
-                                animate="visible"
-                                variants={fadeUp}
-                                custom={3}
-                            >
-                                <span className={sectionTitleClass}>Endereço</span>
-                                <div className="space-y-4">
-                                    {/* Linha 1: CEP e Rua */}
-                                    <div className="grid grid-cols-12 gap-2">
-                                        <div className="col-span-12 md:col-span-5 space-y-1">
-                                            <label className={labelClass}>CEP</label>
-                                            <div className="relative">
+                            <AnimatePresence mode="wait">
+                                {step === 1 && (
+                                    <motion.section
+                                        key="step1"
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: -20 }}
+                                        className="space-y-6"
+                                    >
+                                        <span className={sectionTitleClass}>Passo 1: Dados de Acesso</span>
+                                        <div className="space-y-4">
+                                            <div className="space-y-1">
+                                                <label className={labelClass}>Nome Completo</label>
                                                 <input
                                                     type="text"
-                                                    placeholder="00000-000"
-                                                    inputMode="numeric"
+                                                    placeholder="NOME PARA CERTIFICADOS"
                                                     required
-                                                    className={inputClass(!!cepError)}
-                                                    value={cep}
-                                                    onChange={handleCepChange}
-                                                    onBlur={handleCepBlur}
+                                                    className={inputClass()}
+                                                    value={fullName}
+                                                    onChange={(e) => setFullName(e.target.value)}
                                                 />
-                                                <AnimatePresence>
-                                                    {isCepLoading && (
-                                                        <motion.div
-                                                            initial={{ opacity: 0 }}
-                                                            animate={{ opacity: 1 }}
-                                                            exit={{ opacity: 0 }}
-                                                            className="absolute inset-0 pointer-events-none overflow-hidden"
-                                                        >
-                                                            <motion.div
-                                                                initial={{ y: '-100%' }}
-                                                                animate={{ y: '100%' }}
-                                                                transition={{ repeat: Infinity, duration: 1.2, ease: 'linear' }}
-                                                                className="absolute left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#28b828] to-transparent"
-                                                            />
-                                                        </motion.div>
-                                                    )}
-                                                </AnimatePresence>
+                                                {username && (
+                                                    <p className="text-[10px] font-bold text-[#28b828] uppercase tracking-wider mt-2 animate-pulse">
+                                                        Seu ID público será: @{username}
+                                                    </p>
+                                                )}
                                             </div>
-                                            {cepError && (
-                                                <div className="flex items-center gap-1 mt-1 text-orange-400">
-                                                    <AlertCircle className="w-3 h-3" />
-                                                    <span className="text-[9px] font-bold uppercase">{cepError}</span>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="space-y-1">
+                                                    <label className={labelClass}>E-mail</label>
+                                                    <input
+                                                        type="email"
+                                                        placeholder="seu@email.com"
+                                                        required
+                                                        className={inputClass()}
+                                                        value={email}
+                                                        onChange={(e) => setEmail(e.target.value)}
+                                                    />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className={labelClass}>WhatsApp / Telefone</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="(00) 00000-0000"
+                                                        inputMode="numeric"
+                                                        required
+                                                        className={inputClass()}
+                                                        value={phone}
+                                                        onChange={handlePhoneChange}
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="space-y-1">
+                                                    <label className={labelClass}>Senha</label>
+                                                    <div className="relative">
+                                                        <input
+                                                            type={showPassword ? "text" : "password"}
+                                                            placeholder="••••••••"
+                                                            required
+                                                            className={`${inputClass()} pr-12`}
+                                                            value={password}
+                                                            onChange={(e) => setPassword(e.target.value)}
+                                                        />
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setShowPassword(!showPassword)}
+                                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-green-200 hover:text-white transition-colors p-1"
+                                                        >
+                                                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className={labelClass}>Confirmar Senha</label>
+                                                    <div className="relative">
+                                                        <input
+                                                            type={showConfirmPassword ? "text" : "password"}
+                                                            placeholder="••••••••"
+                                                            required
+                                                            className={inputClass(confirmPassword !== "" && password !== confirmPassword)}
+                                                            value={confirmPassword}
+                                                            onChange={(e) => setConfirmPassword(e.target.value)}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            disabled={isCheckingUsername}
+                                            onClick={async () => {
+                                                const error = await validateStep1WithUsername()
+                                                if (error) {
+                                                    setFormError({ message: error, isEmailConflict: false })
+                                                } else {
+                                                    setFormError(null)
+                                                    setStep(2)
+                                                }
+                                            }}
+                                            className="w-full bg-[#28b828] text-white font-bold uppercase tracking-[3px] py-5 transition-all hover:bg-[#34d834] rounded-lg flex items-center justify-center gap-2 text-sm mt-4 disabled:opacity-50"
+                                        >
+                                            {isCheckingUsername ? 'Validando ID...' : 'Próximo Passo'}
+                                            {!isCheckingUsername && <ArrowRight size={18} />}
+                                        </button>
+                                    </motion.section>
+                                )}
+
+                                {step === 2 && (
+                                    <motion.section
+                                        key="step2"
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: -20 }}
+                                        className="space-y-6"
+                                    >
+                                        <div className="flex items-center gap-4 mb-2">
+                                            <button 
+                                                type="button"
+                                                onClick={() => setStep(1)}
+                                                className="text-white/40 hover:text-white transition-colors"
+                                            >
+                                                <ChevronLeft size={20} />
+                                            </button>
+                                            <span className={sectionTitleClass + ' mb-0 border-0 pb-0'}>Passo 2: Identificação</span>
+                                        </div>
+
+                                        <div className="flex gap-1 bg-white/5 p-1 border border-white/10 mb-6 rounded-lg">
+                                            <button
+                                                type="button"
+                                                onClick={() => handleTypeChange('CPF')}
+                                                className={`flex-1 py-3 flex items-center justify-center gap-2 text-[10px] font-bold uppercase transition-all rounded-md ${personType === 'CPF' ? 'bg-[#28b828] text-white' : 'text-white/40 hover:text-white/60'}`}
+                                            >
+                                                <User size={14} />
+                                                Pessoa Física
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleTypeChange('CNPJ')}
+                                                className={`flex-1 py-3 flex items-center justify-center gap-2 text-[10px] font-bold uppercase transition-all rounded-md ${personType === 'CNPJ' ? 'bg-[#28b828] text-white' : 'text-white/40 hover:text-white/60'}`}
+                                            >
+                                                <Building2 size={14} />
+                                                Pessoa Jurídica
+                                            </button>
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <div className="space-y-1">
+                                                <label className={labelClass}>{personType === 'CPF' ? 'CPF' : 'CNPJ'}</label>
+                                                <div className="relative">
+                                                    <input
+                                                        type="text"
+                                                        placeholder={personType === 'CPF' ? '000.000.000-00' : '00.000.000/0000-00'}
+                                                        inputMode="numeric"
+                                                        required
+                                                        className={inputClass()}
+                                                        value={cpfCnpj}
+                                                        onChange={handleCpfCnpjChange}
+                                                    />
+                                                    {isCnpjLoading && (
+                                                        <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                                            <div className="animate-spin h-4 w-4 border-2 border-[#28b828] border-t-transparent rounded-full" />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {personType === 'CPF' ? (
+                                                <div className="space-y-1">
+                                                    <label className={labelClass}>Data de Nascimento</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="DD/MM/AAAA"
+                                                        inputMode="numeric"
+                                                        required
+                                                        maxLength={10}
+                                                        className={inputClass()}
+                                                        value={birthDate}
+                                                        onChange={handleBirthDateChange}
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-1">
+                                                    <label className={labelClass}>Razão Social</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="NOME DA EMPRESA"
+                                                        required
+                                                        className={inputClass(false, isCnpjLoading)}
+                                                        value={razaoSocial}
+                                                        onChange={(e) => setRazaoSocial(e.target.value)}
+                                                    />
                                                 </div>
                                             )}
                                         </div>
-                                        <div className="col-span-12 md:col-span-7 space-y-1">
-                                            <label className={labelClass}>Rua/Logradouro</label>
-                                            <input
-                                                type="text"
-                                                placeholder="AV. INDUSTRIAL"
-                                                required
-                                                className={inputClass()}
-                                                value={rua}
-                                                onChange={(e) => setRua(e.target.value)}
-                                            />
-                                        </div>
-                                    </div>
 
-                                    {/* Linha 2: Número, Complemento e Bairro */}
-                                    <div className="grid grid-cols-12 gap-2">
-                                        <div className="col-span-4 md:col-span-3 space-y-1">
-                                            <label className={labelClass}>Número</label>
-                                            <input
-                                                ref={numberInputRef}
-                                                type="text"
-                                                placeholder="000"
-                                                required
-                                                className={inputClass()}
-                                                value={numero}
-                                                onChange={(e) => setNumero(e.target.value)}
-                                            />
-                                        </div>
-                                        <div className="col-span-8 md:col-span-4 space-y-1">
-                                            <label className={labelClass}>Complemento</label>
-                                            <input
-                                                type="text"
-                                                placeholder="APTO/SALA"
-                                                className={inputClass()}
-                                                value={complemento}
-                                                onChange={(e) => setComplemento(e.target.value)}
-                                            />
-                                        </div>
-                                        <div className="col-span-12 md:col-span-5 space-y-1">
-                                            <label className={labelClass}>Bairro</label>
-                                            <input
-                                                type="text"
-                                                placeholder="BAIRRO"
-                                                required
-                                                className={inputClass()}
-                                                value={bairro}
-                                                onChange={(e) => setBairro(e.target.value)}
-                                            />
-                                        </div>
-                                    </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const error = validateStep2()
+                                                if (error) {
+                                                    setFormError({ message: error, isEmailConflict: false })
+                                                } else {
+                                                    setFormError(null)
+                                                    setStep(3)
+                                                }
+                                            }}
+                                            className="w-full bg-[#28b828] text-white font-bold uppercase tracking-[3px] py-5 transition-all hover:bg-[#34d834] rounded-lg flex items-center justify-center gap-2 text-sm mt-4"
+                                        >
+                                            Próximo Passo
+                                            <ArrowRight size={18} />
+                                        </button>
+                                    </motion.section>
+                                )}
 
-                                    {/* Linha 3: Cidade e Estado */}
-                                    <div className="grid grid-cols-12 gap-2">
-                                        <div className="col-span-8 md:col-span-9 space-y-1">
-                                            <label className={labelClass}>Cidade</label>
-                                            <input
-                                                type="text"
-                                                placeholder="CIDADE"
-                                                required
-                                                className={inputClass()}
-                                                value={cidade}
-                                                onChange={(e) => setCidade(e.target.value)}
-                                            />
+                                {step === 3 && (
+                                    <motion.section
+                                        key="step3"
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        exit={{ opacity: 0, x: -20 }}
+                                        className="space-y-6"
+                                    >
+                                        <div className="flex items-center gap-4 mb-2">
+                                            <button 
+                                                type="button"
+                                                onClick={() => setStep(2)}
+                                                className="text-white/40 hover:text-white transition-colors"
+                                            >
+                                                <ChevronLeft size={20} />
+                                            </button>
+                                            <span className={sectionTitleClass + ' mb-0 border-0 pb-0'}>Passo 3: Endereço</span>
                                         </div>
-                                        <div className="col-span-4 md:col-span-3 space-y-1">
-                                            <label className={labelClass}>Estado/UF</label>
-                                            <input
-                                                type="text"
-                                                placeholder="UF"
-                                                required
-                                                maxLength={2}
-                                                className={inputClass()}
-                                                value={estado}
-                                                onChange={(e) => setEstado(e.target.value.toUpperCase())}
-                                            />
+
+                                        <div className="space-y-4">
+                                            <div className="grid grid-cols-12 gap-2">
+                                                <div className="col-span-5 space-y-1">
+                                                    <label className={labelClass}>CEP</label>
+                                                    <div className="relative">
+                                                        <input
+                                                            type="text"
+                                                            placeholder="00000-000"
+                                                            inputMode="numeric"
+                                                            required
+                                                            className={inputClass(!!cepError)}
+                                                            value={cep}
+                                                            onChange={handleCepChange}
+                                                            onBlur={handleCepBlur}
+                                                        />
+                                                        {isCepLoading && (
+                                                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                                                <div className="animate-spin h-3 w-3 border-2 border-[#28b828] border-t-transparent rounded-full" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="col-span-7 space-y-1">
+                                                    <label className={labelClass}>Rua/Logradouro</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="AV. INDUSTRIAL"
+                                                        required
+                                                        className={inputClass(false, isCnpjLoading)}
+                                                        value={rua}
+                                                        onChange={(e) => setRua(e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-12 gap-2">
+                                                <div className="col-span-4 space-y-1">
+                                                    <label className={labelClass}>Número</label>
+                                                    <input
+                                                        ref={numberInputRef}
+                                                        type="text"
+                                                        placeholder="000"
+                                                        required
+                                                        className={inputClass(false, isCnpjLoading)}
+                                                        value={numero}
+                                                        onChange={(e) => setNumero(e.target.value)}
+                                                    />
+                                                </div>
+                                                <div className="col-span-8 space-y-1">
+                                                    <label className={labelClass}>Complemento</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="APTO/SALA"
+                                                        className={inputClass(false, isCnpjLoading)}
+                                                        value={complemento}
+                                                        onChange={(e) => setComplemento(e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-12 gap-2">
+                                                <div className="col-span-12 space-y-1">
+                                                    <label className={labelClass}>Bairro</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="BAIRRO"
+                                                        required
+                                                        className={inputClass(false, isCnpjLoading)}
+                                                        value={bairro}
+                                                        onChange={(e) => setBairro(e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-12 gap-2">
+                                                <div className="col-span-8 space-y-1">
+                                                    <label className={labelClass}>Cidade</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="CIDADE"
+                                                        required
+                                                        className={inputClass(false, isCnpjLoading)}
+                                                        value={cidade}
+                                                        onChange={(e) => setCidade(e.target.value)}
+                                                    />
+                                                </div>
+                                                <div className="col-span-4 space-y-1">
+                                                    <label className={labelClass}>Estado/UF</label>
+                                                    <input
+                                                        type="text"
+                                                        placeholder="UF"
+                                                        required
+                                                        maxLength={2}
+                                                        className={inputClass(false, isCnpjLoading)}
+                                                        value={estado}
+                                                        onChange={(e) => setEstado(e.target.value.toUpperCase())}
+                                                    />
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
-                            </motion.section>
 
-                            <motion.button
-                                type="submit"
-                                disabled={loading || !isFormValid}
-                                className="group relative w-full overflow-hidden bg-gradient-to-r from-[#1D5F31] via-[#28b828] to-[#1D5F31] hover:from-[#28b828] hover:via-[#34d834] hover:to-[#28b828] text-white font-bold uppercase tracking-[3px] py-5 transition-all disabled:opacity-30 disabled:cursor-not-allowed mt-4 rounded-xl active:scale-[0.98] shadow-[0_0_20px_rgba(40,184,40,0.3)] hover:shadow-[0_0_30px_rgba(40,184,40,0.5)]"
-                                initial="hidden"
-                                animate="visible"
-                                variants={fadeUp}
-                                custom={4}
-                            >
-                                <span className="relative z-10 flex items-center justify-center gap-3 text-sm">
-                                    {loading ? (
-                                        <span className="flex items-center gap-2">
-                                            <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                            </svg>
-                                            SINCRONIZANDO...
-                                        </span>
-                                    ) : (
-                                        <>
-                                            CONCLUIR CADASTRO
-                                            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                                        </>
-                                    )}
-                                </span>
-                            </motion.button>
-
-                            <motion.button
-                                type="button"
-                                onClick={() => router.push('/register/be-a-teacher' as any)}
-                                className="w-full flex items-center justify-center gap-3 py-5 text-white bg-transparent border border-[#28b828] font-bold uppercase tracking-[3px] text-sm rounded-xl transition-all hover:bg-white/5 hover:border-[#34d834] hover:text-[#34d834] active:scale-[0.98]"
-                                initial="hidden"
-                                animate="visible"
-                                variants={fadeUp}
-                                custom={5}
-                            >
-                                Seja um Professor PowerPlay
-                            </motion.button>
-
-                            <div className="pt-6 border-t border-white/5">
-                                <label className="flex items-start gap-3 cursor-pointer group">
-                                    <div className="relative mt-0.5">
-                                        <input
-                                            type="checkbox"
-                                            checked={termsAccepted}
-                                            onChange={(e) => setTermsAccepted(e.target.checked)}
-                                            className="sr-only"
-                                        />
-                                        <div className={`w-5 h-5 border transition-all rounded-none flex items-center justify-center ${
-                                            termsAccepted
-                                                ? 'bg-[#28b828] border-[#28b828]'
-                                                : 'bg-transparent border-white/30 group-hover:border-white/50'
-                                        }`}>
-                                            {termsAccepted && (
-                                                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                                </svg>
-                                            )}
+                                        <div className="pt-4">
+                                            <label className="flex items-start gap-3 cursor-pointer group">
+                                                <div className="relative mt-0.5">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={termsAccepted}
+                                                        onChange={(e) => setTermsAccepted(e.target.checked)}
+                                                        className="sr-only"
+                                                    />
+                                                    <div className={`w-5 h-5 border transition-all rounded flex items-center justify-center ${
+                                                        termsAccepted
+                                                            ? 'bg-[#28b828] border-[#28b828]'
+                                                            : 'bg-white/5 border-white/20 group-hover:border-white/40'
+                                                    }`}>
+                                                        {termsAccepted && (
+                                                            <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                            </svg>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <p className="text-[10px] text-white/40 uppercase tracking-wider leading-relaxed">
+                                                    Concordo com os <Link href="/termos" target="_blank" rel="noopener noreferrer" className="text-white hover:text-[#28b828] transition-colors underline underline-offset-2">Termos de Uso</Link> e a <Link href="/privacidade" target="_blank" rel="noopener noreferrer" className="text-white hover:text-[#28b828] transition-colors underline underline-offset-2">Política de Privacidade</Link>.
+                                                </p>
+                                            </label>
                                         </div>
-                                    </div>
-                                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed">
-                                        Li e aceito os{' '}
-                                        <a href="/termos" target="_blank" className="text-white hover:underline">Termos de Uso</a>{' '}
-                                        e a{' '}
-                                        <a href="/privacidade" target="_blank" className="text-white hover:underline">Política de Privacidade</a>.
-                                    </span>
-                                </label>
-                            </div>
 
-                            <div className="mt-8 pt-6 border-t border-white/10 text-center">
-                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
-                                    Já possui acesso?{' '}
-                                    <Link href="/login" className="text-[#1D5F31] font-bold hover:text-[#28b828] transition-colors underline underline-offset-4">
-                                        ENTRAR AGORA
-                                    </Link>
-                                </p>
-                            </div>
+                                        <button
+                                            type="submit"
+                                            disabled={loading || !isFormValid}
+                                            className="w-full bg-gradient-to-r from-[#1D5F31] via-[#28b828] to-[#1D5F31] hover:from-[#28b828] hover:via-[#34d834] hover:to-[#28b828] text-white font-bold uppercase tracking-[3px] py-5 transition-all disabled:opacity-30 disabled:cursor-not-allowed rounded-lg flex items-center justify-center gap-3 text-sm shadow-[0_0_20px_rgba(40,184,40,0.3)]"
+                                        >
+                                            {loading ? 'SINCRONIZANDO...' : 'CONCLUIR CADASTRO'}
+                                            {!loading && <ArrowRight size={18} />}
+                                        </button>
+                                    </motion.section>
+                                )}
+                            </AnimatePresence>
+
+                            {step === 1 && (
+                                <button
+                                    type="button"
+                                    onClick={() => router.push(`/register/be-a-teacher?email=${encodeURIComponent(email)}` as any)}
+                                    className="w-full py-5 text-white bg-transparent border border-[#28b828] font-bold uppercase tracking-[3px] text-xs rounded-lg transition-all hover:bg-white/5"
+                                >
+                                    Seja um Professor PowerPlay
+                                </button>
+                            )}
+
                         </form>
                     </div>
                 </div>

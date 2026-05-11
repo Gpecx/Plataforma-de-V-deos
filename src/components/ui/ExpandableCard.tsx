@@ -8,6 +8,7 @@ import { isNewCourse } from '@/lib/date-utils'
 import { toggleWishlist, getWishlistCourseIds } from '@/app/actions/wishlist'
 import { auth } from '@/lib/firebase'
 import { onAuthStateChanged } from 'firebase/auth'
+import { toast } from 'sonner'
 
 interface ExpandableCardProps {
     id: string
@@ -64,7 +65,13 @@ export function ExpandableCard({
         setIsToggling(true)
         try {
             const result = await toggleWishlist(id)
+            if (result.action === 'none') {
+                toast.error(result.message || 'Curso já adquirido')
+                setIsInWishlist(false)
+                return
+            }
             setIsInWishlist(result.action === 'added')
+            toast.success(result.action === 'added' ? 'Adicionado à lista de desejos!' : 'Removido da lista de desejos!')
         } catch (error) {
             console.error('Erro ao atualizar wishlist:', error)
         } finally {
@@ -85,6 +92,9 @@ export function ExpandableCard({
     }, [isOpen])
 
     const getBadge = () => {
+        if (isPurchased) {
+            return { label: 'ADQUIRIDO', className: 'bg-[#1D5F31] !text-white no-theme-override' }
+        }
         if (pricing_type === 'premium') {
             return { label: 'PREMIUM', className: 'bg-[#1D5F31] !text-white no-theme-override' }
         }

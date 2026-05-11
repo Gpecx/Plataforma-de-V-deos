@@ -318,7 +318,6 @@ export async function updateSettings(prevState: any, formData: FormData) {
     const user = await getAuthUser()
     if (!user) throw new Error('Não autorizado')
 
-    const cpfCnpj = formData.get('cpf_cnpj') as string
     const pixKey = formData.get('pix_key') as string
     const bankName = formData.get('bank_name') as string
     const logradouro = formData.get('logradouro') as string
@@ -333,7 +332,6 @@ export async function updateSettings(prevState: any, formData: FormData) {
             updated_at: new Date()
         }
 
-        if (cpfCnpj) updateData.cpf_cnpj = cpfCnpj
         if (pixKey) updateData.pix_key = pixKey
         if (bankName) updateData.bank_name = bankName
         if (logradouro) updateData.logradouro = logradouro

@@ -4,17 +4,22 @@ import { useEffect } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import MuxPlayer from "@mux/mux-player-react"
-import { ArrowLeft, Clock, Globe, ShieldCheck, Play, Plus, Check, X, User } from "lucide-react"
+import { ArrowLeft, Clock, Globe, ShieldCheck, Play, Plus, Check, X, User, Heart } from "lucide-react"
 import SecureMuxPlayer from "@/components/SecureMuxPlayer"
 import { useCartStore } from '@/store/useCartStore'
 import { useTrailerStore } from '@/store/useTrailerStore'
 import { useRouter } from 'next/navigation'
+import { toggleWishlist } from "@/app/actions/wishlist"
+import { useState } from "react"
+import { toast } from "sonner"
 
 interface CourseHeroClientProps {
     course: any
     isAdmin: boolean
     hasAccess: boolean
     purchasedCourseIds: string[]
+    initialIsInWishlist?: boolean
+    isLoggedIn: boolean
 }
 
 function PublicMuxPlayer({ playbackId, onClose }: { playbackId: string; onClose: () => void }) {
@@ -73,10 +78,13 @@ function SecureTrailerPlayer({ cursoId, playbackId, onClose }: { cursoId: string
     )
 }
 
-export function CourseHeroClient({ course, isAdmin, hasAccess, purchasedCourseIds }: CourseHeroClientProps) {
+export function CourseHeroClient({ course, isAdmin, hasAccess, purchasedCourseIds, initialIsInWishlist = false, isLoggedIn }: CourseHeroClientProps) {
     const { addItem, items } = useCartStore()
     const { isOpen: showTrailer, open: openTrailer, close: closeTrailer } = useTrailerStore()
     const router = useRouter()
+    
+    const [isInWishlist, setIsInWishlist] = useState(initialIsInWishlist)
+    const [isTogglingWishlist, setIsTogglingWishlist] = useState(false)
 
     const isInCart = items.some((item) => item.id === course.id)
     const hasIntroVideoPlaybackId = course.intro_video_playback_id && course.intro_video_playback_id.length > 0
@@ -109,6 +117,37 @@ export function CourseHeroClient({ course, isAdmin, hasAccess, purchasedCourseId
             image_url: course.image_url,
         })
         setTimeout(() => router.push('/cart'), 800)
+    }
+    
+    const handleToggleWishlist = async () => {
+        if (!isLoggedIn) {
+            router.push('/login?redirectTo=%2Fcart')
+            return
+        }
+
+        // Nova verificação: Curso já comprado?
+        if (purchasedCourseIds.includes(course.id)) {
+            toast.error('Você já adquiriu este curso e não pode adicioná-lo à lista de desejos.')
+            return
+        }
+
+        setIsTogglingWishlist(true)
+        try {
+            const result = await toggleWishlist(course.id)
+            
+            if (result.action === 'none') {
+                toast.error(result.message || 'Curso já adquirido')
+                setIsInWishlist(false)
+                return
+            }
+
+            setIsInWishlist(result.action === 'added')
+            toast.success(result.action === 'added' ? 'Adicionado à lista de desejos!' : 'Removido da lista de desejos!')
+        } catch (error: any) {
+            toast.error(error.message || 'Erro ao atualizar lista de desejos')
+        } finally {
+            setIsTogglingWishlist(false)
+        }
     }
 
     const actionText = hasAccess ? "Assistir Agora" : isInCart ? "Ir ao Carrinho" : "Adicionar ao Carrinho"
@@ -180,7 +219,7 @@ export function CourseHeroClient({ course, isAdmin, hasAccess, purchasedCourseId
                     <div className="max-w-4xl space-y-6">
                         {course.teacher_id && (
                             <Link 
-                                href={`/professor/${course.teacher_id}`}
+                                href={`/professor/${course.teacher_id}?fromCourse=${course.id}`}
                                 className="inline-flex items-center gap-3 group/teacher mb-1 bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-sm backdrop-blur-md border border-white/5 transition-all"
                             >
                                 <span className="text-[10px] font-bold uppercase tracking-[3px] text-[#1D5F31]">Instrutor</span>
@@ -240,12 +279,23 @@ export function CourseHeroClient({ course, isAdmin, hasAccess, purchasedCourseId
 
                             {course.teacher_id && (
                                 <Link
-                                    href={`/professor/${course.teacher_id}`}
+                                    href={`/professor/${course.teacher_id}?fromCourse=${course.id}`}
                                     className="w-full sm:w-auto bg-transparent hover:bg-white/10 border border-[#FFFFFF] text-[#FFFFFF] px-8 py-4 rounded-md font-bold text-base flex items-center justify-center gap-3 transition-colors shrink-0"
                                 >
                                     <User size={20} />
                                     Ver Instrutor
                                 </Link>
+                            )}
+
+                            {!hasAccess && (
+                                <button
+                                    onClick={handleToggleWishlist}
+                                    disabled={isTogglingWishlist}
+                                    className={`w-full sm:w-auto bg-transparent hover:bg-white/10 border ${isInWishlist ? 'border-[#1D5F31] text-[#1D5F31]' : 'border-[#FFFFFF] text-[#FFFFFF]'} px-8 py-4 rounded-md font-bold text-base flex items-center justify-center gap-3 transition-colors shrink-0`}
+                                >
+                                    <Heart size={20} className={isInWishlist ? 'fill-[#1D5F31]' : ''} />
+                                    {isInWishlist ? 'Na lista de desejos' : 'lista de desejos'}
+                                </button>
                             )}
                         </div>
                     </div>

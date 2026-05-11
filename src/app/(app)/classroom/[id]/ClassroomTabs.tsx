@@ -68,6 +68,8 @@ const MOCK_COMMENTS: Comment[] = [
     }
 ]
 
+const SHOW_QA = false; // Defina como true para reativar a aba de Comentários (Q&A)
+
 export function ClassroomTabs({ lessonId, description, courseId }: ClassroomTabsProps) {
     const [activeTab, setActiveTab] = useState<'overview' | 'comments' | 'evaluate'>('overview')
     const [comments, setComments] = useState<Comment[]>([])
@@ -81,7 +83,7 @@ export function ClassroomTabs({ lessonId, description, courseId }: ClassroomTabs
     }, [])
 
     useEffect(() => {
-        if (!lessonId || !isHydrated) return
+        if (!lessonId || !isHydrated || !SHOW_QA) return
 
         let unsubscribe: (() => void) | undefined
 
@@ -184,15 +186,17 @@ export function ClassroomTabs({ lessonId, description, courseId }: ClassroomTabs
                         <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
                     )}
                 </button>
-                <button
-                    onClick={() => setActiveTab('comments')}
-                    className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all relative ${activeTab === 'comments' ? 'text-green-500' : 'text-slate-300 hover:text-white'}`}
-                >
-                    Comentários (Q&A)
-                    {activeTab === 'comments' && (
-                        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
-                    )}
-                </button>
+                {SHOW_QA && (
+                    <button
+                        onClick={() => setActiveTab('comments')}
+                        className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all relative ${activeTab === 'comments' ? 'text-green-500' : 'text-slate-300 hover:text-white'}`}
+                    >
+                        Comentários (Q&A)
+                        {activeTab === 'comments' && (
+                            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
+                        )}
+                    </button>
+                )}
                 {courseId && (
                     <button
                         onClick={() => setActiveTab('evaluate')}
@@ -267,7 +271,7 @@ export function ClassroomTabs({ lessonId, description, courseId }: ClassroomTabs
                             </div>
                         </div>
                     </div>
-                ) : (
+                ) : activeTab === 'comments' && SHOW_QA ? (
                     <div className="max-w-4xl space-y-8">
                         <div className="flex gap-4 p-6 rounded-md border border-gray-800 bg-[#111827] focus-within:border-[#1D5F31]/30 transition-all">
                                 {user?.photoURL ? (
@@ -351,7 +355,7 @@ export function ClassroomTabs({ lessonId, description, courseId }: ClassroomTabs
                             )}
                         </div>
                     </div>
-                )}
+                ) : null}
             </div>
         </div>
     )

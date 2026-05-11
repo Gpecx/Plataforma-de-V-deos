@@ -482,7 +482,7 @@ function CourseImageUpload({ currentImageUrl, onUploadComplete }: { currentImage
             const imageUrl = await uploadCourseImage(acceptedFiles[0])
             onUploadComplete(imageUrl)
         } catch (error: any) {
-            alert(error.message)
+            toast.error(error.message)
         } finally {
             setIsUploading(false)
         }
@@ -716,11 +716,11 @@ export default function CourseBuilder() {
                 setTimeout(() => setShowSuccess(false), 3000)
             } else {
                 console.error('Erro ao salvar:', result.error)
-                alert("Erro ao salvar: " + result.error)
+                toast.error("Erro ao salvar: " + result.error)
             }
         } catch (error: any) {
             console.error('Erro na comunicação:', error)
-            alert("Falha na comunicação com o servidor: " + error.message)
+            toast.error("Falha na comunicação com o servidor: " + error.message)
         } finally {
             setIsSaving(false)
         }
@@ -843,11 +843,18 @@ export default function CourseBuilder() {
                                         if (selectedLesson?.id === lessonId) setSelectedLesson(prev => prev ? { ...prev, title: newTitle } : null)
                                     }}
                                     onDeleteModule={() => {
-                                        if (!confirm('Tem certeza que deseja excluir este módulo? Todas as aulas dentro dele serão excluídas.')) return
-                                        setModules(prev => prev.filter(m => m.id !== module.id))
-                                        if (selectedLesson && module.lessons.some(l => l.id === selectedLesson.id)) {
-                                            setSelectedLesson(null)
-                                        }
+                                        toast("Confirmar Exclusão", {
+                                            description: "Tem certeza que deseja excluir este módulo? Todas as aulas dentro dele serão removidas.",
+                                            action: {
+                                                label: "Excluir",
+                                                onClick: () => {
+                                                    setModules(prev => prev.filter(m => m.id !== module.id))
+                                                    if (selectedLesson && module.lessons.some(l => l.id === selectedLesson.id)) {
+                                                        setSelectedLesson(null)
+                                                    }
+                                                }
+                                            }
+                                        })
                                     }}
                                     canDeleteModule={modules.length > 1}
                                     onResubmitLesson={(lessonId) => {
@@ -859,21 +866,28 @@ export default function CourseBuilder() {
                                             setSelectedLesson(prev => prev ? { ...prev, status: 'PENDENTE' } : null)
                                         }
                                     }}
-                                    onCancelLesson={async (lessonId) => {
-                                        if (!confirm('Cancelar a solicitação de exclusão desta aula?')) return
-                                        const result = await cancelLessonDeletionRequest(lessonId, params.id as string)
-                                        if (result.success) {
-                                            setModules(prev => prev.map(m => m.id === module.id ? {
-                                                ...m,
-                                                lessons: m.lessons.map(l => l.id === lessonId ? { ...l, status: 'APROVADO' } : l)
-                                            } : m))
-                                            if (selectedLesson?.id === lessonId) {
-                                                setSelectedLesson(prev => prev ? { ...prev, status: 'APROVADO' } : null)
+                                    onCancelLesson={(lessonId) => {
+                                        toast("Confirmar Ação", {
+                                            description: "Deseja realmente cancelar a solicitação de exclusão desta aula?",
+                                            action: {
+                                                label: "Confirmar",
+                                                onClick: async () => {
+                                                    const result = await cancelLessonDeletionRequest(lessonId, params.id as string)
+                                                    if (result.success) {
+                                                        setModules(prev => prev.map(m => m.id === module.id ? {
+                                                            ...m,
+                                                            lessons: m.lessons.map(l => l.id === lessonId ? { ...l, status: 'APROVADO' } : l)
+                                                        } : m))
+                                                        if (selectedLesson?.id === lessonId) {
+                                                            setSelectedLesson(prev => prev ? { ...prev, status: 'APROVADO' } : null)
+                                                        }
+                                                        toast.success('Solicitação de exclusão cancelada!')
+                                                    } else {
+                                                        toast.error('Erro ao cancelar: ' + result.error)
+                                                    }
+                                                }
                                             }
-                                            alert('Solicitação de exclusão cancelada!')
-                                        } else {
-                                            alert('Erro ao cancelar: ' + result.error)
-                                        }
+                                        })
                                     }}
                                     onAddQuiz={() => {
                                         const newQuiz: Lesson = {
@@ -1034,39 +1048,6 @@ export default function CourseBuilder() {
                                                                 </div>
                                                             </div>
                                                         </div>
-
-                                                        <button
-                                                            onClick={async () => {
-                                                                if (!confirm("Substituir este conteúdo digital?")) return
-
-                                                                setIsDeletingVideo(true)
-                                                                try {
-                                                                    // Deleta no Mux se houver asset_id
-                                                                    if (selectedLesson.mux_asset_id) {
-                                                                        await deleteVideoAction(selectedLesson.id, 'lessons', '', selectedLesson.mux_asset_id)
-                                                                    } else if (selectedLesson.video_url && !selectedLesson.mux_playback_id) {
-                                                                        // Para vídeos legados
-                                                                        await deleteVideoAction(selectedLesson.id, 'lessons', selectedLesson.video_url)
-                                                                    }
-                                                                    
-                                                                    const updatedLesson = { ...selectedLesson, video_url: '', mux_upload_id: '', mux_playback_id: '', mux_asset_id: '' }
-                                                                    setSelectedLesson(updatedLesson)
-                                                                    setModules(prev => prev.map(m => ({
-                                                                        ...m,
-                                                                        lessons: m.lessons.map(l => l.id === selectedLesson.id ? updatedLesson : l)
-                                                                    })))
-                                                                } catch (error) {
-                                                                    alert("Erro ao remover conteúdo.")
-                                                                } finally {
-                                                                    setIsDeletingVideo(false)
-                                                                }
-                                                            }}
-                                                            disabled={isDeletingVideo}
-                                                            className="w-full md:w-auto flex items-center justify-center gap-3 px-8 py-5 bg-red-500/10 text-red-500 rounded-md text-xs font-bold uppercase tracking-[3px] hover:bg-red-500/20 transition-all border-2 border-red-500/20 disabled:opacity-50 group"
-                                                        >
-                                                            {isDeletingVideo ? <Loader2 size={18} className="animate-spin" /> : <Trash2 size={18} className="group-hover:scale-110 transition-transform" />}
-                                                            {isDeletingVideo ? 'Redefinindo...' : 'Substituir Conteúdo'}
-                                                        </button>
                                                     </div>
                                                 </div>
                                             )}
@@ -1310,19 +1291,26 @@ export default function CourseBuilder() {
                                                         </button>
 
                                                         <button
-                                                            onClick={async (e) => {
+                                                            onClick={(e) => {
                                                                 e.stopPropagation()
-                                                                if (!confirm("Remover este vídeo de abertura?")) return
-                                                                try {
-                                                                    await deleteVideoAction(params.id as string, 'courses', '', courseIntroVideoAssetId)
-                                                                    setCourseIntroVideo('')
-                                                                    setCourseIntroVideoMuxId('')
-                                                                    setCourseIntroVideoAssetId('')
-                                                                    setCourseIntroVideoPlaybackId('')
-                                                                    toast.success("Vídeo de abertura removido")
-                                                                } catch (err: any) {
-                                                                    toast.error("Erro ao remover")
-                                                                }
+                                                                toast("Confirmar Remoção", {
+                                                                    description: "Deseja realmente remover este vídeo de abertura?",
+                                                                    action: {
+                                                                        label: "Remover",
+                                                                        onClick: async () => {
+                                                                            try {
+                                                                                await deleteVideoAction(params.id as string, 'courses', '', courseIntroVideoAssetId)
+                                                                                setCourseIntroVideo('')
+                                                                                setCourseIntroVideoMuxId('')
+                                                                                setCourseIntroVideoAssetId('')
+                                                                                setCourseIntroVideoPlaybackId('')
+                                                                                toast.success("Vídeo de abertura removido")
+                                                                            } catch (err: any) {
+                                                                                toast.error("Erro ao remover")
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                })
                                                             }}
                                                             className="text-[8px] font-bold text-white uppercase tracking-[3px] px-3 py-2 bg-red-500 hover:bg-red-600 rounded-md transition-colors flex items-center gap-1.5"
                                                         >

@@ -19,6 +19,8 @@ interface CreateProfileData {
     bairro?: string
     cidade?: string
     estado?: string
+    razao_social?: string
+    username?: string
     teacher_application_data?: any
     terms_accepted?: boolean
 }
@@ -80,7 +82,7 @@ export async function getDataByCnpj(cnpj: string) {
         return {
             success: true,
             data: {
-                razao_social: data.razao_social,
+                razao_social: data.razao_social || data.nome_fantasia || '',
                 cep: data.cep,
                 logradouro: data.logradouro,
                 numero: data.numero,
@@ -96,11 +98,41 @@ export async function getDataByCnpj(cnpj: string) {
     }
 }
 
+export async function checkUsernameAvailability(username: string) {
+    try {
+        const snapshot = await adminDb.collection('profiles')
+            .where('username', '==', username.toLowerCase())
+            .limit(1)
+            .get()
+        
+        return { 
+            success: true, 
+            available: snapshot.empty 
+        }
+    } catch (error) {
+        console.error('Check username error:', error)
+        return { success: false, error: 'Erro ao validar ID' }
+    }
+}
+
 export async function createProfile(data: CreateProfileData) {
     try {
         const sanitizedCpfCnpj = sanitize(data.cpf_cnpj)
         const sanitizedCep = data.cep ? sanitize(data.cep) : undefined
         const sanitizedPhone = sanitize(data.phone)
+
+        // Verificação obrigatória de unicidade do username no backend
+        if (data.username) {
+            const usernameLower = data.username.toLowerCase()
+            const existing = await adminDb.collection('profiles')
+                .where('username', '==', usernameLower)
+                .limit(1)
+                .get()
+            
+            if (!existing.empty) {
+                return { success: false, error: 'Este ID público já está em uso.' }
+            }
+        }
 
         const payload: any = {
             ...data,

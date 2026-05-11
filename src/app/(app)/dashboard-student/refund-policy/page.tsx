@@ -18,7 +18,7 @@ export default async function RefundPolicy() {
             <header className="bg-white border-b border-slate-100 py-16">
                 <div className="max-w-4xl mx-auto px-6">
                     <Link 
-                        href="/dashboard-student/subscriptions" 
+                        href="/dashboard-student" 
                         className="inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[3px] text-black hover:text-[#1D5F31] transition-colors mb-8"
                     >
                         <ArrowLeft size={14} /> Voltar

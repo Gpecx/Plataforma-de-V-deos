@@ -8,3 +8,13 @@ export function cn(...inputs: ClassValue[]) {
 export function sanitizeCpfCnpj(value: string): string {
   return value.replace(/\D/g, '')
 }
+
+export function generateSlug(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+    .replace(/[^a-z0-9\s]/g, '') // Remove caracteres especiais
+    .trim()
+    .replace(/\s+/g, '.') // Espaços por pontos
+}

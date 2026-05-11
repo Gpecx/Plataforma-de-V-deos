@@ -18,6 +18,7 @@ interface AcademicProgress {
 
 interface StudentDetails {
     uid: string
+    username: string
     fullName: string
     email: string
     phone: string
@@ -106,7 +107,7 @@ export default function StudentDetailsDrawer({ uid, onClose }: StudentDetailsDra
                                         Detalhes do Aluno
                                     </h2>
                                     <p className="text-[10px] font-bold !text-gray-900 uppercase tracking-widest mt-1">
-                                        ID: {uid}
+                                        ID: {details?.username || uid}
                                     </p>
                                 </div>
                                 <button

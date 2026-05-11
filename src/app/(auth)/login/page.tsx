@@ -66,6 +66,16 @@ function LoginContent() {
             const profileDoc = await getDoc(profileRef);
             const profileData = profileDoc.data();
 
+            // Verificação de banimento imediata
+            if (profileData?.role === 'teacher' && profileData?.teacher_status === 'banned') {
+                await auth.signOut();
+                toast.error("CONTA BLOQUEADA", {
+                    description: "Seu acesso de professor foi suspenso. Entre em contato com a administração.",
+                    duration: 6000
+                });
+                return;
+            }
+
             if (profileData?.mfaEnabled) {
                 console.log("MFA Habilitado! Garantindo transição false → true no gatilho...");
                 
@@ -156,7 +166,9 @@ function LoginContent() {
             const profileDoc = await getDoc(doc(db, 'profiles', user.uid))
             const profileData = profileDoc.data()
 
-            if (profileData?.role === 'teacher' || profileData?.role === 'admin') {
+            if (profileData?.role === 'admin') {
+                router.push('/admin/dashboard')
+            } else if (profileData?.role === 'teacher') {
                 router.push('/dashboard-teacher/courses')
             } else if (profileData?.role === 'student') {
                 router.push('/course')

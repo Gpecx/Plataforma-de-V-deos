@@ -115,10 +115,12 @@ export async function getFinancialData() {
                 id: e.id,
                 courseName: course?.title || 'Curso Deletado',
                 teacherName: teacher?.full_name || 'Professor N/A',
+                teacherId: teacher?.id || course?.teacher_id || null,
                 grossValue,
                 platformShare,
                 teacherShare,
-                date: parseFirebaseDate(e.created_at)?.toISOString()
+                date: parseFirebaseDate(e.created_at)?.toISOString(),
+                commissionStatus: e.commissionStatus || 'pending'
             }
         }).sort((a, b) => {
             const dateA = a.date ? new Date(a.date).getTime() : 0
@@ -953,67 +955,7 @@ export async function reactivateTeacher(teacherId: string): Promise<{ success: b
     }
 }
 
-/**
- * Promove um professor para a função de administrador.
- * Requisitos: O chamador deve ser admin, o alvo deve ser teacher.
- */
-export async function promoteTeacherToAdmin(teacherId: string): Promise<{ success: boolean; message: string; error?: string }> {
-    try {
-        // 1. Validar se o chamador é admin
-        const session = await getSessionUser()
-        if (!session || session.role !== 'admin') {
-            return { success: false, error: "Não autorizado. Apenas administradores podem realizar esta ação.", message: "" }
-        }
 
-        // 2. Buscar o perfil do professor alvo
-        const profileRef = adminDb.collection('profiles').doc(teacherId)
-        const profileDoc = await profileRef.get()
-        
-        if (!profileDoc.exists) {
-            return { success: false, error: "Usuário alvo não encontrado.", message: "" }
-        }
-
-        const profileData = profileDoc.data()
-        
-        // 3. Validar se a role atual é rigorosamente 'teacher'
-        if (profileData?.role !== 'teacher') {
-            return { success: false, error: "Apenas usuários com a função 'teacher' podem ser promovidos desta forma.", message: "" }
-        }
-
-        // 4. Atualizar Firestore para role 'admin'
-        await profileRef.update({
-            role: 'admin',
-            updated_at: new Date(),
-            promoted_at: new Date(),
-            promoted_by: session.uid
-        })
-
-        // 5. Atualizar Custom Claims no Firebase Auth para garantir consistência tokens/permissões
-        await adminAuth.setCustomUserClaims(teacherId, { role: 'admin' })
-
-        // 6. Criar notificação para o novo administrador
-        await adminDb.collection('notifications').add({
-            user_id: teacherId,
-            type: 'role_promoted',
-            title: 'Promoção a Administrador',
-            message: 'Parabéns! Sua conta foi promovida para a função de Administrador da plataforma.',
-            read: false,
-            created_at: new Date()
-        })
-
-        revalidatePath('/admin/teachers')
-        revalidatePath('/admin/dashboard')
-        
-        return { 
-            success: true, 
-            message: `Professor(a) ${profileData?.full_name || teacherId} promovido(a) a Administrador com sucesso.`, 
-            error: "" 
-        }
-    } catch (error) {
-        console.error("[promoteTeacherToAdmin] Erro ao promover professor:", error)
-        return { success: false, error: "Erro interno ao processar a promoção.", message: "" }
-    }
-}
 /**
  * Busca detalhes completos de um aluno para o Admin Dashboard.
  * Inclui dados cadastrais (Asaas), acadêmicos (progresso) e segurança (MFA).
@@ -1080,10 +1022,11 @@ export async function getStudentDetails(uid: string) {
         })
 
         // 4. Montar Objeto Final (Padrão Industrial)
-        return {
+        return JSON.parse(JSON.stringify({
             success: true,
             student: {
                 uid: profileData.uid,
+                username: profileData.username || 'N/A',
                 fullName: profileData.full_name || 'N/A',
                 email: profileData.email,
                 phone: profileData.phone || profileData.mobilePhone || 'N/A',
@@ -1106,7 +1049,7 @@ export async function getStudentDetails(uid: string) {
                 },
                 academic: academicData
             }
-        }
+        }))
     } catch (error: any) {
         console.error('Error fetching student details:', error)
         return { success: false, error: error.message || 'Falha ao buscar detalhes do aluno.' }
@@ -1147,10 +1090,11 @@ export async function getTeacherDetails(uid: string) {
         }))
 
         // 4. Montar Objeto Final (Padrão Industrial)
-        return {
+        return JSON.parse(JSON.stringify({
             success: true,
             teacher: {
                 uid: profileData.uid || uid,
+                username: profileData.username || 'N/A',
                 fullName: profileData.full_name || 'N/A',
                 email: profileData.email,
                 phone: profileData.phone || profileData.mobilePhone || 'N/A',
@@ -1168,6 +1112,13 @@ export async function getTeacherDetails(uid: string) {
                     cidade: profileData.cidade || profileData.city || null,
                     uf: profileData.uf || profileData.state || null,
                 },
+                pix_key: profileData.pix_key || null,
+                bank: {
+                    name: profileData.bank_name || null,
+                    agency: profileData.bank_agency || null,
+                    account: profileData.bank_account || null,
+                    type: profileData.bank_account_type || null,
+                },
                 security: {
                     mfaEnabled: mfaStatus,
                     lastLogin: lastLogin,
@@ -1175,9 +1126,35 @@ export async function getTeacherDetails(uid: string) {
                 },
                 courses: courses
             }
-        }
+        }))
     } catch (error: any) {
         console.error('Error fetching teacher details:', error)
         return { success: false, error: error.message || 'Falha ao buscar detalhes do professor.' }
+    }
+}
+
+/**
+ * Marca uma lista de vendas como pagas para um professor.
+ */
+export async function markTeacherSalesAsPaid(enrollmentIds: string[]) {
+    try {
+        const batch = adminDb.batch()
+        
+        enrollmentIds.forEach(id => {
+            const ref = adminDb.collection('enrollments').doc(id)
+            batch.update(ref, {
+                commissionStatus: 'paid',
+                paid_at: new Date(),
+                updated_at: new Date()
+            })
+        })
+
+        await batch.commit()
+        
+        revalidatePath('/admin/dashboard')
+        return { success: true }
+    } catch (error) {
+        console.error("Error marking sales as paid:", error)
+        return { success: false, error: "Falha ao marcar como pago." }
     }
 }

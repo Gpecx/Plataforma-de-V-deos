@@ -17,6 +17,7 @@ import { CourseHeroClient } from "./CourseHeroClient"
 import { adminDb } from "@/lib/firebase-admin"
 import { getProfile } from "@/app/(app)/dashboard-student/actions"
 import { getSessionUser } from "@/app/actions/auth"
+import { isCourseInWishlist } from "@/app/actions/wishlist"
 
 export default async function CourseDetailPage({ params }: { params: { slug: string } }) {
     const { slug } = await params
@@ -66,6 +67,9 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
 
     const hasAccess = isAdmin || hasEnrollment || (profile?.cursos_comprados && profile.cursos_comprados.includes(course.id))
 
+    // 4. Verifica se está na wishlist
+    const isInWishlist = await isCourseInWishlist(course.id)
+
     // 3. Busca as lições e mais 
     let lessons: any[] = []
     try {
@@ -95,6 +99,8 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                 isAdmin={isAdmin}
                 hasAccess={hasAccess}
                 purchasedCourseIds={profile?.cursos_comprados || []}
+                initialIsInWishlist={isInWishlist}
+                isLoggedIn={!!sessionUser}
             />
 
             {/* CURRÍCULO ESTILO INDUSTRIAL / STREAMING */}
