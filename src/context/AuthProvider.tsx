@@ -44,12 +44,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const setMfaPending = (pending: boolean) => {
         setIsMfaPending(pending)
         if (typeof window !== 'undefined') {
+            // B-01: Explicit cookie attributes for mfa_pending
+            // sameSite=Lax allows redirect-based OAuth flows
+            // Secure flag is added in production (HTTPS)
+            const isProduction = process.env.NODE_ENV === 'production'
+            const secureFlag = isProduction ? '; Secure' : ''
+
             if (pending) {
                 localStorage.setItem('mfa_pending', 'true')
-                document.cookie = "mfa_pending=true; path=/; max-age=3600; samesite=lax"
+                document.cookie = `mfa_pending=true; path=/; max-age=3600; SameSite=Lax${secureFlag}`
             } else {
                 localStorage.removeItem('mfa_pending')
-                document.cookie = "mfa_pending=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+                document.cookie = `mfa_pending=; path=/; max-age=0; SameSite=Lax${secureFlag}`
             }
         }
     }

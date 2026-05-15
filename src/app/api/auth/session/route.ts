@@ -70,6 +70,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Build response and set both HttpOnly cookies
     const response = NextResponse.json({ status: "ok" });
 
+    // B-01: Explicit cookie security attributes (declared for audit compliance)
+    // - httpOnly: true     → Blocks JS access (XSS mitigation)
+    // - secure: production → HTTPS-only in production
+    // - sameSite: 'lax'   → Allows top-level cross-site navigation (OAuth/redirect flows)
+    // - path: '/'         → Cookie valid across all routes
     const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
