@@ -124,10 +124,19 @@ export async function middleware(request: NextRequest) {
     // ── 1. M-02: Check Rate Limit for sensitive routes ───────────────────
     const isRateLimitedRoute = RATE_LIMITED_ROUTES.some(route => pathname.startsWith(route))
     if (isRateLimitedRoute) {
-        // Extração segura de IP compatível com TypeScript e NextRequest [M-02]
-        const ip = (request as any).ip || request.headers.get('x-forwarded-for')?.split(',')[0] || '127.0.0.1';
-        if (isRateLimited(ip)) {
-            console.warn(`[M-02] Rate limit exceeded for IP: ${ip} on route: ${pathname}`)
+        // Extração robusta do IP real (Prioridade para Cloud Run / Proxies) [M-02]
+        const forwardedFor = request.headers.get('x-forwarded-for');
+        let realIp = '127.0.0.1';
+
+        if (forwardedFor) {
+            // Pega o primeiro IP da lista (IP real do cliente)
+            realIp = forwardedFor.split(',')[0].trim();
+        } else {
+            realIp = (request as any).ip ?? '127.0.0.1';
+        }
+
+        if (isRateLimited(realIp)) {
+            console.warn(`[M-02] Rate limit exceeded for IP: ${realIp} on route: ${pathname}`)
             return new NextResponse(
                 JSON.stringify({ error: 'Muitas tentativas. Tente novamente em um minuto.' }),
                 { status: 429, headers: { 'Content-Type': 'application/json' } }
