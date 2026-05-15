@@ -110,8 +110,15 @@ export default function SecureMuxPlayer({
 
     fetchPlaybackToken();
 
+    // M-01: Atualiza o token proativamente a cada 50 minutos (antes de expirar em 1h)
+    const refreshInterval = setInterval(() => {
+        console.log("[SecureMuxPlayer] Renovando token de vídeo proativamente...");
+        fetchPlaybackToken();
+    }, 50 * 60 * 1000);
+
     return () => {
       isMounted = false;
+      clearInterval(refreshInterval);
     };
   }, [user, authLoading, cursoId, playbackId, isPublic]);
 

@@ -11,6 +11,11 @@ import { deleteMuxAsset } from '@/app/actions/mux'
  * Se não existir, retorna os padrões.
  */
 export async function getPlatformSettings() {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        console.error("Tentativa de acesso não autorizado detectada em getPlatformSettings");
+        return { success: false, error: 'Não autorizado' };
+    }
     try {
         const settingsDoc = await adminDb.collection('config').doc('platform_settings').get()
         if (!settingsDoc.exists) {
@@ -53,6 +58,11 @@ export async function updatePlatformTax(tax: number) {
  * Lista todos os usuários que são professores.
  */
 export async function getAllTeachers() {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        console.error("Tentativa de acesso não autorizado detectada em getAllTeachers");
+        return [];
+    }
     try {
         const teachersSnap = await adminDb.collection('profiles')
             .where('role', '==', 'teacher')
@@ -80,6 +90,11 @@ export async function getAllTeachers() {
  * Atualmente usaremos enrollments + courses info para calcular.
  */
 export async function getFinancialData() {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        console.error("Tentativa de acesso não autorizado detectada em getFinancialData");
+        return { success: false, error: 'Não autorizado' };
+    }
     try {
         // Buscamos as configurações de taxa atuais
         const settings = await getPlatformSettings() as any
@@ -151,6 +166,11 @@ export async function getFinancialData() {
  * Filtra matrículas de um professor específico.
  */
 export async function getTeacherStudents(teacherId: string) {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        console.error("Tentativa de acesso não autorizado detectada em getTeacherStudents");
+        return [];
+    }
     try {
         // 1. Pegar cursos do professor
         const coursesSnap = await adminDb.collection('courses')
@@ -192,6 +212,11 @@ export async function getTeacherStudents(teacherId: string) {
  * Inclui quantidade de cursos adquiridos e tempo assistido.
  */
 export async function getAllStudents() {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        console.error("Tentativa de acesso não autorizado detectada em getAllStudents");
+        return [];
+    }
     try {
         const studentsSnap = await adminDb.collection('profiles')
             .where('role', 'in', ['student', 'user'])
@@ -245,6 +270,11 @@ export async function getAllStudents() {
  * Lista todos os cursos com status PENDENTE.
  */
 export async function getPendingCourses() {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        console.error("Tentativa de acesso não autorizado detectada em getPendingCourses");
+        return [];
+    }
     try {
         const coursesSnap = await adminDb.collection('courses')
             .where('status', '==', 'PENDENTE')
@@ -266,6 +296,11 @@ export async function getPendingCourses() {
  * Lista todas as aulas com status PENDENTE.
  */
 export async function getPendingLessons() {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        console.error("Tentativa de acesso não autorizado detectada em getPendingLessons");
+        return [];
+    }
     try {
         const lessonsSnap = await adminDb.collection('lessons')
             .where('status', '==', 'PENDENTE')
@@ -297,6 +332,11 @@ export async function getPendingLessons() {
  * Lista todos os cursos com status SOLICITADO_EXCLUSAO.
  */
 export async function getDeletionPendingCourses() {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        console.error("Tentativa de acesso não autorizado detectada em getDeletionPendingCourses");
+        return [];
+    }
     try {
         const coursesSnap = await adminDb.collection('courses')
             .where('status', '==', 'SOLICITADO_EXCLUSAO')
@@ -318,6 +358,11 @@ export async function getDeletionPendingCourses() {
  * Lista todas as aulas com status SOLICITADO_EXCLUSAO.
  */
 export async function getDeletionPendingLessons() {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        console.error("Tentativa de acesso não autorizado detectada em getDeletionPendingLessons");
+        return [];
+    }
     try {
         const lessonsSnap = await adminDb.collection('lessons')
             .where('status', '==', 'SOLICITADO_EXCLUSAO')
@@ -349,6 +394,11 @@ export async function getDeletionPendingLessons() {
  */
 // ... dentro da função approveCourse
 export async function approveCourse(courseId: string) {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        console.error("Tentativa de acesso não autorizado detectada");
+        return { success: false, error: 'Não autorizado' };
+    }
     try {
         // Busca dados do curso para obter o teacher_id
         const courseDoc = await adminDb.collection('courses').doc(courseId).get()
@@ -391,6 +441,11 @@ export async function approveCourse(courseId: string) {
  * Aprova uma aula individualmente.
  */
 export async function approveLesson(lessonId: string) {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        console.error("Tentativa de acesso não autorizado detectada");
+        return { success: false, error: 'Não autorizado' };
+    }
     try {
         // Busca dados da aula para obter course_id e título
         const lessonDoc = await adminDb.collection('lessons').doc(lessonId).get()
@@ -441,6 +496,11 @@ export async function approveLesson(lessonId: string) {
  * Rejeita uma aula individualmente.
  */
 export async function rejectLesson(lessonId: string, reason: string) {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        console.error("Tentativa de acesso não autorizado detectada");
+        return { success: false, error: 'Não autorizado' };
+    }
     try {
         // Primeiro busca a aula para obter o course_id
         const lessonDoc = await adminDb.collection('lessons').doc(lessonId).get()
@@ -488,6 +548,11 @@ export async function rejectLesson(lessonId: string, reason: string) {
  * Rejeita um curso e salva o motivo.
  */
 export async function rejectCourse(courseId: string, reason: string) {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        console.error("Tentativa de acesso não autorizado detectada");
+        return { success: false, error: 'Não autorizado' };
+    }
     try {
         // Busca o curso para obter o teacher_id
         const courseDoc = await adminDb.collection('courses').doc(courseId).get()
@@ -530,6 +595,11 @@ export async function rejectCourse(courseId: string, reason: string) {
  * Ativa ou desativa um usuário (aluno ou professor).
  */
 export async function toggleUserStatus(uid: string, currentStatus: boolean) {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        console.error("Tentativa de acesso não autorizado detectada");
+        return { success: false, error: 'Não autorizado' };
+    }
     try {
         await adminDb.collection('profiles').doc(uid).update({
             ativo: !currentStatus,
@@ -549,6 +619,11 @@ export async function toggleUserStatus(uid: string, currentStatus: boolean) {
  * Busca logs de vendas com filtros opcionais.
  */
 export async function getSalesLogs(professorId?: string, startDate?: Date, endDate?: Date) {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        console.error("Tentativa de acesso não autorizado detectada em getSalesLogs");
+        return [];
+    }
     try {
         let query: any = adminDb.collection('vendas_logs')
 
@@ -582,6 +657,11 @@ export async function getSalesLogs(professorId?: string, startDate?: Date, endDa
 }
 
 export async function approveCourseDeletion(courseId: string) {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        console.error("Tentativa de acesso não autorizado detectada em approveCourseDeletion");
+        return { success: false, error: 'Não autorizado' };
+    }
     try {
         const courseDoc = await adminDb.collection('courses').doc(courseId).get()
         const courseData = courseDoc.data()
@@ -647,6 +727,11 @@ export const deleteCourse = approveCourseDeletion
  * Rejeita a exclusão de um curso (mantém o curso como APROVADO)
  */
 export async function rejectCourseDeletion(courseId: string) {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        console.error("Tentativa de acesso não autorizado detectada em rejectCourseDeletion");
+        return { success: false, error: 'Não autorizado' };
+    }
     try {
         const courseDoc = await adminDb.collection('courses').doc(courseId).get()
         const courseData = courseDoc.data()
@@ -681,6 +766,11 @@ export async function rejectCourseDeletion(courseId: string) {
  * Aprova a exclusão de uma aula (exclui permanentemente)
  */
 export async function approveLessonDeletion(lessonId: string) {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        console.error("Tentativa de acesso não autorizado detectada em approveLessonDeletion");
+        return { success: false, error: 'Não autorizado' };
+    }
     try {
         const lessonDoc = await adminDb.collection('lessons').doc(lessonId).get()
         const lessonData = lessonDoc.data()
@@ -731,6 +821,11 @@ export async function approveLessonDeletion(lessonId: string) {
  * Rejeita a exclusão de uma aula (mantém a aula como APROVADO)
  */
 export async function rejectLessonDeletion(lessonId: string) {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        console.error("Tentativa de acesso não autorizado detectada em rejectLessonDeletion");
+        return { success: false, error: 'Não autorizado' };
+    }
     try {
         const lessonDoc = await adminDb.collection('lessons').doc(lessonId).get()
         const lessonData = lessonDoc.data()
@@ -771,6 +866,11 @@ export async function rejectLessonDeletion(lessonId: string) {
  * Busca todos os cursos com nomes dos professores.
  */
 export async function getAllCourses() {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        console.error("Tentativa de acesso não autorizado detectada em getAllCourses");
+        return [];
+    }
     try {
         const coursesSnap = await adminDb.collection('courses').orderBy('created_at', 'desc').get()
         
@@ -803,6 +903,11 @@ export async function getAllCourses() {
  * Suspende uma aula (status = SUSPENSO).
  */
 export async function suspendLesson(lessonId: string) {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        console.error("Tentativa de acesso não autorizado detectada");
+        return { success: false, error: 'Não autorizado' };
+    }
     try {
         const lessonDoc = await adminDb.collection('lessons').doc(lessonId).get()
         const lessonData = lessonDoc.data()
@@ -851,6 +956,11 @@ export async function handleTeacherApproval(
     teacherId: string,
     action: 'approve' | 'reject'
 ): Promise<{ success: boolean; message: string; error?: string }> {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        console.error("Tentativa de acesso não autorizado detectada");
+        return { success: false, error: 'Não autorizado', message: '' };
+    }
     try {
         const newStatus = action === 'approve' ? 'approved' : 'rejected'
         await adminDb.collection('profiles').doc(teacherId).update({
@@ -891,6 +1001,11 @@ export async function handleTeacherApproval(
  * Bane um professor (muda teacher_status para 'banned').
  */
 export async function banTeacher(teacherId: string): Promise<{ success: boolean; message: string; error?: string }> {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        console.error("Tentativa de acesso não autorizado detectada");
+        return { success: false, error: 'Não autorizado', message: '' };
+    }
     try {
         const profileRef = adminDb.collection('profiles').doc(teacherId)
         const profileDoc = await profileRef.get()
@@ -925,6 +1040,11 @@ export async function banTeacher(teacherId: string): Promise<{ success: boolean;
  * Reativa um professor banned (muda teacher_status para 'active').
  */
 export async function reactivateTeacher(teacherId: string): Promise<{ success: boolean; message: string; error?: string }> {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        console.error("Tentativa de acesso não autorizado detectada em reactivateTeacher");
+        return { success: false, error: 'Não autorizado', message: '' };
+    }
     try {
         const profileRef = adminDb.collection('profiles').doc(teacherId)
         const profileDoc = await profileRef.get()
@@ -1066,6 +1186,14 @@ export async function getTeacherDetails(uid: string) {
             throw new Error('Acesso negado: Apenas administradores podem ver detalhes de professores.')
         }
 
+        // Helper para mascaramento de dados sensíveis (A-05)
+        const maskSensitiveData = (value: any) => {
+            if (!value) return 'N/A'
+            const str = String(value).trim()
+            if (str.length <= 4) return '****'
+            return '*'.repeat(str.length - 4) + str.slice(-4)
+        }
+
         // 1. Dados de Perfil do Firestore
         const profileDoc = await adminDb.collection('profiles').doc(uid).get()
         if (!profileDoc.exists) {
@@ -1089,7 +1217,7 @@ export async function getTeacherDetails(uid: string) {
             created_at: doc.data().created_at?.toDate ? doc.data().created_at.toDate().toISOString() : null
         }))
 
-        // 4. Montar Objeto Final (Padrão Industrial)
+        // 4. Montar Objeto Final (Padrão Industrial com Mascaramento A-05)
         return JSON.parse(JSON.stringify({
             success: true,
             teacher: {
@@ -1098,7 +1226,7 @@ export async function getTeacherDetails(uid: string) {
                 fullName: profileData.full_name || 'N/A',
                 email: profileData.email,
                 phone: profileData.phone || profileData.mobilePhone || 'N/A',
-                cpfCnpj: profileData.cpf_cnpj || 'N/A',
+                cpfCnpj: maskSensitiveData(profileData.cpf_cnpj),
                 role: profileData.role,
                 ativo: profileData.ativo !== false,
                 teacherStatus: profileData.teacher_status || 'active',
@@ -1112,11 +1240,11 @@ export async function getTeacherDetails(uid: string) {
                     cidade: profileData.cidade || profileData.city || null,
                     uf: profileData.uf || profileData.state || null,
                 },
-                pix_key: profileData.pix_key || null,
+                pix_key: maskSensitiveData(profileData.pix_key),
                 bank: {
                     name: profileData.bank_name || null,
-                    agency: profileData.bank_agency || null,
-                    account: profileData.bank_account || null,
+                    agency: maskSensitiveData(profileData.bank_agency),
+                    account: maskSensitiveData(profileData.bank_account),
                     type: profileData.bank_account_type || null,
                 },
                 security: {
@@ -1137,6 +1265,11 @@ export async function getTeacherDetails(uid: string) {
  * Marca uma lista de vendas como pagas para um professor.
  */
 export async function markTeacherSalesAsPaid(enrollmentIds: string[]) {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        console.error("Tentativa de acesso não autorizado detectada");
+        return { success: false, error: 'Não autorizado' };
+    }
     try {
         const batch = adminDb.batch()
         

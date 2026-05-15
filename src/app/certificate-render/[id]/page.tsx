@@ -1,21 +1,31 @@
 import { validateAndGetCertificate } from '@/lib/certificates'
 import { CertificateTemplate } from '@/components/certificates/CertificateTemplate'
 import { notFound } from 'next/navigation'
+import { getSessionUser } from '@/app/actions/auth'
 
 interface PageProps {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ userId: string; secret: string }>
+  searchParams: Promise<{ secret: string }>
 }
 
 export default async function CertificateRenderPage({ params, searchParams }: PageProps) {
   const { id: courseId } = await params
-  const { userId, secret } = await searchParams
+  const { secret } = await searchParams
 
   // Basic security check: secret must match env
   if (secret !== process.env.CERTIFICATE_RENDER_SECRET) {
     console.error('Unauthorized access to certificate render page')
     return notFound()
   }
+
+  const session = await getSessionUser()
+  if (!session) {
+    console.error('No session found for certificate rendering')
+    return notFound()
+  }
+
+  // A-01: Use session identity instead of URL parameter
+  const userId = session.uid
 
   const result = await validateAndGetCertificate(courseId, userId)
 

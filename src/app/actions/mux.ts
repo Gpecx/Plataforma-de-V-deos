@@ -196,3 +196,31 @@ export async function deleteMuxAsset(assetId: string) {
         return { error: `Falha ao deletar asset no Mux: ${error.message}` }
     }
 }
+
+/**
+ * Gera um token de visualização assinado para um playback_id.
+ * Usado para permitir que o professor visualize aulas (que são signed) no dashboard.
+ */
+export async function getLessonPlaybackToken(playbackId: string) {
+    const user = await getSessionUser()
+    if (!user || (user.role !== 'teacher' && user.role !== 'admin')) {
+        return { error: 'Não autorizado' }
+    }
+
+    try {
+        const mux = getMuxClient()
+        
+        // Mux SDK v12+ JWT signing
+        const token = await mux.jwt.signPlaybackId(playbackId, {
+            keyId: process.env.MUX_SIGNING_KEY_ID,
+            keySecret: process.env.MUX_SIGNING_KEY,
+            type: 'video',
+            expiration: '1h'
+        })
+        
+        return { success: true, token }
+    } catch (error: any) {
+        console.error("MUX_TOKEN_ERROR:", error)
+        return { error: `Falha ao gerar token: ${error.message}` }
+    }
+}

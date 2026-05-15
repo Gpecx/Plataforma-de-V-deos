@@ -1,6 +1,6 @@
 import { chromium } from 'playwright'
 
-export async function generatePDF(url: string): Promise<Uint8Array> {
+export async function generatePDF(url: string, cookies?: { name: string, value: string, domain: string }[]): Promise<Uint8Array> {
   const browser = await chromium.launch({
     headless: true,
   })
@@ -10,6 +10,10 @@ export async function generatePDF(url: string): Promise<Uint8Array> {
       viewport: { width: 1123, height: 794 },
       deviceScaleFactor: 2,
     })
+
+    if (cookies && cookies.length > 0) {
+      await context.addCookies(cookies)
+    }
     
     const page = await context.newPage()
     

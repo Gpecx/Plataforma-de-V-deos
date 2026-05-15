@@ -74,6 +74,16 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'Perfil não encontrado' }, { status: 404 })
         }
         const profileData = profileDoc.data()
+
+        // M-01: Bloqueia acesso se o usuário estiver inativo ou banido
+        if (profileData?.ativo === false) {
+            console.warn(`[MUX AUTH] ACESSO NEGADO: Usuário ${uid} está inativo ou banido.`)
+            return NextResponse.json(
+                { error: 'Acesso negado: sua conta está inativa ou suspensa.' }, 
+                { status: 403 }
+            )
+        }
+
         const isAdmin = profileData?.role === 'admin'
 
         // b) Busca o curso para checar a AUTORIA
@@ -123,7 +133,7 @@ export async function POST(request: NextRequest) {
             keyId,
             keySecret,
             type: 'video',
-            expiration: '6h',
+            expiration: '1h', // Reduzido de 6h para 1h (M-01)
             params: {
                 sub: uid, // Identificador do usuário
             },

@@ -1,5 +1,7 @@
+// @ts-ignore - Garantir compatibilidade de tipos do Mux no build
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb } from '@/lib/firebase-admin'
+import { getMuxClient } from '@/lib/mux'
 
 interface MuxWebhookPayload {
     type: string
@@ -12,15 +14,28 @@ interface MuxWebhookPayload {
 }
 
 export async function POST(request: NextRequest) {
+    // 1. Captura o raw body ANTES de qualquer parse — obrigatório para validação HMAC
+    const rawBody = await request.text()
+
+    // 2. Valida a assinatura criptográfica do Mux (obrigatório em todos os ambientes)
+    const webhookSecret = process.env.MUX_WEBHOOK_SECRET
+    if (!webhookSecret) {
+        console.error('Webhook Mux: MUX_WEBHOOK_SECRET não configurado')
+        return new Response('Internal Server Error', { status: 500 })
+    }
+
     try {
-        const signature = request.headers.get('mux-signature')
+        // Na v12 do SDK, verifySignature está em muxClient.webhooks (APIResource)
+        const mux = getMuxClient()
+        mux.webhooks.verifySignature(rawBody, request.headers, webhookSecret)
+    } catch (err) {
+        console.error('Webhook Mux: Assinatura inválida —', err)
+        return new Response('Invalid signature', { status: 401 })
+    }
 
-        if (!signature && process.env.NODE_ENV === 'production') {
-            console.error('Webhook Mux: Assinatura ausente')
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-        }
-
-        const payload: MuxWebhookPayload = await request.json()
+    // 3. Assinatura válida — processa o payload
+    try {
+        const payload: MuxWebhookPayload = JSON.parse(rawBody)
 
         if (!payload.type || !payload.data?.id) {
             console.error('Webhook Mux: Payload inválido', payload)

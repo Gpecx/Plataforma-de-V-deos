@@ -674,4 +674,32 @@ export function getCoursesByCategory(category: string): Course[] {
 
 export const welcomeCourses = allCourses.slice(0, 6)
 
-export const categories = ["Programação", "Marketing", "Design", "Gestão", "Tecnologia"]
+export const categories = [
+    'Cibersegurança',
+    'Ciência de Dados',
+    'Cloud Computing',
+    'Design',
+    'Desenvolvimento Web',
+    'Edição de Vídeo',
+    'Empreendedorismo',
+    'Engenharia Civil',
+    'Engenharia Elétrica',
+    'Engenharia Mecânica',
+    'Estilo de Vida',
+    'Finanças',
+    'Fotografia',
+    'Gastronomia',
+    'Gestão de Projetos',
+    'Idiomas',
+    'Inteligência Artificial',
+    'Liderança e Soft Skills',
+    'Marketing Digital',
+    'Motion Design',
+    'Música',
+    'Negócios',
+    'Saúde',
+    'Tecnologia da Informação',
+    'UI/UX Design',
+    'Vendas de Alta Performance',
+    'Outros'
+]

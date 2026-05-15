@@ -58,8 +58,10 @@ export default function ManagementClient({ initialAdmins }: ManagementClientProp
     }
 
     const handleUpdatePassword = async (adminId: string) => {
-        if (!newAdminPassword || newAdminPassword.length < 6) {
-            toast.error('A senha deve ter pelo menos 6 caracteres')
+        // B-03: Alinhado com a nova política de complexidade (mínimo 8 caracteres)
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/
+        if (!passwordRegex.test(newAdminPassword)) {
+            toast.error('A senha deve ter no mínimo 8 caracteres, incluindo letras e números.')
             return
         }
 
@@ -230,7 +232,7 @@ export default function ManagementClient({ initialAdmins }: ManagementClientProp
                                     <input 
                                         required
                                         type="password"
-                                        placeholder="********"
+                                        placeholder="MÍN. 8 CARACTERES (LETRAS E NÚMEROS)"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 pl-12 text-slate-900 text-xs font-bold tracking-wider focus:border-[#1D5F31] focus:bg-white focus:outline-none transition-all"

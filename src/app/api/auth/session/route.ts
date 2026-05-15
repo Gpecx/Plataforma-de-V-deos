@@ -56,7 +56,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         updated_at: new Date()
       }, { merge: true });
 
+    // Sync user role from Firestore to Custom Claims to ensure consistency
+    // [Industrial Hardening]: Source of Truth = Firestore Profile
+    const currentRole = profileData?.role || 'student';
+    await adminAuth.setCustomUserClaims(uid, { role: currentRole });
+
     // Create the Firebase session cookie via Admin SDK
+    // The session cookie will now carry the updated claims
     const sessionCookie = await adminAuth.createSessionCookie(idToken, {
       expiresIn: SESSION_DURATION_MS,
     });

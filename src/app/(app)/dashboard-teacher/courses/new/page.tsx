@@ -14,7 +14,8 @@ import {
     ListTree,
     BookOpen,
     X,
-    Loader2
+    Loader2,
+    Play
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -26,7 +27,63 @@ import { toast } from 'sonner'
 import { useCourseFormStore, Lesson } from "@/store/useCourseFormStore"
 import { createCourseAction } from "../actions"
 import { uploadCourseImage } from "@/lib/storage-helpers"
-import { getMuxUploadUrl, getMuxUploadStatus } from "@/app/actions/mux"
+import { getMuxUploadUrl, getMuxUploadStatus, getLessonPlaybackToken } from "@/app/actions/mux"
+import QuizForm from '@/app/(app)/dashboard-teacher/components/QuizForm'
+import { Question } from "@/store/useCourseFormStore"
+import { HelpCircle } from 'lucide-react'
+
+function LessonVideoPreview({ playbackId, title }: { playbackId: string, title: string }) {
+    const [token, setToken] = useState<string>('')
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        if (!playbackId) return;
+        async function fetchToken() {
+            try {
+                const res = await getLessonPlaybackToken(playbackId)
+                if (res.success && res.token) {
+                    setToken(res.token)
+                }
+            } catch (err) {
+                console.error("Error fetching preview token:", err)
+            } finally {
+                setLoading(false)
+            }
+        }
+        fetchToken()
+    }, [playbackId])
+
+    if (loading) {
+        return (
+            <div className="aspect-video w-full bg-slate-100 rounded-xl flex items-center justify-center border-2 border-black/5">
+                <div className="flex flex-col items-center gap-2">
+                    <Loader2 className="animate-spin text-[#1D5F31]" size={20} />
+                    <span className="text-[8px] font-bold uppercase tracking-widest text-[#1D5F31]/60">Carregando Player...</span>
+                </div>
+            </div>
+        )
+    }
+
+    return (
+        <div className="relative group/player aspect-video w-full bg-black rounded-xl overflow-hidden border-2 border-black transition-all hover:border-[#1D5F31] shadow-xl">
+            <MuxPlayer
+                playbackId={playbackId}
+                tokens={{ playback: token }}
+                streamType="on-demand"
+                className="w-full h-full object-cover"
+                accentColor="#1D5F31"
+                metadata={{
+                    video_title: title,
+                }}
+            />
+            <div className="absolute inset-0 bg-black/20 group-hover/player:opacity-0 transition-opacity pointer-events-none flex items-center justify-center">
+                <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20">
+                    <Play size={20} className="text-white fill-white ml-1" />
+                </div>
+            </div>
+        </div>
+    )
+}
 
 const STEPS = [
     { id: 1, name: 'Informações Básicas', icon: Info },
@@ -35,16 +92,32 @@ const STEPS = [
 ]
 
 const CATEGORIES = [
-    'Engenharia Elétrica',
-    'Engenharia Civil',
-    'Engenharia Mecânica',
-    'Tecnologia da Informação',
-    'Desenvolvimento Web',
+    'Cibersegurança',
+    'Ciência de Dados',
+    'Cloud Computing',
     'Design',
-    'Marketing Digital',
-    'Negócios',
+    'Desenvolvimento Web',
+    'Edição de Vídeo',
+    'Empreendedorismo',
+    'Engenharia Civil',
+    'Engenharia Elétrica',
+    'Engenharia Mecânica',
+    'Estilo de Vida',
     'Finanças',
+    'Fotografia',
+    'Gastronomia',
+    'Gestão de Projetos',
+    'Idiomas',
+    'Inteligência Artificial',
+    'Liderança e Soft Skills',
+    'Marketing Digital',
+    'Motion Design',
+    'Música',
+    'Negócios',
     'Saúde',
+    'Tecnologia da Informação',
+    'UI/UX Design',
+    'Vendas de Alta Performance',
     'Outros'
 ]
 
@@ -89,11 +162,19 @@ export default function NewCoursePage() {
 
     const [uploadingVideos, setUploadingVideos] = useState<Record<number, boolean>>({})
 
-    const handleAddLesson = () => {
+    const handleAddLesson = (type: 'lesson' | 'quiz' = 'lesson') => {
         const newLesson: Lesson = {
-            title: '',
+            title: type === 'quiz' ? 'Novo Quiz' : '',
             video_url: '',
-            position: formData.lessons.length + 1
+            position: formData.lessons.length + 1,
+            type: type
+        }
+        if (type === 'quiz') {
+            newLesson.quizData = {
+                title: 'Novo Quiz',
+                description: '',
+                questions: [{ id: Math.random().toString(), text: '', options: ['', ''], correctAnswer: 0 }]
+            }
         }
         setLessons([...formData.lessons, newLesson])
     }
@@ -620,12 +701,20 @@ export default function NewCoursePage() {
                                 <h2 className="text-xl font-bold tracking-tighter uppercase text-black leading-none "> Grade Curricular </h2>
                                 <p className="text-[10px] text-black font-bold uppercase tracking-[2px] mt-2">Organize o fluxo de aprendizado.</p>
                             </div>
-                            <Button
-                                onClick={handleAddLesson}
-                                className="bg-[#1D5F31] hover:bg-[#1D5F31]/90 text-white text-[10px] font-bold uppercase tracking-widest px-8 rounded-xl h-12 shadow-none border-2 border-[#1D5F31]"
-                            >
-                                <Plus size={18} className="mr-2" /> Adicionar Aula
-                            </Button>
+                            <div className="flex gap-4">
+                                <Button
+                                    onClick={() => handleAddLesson('lesson')}
+                                    className="bg-[#1D5F31] hover:bg-[#1D5F31]/90 text-white text-[10px] font-bold uppercase tracking-widest px-8 rounded-xl h-12 shadow-none border-2 border-[#1D5F31]"
+                                >
+                                    <Plus size={18} className="mr-2" /> Adicionar Aula
+                                </Button>
+                                <Button
+                                    onClick={() => handleAddLesson('quiz')}
+                                    className="bg-slate-900 hover:bg-black text-white text-[10px] font-bold uppercase tracking-widest px-8 rounded-xl h-12 shadow-none border-2 border-slate-900"
+                                >
+                                    <HelpCircle size={18} className="mr-2" /> Adicionar Quiz
+                                </Button>
+                            </div>
                         </div>
 
                         {formData.lessons.length === 0 ? (
@@ -642,7 +731,23 @@ export default function NewCoursePage() {
                                         <div className="flex flex-col md:flex-row gap-10">
                                             <div className="flex-grow space-y-6 text-black">
                                                 <div className="flex justify-between items-center">
-                                                    <span className="text-[9px] font-bold uppercase tracking-[3px] text-black ">ESTÁGIO #{index + 1}</span>
+                                                    <div className="flex items-center gap-4">
+                                                        <span className="text-[9px] font-bold uppercase tracking-[3px] text-black ">ESTÁGIO #{index + 1}</span>
+                                                        <div className="flex bg-slate-100 p-1 rounded-lg border border-black/5">
+                                                            <button
+                                                                onClick={() => handleUpdateLesson(index, { type: 'lesson' })}
+                                                                className={`px-3 py-1 text-[8px] font-bold uppercase tracking-widest rounded-md transition-all ${lesson.type !== 'quiz' ? 'bg-white shadow-sm text-black' : 'text-black/40 hover:text-black/60'}`}
+                                                            >
+                                                                VÍDEO AULA
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleUpdateLesson(index, { type: 'quiz' })}
+                                                                className={`px-3 py-1 text-[8px] font-bold uppercase tracking-widest rounded-md transition-all ${lesson.type === 'quiz' ? 'bg-white shadow-sm text-black' : 'text-black/40 hover:text-black/60'}`}
+                                                            >
+                                                                QUIZ
+                                                            </button>
+                                                        </div>
+                                                    </div>
                                                     <button
                                                         onClick={() => handleRemoveLesson(index)}
                                                         className="text-black/40 hover:text-red-500 hover:bg-red-500/10 p-2 rounded-xl transition-all"
@@ -650,81 +755,104 @@ export default function NewCoursePage() {
                                                         <Trash2 size={18} />
                                                     </button>
                                                 </div>
-                                                <div className="space-y-2">
-                                                    <Label className="text-[10px] font-bold uppercase tracking-widest text-black/90 px-1 ">Título da Aula</Label>
-                                                    <Input
-                                                        placeholder="Ex: Introdução ao Módulo 1"
-                                                        className="bg-white border-2 border-black focus:border-black h-12 rounded-xl text-sm font-medium text-black placeholder:text-black/50"
-                                                        value={lesson.title}
-                                                        onChange={(e) => handleUpdateLesson(index, { title: e.target.value })}
-                                                    />
-                                                    <Label className="text-[10px] font-bold uppercase tracking-widest text-black/60 px-1 ">Descrição (opcional)</Label>
-                                                    <textarea
-                                                        placeholder="Descreva o que o aluno aprenderá nesta aula..."
-                                                        className="bg-white border-2 border-black/20 focus:border-[#1D5F31] rounded-xl p-3 text-sm font-medium text-black placeholder:text-black/40 min-h-[80px] resize-none"
-                                                        value={lesson.description || ''}
-                                                        onChange={(e) => handleUpdateLesson(index, { description: e.target.value })}
-                                                    />
-                                                </div>
-                                            </div>
 
-                                            <div className="w-full md:w-72 space-y-2">
-                                                <Label className="text-[10px] font-bold uppercase tracking-widest text-black/90 px-1 ">Vídeo da Aula</Label>
-                                                <div className={`
-                                                    relative h-32 rounded-xl border-2 border-dashed transition-all flex flex-col items-center justify-center overflow-hidden
-                                                    ${lesson.mux_playback_id ? 'border-[#1D5F31] bg-[#1D5F31]/5' : 'border-black bg-white hover:border-black/50'}
-                                                `}>
-                                                    {uploadingVideos[index] ? (
-                                                        <div className="flex flex-col items-center gap-3">
-                                                            <Loader2 className="animate-spin text-[#1D5F31]" size={24} />
-                                                            <span className="text-[8px] font-bold uppercase tracking-[2px] animate-pulse text-[#1D5F31] rounded-none">UPLOADING...</span>
-                                                        </div>
-                                                    ) : lesson.mux_playback_id ? (
-                                                        <div className="flex flex-col gap-2 w-full">
-                                                            <div className="aspect-video w-full bg-black rounded-lg overflow-hidden">
-                                                                <MuxPlayer
-                                                                    playbackId={lesson.mux_playback_id}
-                                                                    streamType="on-demand"
-                                                                    muted
-                                                                    className="w-full h-full"
-                                                                    accentColor="#1D5F31"
-                                                                />
-                                                            </div>
-                                                            <span className="text-[9px] font-bold uppercase tracking-widest text-[#1D5F31] rounded-none">
-                                                                {uploadingVideoStatus[index] === 'processing' ? 'PROCESSANDO...' : 'VÍDEO PRONTO'}
-                                                            </span>
-                                                            <button
-                                                                className="text-[8px] text-[#1D5F31]/40 hover:text-red-500 font-bold uppercase tracking-widest mt-1 "
-                                                                onClick={() => handleUpdateLesson(index, { 
-                                                                    video_url: '',
-                                                                    mux_upload_id: '',
-                                                                    mux_playback_id: '',
-                                                                    mux_asset_id: ''
-                                                                })}
-                                                            >
-                                                                [ REMOVER ]
-                                                            </button>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="text-center px-6">
-                                                            <Upload size={24} className="mx-auto text-black/30 mb-3" />
-                                                            <span className="text-[9px] font-bold uppercase tracking-widest text-black/60">SUBIR MP4</span>
-                                                        </div>
-                                                    )}
-
-                                                    {!uploadingVideos[index] && !lesson.mux_playback_id && (
-                                                        <input
-                                                            type="file"
-                                                            accept="video/*"
-                                                            className="absolute inset-0 opacity-0 cursor-pointer"
-                                                            onChange={(e) => {
-                                                                const file = e.target.files?.[0]
-                                                                if (file) handleVideoUpload(index, file)
-                                                            }}
+                                                {lesson.type === 'quiz' ? (
+                                                    <div className="animate-in fade-in slide-in-from-top-2 duration-500 border-2 border-black/5 p-6 rounded-xl bg-slate-50/30">
+                                                        <QuizForm
+                                                            initialData={lesson.quizData}
+                                                            onSave={(quizData) => handleUpdateLesson(index, { 
+                                                                quizData: quizData as any,
+                                                                title: quizData.title || lesson.title
+                                                            })}
                                                         />
-                                                    )}
-                                                </div>
+                                                    </div>
+                                                ) : (
+                                                    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                                                        <div className="space-y-2">
+                                                            <Label className="text-[10px] font-bold uppercase tracking-widest text-black/90 px-1 ">Título da Aula</Label>
+                                                            <Input
+                                                                placeholder="Ex: Introdução ao Módulo 1"
+                                                                className="bg-white border-2 border-black focus:border-black h-12 rounded-xl text-sm font-medium text-black placeholder:text-black/50"
+                                                                value={lesson.title}
+                                                                onChange={(e) => handleUpdateLesson(index, { title: e.target.value })}
+                                                            />
+                                                            <Label className="text-[10px] font-bold uppercase tracking-widest text-black/60 px-1 ">Descrição (opcional)</Label>
+                                                            <textarea
+                                                                placeholder="Descreva o que o aluno aprenderá nesta aula..."
+                                                                className="bg-white border-2 border-black/20 focus:border-[#1D5F31] rounded-xl p-3 text-sm font-medium text-black placeholder:text-black/40 min-h-[80px] resize-none"
+                                                                value={lesson.description || ''}
+                                                                onChange={(e) => handleUpdateLesson(index, { description: e.target.value })}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
+
+                                            {lesson.type !== 'quiz' && (
+                                                <div className="w-full md:w-80 space-y-3">
+                                                    <Label className="text-[10px] font-bold uppercase tracking-widest text-black/90 px-1 ">Vídeo da Aula</Label>
+                                                    <div className={`
+                                                        relative rounded-xl border-2 transition-all flex flex-col items-center justify-center overflow-hidden
+                                                        ${lesson.mux_playback_id ? 'border-black bg-white shadow-lg' : 'border-dashed border-black/20 h-40 bg-slate-50 hover:bg-white hover:border-black/50'}
+                                                    `}>
+                                                        {uploadingVideos[index] ? (
+                                                            <div className="flex flex-col items-center gap-3 p-8 text-center">
+                                                                <div className="relative">
+                                                                    <Loader2 className="animate-spin text-[#1D5F31]" size={32} />
+                                                                    <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-[#1D5F31]">
+                                                                        {uploadingVideoProgress[index]}%
+                                                                    </span>
+                                                                </div>
+                                                                <span className="text-[9px] font-bold uppercase tracking-[2px] animate-pulse text-[#1D5F31]">ENVIANDO PARA O STUDIO...</span>
+                                                            </div>
+                                                        ) : lesson.mux_playback_id ? (
+                                                            <div className="flex flex-col gap-3 w-full p-3">
+                                                                <LessonVideoPreview 
+                                                                    playbackId={lesson.mux_playback_id} 
+                                                                    title={lesson.title || `Aula ${index + 1}`} 
+                                                                />
+                                                                <div className="flex justify-between items-center px-1">
+                                                                    <span className="text-[9px] font-bold uppercase tracking-widest text-[#1D5F31] flex items-center gap-2">
+                                                                        <div className="w-2 h-2 rounded-full bg-[#1D5F31] animate-pulse" />
+                                                                        {uploadingVideoStatus[index] === 'processing' ? 'PROCESSANDO...' : 'STUDIO READY'}
+                                                                    </span>
+                                                                    <button
+                                                                        className="text-[9px] text-red-500 hover:text-red-600 font-bold uppercase tracking-widest transition-colors flex items-center gap-1"
+                                                                        onClick={() => handleUpdateLesson(index, { 
+                                                                            video_url: '',
+                                                                            mux_upload_id: '',
+                                                                            mux_playback_id: '',
+                                                                            mux_asset_id: ''
+                                                                        })}
+                                                                    >
+                                                                        <X size={12} /> REMOVER
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="text-center px-6 py-10">
+                                                                <div className="w-12 h-12 bg-black/5 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                                                                    <Upload size={20} className="text-black/40" />
+                                                                </div>
+                                                                <span className="text-[10px] font-bold uppercase tracking-widest text-black">Upload da Aula</span>
+                                                                <p className="text-[8px] text-black/50 mt-1 font-bold uppercase tracking-widest">ARQUIVOS MP4 OU MOV</p>
+                                                            </div>
+                                                        )}
+
+                                                        {!uploadingVideos[index] && !lesson.mux_playback_id && (
+                                                            <input
+                                                                type="file"
+                                                                accept="video/*"
+                                                                className="absolute inset-0 opacity-0 cursor-pointer"
+                                                                onChange={(e) => {
+                                                                    const file = e.target.files?.[0]
+                                                                    if (file) handleVideoUpload(index, file)
+                                                                }}
+                                                            />
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 ))}

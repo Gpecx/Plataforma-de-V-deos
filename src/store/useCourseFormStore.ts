@@ -1,5 +1,12 @@
 import { create } from 'zustand'
 
+export interface Question {
+    id: string
+    text: string
+    options: string[]
+    correctAnswer: number
+}
+
 export interface Lesson {
     title: string
     video_url: string
@@ -8,6 +15,12 @@ export interface Lesson {
     mux_upload_id?: string
     mux_playback_id?: string
     mux_asset_id?: string
+    type?: 'lesson' | 'quiz'
+    quizData?: {
+        title?: string
+        description?: string
+        questions?: Question[]
+    }
 }
 
 interface CourseFormData {

@@ -434,7 +434,7 @@ function RegisterForm() {
                         className="text-center space-y-4 mb-10"
                     >
                         <div className="flex justify-center mb-4">
-                            <Logo variant="vertical" className="scale-110" />
+                            <Logo variant="vertical" className="scale-110" href="/" />
                         </div>
                         <div className="flex flex-col items-center">
                             <h2 className="text-2xl md:text-3xl font-bold tracking-tighter uppercase text-white">
