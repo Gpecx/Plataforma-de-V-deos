@@ -53,7 +53,7 @@ export async function createCourseAction(formData: any) {
             const batch = adminDb.batch()
             formData.lessons.forEach((lesson: any, index: number) => {
                 const lessonRef = adminDb.collection('lessons').doc()
-                batch.set(lessonRef, {
+                const lessonPayload: any = {
                     course_id: courseId,
                     title: lesson.title,
                     video_url: lesson.video_url || '',
@@ -64,7 +64,12 @@ export async function createCourseAction(formData: any) {
                     description: lesson.description || '',
                     status: 'PENDENTE',
                     created_at: new Date()
-                })
+                }
+
+                if (lesson.type) lessonPayload.type = lesson.type
+                if (lesson.quizData) lessonPayload.quizData = lesson.quizData
+
+                batch.set(lessonRef, lessonPayload)
             })
             await batch.commit()
         }
@@ -254,7 +259,8 @@ export async function updateCourseAction(courseId: string, formData: any) {
                                       existing.video_url !== lesson.video_url || 
                                       existing.description !== lesson.description ||
                                       JSON.stringify(existing.quizData) !== JSON.stringify(lesson.quizData)
-                    if (hasChanged) {
+                    // Só reseta para PENDENTE se não for uma solicitação de exclusão e houver mudanças
+                    if (hasChanged && lesson.status !== 'SOLICITADO_EXCLUSAO') {
                         payload.status = 'PENDENTE'
                     }
                 }

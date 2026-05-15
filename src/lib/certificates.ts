@@ -1,12 +1,9 @@
 import { adminDb } from '@/lib/firebase-admin'
+import { randomBytes } from 'crypto'
 
+// M-03: Use cryptographically secure random bytes instead of Math.random()
 export function generateVerificationCode(): string {
-  const chars = 'ABCDEF0123456789'
-  let code = 'PP-2026-'
-  for (let i = 0; i < 6; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  return code
+  return 'PP-2026-' + randomBytes(3).toString('hex').toUpperCase()
 }
 
 export async function validateAndGetCertificate(courseId: string, userId: string) {

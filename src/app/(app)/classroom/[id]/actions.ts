@@ -3,16 +3,12 @@
 import { adminDb } from '@/lib/firebase-admin'
 import { serializeFirestoreData } from '@/lib/date-utils'
 import { ICertificate } from '@/lib/types/certificate'
+import { randomBytes } from 'crypto'
 
 
 
 function generateVerificationCode(): string {
-    const hexChars = '0123456789ABCDEF'
-    let code = 'PP-2026-'
-    for (let i = 0; i < 6; i++) {
-        code += hexChars[Math.floor(Math.random() * hexChars.length)]
-    }
-    return code
+    return 'PP-2026-' + randomBytes(3).toString('hex').toUpperCase()
 }
 
 export async function getUserCourseProgress(userId: string, courseId: string) {

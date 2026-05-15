@@ -1,7 +1,8 @@
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { PlayCircle, BookOpen, Sparkles, Trophy, Users } from 'lucide-react'
+import { PlayCircle, BookOpen, Sparkles, Trophy, Users, Clock } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { StudentCarousel } from '@/components/dashboard/StudentCarousel'
@@ -13,6 +14,7 @@ import { BannerWrapper } from '@/components/ui/BannerWrapper'
 import { CourseProgressBar } from '@/components/dashboard/CourseProgressBar'
 import WishlistButton from '@/components/WishlistButton'
 import { ProgressInitializer } from '@/components/dashboard/ProgressInitializer'
+import { getStudentStats } from './actions'
 
 export default async function StudentDashboard() {
     const cookieStore = await cookies()
@@ -29,13 +31,21 @@ export default async function StudentDashboard() {
         redirect('/login')
     }
 
-    const [profileDoc, coursesSnapshot, enrollmentsSnapshot, lessonsSnapshot, banners] = await Promise.all([
+    const [profileDoc, coursesSnapshot, enrollmentsSnapshot, lessonsSnapshot, banners, statsResult] = await Promise.all([
         adminDb.collection('profiles').doc(user.uid).get(),
         adminDb.collection('courses').get(),
         adminDb.collection('enrollments').where('user_id', '==', user.uid).get(),
         adminDb.collection('lessons').get(),
-        getBanners()
+        getBanners(),
+        getStudentStats()
     ])
+
+    const stats = statsResult.success ? statsResult.data : { 
+        concludedCount: 0, 
+        totalEnrollments: 0, 
+        studyTime: { hours: 0, minutes: 0 }, 
+        streak: 0 
+    }
 
     const profile = profileDoc.data()
     const allCourses = coursesSnapshot.docs.map(doc => {
@@ -162,65 +172,86 @@ export default async function StudentDashboard() {
                     </div>
                 </section>
 
-                {/* Seção: Vitrine (Recomendados) */}
+                {/* Seção: Metas de Acessos e Estudos */}
                 <section className="pb-20">
                     <div className="flex items-center justify-between mb-10 pb-4 border-b-2 border-slate-900/5">
                         <h2 className="text-xl font-bold uppercase tracking-tight flex items-center gap-3 !text-black">
-                            <Sparkles size={22} className="text-[#1D5F31]" />
-                            Recomendados para você
+                            <Trophy size={22} className="text-[#1D5F31]" />
+                            Metas de Acessos e Estudos
                         </h2>
-                        <span className="hidden md:block text-sm font-bold uppercase tracking-tight text-slate-900">Vitrine Exclusiva</span>
+                        <span className="hidden md:block text-sm font-bold uppercase tracking-tight text-slate-900">Seu Desempenho</span>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
-                        {cursosDisponiveis.map((curso) => (
-                            <div key={curso.id} className="group bg-white rounded-[24px] overflow-hidden border border-black shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col">
-                                <div className="relative h-48 overflow-hidden bg-slate-100">
-                                    <img
-                                        src={curso.image_url || "https://images.unsplash.com/photo-1558655146-d09347e92766?w=400"}
-                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                                        alt={curso.title}
-                                    />
-                                    <WishlistButton courseId={curso.id} />
-                                    <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-black shadow-sm z-10">
-                                        <span className="text-sm font-bold text-[#1D5F31] tracking-tight uppercase">Lançamento</span>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {/* Placeholder: Horas de Estudo */}
+                        <Card className="border-black rounded-[24px] overflow-hidden transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 flex flex-col bg-white">
+                            <CardHeader className="p-8 pb-0">
+                                <div className="flex items-center gap-4 mb-2">
+                                    <div className="p-3 bg-[#1D5F31]/10 rounded-xl">
+                                        <Clock size={24} className="text-[#1D5F31]" />
                                     </div>
+                                    <CardTitle className="text-sm font-bold text-black uppercase tracking-tight">Tempo de Estudo</CardTitle>
                                 </div>
+                            </CardHeader>
+                            <CardContent className="p-8 pt-4 flex-grow flex flex-col justify-end">
+                                <div className="text-4xl font-black text-black mb-2">
+                                    {stats?.studyTime?.hours ?? 0}h {stats?.studyTime?.minutes ?? 0}m
+                                </div>
+                                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Total acumulado na plataforma</p>
+                                <div className="mt-6 w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                    <div 
+                                        className="h-full bg-[#1D5F31] rounded-full opacity-30" 
+                                        style={{ width: `${Math.min(((stats?.studyTime?.hours ?? 0) / 100) * 100, 100)}%` }}
+                                    ></div>
+                                </div>
+                            </CardContent>
+                        </Card>
 
-                                <div className="p-6 flex-grow flex flex-col">
-                                    {/* TÍTULO DO CURSO - Garanti que está PRETO e VISÍVEL */}
-                                    <h3 className="font-bold text-base mb-2 !text-black uppercase leading-tight line-clamp-2 group-hover:text-[#1D5F31] transition-colors">{curso.title}</h3>
-                                    <p className="!text-black text-sm font-medium line-clamp-2 mb-6">
-                                        {curso.description || 'Domine esta habilidade com o método PowerPlay.'}
-                                    </p>
-
-                                    <div className="mt-auto pt-4 border-t border-black flex items-center justify-between mb-4">
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-bold !text-black uppercase tracking-tight mb-1">Investimento</span>
-                                            <span className="!text-black font-bold text-xl tracking-tight">
-                                                R$ {Number(curso.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                            </span>
-                                        </div>
-                                        <Link href={`/course/${curso.id}`} className="p-2.5 bg-slate-50 border border-black rounded-xl !text-black hover:text-[#1D5F31] transition-colors">
-                                            <Users size={18} />
-                                        </Link>
+                        {/* Placeholder: Cursos Concluídos */}
+                        <Card className="border-black rounded-[24px] overflow-hidden transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 flex flex-col bg-white">
+                            <CardHeader className="p-8 pb-0">
+                                <div className="flex items-center gap-4 mb-2">
+                                    <div className="p-3 bg-[#1D5F31]/10 rounded-xl">
+                                        <BookOpen size={24} className="text-[#1D5F31]" />
                                     </div>
+                                    <CardTitle className="text-sm font-bold text-black uppercase tracking-tight">Cursos Concluídos</CardTitle>
                                 </div>
+                            </CardHeader>
+                            <CardContent className="p-8 pt-4 flex-grow flex flex-col justify-end">
+                                <div className="text-4xl font-black text-black mb-2">{stats?.concludedCount ?? 0}/{stats?.totalEnrollments ?? 0}</div>
+                                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Treinamentos finalizados</p>
+                                <div className="mt-6 w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                    <div 
+                                        className="h-full bg-[#1D5F31] rounded-full transition-all duration-1000" 
+                                        style={{ width: `${(stats?.totalEnrollments ?? 0) > 0 ? ((stats?.concludedCount ?? 0) / (stats?.totalEnrollments ?? 1)) * 100 : 0}%` }}
+                                    ></div>
+                                </div>
+                            </CardContent>
+                        </Card>
 
-                                {/* Botão Carrinho - Encostado na borda inferior do card */}
-                                <div className="w-full">
-                                    <AddToCartButton
-                                        course={{
-                                            id: curso.id,
-                                            title: curso.title,
-                                            price: Number(curso.price || 0),
-                                            image_url: curso.image_url
-                                        }}
-                                        purchasedCourseIds={purchasedCourseIds}
-                                    />
+                        {/* Placeholder: Streak */}
+                        <Card className="border-black rounded-[24px] overflow-hidden transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 flex flex-col bg-white">
+                            <CardHeader className="p-8 pb-0">
+                                <div className="flex items-center gap-4 mb-2">
+                                    <div className="p-3 bg-[#1D5F31]/10 rounded-xl">
+                                        <Sparkles size={24} className="text-[#1D5F31]" />
+                                    </div>
+                                    <CardTitle className="text-sm font-bold text-black uppercase tracking-tight">Dias Seguidos</CardTitle>
                                 </div>
-                            </div>
-                        ))}
+                            </CardHeader>
+                            <CardContent className="p-8 pt-4 flex-grow flex flex-col justify-end">
+                                <div className="text-4xl font-black text-black mb-2">{stats?.streak ?? 0} {(stats?.streak ?? 0) === 1 ? 'dia' : 'dias'}</div>
+                                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Frequência de acesso consecutiva</p>
+                                <div className="mt-6 flex gap-1">
+                                    {[1, 2, 3, 4, 5, 6, 7].map((d) => (
+                                        <div 
+                                            key={d} 
+                                            className={`flex-1 h-1.5 rounded-full ${d <= (stats?.streak ?? 0) ? 'bg-[#1D5F31]' : 'bg-slate-100'}`}
+                                        ></div>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
                 </section>
             </div>

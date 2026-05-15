@@ -75,27 +75,27 @@ export default function QuizForm({ initialData, onSave, isAdmin = false }: QuizF
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8 font-montserrat">
-      {/* Quiz Header - Glassmorphism Slate */}
-      <div className="bg-slate-900/90 backdrop-blur-xl border border-slate-700/50 p-8 rounded-none shadow-2xl relative overflow-hidden">
+      {/* Quiz Header - Premium Clean White */}
+      <div className="bg-white border-2 border-black/5 p-8 rounded-xl shadow-sm relative overflow-hidden">
         <div className="absolute top-0 left-0 w-1 h-full bg-[#1D5F31]" />
         <div className="space-y-6">
           <div className="space-y-2">
-            <label className="text-[10px] font-bold uppercase tracking-[3px] text-slate-400">Título do Quiz</label>
+            <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/60">Título do Quiz</label>
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full bg-slate-800/50 border border-slate-700 text-white px-4 py-4 rounded-none focus:outline-none focus:border-[#1D5F31] transition-all text-xl font-bold tracking-tight"
+              className="w-full bg-slate-50 border border-black/10 text-black px-4 py-4 rounded-xl focus:outline-none focus:border-[#1D5F31] transition-all text-xl font-bold tracking-tight"
               placeholder="Ex: Fundamentos de Design Industrial"
               required
             />
           </div>
           <div className="space-y-2">
-            <label className="text-[10px] font-bold uppercase tracking-[3px] text-slate-400">Descrição</label>
+            <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/60">Descrição</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-slate-800/50 border border-slate-700 text-white px-4 py-4 rounded-none focus:outline-none focus:border-[#1D5F31] transition-all h-24 resize-none"
+              className="w-full bg-slate-50 border border-black/10 text-black px-4 py-4 rounded-xl focus:outline-none focus:border-[#1D5F31] transition-all h-24 resize-none"
               placeholder="Descreva o que será avaliado..."
             />
           </div>
@@ -112,7 +112,7 @@ export default function QuizForm({ initialData, onSave, isAdmin = false }: QuizF
           <button
             type="button"
             onClick={addQuestion}
-            className="flex items-center gap-2 bg-[#1D5F31] text-white px-6 py-3 rounded-none font-bold uppercase tracking-widest text-[10px] hover:bg-[#164a26] transition-all active:scale-95 shadow-lg"
+            className="flex items-center gap-2 bg-[#1D5F31] text-white px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-[#164a26] transition-all active:scale-95 shadow-lg"
           >
             <Plus size={16} strokeWidth={3} /> Adicionar Questão
           </button>
@@ -126,7 +126,7 @@ export default function QuizForm({ initialData, onSave, isAdmin = false }: QuizF
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white border border-slate-200 p-8 rounded-none shadow-sm relative group hover:border-slate-400 transition-all"
+                className="bg-white border border-slate-200 p-8 rounded-xl shadow-sm relative group hover:border-slate-400 transition-all"
               >
                 <div className="absolute top-0 left-0 w-full h-1 bg-slate-100 group-hover:bg-[#1D5F31] transition-colors" />
                 <div className="flex justify-between items-start mb-6">
@@ -149,7 +149,7 @@ export default function QuizForm({ initialData, onSave, isAdmin = false }: QuizF
                       type="text"
                       value={q.text}
                       onChange={(e) => updateQuestion(qIndex, 'text', e.target.value)}
-                      className="w-full bg-slate-50 border border-slate-200 px-4 py-4 rounded-none focus:outline-none focus:border-slate-900 transition-all font-bold"
+                      className="w-full bg-slate-50 border border-slate-200 px-4 py-4 rounded-xl focus:outline-none focus:border-slate-900 transition-all font-bold"
                       placeholder="Digite a pergunta aqui..."
                       required
                     />
@@ -171,7 +171,7 @@ export default function QuizForm({ initialData, onSave, isAdmin = false }: QuizF
                           value={opt}
                           onChange={(e) => updateOption(qIndex, oIndex, e.target.value)}
                           className={cn(
-                            "flex-1 bg-slate-50 border px-4 py-3 rounded-none focus:outline-none transition-all text-sm",
+                            "flex-1 bg-slate-50 border px-4 py-3 rounded-xl focus:outline-none transition-all text-sm",
                             q.correctAnswer === oIndex ? "border-[#1D5F31] ring-1 ring-[#1D5F31]/20" : "border-slate-200"
                           )}
                           placeholder={`Opção ${oIndex + 1}`}
@@ -207,7 +207,7 @@ export default function QuizForm({ initialData, onSave, isAdmin = false }: QuizF
       <div className="flex justify-end pt-8 sticky bottom-8">
         <button
           type="submit"
-          className="flex items-center gap-3 bg-slate-900 text-white px-12 py-5 rounded-none font-bold uppercase tracking-[3px] hover:bg-black transition-all active:scale-95 shadow-2xl group"
+          className="flex items-center gap-3 bg-slate-900 text-white px-12 py-5 rounded-xl font-bold uppercase tracking-[3px] hover:bg-black transition-all active:scale-95 shadow-2xl group"
         >
           <Save size={20} className="group-hover:scale-110 transition-transform" />
           {isAdmin ? 'Publicar Quiz' : 'Enviar para Aprovação'}

@@ -56,7 +56,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         updated_at: new Date()
       }, { merge: true });
 
+    // Sync user role from Firestore to Custom Claims to ensure consistency
+    // [Industrial Hardening]: Source of Truth = Firestore Profile
+    const currentRole = profileData?.role || 'student';
+    await adminAuth.setCustomUserClaims(uid, { role: currentRole });
+
     // Create the Firebase session cookie via Admin SDK
+    // The session cookie will now carry the updated claims
     const sessionCookie = await adminAuth.createSessionCookie(idToken, {
       expiresIn: SESSION_DURATION_MS,
     });
@@ -64,6 +70,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Build response and set both HttpOnly cookies
     const response = NextResponse.json({ status: "ok" });
 
+    // B-01: Explicit cookie security attributes (declared for audit compliance)
+    // - httpOnly: true     → Blocks JS access (XSS mitigation)
+    // - secure: production → HTTPS-only in production
+    // - sameSite: 'lax'   → Allows top-level cross-site navigation (OAuth/redirect flows)
+    // - path: '/'         → Cookie valid across all routes
     const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",

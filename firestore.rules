@@ -50,7 +50,10 @@ service cloud.firestore {
     // =========================================================================
     match /profiles/{userId} {
       allow read:  if isSignedIn() && (isOwner(userId) || isAdmin());
-      allow write: if isSignedIn() && (isOwner(userId) || isAdmin());
+      allow write: if isSignedIn() && (
+        isAdmin() || 
+        (isOwner(userId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'teacher_status', 'cursos_comprados']))
+      );
     }
 
     // =========================================================================

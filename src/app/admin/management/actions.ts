@@ -11,7 +11,7 @@ import { revalidatePath } from 'next/cache'
 export async function createAdminUser(formData: {
     fullName: string
     email: string
-    password?: string
+    password: string
 }) {
     try {
         const session = await getSessionUser()
@@ -21,16 +21,23 @@ export async function createAdminUser(formData: {
 
         const { fullName, email, password } = formData
 
-        if (!fullName || !email) {
-            return { success: false, error: 'Nome e E-mail são obrigatórios.' }
+        if (!fullName || !email || !password) {
+            return { success: false, error: 'Nome, E-mail e Senha são campos obrigatórios.' }
         }
 
-        // 1. Criar usuário no Firebase Auth
-        // Se a senha não for fornecida, usamos uma temporária ou geramos uma.
-        // O requisito pede Senha Temporária.
+        // B-03: Validação de complexidade de senha (Mínimo 8 caracteres, letras e números)
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/
+        if (!passwordRegex.test(password)) {
+            return { 
+                success: false, 
+                error: 'A senha deve ter no mínimo 8 caracteres e conter pelo menos uma letra e um número.' 
+            }
+        }
+
+        // 1. Criar usuário no Firebase Auth (Removido hardcoded password Mudar@123)
         const authUser = await adminAuth.createUser({
             email,
-            password: password || 'Mudar@123',
+            password: password,
             displayName: fullName,
             emailVerified: true
         })

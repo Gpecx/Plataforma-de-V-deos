@@ -175,6 +175,7 @@ export async function processCheckoutAction(courseIds: string[], billingType: Bi
                     taxaPlataforma: platformShare,
                     repasseProfessor: teacherShare,
                     statusPagamento: totalAmount === 0 ? 'pago' : 'pendente',
+                    billingType: billingType,
                     dataCriacao: new Date()
                 })
             }
@@ -303,6 +304,10 @@ export async function updateProfile(prevState: any, formData: FormData) {
             updateData.photoURL = photoURL
         }
 
+        // A-03: Proteção contra manipulação de campos sensíveis
+        const sensitiveFields = ['role', 'teacher_status', 'cursos_comprados', 'asaas_customer_id']
+        sensitiveFields.forEach(field => delete updateData[field])
+
         await adminDb.collection('profiles').doc(user.uid).update(updateData)
 
         revalidatePath('/dashboard-student')
@@ -340,6 +345,10 @@ export async function updateSettings(prevState: any, formData: FormData) {
         if (cidade) updateData.cidade = cidade
         if (estado) updateData.estado = estado
         if (cep) updateData.cep = cep
+
+        // A-03: Proteção contra manipulação de campos sensíveis
+        const sensitiveFields = ['role', 'teacher_status', 'cursos_comprados', 'asaas_customer_id']
+        sensitiveFields.forEach(field => delete updateData[field])
 
         await adminDb.collection('profiles').doc(user.uid).set(updateData, { merge: true })
 
@@ -497,5 +506,82 @@ export async function getBoletoDataAction(paymentId: string) {
     } catch (error: any) {
         console.error('Erro ao buscar dados do Boleto:', error)
         return { success: false, error: error.message }
+    }
+}
+export async function getStudentStats() {
+    const user = await getAuthUser()
+    if (!user) return { success: false, error: 'Não autorizado' }
+
+    try {
+        const [profileDoc, enrollmentsSnapshot, lessonsSnapshot] = await Promise.all([
+            adminDb.collection('profiles').doc(user.uid).get(),
+            adminDb.collection('enrollments').where('user_id', '==', user.uid).get(),
+            adminDb.collection('lessons').get()
+        ])
+
+        const profileData = profileDoc.data() || {}
+        const enrollments = enrollmentsSnapshot.docs.map(doc => doc.data())
+        const allLessons = lessonsSnapshot.docs.map(doc => doc.data())
+
+        // 1. Cursos Concluídos
+        let concludedCount = 0
+        enrollments.forEach(enrollment => {
+            const courseId = enrollment.course_id
+            const courseLessons = allLessons.filter(l => l.course_id === courseId)
+            const completedCount = (enrollment.completed_lessons || []).length
+            
+            if (courseLessons.length > 0 && completedCount === courseLessons.length) {
+                concludedCount++
+            }
+        })
+
+        // 2. Tempo de Estudo
+        const totalStudySeconds = profileData.totalStudyTime || 0 // Supondo que esteja em segundos
+        const hours = Math.floor(totalStudySeconds / 3600)
+        const minutes = Math.floor((totalStudySeconds % 3600) / 60)
+
+        // 3. Streak (Dias Seguidos)
+        const loginHistory = profileData.loginHistory || [] // Array de strings ISO ou Timestamps
+        let streak = 0
+        
+        if (loginHistory.length > 0) {
+            // Converter para datas únicas (apenas ano-mes-dia) e ordenar descendente
+            const uniqueDates = Array.from(new Set(loginHistory.map((lh: any) => {
+                const date = typeof lh.toDate === 'function' ? lh.toDate() : new Date(lh)
+                return date.toISOString().split('T')[0] as string
+            }))).sort((a, b) => new Date(b as string).getTime() - new Date(a as string).getTime()) as string[]
+
+            const today = new Date().toISOString().split('T')[0]
+            const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
+
+            // Se o último acesso não foi hoje nem ontem, o streak quebrou (0)
+            if (uniqueDates[0] === today || uniqueDates[0] === yesterday) {
+                streak = 1
+                for (let i = 0; i < uniqueDates.length - 1; i++) {
+                    const current = new Date(uniqueDates[i])
+                    const next = new Date(uniqueDates[i+1])
+                    const diff = (current.getTime() - next.getTime()) / (1000 * 3600 * 24)
+                    
+                    if (diff === 1) {
+                        streak++
+                    } else {
+                        break
+                    }
+                }
+            }
+        }
+
+        return {
+            success: true,
+            data: {
+                concludedCount,
+                totalEnrollments: enrollments.length,
+                studyTime: { hours, minutes },
+                streak
+            }
+        }
+    } catch (error) {
+        console.error('Erro ao buscar estatísticas do aluno:', error)
+        return { success: false, error: 'Erro ao processar estatísticas' }
     }
 }

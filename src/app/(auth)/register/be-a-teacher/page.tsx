@@ -87,7 +87,6 @@ function BeATeacherForm() {
     }
 
     const handleFinish = () => {
-        console.log('Teacher Application Data:', answers)
         localStorage.setItem('powerplay_teacher_quiz', JSON.stringify(answers))
         const redirectUrl = initialEmail 
             ? `/register?type=teacher&email=${encodeURIComponent(initialEmail)}`

@@ -24,7 +24,23 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "img-src 'self' data: blob: https://sandbox.asaas.com https://www.asaas.com https://firebasestorage.googleapis.com https://*.googleusercontent.com https://images.unsplash.com *;",
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; connect-src 'self' *.googleapis.com *.firebaseapp.com *.mux.com *.asaas.com; frame-src 'self' *.mux.com *.asaas.com; img-src 'self' data: blob: *.googleusercontent.com *.asaas.com *.googleapis.com images.unsplash.com; style-src 'self' 'unsafe-inline'; font-src 'self' data:; media-src 'self' blob: *.mux.com; object-src 'none'; base-uri 'self';",
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'strict-origin-when-cross-origin',
           },
         ],
       },

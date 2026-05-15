@@ -62,16 +62,32 @@ import TagInput from '@/components/ui/TagInput'
 import { Quiz, Question } from '@/lib/types/quiz'
 
 const CATEGORIES = [
-    'Engenharia Elétrica',
-    'Engenharia Civil',
-    'Engenharia Mecânica',
-    'Tecnologia da Informação',
-    'Desenvolvimento Web',
+    'Cibersegurança',
+    'Ciência de Dados',
+    'Cloud Computing',
     'Design',
-    'Marketing Digital',
-    'Negócios',
+    'Desenvolvimento Web',
+    'Edição de Vídeo',
+    'Empreendedorismo',
+    'Engenharia Civil',
+    'Engenharia Elétrica',
+    'Engenharia Mecânica',
+    'Estilo de Vida',
     'Finanças',
+    'Fotografia',
+    'Gastronomia',
+    'Gestão de Projetos',
+    'Idiomas',
+    'Inteligência Artificial',
+    'Liderança e Soft Skills',
+    'Marketing Digital',
+    'Motion Design',
+    'Música',
+    'Negócios',
     'Saúde',
+    'Tecnologia da Informação',
+    'UI/UX Design',
+    'Vendas de Alta Performance',
     'Outros'
 ]
 
@@ -831,8 +847,19 @@ export default function CourseBuilder() {
                                         setModules(prev => prev.map(m => m.id === module.id ? { ...m, lessons: [...m.lessons, newLesson] } : m))
                                     }}
                                     onDeleteLesson={(lessonId) => {
-                                        setModules(prev => prev.map(m => m.id === module.id ? { ...m, lessons: m.lessons.filter(l => l.id !== lessonId) } : m))
-                                        if (selectedLesson?.id === lessonId) setSelectedLesson(null)
+                                        if (lessonId.startsWith('new-')) {
+                                            setModules(prev => prev.map(m => m.id === module.id ? { ...m, lessons: m.lessons.filter(l => l.id !== lessonId) } : m))
+                                            if (selectedLesson?.id === lessonId) setSelectedLesson(null)
+                                        } else {
+                                            setModules(prev => prev.map(m => m.id === module.id ? {
+                                                ...m,
+                                                lessons: m.lessons.map(l => l.id === lessonId ? { ...l, status: 'SOLICITADO_EXCLUSAO' } : l)
+                                            } : m))
+                                            if (selectedLesson?.id === lessonId) {
+                                                setSelectedLesson(prev => prev ? { ...prev, status: 'SOLICITADO_EXCLUSAO' } : null)
+                                            }
+                                            toast.info("Remoção solicitada. Salve o projeto para confirmar.")
+                                        }
                                     }}
                                     onReorderLessons={(e) => handleLessonReorder(module.id, e)}
                                     onLessonTitleChange={(lessonId, newTitle) => {

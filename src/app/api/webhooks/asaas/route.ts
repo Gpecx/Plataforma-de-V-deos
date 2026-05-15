@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb } from '@/lib/firebase-admin'
 import { FieldValue } from 'firebase-admin/firestore'
+import { getPayment } from '@/services/asaasService'
 
 interface AsaasWebhookPayload {
     event: string
@@ -33,6 +34,13 @@ export async function POST(request: NextRequest) {
         const { event, payment } = payload
 
         if (event === 'PAYMENT_RECEIVED' || event === 'PAYMENT_CONFIRMED') {
+            // A-04: Validação cruzada com a API do Asaas para garantir a integridade do pagamento
+            const asaasPayment = await getPayment(payment.id)
+            if (!['RECEIVED', 'CONFIRMED'].includes(asaasPayment.status)) {
+                console.error(`Webhook Asaas: Status divergente na API (${asaasPayment.status}) para o evento ${event}`)
+                return NextResponse.json({ error: 'Integrity check failed' }, { status: 400 })
+            }
+
             // 1. Busca todas as linhas de vendas_logs com este paymentId (pode ser compra multi-curso)
             const vendasLogsQuery = await adminDb.collection('vendas_logs')
                 .where('paymentId', '==', payment.id)
@@ -77,15 +85,9 @@ export async function POST(request: NextRequest) {
                         updated_at: FieldValue.serverTimestamp(),
                     })
                 } else {
-                    // Fallback: cria enrollment se não existir (edge case)
-                    const newEnrollRef = adminDb.collection('enrollments').doc()
-                    batch.set(newEnrollRef, {
-                        user_id: userId,
-                        course_id: cursoId,
-                        payment_confirmed: true,
-                        payment_id: payment.id,
-                        created_at: FieldValue.serverTimestamp(),
-                    })
+                    // A-04: Removida a criação automática de enrollment (fallback inseguro).
+                    // As matrículas devem ser pré-criadas no fluxo de checkout legítimo.
+                    console.warn(`Webhook Asaas: Tentativa de confirmar matrícula inexistente para user ${userId} e curso ${cursoId}`)
                 }
             }
 

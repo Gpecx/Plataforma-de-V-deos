@@ -43,7 +43,6 @@ function SucessoContent() {
         if (!hasHydrated) return
         
         if (!paymentId) {
-            console.warn("DEBUG_SUCCESS_PAGE: paymentId is missing, redirecting...")
             router.push('/course')
             return
         }
@@ -53,7 +52,6 @@ function SucessoContent() {
         async function loadData() {
             try {
                 if (checkoutResult && checkoutResult.paymentId === validPaymentId) {
-                    console.log("DEBUG_SUCCESS_STORE_FOUND:", checkoutResult)
                     
                     if (checkoutResult.pixData) {
                         setPixData(checkoutResult.pixData)
@@ -67,7 +65,6 @@ function SucessoContent() {
                     }
                 }
 
-                console.log("DEBUG_SUCCESS_FETCHING_VIA_ACTIONS...")
                 const paymentRes = await getPaymentStatusAction(validPaymentId)
                 if (!paymentRes.success || !paymentRes.data) {
                     throw new Error(paymentRes.error || "Dados do pagamento não encontrados")

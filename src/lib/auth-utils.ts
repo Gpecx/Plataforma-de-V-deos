@@ -32,7 +32,9 @@ export async function getServerSession(): Promise<UserSession | null> {
         const profileDoc = await adminDb.collection('profiles').doc(uid).get();
         const profileData = profileDoc.data();
         
-        const role = tokenRole || (profileData?.role as UserRole) || 'student';
+        // A-03: EXCLUSIVE source of truth: Custom Claims.
+        // Do not use profileData?.role as fallback for authorization.
+        const role = (tokenRole as UserRole) || 'student';
 
         return {
             uid,

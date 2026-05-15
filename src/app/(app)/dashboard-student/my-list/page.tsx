@@ -132,11 +132,8 @@ export default async function MyListPage() {
                                                 </div>
                                             ) : (
                                                 <>
-                                                    <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-4 py-2 rounded-xl z-10 border border-white/20">
-                                                        <span className="text-[9px] font-bold text-white tracking-widest uppercase flex items-center gap-2">
-                                                            <Heart size={12} className="fill-[#00c853] text-[#00c853]" />
-                                                            Favorito
-                                                        </span>
+                                                    <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md w-8 h-8 flex items-center justify-center rounded-xl z-10 border border-white/20">
+                                                        <Heart size={14} className="fill-[#00c853] text-[#00c853]" />
                                                     </div>
                                                     <div className="absolute top-4 right-4 z-10">
                                                         <AddToCartButton 

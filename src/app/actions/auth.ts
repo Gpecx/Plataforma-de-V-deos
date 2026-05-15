@@ -25,7 +25,9 @@ export async function getSessionUser() {
             return null;
         }
 
-        const activeRole = tokenRole || profileData?.role || 'student'
+        // [Industrial Hardening]: Firestore Profile is the EXCLUSIVE source of truth for Roles.
+        // This ensures that promotions/demotions are reflected immediately after the profile update.
+        const activeRole = profileData?.role || 'student'
 
         return {
             uid: uid,

@@ -82,12 +82,6 @@ export default function PagamentoPage() {
         const courseIds = items.map(item => item.id)
         const calculatedTotal = getTotal()
         
-        console.log("DEBUG_HANDLE_PAYMENT:", {
-            courseIds,
-            totalFromGetTotal: calculatedTotal,
-            items: items.map(i => ({ id: i.id, title: i.title, price: i.price }))
-        })
-
         setIsProcessing(true)
 
         try {
@@ -115,7 +109,6 @@ export default function PagamentoPage() {
                 setCheckoutResult(result.data)
             }
 
-            console.log("DEBUG_CHECKOUT_RESULT:", JSON.stringify(result))
 
             if (result.isFree) {
                 router.push('/dashboard-student')
@@ -125,7 +118,6 @@ export default function PagamentoPage() {
             if (result.data) {
                 const { paymentId, billingType, invoiceUrl } = result.data
 
-                console.log("DEBUG_REDIRECT:", { paymentId, billingType, invoiceUrl })
 
                 if (billingType === 'PIX' || billingType === 'BOLETO') {
                     router.push(`/pagamento/sucesso?id=${paymentId}&type=${billingType}`)

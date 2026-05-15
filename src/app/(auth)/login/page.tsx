@@ -224,7 +224,7 @@ function LoginContent() {
                 <div className="w-full max-w-[450px] flex flex-col items-center">
                     {/* Logo Section (Smaller and closer) */}
                     <div className="mb-4 text-center">
-                        <Logo variant="vertical" className="scale-100 md:scale-110 mb-2" href={null} />
+                        <Logo variant="vertical" className="scale-100 md:scale-110 mb-2" href="/" />
                         <div className="space-y-1">
                             <h2 className="text-2xl md:text-3xl font-bold tracking-tighter uppercase text-[var(--foreground)]">
                                 Área de Acesso

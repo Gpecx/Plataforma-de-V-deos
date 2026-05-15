@@ -4,25 +4,23 @@ import { adminAuth } from '@/lib/firebase-admin'
 import { validateAndGetCertificate } from '@/lib/certificates'
 import { generatePDF } from '@/lib/pdf-generator'
 
-async function getAuthUser() {
-  const cookieStore = cookies()
-  const token = (await cookieStore).get('session')?.value
-  if (!token) return null
-
-  try {
-    return await adminAuth.verifySessionCookie(token, true)
-  } catch (error) {
-    return null
-  }
-}
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = await getAuthUser()
-    if (!user) {
+    const cookieStore = await cookies()
+    const token = cookieStore.get('session')?.value
+
+    if (!token) {
+      return new NextResponse('Unauthorized', { status: 401 })
+    }
+
+    let user;
+    try {
+      user = await adminAuth.verifySessionCookie(token, true)
+    } catch (error) {
       return new NextResponse('Unauthorized', { status: 401 })
     }
 
@@ -38,11 +36,21 @@ export async function GET(
     const protocol = host.includes('localhost') ? 'http' : 'https'
     const secret = process.env.CERTIFICATE_RENDER_SECRET
     
-    const renderUrl = `${protocol}://${host}/certificate-render/${courseId}?userId=${user.uid}&secret=${secret}`
+    // A-01: Remove userId from query string to prevent IDOR
+    const renderUrl = `${protocol}://${host}/certificate-render/${courseId}?secret=${secret}`
     
-    console.log('Generating high-fidelity PDF via Playwright at:', renderUrl)
+    // A-02: Secure logging - do not log the full URL (contains secret)
+    console.log('Gerando PDF para curso:', courseId, 'usuário:', user.uid)
     
-const pdfBuffer = await generatePDF(renderUrl)
+    // Pass session cookie to Playwright so it can authenticate as the user
+    const domain = host.split(':')[0]
+    const pdfBuffer = await generatePDF(renderUrl, [
+      {
+        name: 'session',
+        value: token,
+        domain: domain,
+      }
+    ])
  
     const blob = new Blob([pdfBuffer as unknown as BlobPart], { type: 'application/pdf' })
 
