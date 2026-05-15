@@ -5,7 +5,7 @@ import { jwtVerify, createRemoteJWKSet } from 'jose'
 // M-02: Rate Limiting System (Industrial Hardening)
 // =========================================================================
 const RATE_LIMIT_WINDOW = 60 * 1000 // 1 minute
-const MAX_REQUESTS = 10 // Max 10 requests per window
+const MAX_REQUESTS = 60 // Max 10 requests per window
 const rateLimitMap = new Map<string, { count: number; lastReset: number }>()
 
 function isRateLimited(ip: string): boolean {
