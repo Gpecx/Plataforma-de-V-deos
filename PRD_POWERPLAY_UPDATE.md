@@ -1,93 +1,68 @@
-# PRD — PowerPlay Platform: Release de Estabilidade e Segurança Avançada
-**Documento:** Product Requirements Document (PRD)  
-**Versão:** 3.0  
-**Status:** Revisado  
-**Data de Emissão:** 29 de Abril de 2026  
-**Responsável Técnico:** Equipe PowerPlay  
-**Projeto:** `plataforma-cursos`
+# PRD PowerPlay - Health Check & Update
+**Data:** 15 de Maio de 2026
+**Status:** Auditoria Técnica Concluída
+**Responsável:** Lead Engineer / Product Manager
 
 ---
 
-## 1. Visão Geral do Produto
+## 1. Dashboard de Progresso do Projeto
 
-A **PowerPlay** é uma plataforma SaaS de LMS (Learning Management System) de alta performance. Esta versão 3.0 marca a transição de uma fase de refatoração visual para uma fase de **Hardening e Estabilidade Crítica**, consolidando mecanismos de segurança em tempo real e garantindo a integridade financeira das transações.
-
-O objetivo desta release é assegurar que a plataforma seja resiliente a fraudes, rápida na emissão de documentos oficiais e visualmente impecável sob o pilar **Industrial Clean**.
-
----
-
-## 2. Hardening e Segurança em Tempo Real (Novo)
-
-### 2.1 Detecção de Banimento Instantâneo
-Implementação do hook `useAuthGuard` integrado ao `AuthProvider`. 
-- **Mecanismo:** Utiliza `onSnapshot` apontando para `/profiles/{uid}`.
-- **Ação Punitiva:** Ao detectar o status `banido`, o sistema dispara imediatamente `firebase.auth().signOut()`, limpa cookies/sessionStorage e redireciona para `/login?error=account_suspended`.
-- **Objetivo:** Impedir que usuários banidos continuem navegando em abas já abertas.
-
-### 2.2 Refinamento de Privilégios (Firestore Rules)
-Aplicação rigorosa do princípio de menor privilégio para mitigar o incidente **INC-009**:
-- Bloqueio de escritas em campos sensíveis (ex: `role`, `balance`) via Client SDK.
-- Validação de ownership em todas as coleções de progresso e certificados.
+| Sprint / Fase | Funcionalidade | Status | Validação Técnica |
+| :--- | :--- | :--- | :--- |
+| **Fase 1: Core** | Autenticação & Session Lock | ✅ CONCLUÍDO | UUID de sessão persistido no Firestore e validado no SSR. |
+| **Fase 1: Core** | Motor Financeiro (Asaas Split) | ✅ CONCLUÍDO | Split dinâmico implementado na Action `processAsaasCheckout`. |
+| **Fase 1: Core** | Bouncer de Conteúdo | ✅ CONCLUÍDO | Redirect imperativo em `/dashboard-student/course/[id]`. |
+| **Fase 2: Teacher** | Onboarding (Subcontas Asaas) | ✅ CONCLUÍDO | Action `createTeacherWallet` operacional para admins. |
+| **Fase 2: Teacher** | Mux Direct Upload | ✅ CONCLUÍDO | URLs assinadas geradas via SDK Mux para instrutores. |
+| **Fase 2: Teacher** | Gestão de Módulos (Dnd) | ✅ CONCLUÍDO | Interface `CourseBuilder` com reordenamento dnd-kit. |
+| **Fase 2: Teacher** | Sincronia de Progresso | ✅ CONCLUÍDO | Tracking via `saveLessonProgress` no `ClassroomPage`. |
+| **Fase 3: IA** | RAG com Vertex AI | ⏳ PENDENTE | Arquitetura definida, aguardando implementação de embeddings. |
 
 ---
 
-## 3. Checkout e Fluxo Financeiro
+## 2. Análise de Débito Técnico (Mocks Detectados)
 
-### 3.1 Integração Asaas e Matrícula Segura
-Correção do fluxo de aquisição para evitar o risco de "matrícula fantasma" antes da confirmação do pagamento:
-- **Fluxo Atualizado:** O `batch.commit()` que cria o documento de matrícula (`enrollments`) agora é disparado **apenas após** a validação de sucesso do webhook do Asaas ou confirmação imediata de saldo.
-- **Sincronização:** Implementação de polling/webhook para garantir que o aluno só visualize o curso no dashboard após o status de pagamento ser `RECEIVED` ou `CONFIRMED`.
+Identificamos os seguintes componentes que ainda operam com dados estáticos ou lógicas de estimativa:
 
----
-
-## 4. Sistema de Certificados
-
-### 4.1 Tecnologia de Emissão
-Transição da tecnologia de geração de PDF para garantir compatibilidade com ambientes serverless (Vercel):
-- **Método Primário:** Client-side rendering via `html2canvas` + `jsPDF`.
-- **Racional:** Evita dependências pesadas de fontes no servidor e problemas de timeout em funções lambda.
-
-### 4.2 Segurança e Integridade
-- **CERTIFICATE_RENDER_SECRET:** Implementação de token de segurança para proteger a rota de renderização, impedindo que usuários acessem templates brutos de certificados.
-- **Persistência de Dados:** O campo `teacherName` agora é capturado e persistido no momento da conclusão do curso no objeto `concluded_courses`, garantindo que certificados antigos mantenham o nome do instrutor da época, mesmo que o instrutor altere seu perfil posteriormente.
+1.  **Classroom Q&A (`ClassroomTabs.tsx`)**:
+    *   `MOCK_COMMENTS` ainda presente no código.
+    *   Flag `SHOW_QA` definida como `false` por padrão.
+2.  **Materiais de Aula**:
+    *   Links de download de PDFs e código fonte marcados como "Em Breve".
+3.  **Estatísticas do Instrutor (`instructor.ts`)**:
+    *   `totalReviews`: Calculado como estimativa (`totalStudents * 0.4`).
+    *   `averageRating`: Valor estático `4.8` (Base PowerPlay).
+4.  **Certificados**:
+    *   Lógica de emissão funcional, mas o layout do PDF/Imagem final precisa de refinamento estético premium.
 
 ---
 
-## 5. Design System: Industrial Clean
+## 3. Especificação Sprint 3 - Inteligência Artificial (Vertex AI)
 
-Mantemos a diretriz visual austera e profissional:
-- **Bordas:** `rounded-none` em todos os botões, inputs e cards de aplicação.
-- **Tipografia:** `Montserrat` como fonte base. Títulos com `font-black` (900) proibidos; limite máximo de `font-extrabold` (800).
-- **Cores:** Fundo branco puro (`#FFFFFF`) na área logada e Dark Navy (`#061629`) na Landing Page.
-- **Branding:** Removidas 100% das referências ao legado "SPCS". O asset `SPCS academy 2.png` foi oficialmente substituído.
+A arquitetura RAG (Retrieval-Augmented Generation) será implementada para permitir que os alunos tirem dúvidas baseadas especificamente no conteúdo do curso.
 
----
-
-## 6. Log de Incidentes e Estabilidade
-
-### 6.1 Histórico de Estabilidade (Resolvidos)
-| ID | Incidente | Resolução |
-|---|---|---|
-| **INC-005** | Vazamento de Tema | Isolamento via `.theme-clean-white` concluído. |
-| **INC-007** | Falha de Upload Mux | Refatoração do processamento de chunks concluída. |
-| **INC-008** | Inconsistência de Preço | Lock de UI em cursos gratuitos implementado. |
-| **INC-009** | Bypass de Matrícula | Migração do commit para pós-pagamento. |
-
-### 6.2 Riscos e Backlog (Abertos)
-| ID | Risco | Status | Plano de Ação |
-|---|---|---|---|
-| **INC-006** | Playwright Timeouts | Aberto | Otimizar headless browser para PDF. |
-| **INC-010** | Latência de Busca | Backlog | Implementar Algolia ou Firestore Indexing. |
+### Arquitetura Proposta:
+1.  **Ingestão**:
+    *   Extração de transcrições do Mux (Webhooks).
+    *   Processamento de PDFs de apoio via Document AI.
+2.  **Vetorização**:
+    *   Geração de Embeddings usando o modelo `text-multilingual-embedding-002` do Vertex AI.
+    *   Armazenamento em **Firestore Vector Search** (Preview) ou **Pinecone**.
+3.  **Interface de Chat**:
+    *   Componente `AIInstructorChat` integrado à `ClassroomTabs`.
+    *   Prompt System: "Você é o [Nome do Professor]. Responda apenas com base nas transcrições e materiais fornecidos. Mantenha o tom de voz: [Tom Definido no Perfil]."
 
 ---
 
-## 7. Aprovação e Versionamento
+## 4. Checklist de Segurança & Hardening
 
-| Versão | Data | Status | Mudanças |
-|---|---|---|---|
-| 1.0 | 06/04/26 | Depreciado | Versão inicial. |
-| 2.0 | 07/04/26 | Depreciado | Refatoração visual Montserrat. |
-| **3.0** | **29/04/26** | **Ativo** | Hardening, Asaas, Certificados Vercel. |
+*   [x] **B-01 (Session Guard)**: Cookies configurados com `HttpOnly`, `SameSite=Lax` e `Secure` (em prod).
+*   [x] **Pirataria (Mux Signed URLs)**: Implementado. Vídeos de aula não são acessíveis sem token JWT de curta duração (1h).
+*   [x] **Session Concurrency**: Implementado. O login em um novo dispositivo invalida o `active_session_id` do dispositivo anterior.
+*   [x] **Rate Limiting**: Implementado no `middleware.ts` para rotas de auth e vídeo (Max 10 req/min).
+*   [ ] **IDOR Check**: Pendente auditoria profunda nas rotas de API que recebem `userId` no body em vez de usar a sessão.
 
 ---
-*Fim do Documento*
+
+> [!IMPORTANT]
+> O projeto está em **estado saudável** para transição para a Fase 3. O foco imediato deve ser a substituição dos Mocks de Q&A e o início da pipeline de dados para o Vertex AI.
