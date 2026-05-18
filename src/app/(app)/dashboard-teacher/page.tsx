@@ -2,10 +2,27 @@ import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Plus, Users, Star, DollarSign, TrendingUp, Edit, MessageSquare } from 'lucide-react'
+import { Plus, DollarSign, TrendingUp, Edit, MessageSquare } from 'lucide-react'
 import { SalesChart } from './components/SalesChart'
 import { parseFirebaseDate } from '@/lib/date-utils'
-import { getTeacherRating } from '@/app/actions/evaluation-actions'
+import { InstructorStats } from './components/InstructorStats'
+
+interface CourseData {
+    id: string
+    title: string
+    price?: number
+    image_url?: string
+    category?: string
+    tag?: string
+    teacher_id: string
+}
+
+interface EnrollmentData {
+    id: string
+    course_id: string
+    user_id: string
+    created_at: Date
+}
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -19,48 +36,48 @@ export default async function TeacherDashboard() {
     let user;
     try {
         user = await adminAuth.verifySessionCookie(token, true)
-    } catch (error) {
+    } catch {
         redirect('/login')
     }
 
-    const [profileDoc, coursesSnapshot, ratingData] = await Promise.all([
+    const [profileDoc, coursesSnapshot] = await Promise.all([
         adminDb.collection('profiles').doc(user.uid).get(),
-        adminDb.collection('courses').where('teacher_id', '==', user.uid).get(),
-        getTeacherRating(user.uid)
+        adminDb.collection('courses').where('teacher_id', '==', user.uid).get()
     ])
 
     const profile = profileDoc.data()
     const courses = coursesSnapshot.docs.map(doc => ({
         id: doc.id,
-        ...doc.data()
-    })) as any[]
+        title: doc.data().title || '',
+        price: doc.data().price,
+        image_url: doc.data().image_url,
+        category: doc.data().category,
+        tag: doc.data().tag,
+        teacher_id: doc.data().teacher_id || ''
+    })) as CourseData[]
 
     const courseIds = courses.map(c => c.id)
     const coursesPriceMap = new Map(courses.map(c => [c.id, Number(c.price) || 0]))
 
     const now = new Date()
     const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000))
-    const todayStart = new Date(now.setHours(0, 0, 0, 0))
+    const sevenDaysAgo = new Date(now.getTime() - (7 * 24 * 60 * 60 * 1000))
+    const todayStart = new Date(new Date(now).setHours(0, 0, 0, 0))
 
-    let enrollments: any[] = []
+    let enrollments: EnrollmentData[] = []
     if (courseIds.length > 0) {
         const enrollmentsSnapshot = await adminDb.collection('enrollments')
             .where('course_id', 'in', courseIds)
             .get()
         enrollments = enrollmentsSnapshot.docs.map(doc => ({
             id: doc.id,
-            ...doc.data(),
+            course_id: doc.data().course_id || '',
+            user_id: doc.data().user_id || '',
             created_at: parseFirebaseDate(doc.data().created_at) || new Date()
         }))
     }
 
-    const weeklySales = enrollments.filter(e => e.created_at >= new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
-    const courseStudentCountMap = enrollments.reduce((acc, e) => {
-        acc[e.course_id] = (acc[e.course_id] || 0) + 1
-        return acc
-    }, {} as Record<string, number>)
-
-    const totalStudents = new Set(enrollments.map(e => e.user_id)).size
+    const weeklySales = enrollments.filter(e => e.created_at >= sevenDaysAgo)
     const monthlyRevenue = enrollments.filter(e => e.created_at >= thirtyDaysAgo).reduce((acc, e) => acc + (coursesPriceMap.get(e.course_id) || 0), 0)
     const todaySales = enrollments.filter(e => e.created_at >= todayStart).reduce((acc, e) => acc + (coursesPriceMap.get(e.course_id) || 0), 0)
 
@@ -75,10 +92,8 @@ export default async function TeacherDashboard() {
         return { name: day.charAt(0).toUpperCase() + day.slice(1), vendas: salesForDay.reduce((acc, s) => acc + (coursesPriceMap.get(s.course_id) || 0), 0) }
     })
 
-    const metrics = [
+    const financialMetrics = [
         { label: 'Receita Mensal', value: `R$ ${monthlyRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: DollarSign, color: 'text-[#1D5F31]' },
-        { label: 'Total Alunos', value: totalStudents.toString(), icon: Users, color: 'text-blue-500' },
-        { label: 'Avaliação Média', value: ratingData.success ? (ratingData.rating > 0 ? ratingData.rating.toFixed(1) : '0.0') : '0.0', icon: Star, color: 'text-yellow-500', subtext: ratingData.success && ratingData.count > 0 ? `${ratingData.count} avaliações` : '' },
         { label: 'Vendas Hoje', value: `R$ ${todaySales.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: TrendingUp, color: 'text-purple-500' },
     ]
 
@@ -101,20 +116,23 @@ export default async function TeacherDashboard() {
             </header>
 
             <div className="px-8 space-y-16">
-                {/* Métricas Principais */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                    {metrics.map((metric, idx) => (
-                        <div key={idx} className="bg-white p-8 rounded-[32px] border border-black/20 hover:border-black transition-all shadow-sm hover:shadow-xl group">
-                            <div className={`p-4 w-14 h-14 rounded-2xl bg-slate-50 border border-black/20 mb-6 flex items-center justify-center transition-transform group-hover:scale-110 ${metric.color}`}>
-                                <metric.icon size={24} />
+                {/* Estatísticas e Métricas */}
+                <div className="space-y-8">
+                    {/* Linha 1: Financeiro (Estático/SSG) */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {financialMetrics.map((metric, idx) => (
+                            <div key={idx} className="bg-white p-8 rounded-lg border border-black/20 hover:border-black transition-all shadow-sm hover:shadow-xl group">
+                                <div className={`p-4 w-14 h-14 rounded-lg bg-slate-50 border border-black/20 mb-6 flex items-center justify-center transition-transform group-hover:scale-110 ${metric.color}`}>
+                                    <metric.icon size={24} />
+                                </div>
+                                <p className="text-slate-900 text-[10px] font-bold uppercase tracking-[3px] mb-1">{metric.label}</p>
+                                <h3 className="text-3xl font-bold tracking-tighter text-slate-900">{metric.value}</h3>
                             </div>
-                            <p className="text-slate-900 text-[10px] font-bold uppercase tracking-[3px] mb-1">{metric.label}</p>
-                            <h3 className="text-3xl font-bold tracking-tighter text-slate-900">{metric.value}</h3>
-                            {'subtext' in metric && metric.subtext && (
-                                <p className="text-[9px] text-slate-500 font-medium mt-1">{metric.subtext}</p>
-                            )}
-                        </div>
-                    ))}
+                        ))}
+                    </div>
+
+                    {/* Linha 2: Estatísticas Reais de Cursos & Reviews (Carregamento Assíncrono com Skeletons) */}
+                    <InstructorStats />
                 </div>
 
                 {/* Gráfico de Desempenho */}

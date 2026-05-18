@@ -34,23 +34,21 @@ export async function submitEvaluation(courseId: string, rating: number, comment
             return { success: false, error: 'Curso não encontrado.' }
         }
 
-        // Verifica se já existe avaliação deste usuário para este curso
-        const existingEvalSnapshot = await adminDb.collection('evaluations')
-            .where('course_id', '==', courseId)
-            .where('student_id', '==', user.uid)
-            .get()
+        // Caminho único e previsível para garantir unicidade absoluta física no banco
+        const docId = `${user.uid}_${courseId}`
+        const evalDocRef = adminDb.collection('evaluations').doc(docId)
+        const evalDoc = await evalDocRef.get()
 
-        if (!existingEvalSnapshot.empty) {
-            // Atualiza avaliação existente
-            const existingEvalDoc = existingEvalSnapshot.docs[0]
-            await adminDb.collection('evaluations').doc(existingEvalDoc.id).update({
+        if (evalDoc.exists) {
+            // Atualiza avaliação existente fazendo merge
+            await evalDocRef.set({
                 rating,
                 comment: comment || '',
                 updated_at: new Date()
-            })
+            }, { merge: true })
         } else {
-            // Cria nova avaliação
-            await adminDb.collection('evaluations').add({
+            // Cria nova avaliação com ID único
+            await evalDocRef.set({
                 course_id: courseId,
                 teacher_id: courseData.teacher_id,
                 student_id: user.uid,
@@ -72,6 +70,35 @@ export async function submitEvaluation(courseId: string, rating: number, comment
     }
 }
 
+export async function getUserCourseEvaluation(courseId: string) {
+    try {
+        const user = await getSessionUser()
+        if (!user || !user.uid) {
+            return { success: false, error: 'Usuário não autenticado.' }
+        }
+
+        const docId = `${user.uid}_${courseId}`
+        const evalDoc = await adminDb.collection('evaluations').doc(docId).get()
+
+        if (evalDoc.exists) {
+            const data = evalDoc.data()
+            return { 
+                success: true, 
+                evaluation: {
+                    rating: Number(data?.rating) || 0,
+                    comment: data?.comment || '',
+                    created_at: data?.created_at?.toDate ? data.created_at.toDate().toISOString() : null
+                } 
+            }
+        }
+
+        return { success: true, evaluation: null }
+    } catch (error) {
+        console.error("Error getting user course evaluation:", error)
+        return { success: false, error: 'Falha ao buscar avaliação existente.' }
+    }
+}
+
 export async function getTeacherRating(teacherId: string) {
     try {
         const evaluationsSnapshot = await adminDb.collection('evaluations')
@@ -83,7 +110,7 @@ export async function getTeacherRating(teacherId: string) {
         }
 
         const evaluations = evaluationsSnapshot.docs.map(doc => doc.data())
-        const totalRating = evaluations.reduce((sum: number, e: any) => sum + (e.rating || 0), 0)
+        const totalRating = evaluations.reduce((sum: number, e: { rating?: number }) => sum + (e.rating || 0), 0)
         const average = totalRating / evaluations.length
 
         return { 

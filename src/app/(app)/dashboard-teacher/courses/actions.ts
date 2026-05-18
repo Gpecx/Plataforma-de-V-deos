@@ -417,3 +417,70 @@ export async function cancelLessonDeletionRequest(lessonId: string, courseId: st
         return { error: 'Falha ao cancelar solicitação.' }
     }
 }
+
+/**
+ * Server Action segura para buscar estatísticas reais do instrutor do Firestore
+ */
+export async function getInstructorStatsAction() {
+    const user = await getAuthUser()
+    if (!user) return { error: "Não autorizado" }
+
+    try {
+        // Valida se o usuário tem a role teacher ou admin no profile
+        const profileDoc = await adminDb.collection('profiles').doc(user.uid).get()
+        const profileData = profileDoc.data()
+        
+        if (profileData?.role !== 'teacher' && profileData?.role !== 'admin') {
+            return { error: "Não autorizado. Acesso restrito a professores." }
+        }
+
+        // 1. Busca todos os cursos deste instrutor
+        const coursesSnap = await adminDb.collection('courses')
+            .where('teacher_id', '==', user.uid)
+            .get()
+        
+        const courseIds = coursesSnap.docs.map(doc => doc.id)
+        const totalCourses = courseIds.length
+
+        if (totalCourses === 0) {
+            return { totalStudents: 0, totalReviews: 0, totalCourses: 0, averageRating: 0.0 }
+        }
+
+        // 2. Calcula o total de alunos matriculados nos cursos
+        let totalStudents = 0
+        for (let i = 0; i < courseIds.length; i += 30) {
+            const chunk = courseIds.slice(i, i + 30)
+            const enrollmentsSnap = await adminDb.collection('enrollments')
+                .where('course_id', 'in', chunk)
+                .count()
+                .get()
+            totalStudents += enrollmentsSnap.data().count
+        }
+
+        // 3. Calcula total de reviews e média aritmética de ratings a partir da coleção real 'evaluations'
+        const evaluationsSnap = await adminDb.collection('evaluations')
+            .where('teacher_id', '==', user.uid)
+            .get()
+
+        const totalReviews = evaluationsSnap.size
+        let sumRatings = 0
+
+        evaluationsSnap.docs.forEach(doc => {
+            const data = doc.data()
+            // Parsing robusto e defensivo caso venha como string
+            sumRatings += (Number(data.rating) || 0)
+        })
+
+        const averageRating = totalReviews > 0 ? Math.round((sumRatings / totalReviews) * 10) / 10 : 0.0
+
+        return {
+            totalStudents,
+            totalReviews,
+            totalCourses,
+            averageRating
+        }
+    } catch (error) {
+        console.error('getInstructorStatsAction Error:', error)
+        return { error: 'Falha ao processar estatísticas do instrutor.' }
+    }
+}

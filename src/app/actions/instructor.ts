@@ -53,14 +53,10 @@ export async function getInstructorStats(instructorId: string) {
         const totalCourses = courseIds.length
 
         if (totalCourses === 0) {
-            return { totalStudents: 0, totalReviews: 0, totalCourses: 0, averageRating: 0 }
+            return { totalStudents: 0, totalReviews: 0, totalCourses: 0, averageRating: 0.0 }
         }
 
         // 2. Calcula total de alunos (enrollments)
-        // Nota: O Firebase tem limite de 30 no 'in' operator. 
-        // Se houverem muitos cursos, precisaremos de múltiplas queries ou outra estratégia.
-        // Para este MVP, vamos assumir que o professor não tem centenas de cursos ou fracionar.
-        
         let totalStudents = 0
         // Fracionando se necessário (limite do 'in' é 30)
         for (let i = 0; i < courseIds.length; i += 30) {
@@ -72,19 +68,31 @@ export async function getInstructorStats(instructorId: string) {
             totalStudents += enrollmentsSnap.data().count
         }
 
-        // 3. Avaliações (Mock/Future-proofing)
-        // Como o sistema ainda não tem coleção de reviews robusta, retornamos valores base
-        const averageRating = 4.8 // Base PowerPlay
+        // 3. Avaliações Reais agregadas do Firestore (coleção 'evaluations')
+        const evaluationsSnap = await adminDb.collection('evaluations')
+            .where('teacher_id', '==', instructorId)
+            .get()
+
+        const totalReviews = evaluationsSnap.size
+        let sumRatings = 0
+
+        evaluationsSnap.docs.forEach(doc => {
+            const data = doc.data()
+            // Parsing robusto e defensivo caso venha como string
+            sumRatings += (Number(data.rating) || 0)
+        })
+
+        const averageRating = totalReviews > 0 ? Math.round((sumRatings / totalReviews) * 10) / 10 : 0.0
 
         return {
             totalStudents,
-            totalReviews: Math.floor(totalStudents * 0.4), // Estimativa de 40% de reviews
+            totalReviews,
             totalCourses,
             averageRating
         }
     } catch (error) {
         console.error('getInstructorStats Error:', error)
-        return { totalStudents: 0, totalReviews: 0, totalCourses: 0, averageRating: 0 }
+        return { totalStudents: 0, totalReviews: 0, totalCourses: 0, averageRating: 0.0 }
     }
 }
 
