@@ -190,7 +190,7 @@ export default function TeacherSettingsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-transparent p-8 md:p-12 space-y-16 font-montserrat border-t border-black pb-32">
+        <div className="min-h-screen bg-transparent p-8 md:p-12 space-y-16 font-montserrat border-t border-black/20 pb-32">
             <header className="max-w-6xl mx-auto">
                 <div className="flex items-center gap-3 mb-2">
 
@@ -202,11 +202,11 @@ export default function TeacherSettingsPage() {
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
-                {/* Dados Fiscais e Endereço - rounded-xl */}
-                <section className="bg-white border border-black rounded-xl p-10 shadow-sm space-y-10">
+                {/* Dados Fiscais e Endereço - rounded-lg */}
+                <section className="bg-white border border-black/20/20 rounded-lg p-10 shadow-sm space-y-10 lg:col-span-2">
                     <form action={formAction} className="space-y-10">
                         <div className="flex items-center gap-4">
-                            <div className="p-4 bg-slate-50 rounded-xl text-[#1D5F31] border border-black">
+                            <div className="p-4 bg-slate-50 rounded-lg text-[#1D5F31] border border-black/20">
                                 <Wallet size={24} strokeWidth={2.5} />
                             </div>
                             <div>
@@ -225,14 +225,14 @@ export default function TeacherSettingsPage() {
                                         value={pixKey}
                                         onChange={(e) => setPixKey(e.target.value)}
                                         placeholder="CPF, E-mail ou Chave Aleatória"
-                                        className="bg-slate-50 border-black rounded-xl pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
+                                        className="bg-slate-50 border-black/20 rounded-lg pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
                                     />
                                 </div>
                             </div>
 
                             <div className="pt-6 border-t border-slate-100 space-y-6">
                                 <div className="flex items-center gap-4 mb-2">
-                                    <div className="p-3 bg-slate-50 rounded-xl text-[#1D5F31] border border-black">
+                                    <div className="p-3 bg-slate-50 rounded-lg text-[#1D5F31] border border-black/20">
                                         <Wallet size={20} strokeWidth={2.5} />
                                     </div>
                                     <div>
@@ -249,7 +249,7 @@ export default function TeacherSettingsPage() {
                                             value={bankName}
                                             onChange={(e) => setBankName(e.target.value)}
                                             placeholder="Ex: Nubank, Itaú..."
-                                            className="bg-slate-50 border-black rounded-xl px-6 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
+                                            className="bg-slate-50 border-black/20 rounded-lg px-6 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
                                         />
                                     </div>
                                     <div className="space-y-3">
@@ -258,7 +258,7 @@ export default function TeacherSettingsPage() {
                                             name="bank_account_type"
                                             value={bankAccountType}
                                             onChange={(e) => setBankAccountType(e.target.value)}
-                                            className="w-full bg-slate-50 border border-black rounded-xl px-6 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 outline-none appearance-none"
+                                            className="w-full bg-slate-50 border border-black/20 rounded-lg px-6 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 outline-none appearance-none"
                                         >
                                             <option value="">Selecione...</option>
                                             <option value="corrente">Conta Corrente</option>
@@ -272,7 +272,7 @@ export default function TeacherSettingsPage() {
                                             value={bankAgency}
                                             onChange={(e) => setBankAgency(e.target.value)}
                                             placeholder="0001"
-                                            className="bg-slate-50 border-black rounded-xl px-6 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
+                                            className="bg-slate-50 border-black/20 rounded-lg px-6 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
                                         />
                                     </div>
                                     <div className="space-y-3">
@@ -282,7 +282,7 @@ export default function TeacherSettingsPage() {
                                             value={bankAccount}
                                             onChange={(e) => setBankAccount(e.target.value)}
                                             placeholder="000000-0"
-                                            className="bg-slate-50 border-black rounded-xl px-6 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
+                                            className="bg-slate-50 border-black/20 rounded-lg px-6 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
                                         />
                                     </div>
                                 </div>
@@ -291,7 +291,7 @@ export default function TeacherSettingsPage() {
 
                         <div className="pt-6 border-t border-slate-100">
                             <div className="flex items-center gap-4 mb-6">
-                                <div className="p-3 bg-slate-50 rounded-xl text-[#1D5F31] border border-black">
+                                <div className="p-3 bg-slate-50 rounded-lg text-[#1D5F31] border border-black/20">
                                     <MapPin size={20} strokeWidth={2.5} />
                                 </div>
                                 <div>
@@ -312,7 +312,7 @@ export default function TeacherSettingsPage() {
                                             onBlur={(e) => handleCepBlur(e.target.value)}
                                             disabled={isLoadingCep}
                                             placeholder="00000-000"
-                                            className="bg-slate-50 border-black rounded-xl pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400 disabled:opacity-50"
+                                            className="bg-slate-50 border-black/20 rounded-lg pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400 disabled:opacity-50"
                                         />
                                     </div>
                                 </div>
@@ -325,7 +325,7 @@ export default function TeacherSettingsPage() {
                                             value={addressData.numero || ''}
                                             onChange={(e) => setAddressData(prev => ({ ...prev, numero: e.target.value }))}
                                             placeholder="Número"
-                                            className="bg-slate-50 border-black rounded-xl pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
+                                            className="bg-slate-50 border-black/20 rounded-lg pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
                                         />
                                     </div>
                                 </div>
@@ -338,7 +338,7 @@ export default function TeacherSettingsPage() {
                                             value={addressData.logradouro || ''}
                                             onChange={(e) => setAddressData(prev => ({ ...prev, logradouro: e.target.value }))}
                                             placeholder="Rua, Avenida..."
-                                            className="bg-slate-50 border-black rounded-xl pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
+                                            className="bg-slate-50 border-black/20 rounded-lg pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
                                         />
                                     </div>
                                 </div>
@@ -351,7 +351,7 @@ export default function TeacherSettingsPage() {
                                             value={addressData.bairro || ''}
                                             onChange={(e) => setAddressData(prev => ({ ...prev, bairro: e.target.value }))}
                                             placeholder="Bairro"
-                                            className="bg-slate-50 border-black rounded-xl pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
+                                            className="bg-slate-50 border-black/20 rounded-lg pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
                                         />
                                     </div>
                                 </div>
@@ -364,7 +364,7 @@ export default function TeacherSettingsPage() {
                                             value={addressData.cidade || ''}
                                             onChange={(e) => setAddressData(prev => ({ ...prev, cidade: e.target.value }))}
                                             placeholder="Cidade"
-                                            className="bg-slate-50 border-black rounded-xl pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
+                                            className="bg-slate-50 border-black/20 rounded-lg pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
                                         />
                                     </div>
                                 </div>
@@ -377,7 +377,7 @@ export default function TeacherSettingsPage() {
                                             value={addressData.estado || ''}
                                             onChange={(e) => setAddressData(prev => ({ ...prev, estado: e.target.value }))}
                                             placeholder="UF"
-                                            className="bg-slate-50 border-black rounded-xl pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
+                                            className="bg-slate-50 border-black/20 rounded-lg pl-12 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
                                         />
                                     </div>
                                 </div>
@@ -385,14 +385,14 @@ export default function TeacherSettingsPage() {
                         </div>
 
                         {state?.success && (
-                            <div className="flex items-center gap-2 p-4 bg-green-50 border border-green-200/40 rounded-xl text-green-700 text-sm font-bold uppercase tracking-widest animate-in fade-in slide-in-from-top-2">
+                            <div className="flex items-center gap-2 p-4 bg-green-50 border border-green-200/40 rounded-lg text-green-700 text-sm font-bold uppercase tracking-widest animate-in fade-in slide-in-from-top-2">
                                 <Save size={16} />
                                 Dados atualizados com sucesso!
                             </div>
                         )}
 
                         {(state as any)?.error && (
-                            <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200/40 rounded-xl text-red-700 text-sm font-bold uppercase tracking-widest animate-in fade-in slide-in-from-top-2">
+                            <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200/40 rounded-lg text-red-700 text-sm font-bold uppercase tracking-widest animate-in fade-in slide-in-from-top-2">
                                 {(state as any).error}
                             </div>
                         )}
@@ -400,10 +400,10 @@ export default function TeacherSettingsPage() {
                         <Button
                             type="submit"
                             disabled={isPending}
-                            className="bg-[#1D5F31] text-white font-bold uppercase tracking-[3px] h-14 px-12 rounded-xl hover:bg-[#28b828] shadow-xl shadow-[#1D5F31]/20 transition-all gap-4 text-[11px]"
+                            className="bg-[#1D5F31] text-white font-bold uppercase tracking-[3px] h-14 px-12 rounded-lg hover:bg-[#28b828] shadow-xl shadow-[#1D5F31]/20 transition-all gap-4 text-[11px]"
                         >
                             {isPending ? (
-                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-xl animate-spin" />
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-lg animate-spin" />
                             ) : (
                                 <Save size={18} strokeWidth={3} />
                             )}
@@ -415,51 +415,10 @@ export default function TeacherSettingsPage() {
                     </form>
                 </section>
 
-                {/* Notificações - rounded-xl */}
-                <section className="bg-white border border-black rounded-xl p-10 shadow-sm space-y-10">
-                    <div className="flex items-center gap-4">
-                        <div className="p-4 bg-slate-50 rounded-xl text-[#1D5F31] border border-black">
-                            <Bell size={24} strokeWidth={2.5} />
-                        </div>
-                        <div>
-                            <h2 className="text-xl font-bold uppercase tracking-tight text-slate-900 leading-none">Alertas Digitais</h2>
-                            <p className="text-sm font-medium tracking-tight text-slate-500 mt-2">Fique por dentro de cada nova venda.</p>
-                        </div>
-                    </div>
-
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between p-6 bg-slate-50 rounded-xl border border-black hover:border-black/30 transition-all">
-                            <div>
-                                <h3 className="text-sm font-bold uppercase tracking-tight text-slate-900">Relatórios de Performance</h3>
-                                <p className="text-sm text-slate-500 font-medium mt-1">Resumo semanal do ecossistema por e-mail.</p>
-                            </div>
-                            <button
-                                onClick={() => setEmailEnabled(!emailEnabled)}
-                                className={`w-12 h-6 rounded-xl transition-all relative ${emailEnabled ? 'bg-[#1D5F31]' : 'bg-slate-200 shadow-inner'}`}
-                            >
-                                <div className={`absolute top-1 w-4 h-4 rounded-xl bg-white transition-all shadow-md ${emailEnabled ? 'right-1' : 'left-1'}`}></div>
-                            </button>
-                        </div>
-
-                        <div className="flex items-center justify-between p-6 bg-slate-50 rounded-xl border border-black hover:border-black/30 transition-all">
-                            <div>
-                                <h3 className="text-sm font-bold uppercase tracking-tight text-slate-900">Novos Leads e Alunos</h3>
-                                <p className="text-sm text-slate-500 font-medium mt-1">Push notifications em tempo real.</p>
-                            </div>
-                            <button
-                                onClick={() => setBrowserEnabled(!browserEnabled)}
-                                className={`w-12 h-6 rounded-xl transition-all relative ${browserEnabled ? 'bg-[#1D5F31]' : 'bg-slate-200 shadow-inner'}`}
-                            >
-                                <div className={`absolute top-1 w-4 h-4 rounded-xl bg-white transition-all shadow-md ${browserEnabled ? 'right-1' : 'left-1'}`}></div>
-                            </button>
-                        </div>
-                    </div>
-                </section>
-
-                {/* Segurança - rounded-xl */}
-                <section className="bg-white border border-black rounded-xl p-10 shadow-sm space-y-10 lg:col-span-2 relative overflow-hidden group">
+                {/* Segurança - rounded-lg */}
+                <section className="bg-white border border-black/20 rounded-lg p-10 shadow-sm space-y-10 lg:col-span-2 relative overflow-hidden group">
                     <div className="flex items-center gap-4 relative z-10">
-                        <div className="p-4 bg-slate-50 rounded-xl text-[#1D5F31] border border-black">
+                        <div className="p-4 bg-slate-50 rounded-lg text-[#1D5F31] border border-black/20">
                             <Shield size={24} strokeWidth={2.5} />
                         </div>
                         <div>
@@ -483,7 +442,7 @@ export default function TeacherSettingsPage() {
                                         value={currentPassword}
                                         onChange={(e) => setCurrentPassword(e.target.value)}
                                         placeholder="Digite sua senha atual"
-                                        className="bg-slate-50 border-black h-14 rounded-xl text-slate-900 focus:border-[#1D5F31] font-bold text-sm placeholder:text-slate-400 pr-12"
+                                        className="bg-slate-50 border-black/20 h-14 rounded-lg text-slate-900 focus:border-[#1D5F31] font-bold text-sm placeholder:text-slate-400 pr-12"
                                         required
                                     />
                                     <button
@@ -505,7 +464,7 @@ export default function TeacherSettingsPage() {
                                             value={newPassword}
                                             onChange={(e) => setNewPassword(e.target.value)}
                                             placeholder="Nova senha (mín. 6 chars)"
-                                            className="bg-slate-50 border-black h-14 rounded-xl text-slate-900 focus:border-[#1D5F31] placeholder:text-slate-400 font-bold text-sm pr-12"
+                                            className="bg-slate-50 border-black/20 h-14 rounded-lg text-slate-900 focus:border-[#1D5F31] placeholder:text-slate-400 font-bold text-sm pr-12"
                                             required
                                             minLength={6}
                                         />
@@ -526,7 +485,7 @@ export default function TeacherSettingsPage() {
                                             value={confirmPassword}
                                             onChange={(e) => setConfirmPassword(e.target.value)}
                                             placeholder="Repita a nova senha"
-                                            className="bg-slate-50 border-black h-14 rounded-xl text-slate-900 focus:border-[#1D5F31] placeholder:text-slate-400 font-bold text-sm pr-12"
+                                            className="bg-slate-50 border-black/20 h-14 rounded-lg text-slate-900 focus:border-[#1D5F31] placeholder:text-slate-400 font-bold text-sm pr-12"
                                             required
                                             minLength={6}
                                         />
@@ -547,10 +506,10 @@ export default function TeacherSettingsPage() {
                                 type="submit"
                                 disabled={isUpdatingPassword}
                                 variant="outline"
-                                className="border-black text-slate-600 hover:bg-slate-50 hover:text-slate-900 h-14 px-8 rounded-xl font-bold uppercase tracking-[2px] text-[10px] transition-all gap-2"
+                                className="border-black/20 text-slate-600 hover:bg-slate-50 hover:text-slate-900 h-14 px-8 rounded-lg font-bold uppercase tracking-[2px] text-[10px] transition-all gap-2"
                             >
                                 {isUpdatingPassword ? (
-                                    <div className="w-4 h-4 border-2 border-slate-200 border-t-[#1D5F31] rounded-xl animate-spin" />
+                                    <div className="w-4 h-4 border-2 border-slate-200 border-t-[#1D5F31] rounded-lg animate-spin" />
                                 ) : (
                                     <Save size={16} />
                                 )}
@@ -562,10 +521,10 @@ export default function TeacherSettingsPage() {
 
                 </section>
 
-                {/* Zona de Perigo - rounded-xl */}
-                <section className="bg-red-50 border border-black rounded-xl p-10 shadow-sm space-y-8 lg:col-span-2">
+                {/* Zona de Perigo - rounded-lg */}
+                <section className="bg-red-50 border border-black/20 rounded-lg p-10 shadow-sm space-y-8 lg:col-span-2">
                     <div className="flex items-center gap-4">
-                        <div className="p-4 bg-white border border-black rounded-xl text-red-500 shadow-sm">
+                        <div className="p-4 bg-white border border-black/20 rounded-lg text-red-500 shadow-sm">
                             <Trash2 size={24} strokeWidth={2.5} />
                         </div>
                         <div>
@@ -574,7 +533,7 @@ export default function TeacherSettingsPage() {
                         </div>
                     </div>
 
-                    <p className="text-sm text-red-600/70 max-w-2xl font-bold uppercase tracking-tight leading-relaxed bg-white p-6 rounded-xl border border-black">
+                    <p className="text-sm text-red-600/70 max-w-2xl font-bold uppercase tracking-tight leading-relaxed bg-white p-6 rounded-lg border border-black/20">
                         AVISO: Ao excluir sua conta, todos os seus cursos, matrículas de alunos e dados financeiros serão removidos permanentemente. Esta ação não pode ser desfeita.
                     </p>
 
