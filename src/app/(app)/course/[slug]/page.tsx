@@ -3,6 +3,7 @@ import { Suspense } from "react"
 import Link from "next/link"
 import { MotivationalBanner } from "@/components/MotivationalBanner"
 import {
+    Check,
     CheckCircle2,
     PlayCircle,
     Clock,
@@ -93,8 +94,10 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
     const totalLessons = lessons?.length || 0
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-[#061629] via-[#0A2E16] to-[#1D5F31] bg-fixed text-white font-montserrat">
-            <CourseHeroClient
+        <>
+            <div className="fixed inset-0 bg-gradient-to-br from-[#061629] via-[#0A2E16] to-[#1D5F31] -z-10 pointer-events-none" />
+            <div className="min-h-screen text-white font-montserrat">
+                <CourseHeroClient
                 course={course}
                 isAdmin={isAdmin}
                 hasAccess={hasAccess}
@@ -106,7 +109,29 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
             {/* CURRÍCULO ESTILO INDUSTRIAL / STREAMING */}
             <section className="py-24 px-6 md:px-12 bg-transparent border-t border-white/5">
                 <div className="max-w-[1600px] mx-auto">
-                    <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+                    {course.description && (
+                        <div className="bg-transparent mb-16 max-w-6xl">
+                            <h2 className="text-white text-2xl md:text-3xl font-bold tracking-tight mb-8">
+                                O que você aprenderá
+                            </h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+                                {course.description
+                                    .split(/(?:\r?\n)+|(?<=\.)\s+/)
+                                    .map((t: string) => t.trim())
+                                    .filter((t: string) => t.length > 5)
+                                    .map((topic: string, index: number) => (
+                                        <div key={index} className="flex items-start gap-4">
+                                            <Check className="text-emerald-400 shrink-0 mt-0.5" size={20} />
+                                            <p className="text-slate-200 font-medium text-sm md:text-base leading-relaxed">
+                                                {topic}
+                                            </p>
+                                        </div>
+                                    ))}
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
                         <div className="space-y-4">
                             <div className="flex items-center gap-3">
                                 <div className="w-12 h-px bg-[#1D5F31]" />
@@ -114,9 +139,6 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
                             </div>
                             <h2 className="text-2xl md:text-3xl font-bold text-white uppercase tracking-tighter max-w-xl">Grade <br className="hidden md:block" /> Curricular</h2>
                         </div>
-                        <p className="text-white/60 text-sm max-w-md font-medium uppercase tracking-widest leading-loose">
-                            Explore os módulos desenhados para levar seu conhecimento ao nível máximo de performance técnica.
-                        </p>
                     </div>
 
                     <div className="grid lg:grid-cols-12 gap-0">
@@ -149,6 +171,7 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
             </section>
 
             <MotivationalBanner />
-        </div>
+            </div>
+        </>
     )
 }

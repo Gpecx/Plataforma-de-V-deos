@@ -244,10 +244,6 @@ export function CourseHeroClient({ course, isAdmin, hasAccess, purchasedCourseId
                             <span className="flex items-center gap-1.5 text-white"><ShieldCheck size={16} /> CERTIFICADO</span>
                         </div>
 
-                        <p className="text-white text-sm md:text-lg leading-relaxed font-medium line-clamp-3 md:line-clamp-4 max-w-2xl" style={{ textShadow: '0 1px 12px rgba(0,0,0,0.6)' }}>
-                            {course.description || 'Explore técnicas avançadas e domine o mercado com este treinamento exclusivo da PowerPlay. Conteúdo focado em performance e resultados reais.'}
-                        </p>
-
                         <div className="flex flex-col sm:flex-row items-center gap-4 pt-6">
                             <button
                                 onClick={handleAction}

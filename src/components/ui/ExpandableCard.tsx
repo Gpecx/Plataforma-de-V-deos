@@ -266,9 +266,13 @@ export function ExpandableCard({
                                         </div>
                                     )}
                                     
-                                    <p className="text-slate-400 !text-slate-400 text-sm md:text-base leading-relaxed mb-8 font-medium" style={{ color: '#94a3b8' }}>
-                                        {description || 'Explore técnicas avançadas e domine o mercado com este treinamento exclusivo da PowerPlay.'}
-                                    </p>
+                                    <div className="my-2 shrink-0">
+                                        <p className="text-slate-300 text-sm leading-relaxed line-clamp-2 overflow-hidden text-ellipsis">
+                                            {description && description.length > 120 
+                                                ? `${description.substring(0, 120)}...` 
+                                                : (description || 'Explore técnicas avançadas e domine o mercado com este treinamento exclusivo da PowerPlay.')}
+                                        </p>
+                                    </div>
 
                                     {/* Info Grid */}
                                     <div className="grid grid-cols-2 gap-y-6 gap-x-4 mb-10">
