@@ -101,6 +101,7 @@ interface Lesson {
     mux_asset_id?: string
     position: number
     description?: string
+    notas?: string
     status?: string
     motivoRejeicao?: string
     type?: 'lesson' | 'quiz'
@@ -964,7 +965,7 @@ export default function CourseBuilder() {
                                         />
                                         <span className="text-[9px] font-bold uppercase text-[#1D5F31] tracking-[3px]">Descrição da Aula</span>
                                         <textarea
-                                            className="bg-transparent border-none focus:outline-none text-sm text-black/70 w-full mt-1 resize-none"
+                                            className="bg-transparent border-none focus:outline-none text-sm text-black/70 w-full mt-1 resize-none min-h-[60px]"
                                             placeholder="Descreva o que o aluno aprenderá nesta aula..."
                                             value={selectedLesson.description || ''}
                                             onChange={(e) => {
@@ -976,6 +977,23 @@ export default function CourseBuilder() {
                                                 })))
                                             }}
                                         />
+
+                                        <div className="mt-4 pt-4 border-t border-slate-200">
+                                            <span className="text-[9px] font-bold uppercase text-[#1D5F31] tracking-[3px]">Notas da Aula (Markdown ou Texto)</span>
+                                            <textarea
+                                                className="bg-transparent border-none focus:outline-none text-sm text-black/70 w-full mt-2 resize-none min-h-[120px]"
+                                                placeholder="Principais tópicos, links úteis ou anotações desta aula..."
+                                                value={selectedLesson.notas || ''}
+                                                onChange={(e) => {
+                                                    const newNotas = e.target.value
+                                                    setSelectedLesson({ ...selectedLesson, notas: newNotas })
+                                                    setModules(prev => prev.map(m => ({
+                                                        ...m,
+                                                        lessons: m.lessons.map(l => l.id === selectedLesson.id ? { ...l, notas: newNotas } : l)
+                                                    })))
+                                                }}
+                                            />
+                                        </div>
                                         {selectedLesson.status === 'REJEITADO' && selectedLesson.motivoRejeicao && (
                                             <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
                                                 <div className="flex items-center gap-2 mb-2">

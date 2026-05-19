@@ -19,6 +19,7 @@ interface ClassroomTabsProps {
     lessonTitle: string;
     description?: string;
     courseId?: string;
+    notas?: string;
 }
 
 interface Comment {
@@ -69,7 +70,7 @@ const MOCK_COMMENTS: Comment[] = [
 
 const SHOW_QA = false; // Defina como true para reativar a aba de Comentários (Q&A)
 
-export function ClassroomTabs({ lessonId, description, courseId }: ClassroomTabsProps) {
+export function ClassroomTabs({ lessonId, description, courseId, notas }: ClassroomTabsProps) {
     const [activeTab, setActiveTab] = useState<'overview' | 'comments' | 'evaluate'>('overview')
     const [comments, setComments] = useState<Comment[]>([])
     const [commentText, setCommentText] = useState('')
@@ -227,11 +228,13 @@ export function ClassroomTabs({ lessonId, description, courseId }: ClassroomTabs
                                 <FileText size={16} className="text-green-500" />
                                 Notas da Aula
                             </h4>
-                            <ul className="text-sm text-white space-y-2 list-disc list-inside">
-                                <li>Conceitos de Renderização no Servidor</li>
-                                <li>Setup inicial do Design System</li>
-                                <li>Boas práticas com Tailwind CSS 4.0</li>
-                            </ul>
+                            {notas ? (
+                                <div className="text-sm text-white space-y-2 whitespace-pre-wrap">
+                                    {notas}
+                                </div>
+                            ) : (
+                                <p className="text-sm text-slate-400">Nenhuma nota cadastrada para esta aula.</p>
+                            )}
                         </div>
                     </div>
                 ) : activeTab === 'comments' && SHOW_QA ? (

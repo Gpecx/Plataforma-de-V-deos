@@ -62,6 +62,7 @@ export async function createCourseAction(formData: any) {
                     mux_asset_id: lesson.mux_asset_id || '',
                     position: index + 1,
                     description: lesson.description || '',
+                    notas: lesson.notas || '',
                     status: 'PENDENTE',
                     created_at: new Date()
                 }
@@ -235,6 +236,7 @@ export async function updateCourseAction(courseId: string, formData: any) {
                 mux_asset_id: lesson.mux_asset_id || '',
                 position: index + 1,
                 description: lesson.description || '',
+                notas: lesson.notas || '',
                 updated_at: new Date()
             }
 
@@ -258,6 +260,7 @@ export async function updateCourseAction(courseId: string, formData: any) {
                     const hasChanged = existing.title !== lesson.title || 
                                       existing.video_url !== lesson.video_url || 
                                       existing.description !== lesson.description ||
+                                      existing.notas !== lesson.notas ||
                                       JSON.stringify(existing.quizData) !== JSON.stringify(lesson.quizData)
                     // Só reseta para PENDENTE se não for uma solicitação de exclusão e houver mudanças
                     if (hasChanged && lesson.status !== 'SOLICITADO_EXCLUSAO') {
