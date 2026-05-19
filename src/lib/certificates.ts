@@ -47,6 +47,11 @@ export async function validateAndGetCertificate(courseId: string, userId: string
 
   const profileDoc = await adminDb.collection('profiles').doc(userId).get()
   const profileData = profileDoc.exists ? profileDoc.data() : null
+
+  if (profileData?.ativo === false) {
+    return { valid: false, error: 'Acesso negado: sua conta está inativa ou suspensa.' }
+  }
+
   const studentName = profileData?.full_name || 'Aluno'
 
   // Melhora a resolução do nome do professor

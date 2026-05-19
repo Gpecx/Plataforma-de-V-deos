@@ -13,7 +13,7 @@ export function CartStoreSynchronizer() {
         async function syncPurchasedCourses() {
             if (!authLoading && user) {
                 try {
-                    const purchasedIds = await getPurchasedCourseIds(user.uid)
+                    const purchasedIds = await getPurchasedCourseIds()
                     setPurchasedCourses(purchasedIds)
                 } catch (error) {
                     console.error('Erro ao sincronizar cursos comprados:', error)

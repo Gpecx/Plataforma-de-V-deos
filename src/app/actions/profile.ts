@@ -1,6 +1,7 @@
 'use server'
 
 import { adminDb } from '@/lib/firebase-admin'
+import { getSessionUser } from '@/app/actions/auth'
 
 export async function getPublicProfile(userId: string) {
     if (!userId) return null
@@ -24,10 +25,12 @@ export async function getPublicProfile(userId: string) {
     }
 }
 
-export async function getPurchasedCourseIds(userId: string): Promise<string[]> {
-    if (!userId) return []
-
+export async function getPurchasedCourseIds(): Promise<string[]> {
     try {
+        const user = await getSessionUser()
+        if (!user) return []
+        const userId = user.uid
+
         // Buscamos na coleção de enrollments, filtrando por status válidos
         const enrollmentsSnapshot = await adminDb.collection('enrollments')
             .where('user_id', '==', userId)
@@ -52,6 +55,43 @@ export async function getPurchasedCourseIds(userId: string): Promise<string[]> {
         return purchasedIds
     } catch (error) {
         console.error('Erro ao buscar cursos comprados:', error)
+        return []
+    }
+}
+
+export async function getStudentPurchasedCoursesForAdmin(studentId: string): Promise<string[]> {
+    try {
+        const session = await getSessionUser()
+        if (!session || (session.role !== 'admin' && session.role !== 'teacher')) {
+            throw new Error('UNAUTHORIZED: Apenas administradores ou instrutores podem consultar compras de terceiros.')
+        }
+
+        if (!studentId) return []
+
+        // Buscamos na coleção de enrollments, filtrando por status válidos
+        const enrollmentsSnapshot = await adminDb.collection('enrollments')
+            .where('user_id', '==', studentId)
+            .get()
+
+        // Filtramos apenas matrículas que NÃO estão canceladas ou expiradas
+        const purchasedIds = enrollmentsSnapshot.docs
+            .map(doc => doc.data())
+            .filter(data => data.status !== 'cancelled' && data.status !== 'expired')
+            .map(data => data.course_id)
+        
+        // Também verificamos o perfil para compatibilidade com dados legados
+        const profileDoc = await adminDb.collection('profiles').doc(studentId).get()
+        if (profileDoc.exists) {
+            const profileData = profileDoc.data()
+            const profileIds = profileData?.cursos_comprados || []
+            
+            // Unificamos as listas removendo duplicatas
+            return Array.from(new Set([...purchasedIds, ...profileIds]))
+        }
+
+        return purchasedIds
+    } catch (error) {
+        console.error('Erro ao buscar cursos comprados para administrador:', error)
         return []
     }
 }

@@ -2,6 +2,7 @@
 
 import { adminDb } from "@/lib/firebase-admin"
 import { revalidatePath } from "next/cache"
+import { getSessionUser } from "@/app/actions/auth"
 
 export interface LegalDocument {
     id: string
@@ -56,6 +57,11 @@ export async function getLegalDocumentBySlug(slug: string) {
 
 export async function saveLegalDocument(data: Partial<LegalDocument>) {
     try {
+        const user = await getSessionUser()
+        if (!user || user.role !== 'admin') {
+            return { success: false, error: "Não autorizado" }
+        }
+
         if (!data.slug) throw new Error("Slug é obrigatório")
 
         const docRef = adminDb.collection(COLLECTION).doc(data.slug)
@@ -89,6 +95,11 @@ export async function getLegalDocsSettings(): Promise<LegalDocsSettings> {
 
 export async function saveLegalDocsSettings(data: Partial<LegalDocsSettings>, revalidate = true) {
     try {
+        const user = await getSessionUser()
+        if (!user || user.role !== 'admin') {
+            return { success: false, error: "Não autorizado" }
+        }
+
         await adminDb.collection(SETTINGS_COLLECTION).doc(LEGAL_DOCS_ID).set(data, { merge: true })
         if (revalidate) {
             revalidatePath('/admin/legal')
@@ -393,6 +404,11 @@ export async function initializeLegalDocuments() {
     ]
 
     try {
+        const user = await getSessionUser()
+        if (!user || user.role !== 'admin') {
+            return { success: false }
+        }
+
         const batch = adminDb.batch()
         for (const doc of initialDocs) {
             const ref = adminDb.collection(COLLECTION).doc(doc.slug)

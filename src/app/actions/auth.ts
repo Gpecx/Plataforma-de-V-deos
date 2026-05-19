@@ -19,9 +19,9 @@ export async function getSessionUser() {
         const profileDoc = await adminDb.collection('profiles').doc(uid).get()
         const profileData = profileDoc.data()
 
-        // Bloqueio de acesso para professores banidos
-        if (profileData?.role === 'teacher' && profileData?.teacher_status === 'banned') {
-            console.warn(`[getSessionUser] Acesso bloqueado: Usuário ${uid} está banido.`);
+        // Bloqueio de acesso para usuários inativos ou banidos
+        if (profileData?.ativo === false || (profileData?.role === 'teacher' && profileData?.teacher_status === 'banned')) {
+            console.warn(`[getSessionUser] Acesso bloqueado: Usuário ${uid} está inativo ou banido.`);
             return null;
         }
 
