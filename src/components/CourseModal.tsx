@@ -43,17 +43,11 @@ export default function CourseModal({ course, isOpen, onClose }: CourseModalProp
 
             {/* Modal Content */}
             <div 
-                className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] w-[95vw] md:w-[800px] lg:w-[900px] h-auto max-h-[85vh] overflow-hidden flex flex-col md:flex-row rounded-none border border-slate-800 bg-[#060b13] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] animate-in zoom-in-95 duration-300 z-10"
+                className="relative w-[95vw] md:w-[800px] lg:w-[900px] h-auto max-h-[85vh] overflow-hidden flex flex-col md:flex-row rounded-none border border-slate-800 bg-[#060b13] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)] animate-in zoom-in-95 duration-300 z-10"
                 style={{
-                    position: 'fixed',
-                    top: '50%',
-                    left: '50%',
-                    transform: 'translate(-50%, -50%)',
                     width: 'min(95vw, 900px)',
                     height: 'auto',
                     maxHeight: '85vh',
-                    display: 'flex',
-                    flexDirection: 'row'
                 }}
             >
                 <button

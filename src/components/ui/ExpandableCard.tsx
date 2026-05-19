@@ -253,18 +253,22 @@ export function ExpandableCard({
                                         <span className="text-white !text-white" style={{ color: 'white' }}>{title}</span>
                                     </h2>
 
-                                    {teacherId && (
-                                        <div className="flex items-center gap-2 mb-6">
-                                            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest leading-none">Instrutor:</span>
+                                    <div className="flex items-center gap-2 mb-6">
+                                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest leading-none">Instrutor:</span>
+                                        {teacherId ? (
                                             <Link 
                                                 href={`/professor/${teacherId}` as any}
                                                 onClick={() => setIsOpen(false)}
                                                 className="text-[9px] font-bold text-[#1D5F31] uppercase tracking-[2px] hover:underline leading-none"
                                             >
-                                                {teacherName}
+                                                {teacherName || 'Instrutor PowerPlay'}
                                             </Link>
-                                        </div>
-                                    )}
+                                        ) : (
+                                            <span className="text-[9px] font-bold text-[#1D5F31] uppercase tracking-[2px] leading-none">
+                                                {teacherName || 'Instrutor PowerPlay'}
+                                            </span>
+                                        )}
+                                    </div>
                                     
                                     <div className="my-2 shrink-0">
                                         <p className="text-slate-300 text-sm leading-relaxed line-clamp-2 overflow-hidden text-ellipsis">
