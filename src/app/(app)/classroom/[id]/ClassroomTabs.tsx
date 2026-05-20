@@ -219,10 +219,6 @@ export function ClassroomTabs({ lessonId, description, courseId, notas }: Classr
                     courseId ? <EvaluationForm courseId={courseId} /> : null
                 ) : activeTab === 'overview' ? (
                     <div className="space-y-6">
-                        <h3 className="text-xl font-bold uppercase tracking-tighter text-white">Sobre esta aula</h3>
-                        <p className="leading-relaxed text-white">
-                            {description || "Nesta aula vamos explorar os conceitos fundamentais para o desenvolvimento de alta performance. Preste atenção em cada detalhe da implementação."}
-                        </p>
                         <div className="p-6 rounded-xl border border-slate-800 bg-slate-800/30">
                             <h4 className="text-sm font-bold uppercase tracking-widest mb-4 flex items-center gap-2 text-white">
                                 <FileText size={16} className="text-green-500" />

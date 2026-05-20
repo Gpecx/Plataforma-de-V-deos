@@ -844,8 +844,9 @@ export default function CourseBuilder() {
                                     selectedLessonId={selectedLesson?.id}
                                     onSelectLesson={setSelectedLesson}
                                     onAddLesson={() => {
-                                        const newLesson: Lesson = { id: `new-${Date.now()}`, title: 'Nova Aula Digital', video_url: '', position: module.lessons.length + 1, description: '' }
-                                        setModules(prev => prev.map(m => m.id === module.id ? { ...m, lessons: [...m.lessons, newLesson] } : m))
+                                        const newLesson: Lesson = { id: `new-${Date.now()}`, title: 'Nova Aula Digital', video_url: '', position: 0, description: '' }
+                                        // Insere no topo (unshift) para que o professor veja a nova aula no início
+                                        setModules(prev => prev.map(m => m.id === module.id ? { ...m, lessons: [newLesson, ...m.lessons] } : m))
                                     }}
                                     onDeleteLesson={(lessonId) => {
                                         if (lessonId.startsWith('new-')) {
@@ -922,7 +923,7 @@ export default function CourseBuilder() {
                                             id: `quiz-${Date.now()}`,
                                             title: 'Novo Questionário',
                                             video_url: '',
-                                            position: module.lessons.length + 1,
+                                            position: 0,
                                             description: '',
                                             type: 'quiz',
                                             quizData: {
@@ -931,7 +932,8 @@ export default function CourseBuilder() {
                                                 questions: [{ id: Math.random().toString(), text: '', options: ['', ''], correctAnswer: 0 }]
                                             }
                                         }
-                                        setModules(prev => prev.map(m => m.id === module.id ? { ...m, lessons: [...m.lessons, newQuiz] } : m))
+                                        // Insere no topo (unshift) para que o professor veja o novo quiz no início
+                                        setModules(prev => prev.map(m => m.id === module.id ? { ...m, lessons: [newQuiz, ...m.lessons] } : m))
                                         setSelectedLesson(newQuiz)
                                     }}
                                 />
@@ -963,22 +965,7 @@ export default function CourseBuilder() {
                                                 })))
                                             }}
                                         />
-                                        <span className="text-[9px] font-bold uppercase text-[#1D5F31] tracking-[3px]">Descrição da Aula</span>
-                                        <textarea
-                                            className="bg-transparent border-none focus:outline-none text-sm text-black/70 w-full mt-1 resize-none min-h-[60px]"
-                                            placeholder="Descreva o que o aluno aprenderá nesta aula..."
-                                            value={selectedLesson.description || ''}
-                                            onChange={(e) => {
-                                                const newDescription = e.target.value
-                                                setSelectedLesson({ ...selectedLesson, description: newDescription })
-                                                setModules(prev => prev.map(m => ({
-                                                    ...m,
-                                                    lessons: m.lessons.map(l => l.id === selectedLesson.id ? { ...l, description: newDescription } : l)
-                                                })))
-                                            }}
-                                        />
-
-                                        <div className="mt-4 pt-4 border-t border-slate-200">
+                                        <div className="mt-4">
                                             <span className="text-[9px] font-bold uppercase text-[#1D5F31] tracking-[3px]">Notas da Aula (Markdown ou Texto)</span>
                                             <textarea
                                                 className="bg-transparent border-none focus:outline-none text-sm text-black/70 w-full mt-2 resize-none min-h-[120px]"

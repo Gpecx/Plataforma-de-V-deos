@@ -51,6 +51,7 @@ export async function createCourseAction(formData: any) {
         // 2. Insere as aulas vinculadas a este curso
         if (formData.lessons && formData.lessons.length > 0) {
             const batch = adminDb.batch()
+            const total = formData.lessons.length
             formData.lessons.forEach((lesson: any, index: number) => {
                 const lessonRef = adminDb.collection('lessons').doc()
                 const lessonPayload: any = {
@@ -60,7 +61,9 @@ export async function createCourseAction(formData: any) {
                     mux_upload_id: lesson.mux_upload_id || '',
                     mux_playback_id: lesson.mux_playback_id || '',
                     mux_asset_id: lesson.mux_asset_id || '',
-                    position: index + 1,
+                    // Ídice 0 (topo/mais nova para o professor) recebe o maior número de posição;
+                    // O aluno na Classroom ordena por 'position asc', vendo as mais antigas primeiro.
+                    position: total - index,
                     description: lesson.description || '',
                     notas: lesson.notas || '',
                     status: 'PENDENTE',
@@ -223,6 +226,7 @@ export async function updateCourseAction(courseId: string, formData: any) {
         }
 
         // Upsert
+        const totalLessons = lessons.length
         lessons.forEach((lesson: any, index: number) => {
             const isNew = !lesson.id || lesson.id.startsWith('new-')
             const lessonRef = isNew ? lessonsRef.doc() : lessonsRef.doc(lesson.id)
@@ -234,7 +238,9 @@ export async function updateCourseAction(courseId: string, formData: any) {
                 mux_upload_id: lesson.mux_upload_id || '',
                 mux_playback_id: lesson.mux_playback_id || '',
                 mux_asset_id: lesson.mux_asset_id || '',
-                position: index + 1,
+                // Índice 0 (topo/mais nova para o professor) recebe o maior número de posição;
+                // O aluno na Classroom ordena por 'position asc', vendo as mais antigas primeiro.
+                position: totalLessons - index,
                 description: lesson.description || '',
                 notas: lesson.notas || '',
                 updated_at: new Date()

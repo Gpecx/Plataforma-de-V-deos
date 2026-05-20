@@ -3,6 +3,20 @@
 import { adminDb } from '@/lib/firebase-admin'
 import { getServerSession } from '@/lib/auth-utils'
 import { revalidatePath } from 'next/cache'
+import { z } from 'zod'
+
+const profileSchema = z.object({
+    full_name: z.string().min(1, 'Nome é obrigatório'),
+    specialty: z.string().nullable().optional().transform(val => val || ''),
+    bio: z.string().nullable().optional().transform(val => val || ''),
+    avatar_url: z.string().nullable().optional().transform(val => val || ''),
+    website: z.string().nullable().optional().transform(val => val || ''),
+    linkedin: z.string().nullable().optional().transform(val => val || ''),
+    twitter: z.string().nullable().optional().transform(val => val || ''),
+    youtube: z.string().nullable().optional().transform(val => val || ''),
+    instagram: z.string().nullable().optional().transform(val => val || ''),
+    tiktok: z.string().nullable().optional().transform(val => val || ''),
+})
 
 export async function updateTeacherProfile(data: any) {
     const session = await getServerSession()
@@ -10,16 +24,20 @@ export async function updateTeacherProfile(data: any) {
         throw new Error('Não autorizado')
     }
 
+    const validatedData = profileSchema.parse(data)
+
     try {
         const updateData: Record<string, any> = {
-            full_name: data.full_name,
-            specialty: data.specialty,
-            bio: data.bio,
-            avatar_url: data.avatar_url,
-            linkedin: data.linkedin,
-            website: data.website,
-            twitter: data.twitter,
-            youtube: data.youtube,
+            full_name: validatedData.full_name,
+            specialty: validatedData.specialty,
+            bio: validatedData.bio,
+            avatar_url: validatedData.avatar_url,
+            linkedin: validatedData.linkedin,
+            website: validatedData.website,
+            twitter: validatedData.twitter,
+            youtube: validatedData.youtube,
+            instagram: validatedData.instagram,
+            tiktok: validatedData.tiktok,
             updated_at: new Date().toISOString()
         }
 

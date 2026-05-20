@@ -28,6 +28,8 @@ export default async function TeacherProfilePage() {
         twitter: raw.twitter || '',
         website: raw.website || '',
         youtube: raw.youtube || '',
+        instagram: raw.instagram || '',
+        tiktok: raw.tiktok || '',
     } : null
 
     return (

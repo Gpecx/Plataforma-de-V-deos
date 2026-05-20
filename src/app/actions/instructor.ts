@@ -29,7 +29,9 @@ export async function getInstructorProfile(instructorId: string) {
                 twitter: data?.twitter || null,
                 website: data?.website || null,
                 youtube: data?.youtube || null,
-                facebook: data?.facebook || null
+                facebook: data?.facebook || null,
+                instagram: data?.instagram || null,
+                tiktok: data?.tiktok || null
             }
         }
     } catch (error) {

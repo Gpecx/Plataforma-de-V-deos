@@ -166,7 +166,7 @@ export default function NewCoursePage() {
         const newLesson: Lesson = {
             title: type === 'quiz' ? 'Novo Quiz' : '',
             video_url: '',
-            position: formData.lessons.length + 1,
+            position: 0, // será recalculado na Server Action
             type: type
         }
         if (type === 'quiz') {
@@ -176,7 +176,8 @@ export default function NewCoursePage() {
                 questions: [{ id: Math.random().toString(), text: '', options: ['', ''], correctAnswer: 0 }]
             }
         }
-        setLessons([...formData.lessons, newLesson])
+        // Insere no topo (índice 0) para que o professor veja a aula recém-criada no início
+        setLessons([newLesson, ...formData.lessons])
     }
 
     const handleRemoveLesson = (index: number) => {

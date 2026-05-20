@@ -1,12 +1,30 @@
 "use client"
 
 import { useState } from 'react'
-import { User, Mail, BookOpen, Camera, Save, Globe, Linkedin, Twitter, Youtube, Loader2 } from 'lucide-react'
+import { User, Mail, BookOpen, Camera, Save, Globe, Linkedin, Twitter, Youtube, Loader2, Instagram } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { updateTeacherProfile } from './actions'
 import { uploadCourseImage } from '@/lib/storage-helpers'
 import { useRouter } from 'next/navigation'
+
+// Ícone TikTok customizado (idêntico ao padrão oficial do Lucide)
+const Tiktok = ({ size = 18, ...props }: { size?: number; className?: string }) => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        {...props}
+    >
+        <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+    </svg>
+)
 
 export default function ClientProfileForm({ initialData, email }: { initialData: any, email: string }) {
     const router = useRouter()
@@ -20,6 +38,8 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
     const [linkedin, setLinkedin] = useState(initialData?.linkedin || '')
     const [twitter, setTwitter] = useState(initialData?.twitter || '')
     const [youtube, setYoutube] = useState(initialData?.youtube || '')
+    const [instagram, setInstagram] = useState(initialData?.instagram || '')
+    const [tiktok, setTiktok] = useState(initialData?.tiktok || '')
 
     // Avatar
     const [avatarUrl, setAvatarUrl] = useState(initialData?.avatar_url || '')
@@ -54,7 +74,9 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                 website,
                 linkedin,
                 twitter,
-                youtube
+                youtube,
+                instagram,
+                tiktok
             })
             // Opcional: toast de sucesso
             router.refresh()
@@ -191,6 +213,30 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                                         onChange={(e) => setYoutube(e.target.value)}
                                         className="bg-white border border-black/20 rounded-xl pl-12 h-14 focus:border-black focus:ring-1 focus:ring-black/20 font-bold text-black text-sm placeholder:text-slate-400"
                                         placeholder="URL do Canal"
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-bold uppercase tracking-[3px] text-slate-500 px-1">Instagram</label>
+                                <div className="relative group">
+                                    <Instagram className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-pink-500 transition-colors" size={18} />
+                                    <Input
+                                        value={instagram}
+                                        onChange={(e) => setInstagram(e.target.value)}
+                                        className="bg-white border border-black/20 rounded-xl pl-12 h-14 focus:border-black focus:ring-1 focus:ring-black/20 font-bold text-black text-sm placeholder:text-slate-400"
+                                        placeholder="URL do Perfil"
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-bold uppercase tracking-[3px] text-slate-500 px-1">TikTok</label>
+                                <div className="relative group">
+                                    <Tiktok className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-black transition-colors" size={18} />
+                                    <Input
+                                        value={tiktok}
+                                        onChange={(e) => setTiktok(e.target.value)}
+                                        className="bg-white border border-black/20 rounded-xl pl-12 h-14 focus:border-black focus:ring-1 focus:ring-black/20 font-bold text-black text-sm placeholder:text-slate-400"
+                                        placeholder="URL do Perfil"
                                     />
                                 </div>
                             </div>
