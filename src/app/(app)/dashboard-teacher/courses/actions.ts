@@ -533,6 +533,98 @@ export async function deleteTrailerAction(courseId: string) {
 }
 
 /**
+ * Autosave: persiste apenas as aulas/lessons em background.
+ * Upserts todas as aulas do estado local, deleta as removidas (com limpeza Mux),
+ * e retorna um mapa de IDs new-* → IDs reais do Firestore.
+ */
+export async function autosaveCourseAction(courseId: string, formData: { lessons: any[] }) {
+    const user = await getAuthUser()
+    if (!user) return { error: "Não autorizado" }
+
+    try {
+        const courseRef = adminDb.collection('courses').doc(courseId)
+        const courseDoc = await courseRef.get()
+        if (!courseDoc.exists || courseDoc.data()?.teacher_id !== user.uid) {
+            return { error: "Curso não encontrado ou você não tem permissão para editá-lo." }
+        }
+
+        const lessons = formData.lessons || []
+        const lessonsRef = adminDb.collection('lessons')
+        const batch = adminDb.batch()
+        const idMap: Record<string, string> = {}
+
+        // Deleta aulas que foram removidas pelo professor
+        const existingLessonsSnapshot = await lessonsRef.where('course_id', '==', courseId).get()
+        const existingIds = existingLessonsSnapshot.docs.map(doc => doc.id)
+        const incomingIds = lessons.map((l: any) => l.id).filter((id: string) => id && !id.startsWith('new-'))
+        const idsToDelete = existingIds.filter(id => !incomingIds.includes(id))
+
+        for (const id of idsToDelete) {
+            const lessonDoc = existingLessonsSnapshot.docs.find(d => d.id === id)
+            const lessonData = lessonDoc?.data()
+            if (lessonData?.status === 'APROVADO') {
+                batch.update(lessonsRef.doc(id), { status: 'SOLICITADO_EXCLUSAO', updated_at: new Date() })
+            } else {
+                if (lessonData?.mux_asset_id) {
+                    try {
+                        await deleteMuxAsset(lessonData.mux_asset_id)
+                    } catch (e) {
+                        console.error('[autosave] Erro ao deletar Mux asset:', e)
+                    }
+                }
+                batch.delete(lessonsRef.doc(id))
+            }
+        }
+
+        // Upsert aulas atuais
+        const totalLessons = lessons.length
+        lessons.forEach((lesson: any, index: number) => {
+            const isNew = !lesson.id || lesson.id.startsWith('new-')
+            const lessonRef = isNew ? lessonsRef.doc() : lessonsRef.doc(lesson.id)
+
+            if (isNew) {
+                idMap[lesson.id] = lessonRef.id
+            }
+
+            const payload: any = {
+                course_id: courseId,
+                title: lesson.title,
+                video_url: lesson.video_url || '',
+                mux_upload_id: lesson.mux_upload_id || '',
+                mux_playback_id: lesson.mux_playback_id || '',
+                mux_asset_id: lesson.mux_asset_id || '',
+                position: totalLessons - index,
+                description: lesson.description || '',
+                notas: lesson.notas || '',
+                updated_at: new Date()
+            }
+
+            if (lesson.type) payload.type = lesson.type
+            if (lesson.quizData) payload.quizData = lesson.quizData
+
+            if (isNew) {
+                payload.created_at = new Date()
+                payload.status = 'PENDENTE'
+            } else {
+                payload.status = lesson.status || 'PENDENTE'
+            }
+
+            batch.set(lessonRef, payload, { merge: true })
+        })
+
+        await batch.commit()
+
+        // Atualiza timestamp do curso
+        await courseRef.update({ updated_at: new Date() })
+
+        return { success: true, idMap }
+    } catch (error) {
+        console.error('Erro no autosave:', error)
+        return { error: 'Falha ao salvar automaticamente.' }
+    }
+}
+
+/**
  * Server Action segura para buscar estatísticas reais do instrutor do Firestore
  */
 export async function getInstructorStatsAction() {
