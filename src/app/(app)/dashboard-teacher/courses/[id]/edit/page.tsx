@@ -1015,7 +1015,7 @@ export default function CourseBuilder() {
                                         <div className="mt-4">
                                             <span className="text-[9px] font-bold uppercase text-[#1D5F31] tracking-[3px]">Notas da Aula (Markdown ou Texto)</span>
                                             <textarea
-                                                className="bg-transparent border-none focus:outline-none text-sm text-black/70 w-full mt-2 resize-none min-h-[120px]"
+                                                className="bg-transparent border-none focus:outline-none text-sm text-neutral-800 w-full mt-2 resize-none min-h-[120px]"
                                                 placeholder="Principais tópicos, links úteis ou anotações desta aula..."
                                                 value={selectedLesson.notas || ''}
                                                 onChange={(e) => {
@@ -1306,7 +1306,7 @@ export default function CourseBuilder() {
                     <section>
                         <h3 className="text-[10px] font-bold uppercase tracking-[5px] text-black/60 mb-6 px-1 ">Vídeo de Apresentação (Intro)</h3>
                         {trailerReviewStatus === 'trailer_pending_review' && (
-                            <div className="mb-6 bg-amber-50 border-2 border-amber-300 rounded-none">
+                            <div className="mb-6 bg-amber-50 border-2 border-amber-300 rounded-md">
                                 <div className="p-6">
                                     <div className="flex items-center gap-2 mb-2">
                                         <Clock size={16} className="text-amber-600" />
@@ -1362,7 +1362,7 @@ export default function CourseBuilder() {
                         {trailerReviewStatus !== 'trailer_pending_review' && (
                         <div className="bg-white p-6 rounded-md border border-[#1D5F31]/20 space-y-6">
                             <div className="space-y-4">
-                                <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Upload ou Link</label>
+                                <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Upload do Trailer</label>
                                 <div className={`
                                     relative aspect-video rounded-md border-2 border-dashed transition-all flex flex-col items-center justify-center overflow-hidden cursor-pointer
                                     ${(courseIntroVideo || courseIntroVideoPlaybackId) ? 'border-[#1D5F31] bg-slate-900' : 'border-[#1D5F31] bg-white hover:border-[#1D5F31]/30'}
@@ -1565,18 +1565,6 @@ export default function CourseBuilder() {
                                         />
                                     )}
                                 </div>
-                            </div>
-
-                            <div className="space-y-4">
-                                <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Ou Link Externo</label>
-                                <input
-                                    type="text"
-                                    value={courseIntroVideo}
-                                    onChange={(e) => setCourseIntroVideo(e.target.value)}
-                                    placeholder="Link YouTube/Vimeo"
-                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-md px-4 py-3 focus:border-[#1D5F31] outline-none text-xs text-black transition-all"
-                                />
-                                <p className="text-[8px] text-[#1D5F31] font-bold uppercase tracking-widest">Máximo 5 minutos recomendados para conversão.</p>
                             </div>
                         </div>
                         )}
