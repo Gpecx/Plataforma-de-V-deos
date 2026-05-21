@@ -2,8 +2,10 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { Search, User, Tag, BookOpen, X } from 'lucide-react'
+import { Search, User, Tag, BookOpen, X, AlertTriangle, ShieldCheck, Trash2, Loader2, CheckCircle2, XCircle } from 'lucide-react'
 import CourseDeleteButton from '@/components/CourseDeleteButton'
+import SecureMuxPlayer from '@/components/SecureMuxPlayer'
+import { toast } from 'sonner'
 
 interface Course {
     id: string
@@ -15,6 +17,14 @@ interface Course {
     category?: string
     status: string
     price?: number
+    trailer_review_status?: string
+    intro_video_playback_id?: string
+    intro_video_url?: string
+    intro_video_asset_id?: string
+    pendingTrailerPlaybackId?: string
+    pendingTrailerUrl?: string
+    pendingTrailerAssetId?: string
+    motivoRejeicaoTrailer?: string
 }
 
 interface Teacher {
@@ -74,6 +84,73 @@ export default function AllCoursesClient({ courses, teachers }: AllCoursesClient
     }
 
     const hasFilters = searchTerm || selectedTeacher
+
+    const [auditCourse, setAuditCourse] = useState<Course | null>(null)
+    const [rejectReason, setRejectReason] = useState('')
+    const [isProcessing, setIsProcessing] = useState(false)
+
+    const handleApproveTrailer = async (courseId: string) => {
+        setIsProcessing(true)
+        try {
+            const { approveTrailerAction } = await import('@/app/actions/admin')
+            const result = await approveTrailerAction(courseId)
+            if (result.success) {
+                toast.success('Trailer aprovado com sucesso!')
+                setAuditCourse(null)
+                window.location.reload()
+            } else {
+                toast.error(result.error || 'Erro ao aprovar trailer.')
+            }
+        } catch (err: any) {
+            toast.error(err.message || 'Erro ao aprovar trailer.')
+        } finally {
+            setIsProcessing(false)
+        }
+    }
+
+    const handleRejectTrailer = async (courseId: string) => {
+        if (!rejectReason.trim()) {
+            toast.error('Informe o motivo da rejeição.')
+            return
+        }
+        setIsProcessing(true)
+        try {
+            const { rejectTrailerAction } = await import('@/app/actions/admin')
+            const result = await rejectTrailerAction(courseId, rejectReason)
+            if (result.success) {
+                toast.success('Trailer rejeitado.')
+                setAuditCourse(null)
+                setRejectReason('')
+                window.location.reload()
+            } else {
+                toast.error(result.error || 'Erro ao rejeitar trailer.')
+            }
+        } catch (err: any) {
+            toast.error(err.message || 'Erro ao rejeitar trailer.')
+        } finally {
+            setIsProcessing(false)
+        }
+    }
+
+    const handleDeleteActiveTrailer = async (courseId: string) => {
+        if (!confirm('Tem certeza que deseja remover o trailer ativo deste curso?')) return
+        setIsProcessing(true)
+        try {
+            const { deleteActiveTrailerAction } = await import('@/app/actions/admin')
+            const result = await deleteActiveTrailerAction(courseId)
+            if (result.success) {
+                toast.success('Trailer ativo removido.')
+                setAuditCourse(null)
+                window.location.reload()
+            } else {
+                toast.error(result.error || 'Erro ao remover trailer.')
+            }
+        } catch (err: any) {
+            toast.error(err.message || 'Erro ao remover trailer.')
+        } finally {
+            setIsProcessing(false)
+        }
+    }
 
     const filteredTeachers = useMemo(() => {
         if (!searchTerm) return teachers
@@ -263,7 +340,15 @@ export default function AllCoursesClient({ courses, teachers }: AllCoursesClient
                                             </span>
                                         </td>
                                         <td className="p-6">
-                                            {getStatusBadge(course.status)}
+                                            <div className="flex flex-col gap-1">
+                                                {getStatusBadge(course.status)}
+                                                {course.trailer_review_status === 'trailer_pending_review' && (
+                                                    <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 px-3 py-1 rounded-none border border-amber-300">
+                                                        <AlertTriangle size={12} />
+                                                        Trailer Pendente
+                                                    </span>
+                                                )}
+                                            </div>
                                         </td>
                                         <td className="p-6 text-right">
                                             <span className="text-sm font-bold text-slate-900">
@@ -273,6 +358,15 @@ export default function AllCoursesClient({ courses, teachers }: AllCoursesClient
                                         <td className="p-6 text-right">
                                             <div className="flex items-center justify-end gap-2">
                                                 <CourseDeleteButton courseId={String(course.id)} courseTitle={course.title} />
+                                                {course.trailer_review_status === 'trailer_pending_review' && (
+                                                    <button
+                                                        onClick={() => setAuditCourse(course)}
+                                                        className="inline-flex items-center gap-2 px-4 py-3 text-amber-700 text-[10px] font-bold uppercase tracking-widest transition-all rounded-lg border-2 border-amber-300 bg-amber-50 hover:bg-amber-100 active:scale-95"
+                                                    >
+                                                        <ShieldCheck size={14} />
+                                                        Auditar Trailer
+                                                    </button>
+                                                )}
                                                 <Link
                                                     href={`/admin/classroom/${String(course.id)}`}
                                                     className="inline-flex items-center gap-2 px-6 py-3 text-white text-[10px] font-bold uppercase tracking-widest transition-all rounded-lg active:scale-95"
@@ -289,6 +383,95 @@ export default function AllCoursesClient({ courses, teachers }: AllCoursesClient
                     </table>
                 </div>
             </div>
+
+            {/* Audit Trailer Modal */}
+            {auditCourse && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => !isProcessing && setAuditCourse(null)}>
+                    <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-slate-200" onClick={e => e.stopPropagation()}>
+                        <div className="p-8 border-b border-slate-200 flex items-center justify-between">
+                            <div>
+                                <h2 className="text-xl font-bold uppercase tracking-tighter">Auditar Trailer</h2>
+                                <p className="text-[10px] font-bold uppercase tracking-[4px] text-slate-500 mt-1">{auditCourse.title}</p>
+                            </div>
+                            <button onClick={() => { setAuditCourse(null); setRejectReason('') }} className="p-2 text-slate-400 hover:text-slate-600 transition-colors">
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        <div className="p-8 space-y-8">
+                            {/* Trailer Atual */}
+                            {auditCourse.intro_video_playback_id && (
+                                <div>
+                                    <h3 className="text-[10px] font-bold uppercase tracking-[4px] text-slate-500 mb-4">Trailer Atual (Público)</h3>
+                                    <div className="aspect-video bg-slate-900 rounded-lg overflow-hidden border border-slate-200">
+                                        <SecureMuxPlayer
+                                            cursoId={auditCourse.id}
+                                            playbackId={auditCourse.intro_video_playback_id}
+                                            className="w-full h-full"
+                                            isPublic={true}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Trailer Pendente */}
+                            <div>
+                                <h3 className="text-[10px] font-bold uppercase tracking-[4px] text-amber-700 mb-4">Trailer Pendente (Privado - Aguardando Revisão)</h3>
+                                <div className="aspect-video bg-slate-900 rounded-lg overflow-hidden border border-amber-300">
+                                    <SecureMuxPlayer
+                                        cursoId={auditCourse.id}
+                                        playbackId={auditCourse.pendingTrailerPlaybackId || ''}
+                                        className="w-full h-full"
+                                        isPublic={false}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Ações */}
+                            <div className="flex flex-col gap-6 pt-4 border-t border-slate-200">
+                                <div className="flex items-center gap-4">
+                                    <button
+                                        onClick={() => handleApproveTrailer(auditCourse.id)}
+                                        disabled={isProcessing}
+                                        className="flex items-center gap-2 px-8 py-4 bg-[#1D5F31] text-white rounded-lg text-[10px] font-bold uppercase tracking-[4px] hover:bg-[#1D5F31]/90 transition-all disabled:opacity-50"
+                                    >
+                                        {isProcessing ? <Loader2 className="animate-spin" size={16} /> : <CheckCircle2 size={16} />}
+                                        Aprovar Trailer
+                                    </button>
+
+                                    <button
+                                        onClick={() => handleDeleteActiveTrailer(auditCourse.id)}
+                                        disabled={isProcessing}
+                                        className="flex items-center gap-2 px-6 py-4 bg-red-500 text-white rounded-lg text-[10px] font-bold uppercase tracking-[4px] hover:bg-red-600 transition-all disabled:opacity-50"
+                                    >
+                                        <Trash2 size={16} />
+                                        Remover Trailer Ativo
+                                    </button>
+                                </div>
+
+                                {/* Formulário de Rejeição */}
+                                <div className="space-y-3">
+                                    <label className="text-[9px] font-bold uppercase tracking-[3px] text-slate-600">Motivo da Rejeição</label>
+                                    <textarea
+                                        value={rejectReason}
+                                        onChange={e => setRejectReason(e.target.value)}
+                                        placeholder="Descreva o motivo da rejeição para o professor..."
+                                        className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none resize-none min-h-[80px]"
+                                    />
+                                    <button
+                                        onClick={() => handleRejectTrailer(auditCourse.id)}
+                                        disabled={isProcessing || !rejectReason.trim()}
+                                        className="flex items-center gap-2 px-6 py-3 bg-red-50 text-red-700 border-2 border-red-300 rounded-lg text-[10px] font-bold uppercase tracking-[4px] hover:bg-red-100 transition-all disabled:opacity-50"
+                                    >
+                                        {isProcessing ? <Loader2 className="animate-spin" size={16} /> : <XCircle size={16} />}
+                                        Rejeitar Trailer
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

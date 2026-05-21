@@ -51,7 +51,7 @@ import { useDropzone } from 'react-dropzone'
 import { auth, db } from '@/lib/firebase'
 import { doc, getDoc, collection, query, where, orderBy, getDocs } from 'firebase/firestore'
 import { uploadCourseImage } from "@/lib/storage-helpers"
-import { updateCourseAction, deleteVideoAction, cancelLessonDeletionRequest } from "../../actions"
+import { updateCourseAction, deleteVideoAction, cancelLessonDeletionRequest, deleteTrailerAction } from "../../actions"
 import { getMuxUploadUrl, getMuxUploadStatus } from "@/app/actions/mux"
 import { toast } from 'sonner'
 import SecureMuxPlayer from "@/components/SecureMuxPlayer"
@@ -584,6 +584,10 @@ export default function CourseBuilder() {
     const [isPlayingIntro, setIsPlayingIntro] = useState(false)
     const introFileInputRef = useRef<HTMLInputElement>(null)
     const [courseTags, setCourseTags] = useState<string[]>([])
+    const [pendingTrailerPlaybackId, setPendingTrailerPlaybackId] = useState('')
+    const [pendingTrailerUrl, setPendingTrailerUrl] = useState('')
+    const [pendingTrailerAssetId, setPendingTrailerAssetId] = useState('')
+    const [trailerReviewStatus, setTrailerReviewStatus] = useState('')
 
     // 1. Carrega dados do Firestore
     useEffect(() => {
@@ -597,7 +601,16 @@ export default function CourseBuilder() {
                     const courseDoc = await getDoc(doc(db, 'courses', courseId))
                     if (courseDoc.exists()) {
                         const cData = courseDoc.data()
-                        setCourse({ id: courseDoc.id, ...cData })
+                        const courseSerialized: Record<string, any> = { id: courseDoc.id }
+                        for (const key of Object.keys(cData)) {
+                            const val = cData[key]
+                            if (val && typeof val.toDate === 'function') {
+                                courseSerialized[key] = val.toDate().toISOString()
+                            } else {
+                                courseSerialized[key] = val
+                            }
+                        }
+                        setCourse(courseSerialized)
                         setCourseTitle(cData.title)
                         setCourseSubtitle(cData.subtitle || '')
                         setCourseDescription(cData.description || '')
@@ -612,6 +625,10 @@ export default function CourseBuilder() {
                         setCoursePricingType(cData.pricing_type || 'standard')
                         setCourseCurriculum(cData.curriculum || [])
                         setCourseTags(cData.tags || [])
+                        setPendingTrailerPlaybackId(cData.pendingTrailerPlaybackId || '')
+                        setPendingTrailerUrl(cData.pendingTrailerUrl || '')
+                        setPendingTrailerAssetId(cData.pendingTrailerAssetId || '')
+                        setTrailerReviewStatus(cData.trailer_review_status || '')
 
                         // Busca as aulas
                         const lessonsRef = collection(db, 'lessons')
@@ -621,10 +638,19 @@ export default function CourseBuilder() {
                             orderBy('position', 'asc')
                         )
                         const lessonsSnapshot = await getDocs(q)
-                        const lData = lessonsSnapshot.docs.map(doc => ({
-                            id: doc.id,
-                            ...doc.data()
-                        }))
+                        const lData = lessonsSnapshot.docs.map(doc => {
+                            const raw = doc.data()
+                            const serialized: Record<string, any> = { id: doc.id }
+                            for (const key of Object.keys(raw)) {
+                                const val = raw[key]
+                                if (val && typeof val.toDate === 'function') {
+                                    serialized[key] = val.toDate().toISOString()
+                                } else {
+                                    serialized[key] = val
+                                }
+                            }
+                            return serialized
+                        })
 
                         const modulesData = [
                             {
@@ -709,7 +735,8 @@ export default function CourseBuilder() {
         }
 
         try {
-            const result = await updateCourseAction(params.id as string, {
+            // Constrói payload SEMPRE sem Timestamps do Firestore
+            const payload: Record<string, any> = {
                 title: courseTitle,
                 subtitle: courseSubtitle,
                 description: courseDescription,
@@ -718,15 +745,35 @@ export default function CourseBuilder() {
                 pricing_type: coursePricingType,
                 duration: courseDuration,
                 image_url: courseImage,
-                intro_video_url: courseIntroVideo,
-                intro_video_mux_id: courseIntroVideoMuxId,
-                intro_video_asset_id: courseIntroVideoAssetId,
-                intro_video_playback_id: courseIntroVideoPlaybackId,
-                curriculum: courseCurriculum,
-                lessons: allLessons,
+                lessons: allLessons.map((l: any) => ({
+                    id: l.id,
+                    title: l.title,
+                    description: l.description,
+                    video_url: l.video_url || '',
+                    mux_upload_id: l.mux_upload_id || '',
+                    mux_playback_id: l.mux_playback_id || '',
+                    mux_asset_id: l.mux_asset_id || '',
+                    notas: l.notas || '',
+                    status: l.status,
+                    type: l.type,
+                    quizData: l.quizData,
+                })),
                 status: newCourseStatus,
-                tags: courseTags
-            })
+                tags: courseTags,
+                curriculum: courseCurriculum,
+            }
+
+            // Só envia intro_video_* se NÃO houver trailer pendente.
+            // Quando há pending trailer, o auto-save já persistiu em pendingTrailer*,
+            // e reenviar como intro_video_* faria updateCourseAction deletar o asset.
+            if (trailerReviewStatus !== 'trailer_pending_review') {
+                payload.intro_video_url = courseIntroVideo
+                payload.intro_video_mux_id = courseIntroVideoMuxId
+                payload.intro_video_asset_id = courseIntroVideoAssetId
+                payload.intro_video_playback_id = courseIntroVideoPlaybackId
+            }
+
+            const result = await updateCourseAction(params.id as string, payload)
 
             if (result.success) {
                 setShowSuccess(true)
@@ -802,7 +849,7 @@ export default function CourseBuilder() {
                         className={`flex items-center gap-3 font-bold uppercase text-[10px] tracking-[4px] px-8 py-4 rounded-md transition-all border-2 disabled:opacity-50 ${showSuccess ? 'bg-[#1D5F31] border-none text-white' : 'bg-[#1D5F31] border-none text-white hover:bg-[#1D5F31]/90'}`}
                     >
                         {isSaving ? <Loader2 className="animate-spin" size={18} /> : (showSuccess ? <CheckCircle2 size={18} strokeWidth={3} /> : <Save size={18} strokeWidth={3} />)}
-                        {isSaving ? 'Processando...' : (showSuccess ? 'Salvo com Sucesso' : 'Salvar Projeto')}
+                        {isSaving ? 'Processando...' : (showSuccess ? 'Salvo com Sucesso' : 'Salvar Curso')}
                     </button>
                 </div>
             </header>
@@ -1258,6 +1305,61 @@ export default function CourseBuilder() {
 
                     <section>
                         <h3 className="text-[10px] font-bold uppercase tracking-[5px] text-black/60 mb-6 px-1 ">Vídeo de Apresentação (Intro)</h3>
+                        {trailerReviewStatus === 'trailer_pending_review' && (
+                            <div className="mb-6 bg-amber-50 border-2 border-amber-300 rounded-none">
+                                <div className="p-6">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Clock size={16} className="text-amber-600" />
+                                        <span className="text-[10px] font-bold uppercase text-amber-700 tracking-widest">Trailer em Análise</span>
+                                    </div>
+                                    <p className="text-xs text-amber-800">
+                                        Seu novo trailer foi enviado e está aguardando aprovação da moderação. 
+                                        O trailer atual continua visível para os alunos durante a análise.
+                                    </p>
+                                </div>
+                                {pendingTrailerPlaybackId && (
+                                    <div className="border-t border-amber-300">
+                                        <div className="p-6">
+                                            <p className="text-[9px] font-bold uppercase text-amber-700 tracking-widest mb-2">Preview do Trailer Pendente:</p>
+                                            <div className="aspect-video bg-slate-900 overflow-hidden border border-amber-300">
+                                                <SecureMuxPlayer 
+                                                    cursoId={params.id as string} 
+                                                    playbackId={pendingTrailerPlaybackId} 
+                                                    className="w-full h-full"
+                                                    isPublic={false}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                                <div className="border-t border-amber-300 p-4 flex justify-end">
+                                    <button
+                                        onClick={async () => {
+                                            try {
+                                                await deleteTrailerAction(params.id as string)
+                                                setCourseIntroVideo('')
+                                                setCourseIntroVideoMuxId('')
+                                                setCourseIntroVideoAssetId('')
+                                                setCourseIntroVideoPlaybackId('')
+                                                setPendingTrailerPlaybackId('')
+                                                setPendingTrailerAssetId('')
+                                                setPendingTrailerUrl('')
+                                                setTrailerReviewStatus('')
+                                                toast.success("Trailer pendente removido")
+                                            } catch (err: any) {
+                                                toast.error("Erro ao remover trailer pendente")
+                                            }
+                                        }}
+                                        className="flex items-center gap-2 px-5 py-3 bg-red-500 text-white text-[10px] font-bold uppercase tracking-[3px] rounded-md hover:bg-red-600 transition-all"
+                                    >
+                                        <Trash2 size={14} />
+                                        Remover Trailer Pendente
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {trailerReviewStatus !== 'trailer_pending_review' && (
                         <div className="bg-white p-6 rounded-md border border-[#1D5F31]/20 space-y-6">
                             <div className="space-y-4">
                                 <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Upload ou Link</label>
@@ -1278,10 +1380,16 @@ export default function CourseBuilder() {
                                                 {introUploadStatus === 'uploading' ? `TRANSFERINDO ${introUploadProgress}%` : 'OTIMIZANDO VÍDEO PARA STREAMING...'}
                                             </span>
                                         </div>
-                                    ) : courseIntroVideoPlaybackId || courseIntroVideoAssetId ? (
+                                    ) : (trailerReviewStatus === 'trailer_pending_review' && pendingTrailerPlaybackId) || courseIntroVideoPlaybackId || courseIntroVideoAssetId ? (
                                         <div className="w-full h-full group relative">
-                                            {courseIntroVideoPlaybackId && (
-                                                <>
+                                            {(trailerReviewStatus === 'trailer_pending_review' && pendingTrailerPlaybackId) ? (
+                                                <SecureMuxPlayer 
+                                                    cursoId={params.id as string} 
+                                                    playbackId={pendingTrailerPlaybackId} 
+                                                    className="w-full h-full"
+                                                    isPublic={false}
+                                                />
+                                            ) : courseIntroVideoPlaybackId ? <>
                                                     <SecureMuxPlayer 
                                                         cursoId={params.id as string} 
                                                         playbackId={courseIntroVideoPlaybackId} 
@@ -1315,34 +1423,22 @@ export default function CourseBuilder() {
                                                         </button>
 
                                                         <button
-                                                            onClick={() => introFileInputRef.current?.click()}
-                                                            className="text-[8px] font-bold text-white uppercase tracking-[3px] px-3 py-2 bg-[#1D5F31] hover:bg-[#1D5F31]/90 rounded-md transition-colors flex items-center gap-1.5"
-                                                        >
-                                                            <UploadCloud size={12} />
-                                                            TROCAR VÍDEO
-                                                        </button>
-
-                                                        <button
-                                                            onClick={(e) => {
+                                                            onClick={async (e) => {
                                                                 e.stopPropagation()
-                                                                toast("Confirmar Remoção", {
-                                                                    description: "Deseja realmente remover este vídeo de abertura?",
-                                                                    action: {
-                                                                        label: "Remover",
-                                                                        onClick: async () => {
-                                                                            try {
-                                                                                await deleteVideoAction(params.id as string, 'courses', '', courseIntroVideoAssetId)
-                                                                                setCourseIntroVideo('')
-                                                                                setCourseIntroVideoMuxId('')
-                                                                                setCourseIntroVideoAssetId('')
-                                                                                setCourseIntroVideoPlaybackId('')
-                                                                                toast.success("Vídeo de abertura removido")
-                                                                            } catch (err: any) {
-                                                                                toast.error("Erro ao remover")
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                })
+                                                                try {
+                                                                    await deleteTrailerAction(params.id as string)
+                                                                    setCourseIntroVideo('')
+                                                                    setCourseIntroVideoMuxId('')
+                                                                    setCourseIntroVideoAssetId('')
+                                                                    setCourseIntroVideoPlaybackId('')
+                                                                    setPendingTrailerPlaybackId('')
+                                                                    setPendingTrailerAssetId('')
+                                                                    setPendingTrailerUrl('')
+                                                                    setTrailerReviewStatus('')
+                                                                    toast.success("Vídeo de abertura removido")
+                                                                } catch (err: any) {
+                                                                    toast.error("Erro ao remover")
+                                                                }
                                                             }}
                                                             className="text-[8px] font-bold text-white uppercase tracking-[3px] px-3 py-2 bg-red-500 hover:bg-red-600 rounded-md transition-colors flex items-center gap-1.5"
                                                         >
@@ -1350,8 +1446,7 @@ export default function CourseBuilder() {
                                                             REMOVER
                                                         </button>
                                                     </div>
-                                                </>
-                                            )}
+                                                </> : null}
                                         </div>
                                     ) : courseIntroVideo ? (
                                         <div className="flex flex-col items-center gap-1">
@@ -1369,7 +1464,7 @@ export default function CourseBuilder() {
                                             ref={introFileInputRef}
                                             type="file"
                                             accept="video/*"
-                                            className={courseIntroVideoPlaybackId ? "hidden" : "absolute inset-0 opacity-0 cursor-pointer"}
+                                            className={(courseIntroVideoPlaybackId && trailerReviewStatus !== 'trailer_pending_review') ? "hidden" : "absolute inset-0 opacity-0 cursor-pointer"}
                                             onChange={async (e) => {
                                                 const file = e.target.files?.[0]
                                                 if (!file) return
@@ -1382,7 +1477,7 @@ export default function CourseBuilder() {
                                                 setCourseIntroVideoPlaybackId('')
 
                                                 try {
-                                                    const response = await getMuxUploadUrl('intro')
+                                                    const response = await getMuxUploadUrl('intro', params.id as string)
                                                     if (response.error || !response.url) throw new Error(response.error)
 
                                                     const { url, id: uploadId } = response
@@ -1414,6 +1509,38 @@ export default function CourseBuilder() {
                                                                     setIntroUploadStatus('ready')
                                                                     setIsUploadingIntro(false)
                                                                     toast.success("PlayBack ID Ativo!")
+
+                                                                    if (course?.status === 'APROVADO') {
+                                                                        const allLessons = modules.flatMap(m => m.lessons)
+                                                                        let autoPrice = 0
+                                                                        try {
+                                                                            autoPrice = parseFloat(coursePrice.replace(',', '.'))
+                                                                            if (isNaN(autoPrice)) autoPrice = 0
+                                                                        } catch (e) { autoPrice = 0 }
+                                                                        await updateCourseAction(params.id as string, {
+                                                                            title: courseTitle,
+                                                                            subtitle: courseSubtitle,
+                                                                            description: courseDescription,
+                                                                            category: courseCategory,
+                                                                            price: autoPrice,
+                                                                            pricing_type: coursePricingType,
+                                                                            duration: courseDuration,
+                                                                            image_url: courseImage,
+                                                                            intro_video_url: '',
+                                                                            intro_video_mux_id: uploadId,
+                                                                            intro_video_asset_id: res.asset_id || '',
+                                                                            intro_video_playback_id: res.playback_id || '',
+                                                                            curriculum: courseCurriculum,
+                                                                            lessons: allLessons,
+                                                                            status: course?.status,
+                                                                            tags: courseTags
+                                                                        })
+                                                                        setTrailerReviewStatus('trailer_pending_review')
+                                                                        setPendingTrailerPlaybackId(res.playback_id || '')
+                                                                        setPendingTrailerAssetId(res.asset_id || '')
+                                                                        setPendingTrailerUrl('')
+                                                                        toast.success('Trailer enviado para análise da moderação!')
+                                                                    }
                                                                 } else {
                                                                     attempts++
                                                                     setTimeout(check, 3000)
@@ -1452,6 +1579,7 @@ export default function CourseBuilder() {
                                 <p className="text-[8px] text-[#1D5F31] font-bold uppercase tracking-widest">Máximo 5 minutos recomendados para conversão.</p>
                             </div>
                         </div>
+                        )}
                     </section>
 
                     <section>

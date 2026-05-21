@@ -1,9 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { approveCourse, rejectCourse } from '@/app/actions/admin'
-import { X, Play, AlertCircle, Loader2, LayoutGrid, PlaySquare } from 'lucide-react'
+import { approveCourse, rejectCourse, approveTrailerAction, rejectTrailerAction } from '@/app/actions/admin'
+import { X, Play, AlertCircle, Loader2, LayoutGrid, PlaySquare, ShieldCheck, XCircle, AlertTriangle } from 'lucide-react'
 import Logo from '@/components/Logo'
+import SecureMuxPlayer from '@/components/SecureMuxPlayer'
 
 import { toast } from 'sonner'
 
@@ -37,16 +38,18 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
         return url
     }
 
-    const handleApprove = async (id: string) => {
+    const handleApprove = async (course: any) => {
+        const id = course.id
+        const isTrailerReview = course.trailer_review_status === 'trailer_pending_review'
         setLoadingId(id)
         try {
-            const res = await approveCourse(id)
+            const res = isTrailerReview ? await approveTrailerAction(id) : await approveCourse(id)
             if (res.success) {
                 setCourses(courses.filter(c => c.id !== id))
                 setReviewingCourse(null)
-                toast.success('Curso aprovado com sucesso! Já está disponível na plataforma.')
+                toast.success(isTrailerReview ? 'Trailer aprovado com sucesso!' : 'Curso aprovado com sucesso! Já está disponível na plataforma.')
             } else {
-                toast.error(res.error || 'Erro ao aprovar curso')
+                toast.error(res.error || 'Erro ao aprovar')
             }
         } catch (error) {
             toast.error('Erro técnico ao processar aprovação')
@@ -55,22 +58,24 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
         }
     }
 
-    const handleReject = async (id: string) => {
-        if (!rejectionReason.trim()) {
+    const handleReject = async (course: any) => {
+        const id = course.id
+        const isTrailerReview = course.trailer_review_status === 'trailer_pending_review'
+        if (!isTrailerReview && !rejectionReason.trim()) {
             toast.warning('Por favor, informe o motivo da rejeição para orientar o instrutor.')
             return
         }
 
         setLoadingId(id)
         try {
-            const res = await rejectCourse(id, rejectionReason)
+            const res = isTrailerReview ? await rejectTrailerAction(id, rejectionReason) : await rejectCourse(id, rejectionReason)
             if (res.success) {
                 setCourses(courses.filter(c => c.id !== id))
                 setReviewingCourse(null)
                 setRejectionReason('')
-                toast.success('Conteúdo reprovado. O instrutor receberá o feedback.')
+                toast.success(isTrailerReview ? 'Trailer rejeitado.' : 'Conteúdo reprovado. O instrutor receberá o feedback.')
             } else {
-                toast.error(res.error || 'Erro ao rejeitar curso')
+                toast.error(res.error || 'Erro ao rejeitar')
             }
         } catch (error) {
             toast.error('Erro técnico ao processar reprovação')
@@ -99,11 +104,19 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
                         key={course.id}
                         className="group bg-white border border-black/20 hover:border-[#1D5F31]/30 transition-all duration-500 relative flex flex-col rounded-xl overflow-hidden shadow-sm hover:shadow-lg"
                     >
-                        <div className="absolute top-4 left-4 z-20">
-                            <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md border border-black/10 px-3 py-1 rounded-full shadow-sm">
-                                <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
-                                <span className="text-[8px] font-bold uppercase tracking-wider !text-[#000000]">PENDENTE</span>
-                            </div>
+                        <div className="absolute top-4 left-4 z-20 flex flex-col gap-1">
+                            {course.status === 'PENDENTE' && (
+                                <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md border border-black/10 px-3 py-1 rounded-full shadow-sm">
+                                    <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
+                                    <span className="text-[8px] font-bold uppercase tracking-wider !text-[#000000]">PENDENTE</span>
+                                </div>
+                            )}
+                            {course.trailer_review_status === 'trailer_pending_review' && (
+                                <div className="flex items-center gap-2 bg-amber-50 backdrop-blur-md border border-amber-300 px-3 py-1 rounded-full shadow-sm">
+                                    <AlertTriangle size={10} className="text-amber-600" />
+                                    <span className="text-[8px] font-bold uppercase tracking-wider text-amber-700">TRAILER PENDENTE</span>
+                                </div>
+                            )}
                         </div>
 
                         <div className="relative aspect-video overflow-hidden bg-slate-950 flex items-center justify-center">
@@ -158,7 +171,9 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
                                         <div className="w-10 h-10 rounded-lg bg-black/5 flex items-center justify-center border border-black/10">
                                             <Play size={18} className="text-[#1D5F31]" strokeWidth={2.5} />
                                         </div>
-                                        <h2 className="text-[11px] font-bold uppercase tracking-wider !text-[#000000]">VÍDEO DE INTRODUÇÃO</h2>
+                                        <h2 className="text-[11px] font-bold uppercase tracking-wider !text-[#000000]">
+                                            {reviewingCourse.trailer_review_status === 'trailer_pending_review' ? 'TRAILER PENDENTE (PRIVADO)' : 'VÍDEO DE INTRODUÇÃO'}
+                                        </h2>
                                     </div>
                                     <button
                                         onClick={() => setReviewingCourse(null)}
@@ -169,7 +184,16 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
                                 </header>
 
                                 <div className="flex-1 flex items-center justify-center bg-slate-900 p-0 relative group" key={reviewingCourse.id}>
-                                    {reviewingCourse.intro_video_url ? (
+                                    {reviewingCourse.trailer_review_status === 'trailer_pending_review' && reviewingCourse.pendingTrailerPlaybackId ? (
+                                        <div className="w-full h-full">
+                                            <SecureMuxPlayer
+                                                cursoId={reviewingCourse.id}
+                                                playbackId={reviewingCourse.pendingTrailerPlaybackId}
+                                                className="w-full h-full"
+                                                isPublic={false}
+                                            />
+                                        </div>
+                                    ) : reviewingCourse.intro_video_url ? (
                                         isExternalVideo(reviewingCourse.intro_video_url) ? (
                                             <iframe
                                                 src={getEmbedUrl(reviewingCourse.intro_video_url)}
@@ -200,12 +224,14 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
 
                             {/* Moderation Column */}
                             <div className="w-full lg:w-[450px] p-10 lg:p-12 flex flex-col bg-white overflow-y-auto custom-scrollbar">
-                                <div className="mb-10">
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <div className="w-1 h-1 rounded-full bg-[#1D5F31]"></div>
-                                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#1D5F31]">DETALHES DA AUDITORIA</span>
-                                    </div>
-                                    <h3 className="text-3xl font-bold uppercase tracking-tighter leading-tight !text-[#000000]">{reviewingCourse.title}</h3>
+                            <div className="mb-10">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <div className="w-1 h-1 rounded-full bg-[#1D5F31]"></div>
+                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#1D5F31]">
+                                        {reviewingCourse.trailer_review_status === 'trailer_pending_review' ? 'REVISÃO DE TRAILER' : 'DETALHES DA AUDITORIA'}
+                                    </span>
+                                </div>
+                                <h3 className="text-3xl font-bold uppercase tracking-tighter leading-tight !text-[#000000]">{reviewingCourse.title}</h3>
                                     <p className="text-[12px] !text-[#000000] mt-6 leading-tight font-bold uppercase tracking-wider">
                                         {reviewingCourse.subtitle || 'Nenhum subtítulo fornecido pelo instrutor.'}
                                     </p>
@@ -227,18 +253,18 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
 
                                     <div className="grid grid-cols-1 gap-4 pt-4">
                                         <button
-                                            onClick={() => handleApprove(reviewingCourse.id)}
+                                            onClick={() => handleApprove(reviewingCourse)}
                                             disabled={loadingId === reviewingCourse.id}
                                             className="h-16 bg-[#1D5F31] text-white text-[11px] font-bold uppercase tracking-wider hover:bg-slate-900 transition-all disabled:opacity-50 flex items-center justify-center rounded-xl active:scale-95 shadow-sm"
                                         >
-                                            {loadingId === reviewingCourse.id ? <Loader2 size={24} className="animate-spin" /> : "APROVAR CONTEÚDO"}
+                                            {loadingId === reviewingCourse.id ? <Loader2 size={24} className="animate-spin" /> : (reviewingCourse.trailer_review_status === 'trailer_pending_review' ? "APROVAR TRAILER" : "APROVAR CONTEÚDO")}
                                         </button>
                                         <button
-                                            onClick={() => handleReject(reviewingCourse.id)}
+                                            onClick={() => handleReject(reviewingCourse)}
                                             disabled={loadingId === reviewingCourse.id}
                                             className="h-14 border border-black/10 text-rose-500 text-[10px] font-bold uppercase tracking-wider hover:bg-rose-500 hover:text-white transition-all disabled:opacity-50 rounded-xl active:scale-95"
                                         >
-                                            Reprovar Acesso
+                                            {reviewingCourse.trailer_review_status === 'trailer_pending_review' ? 'Rejeitar Trailer' : 'Reprovar Acesso'}
                                         </button>
                                     </div>
                                 </div>

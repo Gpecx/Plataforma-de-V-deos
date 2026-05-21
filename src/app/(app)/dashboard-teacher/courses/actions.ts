@@ -174,6 +174,13 @@ export async function updateCourseAction(courseId: string, formData: any) {
             return { error: "Cursos gratuitos não podem ser alterados para pagos por questões de segurança e integridade." }
         }
 
+        const isApproved = currentData?.status === 'APROVADO'
+        const hasNewIntroVideo = 
+            (formData.intro_video_url !== undefined && formData.intro_video_url !== (currentData?.intro_video_url || '')) ||
+            (formData.intro_video_mux_id !== undefined && formData.intro_video_mux_id !== (currentData?.intro_video_mux_id || '')) ||
+            (formData.intro_video_asset_id !== undefined && formData.intro_video_asset_id !== (currentData?.intro_video_asset_id || '')) ||
+            (formData.intro_video_playback_id !== undefined && formData.intro_video_playback_id !== (currentData?.intro_video_playback_id || ''))
+
         const updateData: any = { updated_at: new Date() }
         if (formData.title !== undefined) updateData.title = formData.title
         if (formData.price !== undefined && !isNaN(formData.price)) updateData.price = Number(formData.price)
@@ -184,12 +191,34 @@ export async function updateCourseAction(courseId: string, formData: any) {
         if (formData.category !== undefined) updateData.category = formData.category
         if (formData.duration !== undefined) updateData.duration = Number(formData.duration)
         if (formData.image_url !== undefined) updateData.image_url = formData.image_url
-        if (formData.intro_video_url !== undefined) updateData.intro_video_url = formData.intro_video_url
-        if (formData.intro_video_mux_id !== undefined) updateData.intro_video_mux_id = formData.intro_video_mux_id
-        if (formData.intro_video_asset_id !== undefined) updateData.intro_video_asset_id = formData.intro_video_asset_id
-        if (formData.intro_video_playback_id !== undefined) updateData.intro_video_playback_id = formData.intro_video_playback_id
         if (formData.curriculum !== undefined) updateData.curriculum = formData.curriculum
         if (formData.tags !== undefined) updateData.tags = formData.tags
+
+        // Se curso está APROVADO e há novos campos de intro vídeo, grava em pendingTrailer
+        if (isApproved && hasNewIntroVideo) {
+            // Só deleta o pending anterior se for um asset DIFERENTE do que está sendo enviado.
+            // Caso contrário, o auto-save já persistiu e estaríamos deletando o asset recém-criado.
+            if (currentData?.pendingTrailerAssetId && formData.intro_video_asset_id !== currentData.pendingTrailerAssetId) {
+                console.log(`[updateCourseAction] Removendo trailer pendente anterior do Mux: ${currentData.pendingTrailerAssetId}`)
+                const muxResult = await deleteMuxAsset(currentData.pendingTrailerAssetId)
+                if (muxResult.error) {
+                    console.error(`[updateCourseAction] Erro ao deletar Mux asset pendente anterior:`, muxResult.error)
+                }
+            }
+
+            if (formData.intro_video_url !== undefined) updateData.pendingTrailerUrl = formData.intro_video_url
+            if (formData.intro_video_mux_id !== undefined) updateData.pendingTrailerMuxId = formData.intro_video_mux_id
+            if (formData.intro_video_asset_id !== undefined) updateData.pendingTrailerAssetId = formData.intro_video_asset_id
+            if (formData.intro_video_playback_id !== undefined) updateData.pendingTrailerPlaybackId = formData.intro_video_playback_id
+            updateData.trailer_review_status = 'trailer_pending_review'
+            updateData.motivoRejeicaoTrailer = ''
+        } else if (!isApproved) {
+            // Se o curso não está aprovado, mantém fluxo antigo (atualização direta)
+            if (formData.intro_video_url !== undefined) updateData.intro_video_url = formData.intro_video_url
+            if (formData.intro_video_mux_id !== undefined) updateData.intro_video_mux_id = formData.intro_video_mux_id
+            if (formData.intro_video_asset_id !== undefined) updateData.intro_video_asset_id = formData.intro_video_asset_id
+            if (formData.intro_video_playback_id !== undefined) updateData.intro_video_playback_id = formData.intro_video_playback_id
+        }
 
         await courseRef.update(updateData)
 
@@ -296,7 +325,13 @@ export async function updateCourseAction(courseId: string, formData: any) {
  * Action para remover vídeo fisicamente do Storage e limpar referência no Firestore
  * Opcionalmente pode receber mux_asset_id para deletar também no Mux
  */
-export async function deleteVideoAction(id: string, collectionName: 'courses' | 'lessons', videoUrl: string, muxAssetId?: string) {
+export async function deleteVideoAction(
+    id: string, 
+    collectionName: 'courses' | 'lessons', 
+    videoUrl: string, 
+    muxAssetId?: string,
+    isPendingTrailer: boolean = false
+) {
     const user = await getAuthUser()
     if (!user) return { error: "Não autorizado" }
 
@@ -335,15 +370,25 @@ export async function deleteVideoAction(id: string, collectionName: 'courses' | 
 
         // 3. Limpa as referências no Firestore
         const updateData: any = {
-            video_url: "",
             updated_at: new Date()
         }
         
         if (collectionName === 'courses') {
-            updateData.intro_video_mux_id = ''
-            updateData.intro_video_asset_id = ''
-            updateData.intro_video_playback_id = ''
+            if (isPendingTrailer) {
+                updateData.pendingTrailerUrl = ''
+                updateData.pendingTrailerMuxId = ''
+                updateData.pendingTrailerAssetId = ''
+                updateData.pendingTrailerPlaybackId = ''
+                updateData.trailer_review_status = ''
+                updateData.motivoRejeicaoTrailer = ''
+            } else {
+                updateData.video_url = ""
+                updateData.intro_video_mux_id = ''
+                updateData.intro_video_asset_id = ''
+                updateData.intro_video_playback_id = ''
+            }
         } else {
+            updateData.video_url = ""
             updateData.mux_upload_id = ''
             updateData.mux_asset_id = ''
             updateData.mux_playback_id = ''
@@ -424,6 +469,66 @@ export async function cancelLessonDeletionRequest(lessonId: string, courseId: st
     } catch (error) {
         console.error('Erro ao cancelar solicitação:', error)
         return { error: 'Falha ao cancelar solicitação.' }
+    }
+}
+
+/**
+ * Action para remover trailer (pendente ou ativo) de um curso.
+ * Usado pelo professor no botão "Remover Vídeo" da página de edição.
+ * Prioriza remoção do trailer pendente se existir.
+ */
+export async function deleteTrailerAction(courseId: string) {
+    const user = await getAuthUser()
+    if (!user) return { error: "Não autorizado" }
+
+    try {
+        const courseRef = adminDb.collection('courses').doc(courseId)
+        const courseDoc = await courseRef.get()
+
+        if (!courseDoc.exists || courseDoc.data()?.teacher_id !== user.uid) {
+            return { error: 'Não autorizado ou curso não encontrado.' }
+        }
+
+        const courseData = courseDoc.data()
+
+        if (courseData?.pendingTrailerAssetId) {
+            // Remove trailer pendente do Mux
+            const muxResult = await deleteMuxAsset(courseData.pendingTrailerAssetId)
+            if (muxResult.error) {
+                console.error('[deleteTrailerAction] Erro ao deletar pending trailer asset:', muxResult.error)
+            }
+            // Limpa campos pendentes
+            await courseRef.update({
+                pendingTrailerUrl: null,
+                pendingTrailerMuxId: null,
+                pendingTrailerAssetId: null,
+                pendingTrailerPlaybackId: null,
+                trailer_review_status: null,
+                motivoRejeicaoTrailer: null,
+                updated_at: new Date()
+            })
+        } else if (courseData?.intro_video_asset_id) {
+            // Remove trailer ativo do Mux
+            const muxResult = await deleteMuxAsset(courseData.intro_video_asset_id)
+            if (muxResult.error) {
+                console.error('[deleteTrailerAction] Erro ao deletar active trailer asset:', muxResult.error)
+            }
+            // Limpa campos principais
+            await courseRef.update({
+                intro_video_url: '',
+                intro_video_mux_id: '',
+                intro_video_asset_id: '',
+                intro_video_playback_id: '',
+                updated_at: new Date()
+            })
+        }
+
+        revalidatePath(`/dashboard-teacher/courses/${courseId}/edit`)
+        revalidatePath('/dashboard-teacher/courses')
+        return { success: true }
+    } catch (error) {
+        console.error('Erro ao remover trailer:', error)
+        return { error: 'Falha ao remover trailer.' }
     }
 }
 
