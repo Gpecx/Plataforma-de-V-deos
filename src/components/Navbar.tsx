@@ -66,6 +66,10 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
         pathname.startsWith('/instructor') ||
         pathname.startsWith('/painel-professor')
 
+    const isStudentMode = pathname.startsWith('/dashboard-student') ||
+        pathname.startsWith('/classroom') ||
+        pathname.startsWith('/course')
+
     const isTeacherLogin = pathname === '/auth/teacher/login' || 
                          pathname === '/login/teacher' || 
                          pathname === '/professor/login'
@@ -550,7 +554,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                             "font-bold uppercase tracking-tighter text-sm line-clamp-1",
                                             light ? "!text-black opacity-100" : "text-white"
                                         )}>
-                                            {isTeacherMode || userProfile?.role === 'teacher' || userProfile?.role === 'admin' ? 'PROFESSOR POWERPLAY' : 'ESTUDANTE POWERPLAY'}
+                                            {isTeacherMode ? 'PROFESSOR POWERPLAY' : 'ESTUDANTE POWERPLAY'}
                                         </p>
                                         <p className={cn(
                                             "text-[10px] font-bold uppercase tracking-widest mt-1 line-clamp-1",
@@ -567,21 +571,20 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                     </div>
 
                                     <div className="p-1 space-y-1">
-                                        {isTeacherMode || userProfile?.role === 'teacher' || userProfile?.role === 'admin' ? (
+                                        {userProfile?.role === 'admin' && !isTeacherMode && (
+                                            <>
+                                                <DropdownMenuItem onSelect={() => router.push("/admin/dashboard")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-[#1D5F31]/20 text-[#22c55e] transition-colors outline-none focus:bg-[#1D5F31]/20 border border-[#1D5F31]/30 mb-1 bg-[#1D5F31]/10">
+                                                    <ShieldAlert size={18} className="text-[#22c55e]" /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Voltar ao Painel Admin</span>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuSeparator className={cn("my-2", light ? "bg-slate-100" : "bg-white/5")} />
+                                            </>
+                                        )}
+                                        {isTeacherMode ? (
                                             <>
                                                 {userProfile?.role === 'admin' && (
-                                                    <>
-                                                        <DropdownMenuItem onSelect={() => router.push("/admin/dashboard")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-[#1D5F31]/20 text-[#22c55e] transition-colors outline-none focus:bg-[#1D5F31]/20 border border-[#1D5F31]/30 mb-1 bg-[#1D5F31]/10">
-                                                            <ShieldAlert size={18} className="text-[#22c55e]" /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Acessar Painel Admin</span>
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/courses")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-[#1D5F31]/20 text-[#1D5F31] transition-colors outline-none focus:bg-[#1D5F31]/20 border border-[#1D5F31]/30 mb-1">
-                                                            <BookOpen size={18} className="text-[#1D5F31]" /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Modo Professor</span>
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem onSelect={() => router.push("/dashboard-student")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-[#1D5F31]/20 text-[#1D5F31] transition-colors outline-none focus:bg-[#1D5F31]/20 border border-[#1D5F31]/30 mb-1">
-                                                            <GraduationCap size={18} className="text-[#1D5F31]" /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Modo Aluno</span>
-                                                        </DropdownMenuItem>
-
-                                                    </>
+                                                    <DropdownMenuItem onSelect={() => router.push("/dashboard-student")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-[#1D5F31]/20 text-[#1D5F31] transition-colors outline-none focus:bg-[#1D5F31]/20 border border-[#1D5F31]/30 mb-1">
+                                                        <GraduationCap size={18} className="text-[#1D5F31]" /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Modo Aluno</span>
+                                                    </DropdownMenuItem>
                                                 )}
                                                 <DropdownMenuSeparator className={cn("my-2", light ? "bg-slate-100" : "bg-white/5")} />
                                                 <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/profile")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>

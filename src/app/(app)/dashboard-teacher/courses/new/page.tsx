@@ -24,7 +24,8 @@ import {
     Clock,
     HelpCircle,
     RotateCcw,
-    XCircle
+    XCircle,
+    Save
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -914,12 +915,14 @@ export default function NewCoursePage() {
                                             {lesson.type === 'quiz' ? (
                                                 <div className="border-2 border-black/5 p-6 bg-slate-50/30 rounded-md">
                                                     <QuizForm
+                                                        key={selectedLessonIndex}
                                                         initialData={lesson.quizData}
                                                         onSave={(quizData) => {
                                                             handleUpdateLesson(selectedLessonIndex, {
                                                                 quizData: quizData as any,
                                                                 title: quizData.title || lesson.title
                                                             })
+                                                            setSelectedLessonIndex(null)
                                                         }}
                                                     />
                                                 </div>
@@ -1028,6 +1031,17 @@ export default function NewCoursePage() {
                                                                 />
                                                             )}
                                                         </div>
+                                                    </div>
+
+                                                    <div className="flex justify-end pt-4">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setSelectedLessonIndex(null)}
+                                                            className="flex items-center gap-3 bg-slate-900 text-white px-10 py-4 rounded-md font-bold uppercase tracking-[3px] text-[11px] hover:bg-black transition-all active:scale-95 shadow-xl"
+                                                        >
+                                                            <Save size={18} />
+                                                            SALVAR VÍDEO AULA
+                                                        </button>
                                                     </div>
                                                 </>
                                             )}

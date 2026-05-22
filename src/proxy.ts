@@ -186,7 +186,21 @@ export async function proxy(request: NextRequest) {
 
     const userRole = payload?.role ?? null
 
-    // ── 3. Teacher: block public/student routes ─────────────────────────
+    // ── 3. Admin Bypass: admins have unrestricted access to all routes ──
+    if (userRole === 'admin') {
+        return NextResponse.next()
+    }
+
+    // ── 4. Unauthenticated: protect authenticated routes ────────────────
+    const isProtectedRoute = AUTHENTICATED_ROUTES.some((route) =>
+        pathname.startsWith(route)
+    )
+
+    if (isProtectedRoute && !payload) {
+        return redirectToLogin(request, pathname)
+    }
+
+    // ── 5. Teacher: block public/student routes ─────────────────────────
     if (userRole === 'teacher') {
         const isTeacherBlocked = TEACHER_BLOCKED_ROUTES.some(route =>
             pathname === route || pathname.startsWith(route + '/')
@@ -194,25 +208,6 @@ export async function proxy(request: NextRequest) {
         if (isTeacherBlocked || pathname === '/') {
             return NextResponse.redirect(new URL('/dashboard-teacher', request.url))
         }
-    }
-
-    // ── 4. Admin: block public/student/teacher routes ───────────────────
-    if (userRole === 'admin') {
-        const isAdminBlocked = ADMIN_BLOCKED_ROUTES.some(route =>
-            pathname === route || pathname.startsWith(route + '/')
-        )
-        if (isAdminBlocked || pathname === '/') {
-            return NextResponse.redirect(new URL('/admin', request.url))
-        }
-    }
-
-    // ── 5. Unauthenticated: protect authenticated routes ────────────────
-    const isProtectedRoute = AUTHENTICATED_ROUTES.some((route) =>
-        pathname.startsWith(route)
-    )
-
-    if (isProtectedRoute && !payload) {
-        return redirectToLogin(request, pathname)
     }
 
     // ── 6. Role-restricted routes ──────────────────────────────────────
