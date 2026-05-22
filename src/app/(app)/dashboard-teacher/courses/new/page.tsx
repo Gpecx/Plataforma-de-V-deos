@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { motion } from 'framer-motion'
 import {
     ChevronRight,
     ChevronLeft,
@@ -15,7 +16,15 @@ import {
     BookOpen,
     X,
     Loader2,
-    Play
+    Play,
+    GripVertical,
+    Video,
+    FileText,
+    AlertCircle,
+    Clock,
+    HelpCircle,
+    RotateCcw,
+    XCircle
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -30,7 +39,6 @@ import { uploadCourseImage } from "@/lib/storage-helpers"
 import { getMuxUploadUrl, getMuxUploadStatus, getLessonPlaybackToken } from "@/app/actions/mux"
 import QuizForm from '@/app/(app)/dashboard-teacher/components/QuizForm'
 import { Question } from "@/store/useCourseFormStore"
-import { HelpCircle } from 'lucide-react'
 
 function LessonVideoPreview({ playbackId, title }: { playbackId: string, title: string }) {
     const [token, setToken] = useState<string>('')
@@ -55,7 +63,7 @@ function LessonVideoPreview({ playbackId, title }: { playbackId: string, title: 
 
     if (loading) {
         return (
-            <div className="aspect-video w-full bg-slate-100 rounded-xl flex items-center justify-center border-2 border-black/5">
+            <div className="aspect-video w-full bg-slate-100 rounded-md flex items-center justify-center border-2 border-black/5">
                 <div className="flex flex-col items-center gap-2">
                     <Loader2 className="animate-spin text-[#1D5F31]" size={20} />
                     <span className="text-[8px] font-bold uppercase tracking-widest text-[#1D5F31]/60">Carregando Player...</span>
@@ -65,7 +73,7 @@ function LessonVideoPreview({ playbackId, title }: { playbackId: string, title: 
     }
 
     return (
-        <div className="relative group/player aspect-video w-full bg-black rounded-xl overflow-hidden border-2 border-black transition-all hover:border-[#1D5F31] shadow-xl">
+        <div className="relative group/player aspect-video w-full bg-black rounded-md overflow-hidden border-2 border-black transition-all hover:border-[#1D5F31] shadow-xl">
             <MuxPlayer
                 playbackId={playbackId}
                 tokens={{ playback: token }}
@@ -131,6 +139,20 @@ export default function NewCoursePage() {
     const [uploadingVideoProgress, setUploadingVideoProgress] = useState<Record<number, number>>({})
     const [introUploadStatus, setIntroUploadStatus] = useState<'idle' | 'uploading' | 'processing' | 'ready'>('idle')
     const [introUploadProgress, setIntroUploadProgress] = useState(0)
+    const [selectedLessonIndex, setSelectedLessonIndex] = useState<number | null>(null)
+    const [selectedLessonNotas, setSelectedLessonNotas] = useState('')
+    const [isHydrated, setIsHydrated] = useState(false)
+
+    // Aguarda a hidratação do Zustand persist antes de renderizar os dados salvos
+    useEffect(() => {
+        const unsub = useCourseFormStore.persist.onFinishHydration(() => {
+            setIsHydrated(true)
+        })
+        if (useCourseFormStore.persist.hasHydrated()) {
+            setIsHydrated(true)
+        }
+        return () => unsub()
+    }, [])
 
     // Automatiza o scroll para o topo ao mudar de passo
     useEffect(() => {
@@ -164,21 +186,24 @@ export default function NewCoursePage() {
 
     const handleAddLesson = (type: 'lesson' | 'quiz' = 'lesson') => {
         const newLesson: Lesson = {
-            title: type === 'quiz' ? 'Novo Quiz' : '',
+            title: type === 'quiz' ? 'Novo Questionário' : '',
             video_url: '',
-            position: 0, // será recalculado na Server Action
+            position: 0,
             type: type
         }
         if (type === 'quiz') {
             newLesson.quizData = {
-                title: 'Novo Quiz',
+                title: 'Novo Questionário',
                 description: '',
                 questions: [{ id: Math.random().toString(), text: '', options: ['', ''], correctAnswer: 0 }]
             }
         }
-        // Insere no topo (índice 0) para que o professor veja a aula recém-criada no início
         setLessons([newLesson, ...formData.lessons])
+        setSelectedLessonIndex(0)
+        setSelectedLessonNotas('')
     }
+
+    const handleAddQuiz = () => handleAddLesson('quiz')
 
     const handleRemoveLesson = (index: number) => {
         const newLessons = formData.lessons.filter((_, i) => i !== index)
@@ -299,21 +324,59 @@ export default function NewCoursePage() {
 
     return (
         <div className="min-h-screen bg-transparent text-black/90 p-8 md:p-12 font-montserrat border-t border-black/5">
+            {!isHydrated ? (
+                <div className="flex items-center justify-center min-h-[60vh]">
+                    <div className="flex flex-col items-center gap-4">
+                        <Loader2 className="animate-spin text-[#1D5F31]" size={32} />
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-black/60">RESTAURANDO RASCUNHO...</span>
+                    </div>
+                </div>
+            ) : (
+            <>
             {/* Header */}
-            <div className="flex justify-between items-center mb-16 px-4 max-w-6xl mx-auto">
+            <div className="flex justify-between items-center mb-16 px-4 w-full">
                 <div>
                     <h1 className="text-2xl font-bold tracking-tighter uppercase leading-none text-black max-w-xl">
                         Criar <span className="text-black">Novo Curso</span>
                     </h1>
                     <p className="text-black/80 mt-2 text-[10px] font-bold uppercase tracking-[3px]">Siga os passos abaixo para publicar seu conhecimento.</p>
                 </div>
-                <button
-                    onClick={() => router.back()}
-                    className="flex items-center gap-3 text-white hover:text-white transition group bg-[#1D5F31] border-2 border-[#1D5F31] px-6 py-3 rounded-xl shadow-none hover:bg-[#1D5F31]/80"
-                >
-                    <X size={18} className="group-hover:rotate-90 transition-transform" />
-                    <span className="font-bold uppercase text-[10px] tracking-widest">Sair do Studio</span>
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => {
+                            toast("Tem certeza que deseja apagar todo o formulário?", {
+                                description: "Esta ação não pode ser desfeita.",
+                                action: {
+                                    label: "LIMPAR TUDO",
+                                    onClick: () => {
+                                        resetForm()
+                                        setSelectedLessonIndex(null)
+                                        setSelectedLessonNotas('')
+                                        toast.success("FORMULÁRIO LIMPO", {
+                                            style: { background: '#fff', color: '#000', border: '2px solid #000', borderRadius: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', boxShadow: 'none' }
+                                        })
+                                    }
+                                },
+                                cancel: {
+                                    label: "CANCELAR",
+                                    onClick: () => {}
+                                },
+                                style: { background: '#fff', color: '#000', border: '2px solid #dc2626', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px' }
+                            })
+                        }}
+                        className="flex items-center gap-2 text-black/60 hover:text-red-600 transition group bg-transparent border-2 border-black/20 hover:border-red-400 px-5 py-3 rounded-md shadow-none font-bold uppercase text-[10px] tracking-widest"
+                    >
+                        <Trash2 size={16} className="group-hover:scale-110 transition-transform" />
+                        <span>Limpar</span>
+                    </button>
+                    <button
+                        onClick={() => router.back()}
+                        className="flex items-center gap-3 text-white hover:text-white transition group bg-[#1D5F31] border-2 border-[#1D5F31] px-6 py-3 rounded-md shadow-none hover:bg-[#1D5F31]/80"
+                    >
+                        <X size={18} className="group-hover:rotate-90 transition-transform" />
+                        <span className="font-bold uppercase text-[10px] tracking-widest">Sair do Studio</span>
+                    </button>
+                </div>
             </div>
 
             {/* Stepper */}
@@ -334,7 +397,7 @@ export default function NewCoursePage() {
                         return (
                             <div key={step.id} className="flex flex-col items-center">
                                 <div className={`
-                                    w-14 h-14 rounded-xl flex items-center justify-center transition-all duration-500 border-2 shadow-none
+                                    w-14 h-14 rounded-full flex items-center justify-center transition-all duration-500 border-2 shadow-none
                                     ${isActive ? 'bg-[#1D5F31] text-white border-[#1D5F31] scale-110' : ''}
                                     ${isCompleted ? 'bg-[#1D5F31] border-[#1D5F31] text-white shadow-[#1D5F31]/20' : ''}
                                     ${!isActive && !isCompleted ? 'bg-white border-black text-black/60' : ''}
@@ -351,15 +414,14 @@ export default function NewCoursePage() {
             </div>
 
             {/* Conteúdo Central */}
-            <div className="max-w-4xl mx-auto bg-white border-2 border-black rounded-xl p-8 md:p-14 mb-16 shadow-none">
-
+            <div className="w-full bg-white border border-black/5 rounded-md p-8 md:p-14 mb-16 shadow-none">
 
                 {currentStep === 1 && (
-                    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-700">
+                    <div className="max-w-5xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-700">
                         {/* Upload de Capa */}
                         <div className="space-y-4">
                             <Label className="text-[10px] font-bold uppercase tracking-widest text-black px-1 ">Capa do Treinamento</Label>
-                            <div className="relative group overflow-hidden rounded-xl border-2 border-dashed border-black hover:border-black/50 transition-all duration-500 bg-white aspect-video flex flex-col items-center justify-center cursor-pointer">
+                            <div className="relative group overflow-hidden rounded-md border-2 border-dashed border-black hover:border-black/50 transition-all duration-500 bg-white aspect-video flex flex-col items-center justify-center cursor-pointer">
                                 {formData.image_url ? (
                                     <>
                                         <img
@@ -368,7 +430,7 @@ export default function NewCoursePage() {
                                             className="w-full h-full object-cover group-hover:scale-105 transition-all duration-1000 opacity-80"
                                         />
                                         <div className="absolute inset-0 bg-white/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
-                                            <Button variant="outline" className="bg-[#1D5F31] border-2 border-[#1D5F31] text-white hover:bg-[#1D5F31]/90 font-bold uppercase text-[10px] tracking-widest h-12 px-8 rounded-xl">
+                                            <Button variant="outline" className="bg-[#1D5F31] border-2 border-[#1D5F31] text-white hover:bg-[#1D5F31]/90 font-bold uppercase text-[10px] tracking-widest h-12 px-8 rounded-md">
                                                 Trocar Arte
                                             </Button>
                                         </div>
@@ -405,7 +467,7 @@ export default function NewCoursePage() {
                                 <Label className="text-[10px] font-bold uppercase tracking-widest text-black px-1">Nome do Curso</Label>
                                 <Input
                                     placeholder="Ex: Do Zero ao Mestre em React"
-                                    className="bg-white border-2 border-black focus:border-black focus:ring-black h-14 rounded-xl text-sm font-medium transition-all text-black placeholder:text-black/50"
+                                    className="bg-white border-2 border-black focus:border-black focus:ring-black h-14 rounded-md text-sm font-medium transition-all text-black placeholder:text-black/50"
                                     value={formData.title}
                                     onChange={(e) => setStepData({ title: e.target.value })}
                                 />
@@ -415,7 +477,7 @@ export default function NewCoursePage() {
                                 <Input
                                     type="number"
                                     placeholder="Ex: 40"
-                                    className="bg-white border-2 border-black focus:border-black focus:ring-black h-14 rounded-xl text-sm font-medium transition-all text-black placeholder:text-black/50"
+                                    className="bg-white border-2 border-black focus:border-black focus:ring-black h-14 rounded-md text-sm font-medium transition-all text-black placeholder:text-black/50"
                                     value={formData.duration}
                                     onChange={(e) => setStepData({ duration: Number(e.target.value) })}
                                 />
@@ -423,7 +485,7 @@ export default function NewCoursePage() {
                             <div className="space-y-2">
                                 <Label className="text-[10px] font-bold uppercase tracking-widest text-black px-1">Categoria Principal</Label>
                                 <select
-                                    className="w-full bg-white border-2 border-black text-black rounded-xl px-5 h-14 focus:border-black focus:ring-black outline-none text-sm font-medium transition-all appearance-none"
+                                    className="w-full bg-white border-2 border-black text-black rounded-md px-5 h-14 focus:border-black focus:ring-black outline-none text-sm font-medium transition-all appearance-none"
                                     value={formData.category}
                                     onChange={(e) => setStepData({ category: e.target.value })}
                                 >
@@ -437,7 +499,7 @@ export default function NewCoursePage() {
                             <Label className="text-[10px] font-bold uppercase tracking-widest text-black px-1">Subtítulo Estratégico</Label>
                             <Input
                                 placeholder="Uma frase curta que resume a transformação"
-                                className="bg-white border-2 border-black focus:border-black h-14 rounded-xl text-sm font-medium transition-all text-black placeholder:text-black/50"
+                                className="bg-white border-2 border-black focus:border-black h-14 rounded-md text-sm font-medium transition-all text-black placeholder:text-black/50"
                                 value={formData.subtitle}
                                 onChange={(e) => setStepData({ subtitle: e.target.value })}
                             />
@@ -445,7 +507,7 @@ export default function NewCoursePage() {
                         <div className="space-y-2">
                             <Label className="text-[10px] font-bold uppercase tracking-widest text-black px-1">Descrição Completa</Label>
                             <textarea
-                                className="w-full bg-white border-2 border-black rounded-xl p-6 min-h-[180px] focus:border-black outline-none text-sm font-medium transition-all leading-relaxed text-black placeholder:text-black/50"
+                                className="w-full bg-white border-2 border-black rounded-md p-6 min-h-[180px] focus:border-black outline-none text-sm font-medium transition-all leading-relaxed text-black placeholder:text-black/50"
                                 placeholder="Descreva os benefícios e o que o aluno vai aprender..."
                                 value={formData.description}
                                 onChange={(e) => setStepData({ description: e.target.value })}
@@ -478,7 +540,7 @@ export default function NewCoursePage() {
                                                 setStepData({ curriculum: newCurriculum });
                                             }}
                                             placeholder={`Ex: Módulo ${idx + 1} - Fundamentos`}
-                                            className="bg-white border-2 border-black hover:border-[#1D5F31] focus:border-[#1D5F31] focus:ring-[#1D5F31] h-12 rounded-none text-sm font-medium transition-all text-black placeholder:text-black/50"
+                                            className="bg-white border-2 border-black hover:border-[#1D5F31] focus:border-[#1D5F31] focus:ring-[#1D5F31] h-12 rounded-md text-sm font-medium transition-all text-black placeholder:text-black/50"
                                         />
                                         <button 
                                             type="button"
@@ -486,7 +548,7 @@ export default function NewCoursePage() {
                                                 const newCurriculum = formData.curriculum.filter((_, i) => i !== idx);
                                                 setStepData({ curriculum: newCurriculum });
                                             }}
-                                            className="px-4 text-slate-400 hover:text-red-500 hover:bg-red-50 border-2 border-transparent hover:border-red-200 rounded-none transition-all flex items-center justify-center shrink-0"
+                                            className="px-4 text-slate-400 hover:text-red-500 hover:bg-red-50 border-2 border-transparent hover:border-red-200 rounded-md transition-all flex items-center justify-center shrink-0"
                                         >
                                             <Trash2 size={18} />
                                         </button>
@@ -495,7 +557,7 @@ export default function NewCoursePage() {
                                 <Button
                                     type="button"
                                     onClick={() => setStepData({ curriculum: [...formData.curriculum, ''] })}
-                                    className="w-full bg-slate-50 text-black border-2 border-dashed border-black/30 hover:border-black hover:bg-slate-100 font-bold uppercase text-[10px] tracking-widest h-12 rounded-none shadow-none mt-2 transition-all"
+                                    className="w-full bg-slate-50 text-black border-2 border-dashed border-black/30 hover:border-black hover:bg-slate-100 font-bold uppercase text-[10px] tracking-widest h-12 rounded-md shadow-none mt-2 transition-all"
                                 >
                                     <Plus size={16} className="mr-2" />
                                     Adicionar Tópico
@@ -507,142 +569,119 @@ export default function NewCoursePage() {
                 )}
 
                 {currentStep === 2 && (
-                    <div className="space-y-12 animate-in fade-in duration-700">
-                        {/* Seção de Vídeo de Introdução */}
+                    <div className="max-w-5xl mx-auto space-y-12 animate-in fade-in duration-700">
+                        {/* Seção de Vídeo de Introdução - Upload Direto Mux */}
                         <div className="space-y-6 pb-8 border-b border-black/10">
                             <div className="text-center space-y-2">
                                 <Label className="text-[10px] font-bold uppercase tracking-widest text-black block">Vídeo de Apresentação (Intro)</Label>
                                 <p className="text-[9px] text-black/50 font-bold uppercase tracking-widest">Atraia mais alunos com um pitch de vendas visual.</p>
                             </div>
 
-                            <div className="grid md:grid-cols-2 gap-8">
-                                {/* Opção Upload */}
-                                <div className="space-y-4">
-                                    <Label className="text-[9px] font-bold uppercase tracking-widest text-black/40 px-1">Upload Direto</Label>
-                                    <div className={`
-                                        relative h-40 rounded-xl border-2 border-dashed transition-all flex flex-col items-center justify-center overflow-hidden cursor-pointer
-                                        ${formData.intro_video_playback_id && !formData.intro_video_url?.includes('youtube.com') && !formData.intro_video_url?.includes('vimeo.com')
-                                            ? 'border-[#1D5F31] bg-[#1D5F31]/5' : 'border-black bg-white hover:border-black/50 text-black/60'}
-                                    `}>
-                                        {isUploadingIntro ? (
-                                            <div className="flex flex-col items-center gap-3">
-                                                <Loader2 className="animate-spin text-[#1D5F31]" size={24} />
-                                                <span className="text-[8px] font-bold uppercase tracking-[2px] animate-pulse text-[#1D5F31] rounded-none">UPLOADING...</span>
-                                            </div>
-                                        ) : formData.intro_video_playback_id && !formData.intro_video_url?.includes('youtube.com') && !formData.intro_video_url?.includes('vimeo.com') ? (
-                                            <div className="flex flex-col gap-2 w-full h-full p-2">
-                                                <div className="aspect-video w-full bg-black rounded-lg overflow-hidden">
-                                                    <MuxPlayer
-                                                        playbackId={formData.intro_video_playback_id}
-                                                        streamType="on-demand"
-                                                        muted
-                                                        className="w-full h-full"
-                                                        accentColor="#1D5F31"
-                                                    />
-                                                </div>
-                                                <span className="text-[9px] font-bold uppercase tracking-widest text-[#1D5F31] rounded-none">
-                                                    {introUploadStatus === 'processing' ? 'PROCESSANDO...' : 'VÍDEO PRONTO'}
-                                                </span>
-                                                <button
-                                                    className="text-[8px] text-[#1D5F31]/60 hover:text-red-500 font-bold uppercase  tracking-widest mt-2"
-                                                    onClick={() => setStepData({ 
-                                                        intro_video_url: '',
-                                                        intro_video_mux_id: '',
-                                                        intro_video_asset_id: '',
-                                                        intro_video_playback_id: ''
-                                                    })}
-                                                >
-                                                    [ REMOVER ]
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <div className="text-center px-6">
-                                                <Upload size={24} className="mx-auto text-black/40 mb-3" />
-                                                <span className="text-[9px] font-bold uppercase tracking-widest text-black">SUBIR MP4</span>
-                                                <p className="text-[8px] text-black mt-2 font-bold uppercase tracking-widest px-2  bg-black/10">MÁXIMO 5 MINUTOS</p>
-                                            </div>
-                                        )}
-                                        {!isUploadingIntro && (
-
-                                            <input
-                                                type="file"
-                                                accept="video/*"
-                                                className="absolute inset-0 opacity-0 cursor-pointer"
-                                                onChange={async (e) => {
-                                                    const file = e.target.files?.[0]
-                                                    if (!file) return
-
-                                                    setIsUploadingIntro(true)
-                                                    setIntroUploadProgress(0)
-                                                    setIntroUploadStatus('uploading')
-                                                    try {
-                                                        const response = await getMuxUploadUrl('intro')
-                                                        if (response.error || !response.url) throw new Error(response.error || 'Erro ao gerar URL')
-
-                                                        const { url, id: uploadId } = response
-                                                        setStepData({ intro_video_mux_id: uploadId })
-
-                                                        await new Promise<void>((resolve, reject) => {
-                                                            const xhr = new XMLHttpRequest()
-                                                            xhr.open('PUT', url)
-                                                            xhr.upload.onprogress = (evt) => {
-                                                                if (evt.lengthComputable) {
-                                                                    setIntroUploadProgress(Math.round((evt.loaded / evt.total) * 100))
-                                                                }
-                                                            }
-                                                            xhr.onload = async () => {
-                                                                if (xhr.status >= 200 && xhr.status < 300) {
-                                                                    setIntroUploadStatus('processing')
-                                                                    let attempts = 0
-                                                                    const poll = async () => {
-                                                                        if (attempts > 30) { resolve(); return }
-                                                                        const res = await getMuxUploadStatus(uploadId)
-                                                                        if (res.status === 'ready') {
-                                                                            setStepData({
-                                                                                intro_video_mux_id: uploadId,
-                                                                                intro_video_asset_id: res.asset_id,
-                                                                                intro_video_playback_id: res.playback_id,
-                                                                                intro_video_url: `https://stream.mux.com/${res.playback_id}.m3u8`
-                                                                            })
-                                                                            setIntroUploadStatus('ready')
-                                                                            resolve()
-                                                                        } else { attempts++; setTimeout(poll, 3000) }
-                                                                    }
-                                                                    poll()
-                                                                } else { reject(new Error('Erro no upload para o Mux')) }
-                                                            }
-                                                            xhr.onerror = () => reject(new Error('Erro de rede'))
-                                                            xhr.send(file)
-                                                        })
-                                                    } catch (err: any) {
-                                                        toast.error("FALHA NO UPLOAD", {
-                                                            description: err.message || 'Erro ao subir vídeo.',
-                                                            style: { background: '#fff', color: '#ef4444', border: '2px solid #ef4444', borderRadius: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', boxShadow: 'none' }
-                                                        })
-                                                    } finally {
-                                                        setIsUploadingIntro(false)
-                                                    }
-                                                }}
+                            <div className={`
+                                relative h-48 w-full border-2 border-dashed transition-all flex flex-col items-center justify-center overflow-hidden cursor-pointer rounded-md
+                                ${formData.intro_video_playback_id
+                                    ? 'border-[#1D5F31] bg-[#1D5F31]/5' : 'border-black bg-white hover:border-black/50 text-black/60'}
+                            `}>
+                                {isUploadingIntro ? (
+                                    <div className="flex flex-col items-center gap-3">
+                                        <Loader2 className="animate-spin text-[#1D5F31]" size={24} />
+                                        <span className="text-[8px] font-bold uppercase tracking-[2px] animate-pulse text-[#1D5F31]">UPLOADING...</span>
+                                    </div>
+                                ) : formData.intro_video_playback_id ? (
+                                    <div className="flex flex-col gap-2 w-full h-full p-2">
+                                        <div className="aspect-video w-full bg-black overflow-hidden rounded-md">
+                                            <MuxPlayer
+                                                playbackId={formData.intro_video_playback_id}
+                                                streamType="on-demand"
+                                                muted
+                                                className="w-full h-full"
+                                                accentColor="#1D5F31"
                                             />
-                                        )}
+                                        </div>
+                                        <span className="text-[9px] font-bold uppercase tracking-widest text-[#1D5F31]">
+                                            {introUploadStatus === 'processing' ? 'PROCESSANDO...' : 'VÍDEO PRONTO'}
+                                        </span>
+                                        <button
+                                            className="text-[8px] text-[#1D5F31]/60 hover:text-red-500 font-bold uppercase tracking-widest mt-2"
+                                            onClick={() => setStepData({ 
+                                                intro_video_url: '',
+                                                intro_video_mux_id: '',
+                                                intro_video_asset_id: '',
+                                                intro_video_playback_id: ''
+                                            })}
+                                        >
+                                            [ REMOVER ]
+                                        </button>
                                     </div>
-                                </div>
+                                ) : (
+                                    <div className="text-center px-6">
+                                        <Upload size={24} className="mx-auto text-black/40 mb-3" />
+                                        <span className="text-[9px] font-bold uppercase tracking-widest text-black">SUBIR MP4</span>
+                                        <p className="text-[8px] text-black mt-2 font-bold uppercase tracking-widest px-2 bg-black/10">MÁXIMO 5 MINUTOS</p>
+                                    </div>
+                                )}
+                                {!isUploadingIntro && (
+                                    <input
+                                        type="file"
+                                        accept="video/*"
+                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                        onChange={async (e) => {
+                                            const file = e.target.files?.[0]
+                                            if (!file) return
 
-                                {/* Opção Link Externo */}
-                                <div className="space-y-4">
-                                    <Label className="text-[9px] font-bold uppercase tracking-widest text-black/40 px-1">Link YouTube / Vimeo</Label>
-                                    <div className="h-40 bg-white border-2 border-black rounded-xl p-6 flex flex-col justify-center gap-4">
-                                        <Input
-                                            placeholder="https://youtube.com/watch?v=..."
-                                            className="bg-black/5 border-2 border-black focus:border-black h-12 rounded-xl text-xs text-black placeholder:text-black/50"
-                                            value={formData.intro_video_url || ''}
-                                            onChange={(e) => setStepData({ intro_video_url: e.target.value })}
-                                        />
-                                        <p className="text-[8px] text-black/70 font-bold uppercase tracking-widest leading-relaxed">
-                                            Recomendado para vídeos hospedados externamente. Certifique-se de que o vídeo seja público ou não listado.
-                                        </p>
-                                    </div>
-                                </div>
+                                            setIsUploadingIntro(true)
+                                            setIntroUploadProgress(0)
+                                            setIntroUploadStatus('uploading')
+                                            try {
+                                                const response = await getMuxUploadUrl('intro')
+                                                if (response.error || !response.url) throw new Error(response.error || 'Erro ao gerar URL')
+
+                                                const { url, id: uploadId } = response
+                                                setStepData({ intro_video_mux_id: uploadId })
+
+                                                await new Promise<void>((resolve, reject) => {
+                                                    const xhr = new XMLHttpRequest()
+                                                    xhr.open('PUT', url)
+                                                    xhr.upload.onprogress = (evt) => {
+                                                        if (evt.lengthComputable) {
+                                                            setIntroUploadProgress(Math.round((evt.loaded / evt.total) * 100))
+                                                        }
+                                                    }
+                                                    xhr.onload = async () => {
+                                                        if (xhr.status >= 200 && xhr.status < 300) {
+                                                            setIntroUploadStatus('processing')
+                                                            let attempts = 0
+                                                            const poll = async () => {
+                                                                if (attempts > 30) { resolve(); return }
+                                                                const res = await getMuxUploadStatus(uploadId)
+                                                                if (res.status === 'ready') {
+                                                                    setStepData({
+                                                                        intro_video_mux_id: uploadId,
+                                                                        intro_video_asset_id: res.asset_id,
+                                                                        intro_video_playback_id: res.playback_id,
+                                                                        intro_video_url: `https://stream.mux.com/${res.playback_id}.m3u8`
+                                                                    })
+                                                                    setIntroUploadStatus('ready')
+                                                                    resolve()
+                                                                } else { attempts++; setTimeout(poll, 3000) }
+                                                            }
+                                                            poll()
+                                                        } else { reject(new Error('Erro no upload para o Mux')) }
+                                                    }
+                                                    xhr.onerror = () => reject(new Error('Erro de rede'))
+                                                    xhr.send(file)
+                                                })
+                                            } catch (err: any) {
+                                                toast.error("FALHA NO UPLOAD", {
+                                                    description: err.message || 'Erro ao subir vídeo.',
+                                                    style: { background: '#fff', color: '#ef4444', border: '2px solid #ef4444', borderRadius: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', boxShadow: 'none' }
+                                                })
+                                            } finally {
+                                                setIsUploadingIntro(false)
+                                            }
+                                        }}
+                                    />
+                                )}
                             </div>
                         </div>
 
@@ -680,7 +719,7 @@ export default function NewCoursePage() {
                                 <span className={`absolute left-6 top-1/2 -translate-y-1/2 font-bold text-2xl transition-colors ${formData.pricing_type === 'free' ? 'text-black/20' : 'text-black'}`}>R$</span>
                                 <Input
                                     type="number"
-                                    className={`bg-white border-2 border-black focus:border-black h-24 pl-16 rounded-xl text-6xl font-bold text-black shadow-none transition-all text-center pr-8 placeholder:text-black/20 ${formData.pricing_type === 'free' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    className={`bg-white border-2 border-black focus:border-black h-24 pl-16 rounded-md text-6xl font-bold text-black shadow-none transition-all text-center pr-8 placeholder:text-black/20 ${formData.pricing_type === 'free' ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     placeholder="0"
                                     value={formData.price || ''}
                                     onChange={(e) => setStepData({ price: Number(e.target.value) })}
@@ -696,180 +735,431 @@ export default function NewCoursePage() {
                 )}
 
                 {currentStep === 3 && (
-                    <div className="space-y-10 animate-in fade-in duration-700">
-                        <div className="flex justify-between items-center bg-white p-6 rounded-xl border-2 border-black">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 animate-in fade-in duration-700">
+                        {/* Coluna Principal — Arquitetura + Studio */}
+                        <div className="lg:col-span-2 space-y-12">
+                            {/* Seção de Módulos */}
                             <div>
-                                <h2 className="text-xl font-bold tracking-tighter uppercase text-black leading-none "> Grade Curricular </h2>
-                                <p className="text-[10px] text-black font-bold uppercase tracking-[2px] mt-2">Organize o fluxo de aprendizado.</p>
-                            </div>
-                            <div className="flex gap-4">
-                                <Button
-                                    onClick={() => handleAddLesson('lesson')}
-                                    className="bg-[#1D5F31] hover:bg-[#1D5F31]/90 text-white text-[10px] font-bold uppercase tracking-widest px-8 rounded-xl h-12 shadow-none border-2 border-[#1D5F31]"
-                                >
-                                    <Plus size={18} className="mr-2" /> Adicionar Aula
-                                </Button>
-                                <Button
-                                    onClick={() => handleAddLesson('quiz')}
-                                    className="bg-slate-900 hover:bg-black text-white text-[10px] font-bold uppercase tracking-widest px-8 rounded-xl h-12 shadow-none border-2 border-slate-900"
-                                >
-                                    <HelpCircle size={18} className="mr-2" /> Adicionar Quiz
-                                </Button>
-                            </div>
-                        </div>
+                                <div className="flex items-center justify-between pb-6 border-b-2 border-[#1D5F31]">
+                                    <div>
+                                        <h2 className="text-xl font-bold uppercase tracking-tighter flex items-center gap-3 text-black leading-none">
+                                            <FileText size={20} className="text-[#1D5F31]" />
+                                            Arquitetura do Treinamento
+                                        </h2>
+                                        <p className="text-[10px] font-bold uppercase tracking-[2px] text-[#1D5F31] mt-2">Organize o fluxo de entrega de valor.</p>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => handleAddLesson('lesson')}
+                                            className="text-[10px] font-bold uppercase tracking-[4px] text-white bg-[#061629] hover:bg-[#061629]/90 px-6 py-3 rounded-md border-none transition-all"
+                                        >
+                                            + Nova Aula
+                                        </button>
+                                        <button
+                                            onClick={handleAddQuiz}
+                                            className="text-[10px] font-bold uppercase tracking-[4px] text-white bg-slate-800 hover:bg-slate-900 px-6 py-3 rounded-md border-none transition-all"
+                                        >
+                                            + Quiz
+                                        </button>
+                                    </div>
+                                </div>
 
-                        {formData.lessons.length === 0 ? (
-                            <div className="text-center py-24 bg-white/40 rounded-xl border-2 border-dashed border-black">
-                                <BookOpen size={48} className="mx-auto text-black mb-6" />
-                                <p className="text-black/70 font-bold uppercase text-[10px] tracking-[3px]">Nenhuma aula adicionada</p>
-                                <p className="text-black text-[10px] mt-2 font-bold  tracking-widest">CONSTRUA SUA GRADE CURRICULAR AGORA</p>
-                            </div>
-
-                        ) : (
-                            <div className="space-y-6">
-                                {formData.lessons.map((lesson, index) => (
-                                    <div key={index} className="bg-white border-2 border-black rounded-xl p-8 hover:border-black/50 transition-all group shadow-none">
-                                        <div className="flex flex-col md:flex-row gap-10">
-                                            <div className="flex-grow space-y-6 text-black">
-                                                <div className="flex justify-between items-center">
-                                                    <div className="flex items-center gap-4">
-                                                        <span className="text-[9px] font-bold uppercase tracking-[3px] text-black ">ESTÁGIO #{index + 1}</span>
-                                                        <div className="flex bg-slate-100 p-1 rounded-lg border border-black/5">
-                                                            <button
-                                                                onClick={() => handleUpdateLesson(index, { type: 'lesson' })}
-                                                                className={`px-3 py-1 text-[8px] font-bold uppercase tracking-widest rounded-md transition-all ${lesson.type !== 'quiz' ? 'bg-white shadow-sm text-black' : 'text-black/40 hover:text-black/60'}`}
-                                                            >
-                                                                VÍDEO AULA
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleUpdateLesson(index, { type: 'quiz' })}
-                                                                className={`px-3 py-1 text-[8px] font-bold uppercase tracking-widest rounded-md transition-all ${lesson.type === 'quiz' ? 'bg-white shadow-sm text-black' : 'text-black/40 hover:text-black/60'}`}
-                                                            >
-                                                                QUIZ
-                                                            </button>
+                                <div className="mt-8 space-y-6">
+                                    {formData.lessons.length === 0 ? (
+                                        <div className="text-center py-20 bg-white border-2 border-dashed border-[#1D5F31]/20 rounded-md">
+                                            <BookOpen size={48} className="mx-auto text-black/20 mb-6" />
+                                            <p className="text-black/50 font-bold uppercase text-[10px] tracking-[3px]">Nenhuma aula adicionada</p>
+                                            <p className="text-black/30 text-[10px] mt-2 font-bold tracking-widest">CLIQUE EM "+ NOVA AULA" PARA COMEÇAR</p>
+                                        </div>
+                                    ) : (
+                                        <div className="bg-white border border-[#1D5F31]/20 rounded-md overflow-hidden">
+                                        <div className="bg-[#1D5F31] px-6 py-3 flex items-center gap-3">
+                                            <BookOpen size={16} className="text-white" />
+                                            <span className="text-[10px] font-bold uppercase tracking-widest text-white">ESTRUTURA DO CURSO</span>
+                                            <span className="text-[9px] text-white/60 ml-auto font-bold uppercase">{formData.lessons.length} aula{formData.lessons.length !== 1 ? 's' : ''}</span>
+                                            {formData.lessons.length > 0 && (
+                                                <button
+                                                    onClick={() => {
+                                                        toast("EXCLUIR TODAS AS AULAS?", {
+                                                            description: "Esta ação não pode ser desfeita.",
+                                                            action: {
+                                                                label: "EXCLUIR",
+                                                                onClick: () => {
+                                                                    setLessons([])
+                                                                    setSelectedLessonIndex(null)
+                                                                }
+                                                            },
+                                                            cancel: {
+                                                                label: "CANCELAR",
+                                                                onClick: () => {}
+                                                            },
+                                                            style: { background: '#fff', color: '#000', border: '2px solid #dc2626', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px' }
+                                                        })
+                                                    }}
+                                                    className="text-[8px] text-white/50 hover:text-red-300 font-bold uppercase tracking-widest transition-colors ml-2"
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            )}
+                                        </div>
+                                            <div className="p-4">
+                                                {formData.lessons.map((lesson, index) => (
+                                                    <div
+                                                        key={index}
+                                                        onClick={() => {
+                                                            setSelectedLessonIndex(index)
+                                                            setSelectedLessonNotas(lesson.notas || '')
+                                                        }}
+                                                        className={`flex items-center justify-between p-4 cursor-pointer border-2 rounded-md transition-all duration-300 mb-3 ${
+                                                            selectedLessonIndex === index
+                                                                ? 'bg-[#1D5F31] text-white border-[#1D5F31]'
+                                                                : 'bg-white border-[#1D5F31] hover:border-[#1D5F31]/50 text-black'
+                                                        }`}
+                                                    >
+                                                        <div className="flex items-center gap-6">
+                                                            <div className={`p-2 transition-colors rounded-md ${selectedLessonIndex === index ? 'text-white' : 'text-slate-400'}`}>
+                                                                <GripVertical size={18} />
+                                                            </div>
+                                                            <div className={`p-3 transition-colors rounded-md ${selectedLessonIndex === index ? 'bg-white/20 text-white' : 'bg-white text-slate-500'}`}>
+                                                                {lesson.type === 'quiz' ? <HelpCircle size={18} /> : <Video size={18} />}
+                                                            </div>
+                                                            <div>
+                                                                <input
+                                                                    className={`bg-transparent border-none focus:outline-none text-base font-bold tracking-tight w-full mb-1 ${
+                                                                        selectedLessonIndex === index ? 'text-white placeholder:text-white/50' : 'text-black placeholder:text-black/40'
+                                                                    }`}
+                                                                    value={lesson.title || (lesson.type === 'quiz' ? 'Novo Quiz' : 'Nova Aula Digital')}
+                                                                    placeholder={lesson.type === 'quiz' ? 'Título do Quiz' : 'Título da Aula Digital'}
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                    onChange={(e) => handleUpdateLesson(index, { title: e.target.value })}
+                                                                />
+                                                                <div className="flex items-center gap-2 flex-wrap">
+                                                                    {lesson.status === 'REJEITADO' ? (
+                                                                        <>
+                                                                            <AlertCircle size={14} className="text-red-500 shrink-0" />
+                                                                            <span className={`text-[9px] font-bold uppercase tracking-[2px] ${selectedLessonIndex === index ? 'text-white' : 'text-red-500'}`}>REJEITADA</span>
+                                                                        </>
+                                                                    ) : lesson.status === 'SOLICITADO_EXCLUSAO' ? (
+                                                                        <>
+                                                                            <Clock size={14} className="text-red-500 shrink-0" />
+                                                                            <span className={`text-[9px] font-bold uppercase tracking-[2px] ${selectedLessonIndex === index ? 'text-white' : 'text-red-500'}`}>REMOÇÃO SOLICITADA</span>
+                                                                        </>
+                                                                    ) : lesson.status === 'APROVADO' ? (
+                                                                        <>
+                                                                            <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.7)] shrink-0" />
+                                                                            <span className={`text-[9px] font-bold uppercase tracking-widest ${selectedLessonIndex === index ? 'text-white' : 'text-blue-500'}`}>APROVADO</span>
+                                                                            <span className={`text-[9px] font-bold uppercase tracking-[2px] ${selectedLessonIndex === index ? 'text-white/40' : 'text-black/20'}`}>|</span>
+                                                                            <span className={`text-[9px] font-bold uppercase tracking-[2px] ${selectedLessonIndex === index ? 'text-white/70' : 'text-black/50'}`}>
+                                                                                {lesson.type === 'quiz' ? 'QUESTIONÁRIO' : (lesson.mux_playback_id ? 'VÍDEO MUX ATIVO' : (lesson.video_url ? 'VÍDEO ATIVO' : 'AGUARDANDO CONTEÚDO'))}
+                                                                            </span>
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <div className="w-2 h-2 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.7)] animate-pulse shrink-0" />
+                                                                            <span className={`text-[9px] font-bold uppercase tracking-widest ${selectedLessonIndex === index ? 'text-white' : 'text-amber-600'}`}>AGUARDANDO APROVAÇÃO</span>
+                                                                            <span className={`text-[9px] font-bold uppercase tracking-[2px] ${selectedLessonIndex === index ? 'text-white/40' : 'text-black/20'}`}>|</span>
+                                                                            <span className={`text-[9px] font-bold uppercase tracking-[2px] ${selectedLessonIndex === index ? 'text-white/70' : 'text-black/50'}`}>
+                                                                                {lesson.type === 'quiz' ? 'QUESTIONÁRIO' : (lesson.mux_playback_id ? 'VÍDEO MUX ATIVO' : (lesson.video_url ? 'VÍDEO ATIVO' : 'AGUARDANDO CONTEÚDO'))}
+                                                                            </span>
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-1 shrink-0">
+                                                            {lesson.status === 'REJEITADO' ? (
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); handleUpdateLesson(index, { status: 'PENDENTE' }); }}
+                                                                    className={`p-3 rounded-md transition-all ${selectedLessonIndex === index ? 'text-amber-300 hover:text-amber-200' : 'text-amber-500 hover:text-amber-600 hover:bg-amber-50'}`}
+                                                                    title="Reenviar para aprovação"
+                                                                >
+                                                                    <RotateCcw size={16} />
+                                                                </button>
+                                                            ) : lesson.status === 'SOLICITADO_EXCLUSAO' ? (
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); handleUpdateLesson(index, { status: 'APROVADO' }); }}
+                                                                    className={`p-3 rounded-md transition-all ${selectedLessonIndex === index ? 'text-amber-300 hover:text-amber-200' : 'text-amber-500 hover:text-amber-600 hover:bg-amber-50'}`}
+                                                                    title="Cancelar solicitação de exclusão"
+                                                                >
+                                                                    <XCircle size={16} />
+                                                                </button>
+                                                            ) : (
+                                                                <button
+                                                                    onClick={(e) => { e.stopPropagation(); handleRemoveLesson(index); if (selectedLessonIndex === index) setSelectedLessonIndex(null); }}
+                                                                    className={`p-3 rounded-md transition-all ${selectedLessonIndex === index ? 'text-white/70 hover:text-red-300 hover:bg-white/10' : 'text-slate-400 hover:text-red-500 hover:bg-red-500/10'}`}
+                                                                >
+                                                                    <Trash2 size={16} />
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     </div>
-                                                    <button
-                                                        onClick={() => handleRemoveLesson(index)}
-                                                        className="text-black/40 hover:text-red-500 hover:bg-red-500/10 p-2 rounded-xl transition-all"
-                                                    >
-                                                        <Trash2 size={18} />
-                                                    </button>
-                                                </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
 
-                                                {lesson.type === 'quiz' ? (
-                                                    <div className="animate-in fade-in slide-in-from-top-2 duration-500 border-2 border-black/5 p-6 rounded-xl bg-slate-50/30">
-                                                        <QuizForm
-                                                            initialData={lesson.quizData}
-                                                            onSave={(quizData) => handleUpdateLesson(index, { 
+                            {/* Studio de Multimídia */}
+                            {selectedLessonIndex !== null && formData.lessons[selectedLessonIndex] && (() => {
+                                const lesson = formData.lessons[selectedLessonIndex]
+                                return (
+                                    <div className="space-y-4 bg-white p-8 rounded-md border border-[#1D5F31]/20 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                        <div className="flex items-center gap-3 pb-4 border-b border-[#1D5F31]/20">
+                                            <Video size={20} className="text-[#1D5F31]" />
+                                            <h2 className="text-lg font-bold uppercase tracking-tighter text-black leading-none">Studio de Multimídia</h2>
+                                        </div>
+
+                                        <div className="space-y-8">
+                                            {lesson.type === 'quiz' ? (
+                                                <div className="border-2 border-black/5 p-6 bg-slate-50/30 rounded-md">
+                                                    <QuizForm
+                                                        initialData={lesson.quizData}
+                                                        onSave={(quizData) => {
+                                                            handleUpdateLesson(selectedLessonIndex, {
                                                                 quizData: quizData as any,
                                                                 title: quizData.title || lesson.title
-                                                            })}
+                                                            })
+                                                        }}
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    {/* Título */}
+                                                    <div className="space-y-2">
+                                                        <label className="text-[10px] font-bold uppercase tracking-widest text-black/60">Título da Aula Digital</label>
+                                                        <input
+                                                            className="w-full bg-white border border-[#1D5F31]/20 rounded-md px-5 py-3 focus:border-[#1D5F31] outline-none text-sm font-bold text-black transition-all"
+                                                            placeholder="Ex: Introdução ao Módulo 1"
+                                                            value={lesson.title || ''}
+                                                            onChange={(e) => handleUpdateLesson(selectedLessonIndex, { title: e.target.value })}
                                                         />
                                                     </div>
-                                                ) : (
-                                                    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                                                        <div className="space-y-2">
-                                                            <Label className="text-[10px] font-bold uppercase tracking-widest text-black/90 px-1 ">Título da Aula</Label>
-                                                            <Input
-                                                                placeholder="Ex: Introdução ao Módulo 1"
-                                                                className="bg-white border-2 border-black focus:border-black h-12 rounded-xl text-sm font-medium text-black placeholder:text-black/50"
-                                                                value={lesson.title}
-                                                                onChange={(e) => handleUpdateLesson(index, { title: e.target.value })}
-                                                            />
-                                                            <Label className="text-[10px] font-bold uppercase tracking-widest text-black/60 px-1 ">Descrição (opcional)</Label>
-                                                            <textarea
-                                                                placeholder="Descreva o que o aluno aprenderá nesta aula..."
-                                                                className="bg-white border-2 border-black/20 focus:border-[#1D5F31] rounded-xl p-3 text-sm font-medium text-black placeholder:text-black/40 min-h-[80px] resize-none"
-                                                                value={lesson.description || ''}
-                                                                onChange={(e) => handleUpdateLesson(index, { description: e.target.value })}
-                                                            />
+
+                                                    {/* Notas */}
+                                                    <div className="space-y-2">
+                                                        <label className="text-[10px] font-bold uppercase tracking-widest text-black/60">Notas da Aula (Markdown ou Texto)</label>
+                                                        <textarea
+                                                            className="w-full bg-white border border-[#1D5F31]/20 rounded-md px-6 py-4 focus:border-[#1D5F31] outline-none text-sm font-medium text-black transition-all min-h-[120px]"
+                                                            placeholder="Escreva aqui o roteiro, referências ou instruções internas para esta aula..."
+                                                            value={selectedLessonNotas}
+                                                            onChange={(e) => {
+                                                                setSelectedLessonNotas(e.target.value)
+                                                                handleUpdateLesson(selectedLessonIndex, { notas: e.target.value })
+                                                            }}
+                                                        />
+                                                    </div>
+
+                                                    {lesson.status === 'REJEITADO' && lesson.motivoRejeicao && (
+                                                        <div className="p-4 bg-red-50 border-2 border-red-200 rounded-md">
+                                                            <div className="flex items-center gap-2 mb-2">
+                                                                <AlertCircle size={16} className="text-red-500 shrink-0" />
+                                                                <span className="text-[9px] font-bold uppercase text-red-600 tracking-widest">Feedback do Admin</span>
+                                                            </div>
+                                                            <p className="text-xs text-red-700 leading-relaxed">{lesson.motivoRejeicao}</p>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Vídeo */}
+                                                    <div className="space-y-2">
+                                                        <label className="text-[10px] font-bold uppercase tracking-widest text-black/60">Vídeo da Aula</label>
+                                                        <div className={`
+                                                            relative rounded-md border transition-all flex flex-col items-center justify-center overflow-hidden
+                                                            ${lesson.mux_playback_id ? 'border-[#1D5F31]/20 bg-white' : 'border-dashed border-[#1D5F31]/20 h-48 bg-white hover:border-[#1D5F31]/50'}
+                                                        `}>
+                                                            {uploadingVideos[selectedLessonIndex] ? (
+                                                                <div className="flex flex-col items-center gap-3 p-8 text-center">
+                                                                    <div className="relative">
+                                                                        <Loader2 className="animate-spin text-[#1D5F31]" size={32} />
+                                                                        <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-[#1D5F31]">
+                                                                            {uploadingVideoProgress[selectedLessonIndex]}%
+                                                                        </span>
+                                                                    </div>
+                                                                    <span className="text-[9px] font-bold uppercase tracking-[2px] animate-pulse text-[#1D5F31]">ENVIANDO PARA O STUDIO...</span>
+                                                                </div>
+                                                            ) : lesson.mux_playback_id ? (
+                                                                <div className="flex flex-col gap-3 w-full p-3">
+                                                                    <LessonVideoPreview
+                                                                        playbackId={lesson.mux_playback_id}
+                                                                        title={lesson.title || `Aula ${selectedLessonIndex + 1}`}
+                                                                    />
+                                                                    <div className="flex justify-between items-center px-1">
+                                                                        <span className="text-[9px] font-bold uppercase tracking-widest text-[#1D5F31] flex items-center gap-2">
+                                                                            <div className="w-2 h-2 rounded-full bg-[#1D5F31]" />
+                                                                            {uploadingVideoStatus[selectedLessonIndex] === 'processing' ? 'PROCESSANDO...' : 'STUDIO READY'}
+                                                                        </span>
+                                                                        <button
+                                                                            className="text-[9px] text-red-500 hover:text-red-600 font-bold uppercase tracking-widest transition-colors flex items-center gap-1"
+                                                                            onClick={() => handleUpdateLesson(selectedLessonIndex, {
+                                                                                video_url: '',
+                                                                                mux_upload_id: '',
+                                                                                mux_playback_id: '',
+                                                                                mux_asset_id: ''
+                                                                            })}
+                                                                        >
+                                                                            <X size={12} /> REMOVER
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                            ) : lesson.mux_upload_id ? (
+                                                                <div className="flex flex-col items-center gap-3 p-8 text-center">
+                                                                    <Loader2 className="animate-spin text-amber-500" size={28} />
+                                                                    <span className="text-[9px] font-bold uppercase tracking-[2px] animate-pulse text-amber-600">PROCESSANDO VÍDEO...</span>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="text-center px-6 py-12">
+                                                                    <div className="w-12 h-12 bg-black/5 rounded-md flex items-center justify-center mx-auto mb-4">
+                                                                        <Upload size={20} className="text-black/40" />
+                                                                    </div>
+                                                                    <span className="text-[10px] font-bold uppercase tracking-widest text-black">Upload da Aula</span>
+                                                                    <p className="text-[8px] text-black/50 mt-1 font-bold uppercase tracking-widest">ARQUIVOS MP4 OU MOV</p>
+                                                                </div>
+                                                            )}
+
+                                                            {!uploadingVideos[selectedLessonIndex] && !lesson.mux_playback_id && !lesson.mux_upload_id && (
+                                                                <input
+                                                                    type="file"
+                                                                    accept="video/*"
+                                                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                                                    onChange={(e) => {
+                                                                        const file = e.target.files?.[0]
+                                                                        if (file) handleVideoUpload(selectedLessonIndex, file)
+                                                                    }}
+                                                                />
+                                                            )}
                                                         </div>
                                                     </div>
-                                                )}
-                                            </div>
-
-                                            {lesson.type !== 'quiz' && (
-                                                <div className="w-full md:w-80 space-y-3">
-                                                    <Label className="text-[10px] font-bold uppercase tracking-widest text-black/90 px-1 ">Vídeo da Aula</Label>
-                                                    <div className={`
-                                                        relative rounded-xl border-2 transition-all flex flex-col items-center justify-center overflow-hidden
-                                                        ${lesson.mux_playback_id ? 'border-black bg-white shadow-lg' : 'border-dashed border-black/20 h-40 bg-slate-50 hover:bg-white hover:border-black/50'}
-                                                    `}>
-                                                        {uploadingVideos[index] ? (
-                                                            <div className="flex flex-col items-center gap-3 p-8 text-center">
-                                                                <div className="relative">
-                                                                    <Loader2 className="animate-spin text-[#1D5F31]" size={32} />
-                                                                    <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-[#1D5F31]">
-                                                                        {uploadingVideoProgress[index]}%
-                                                                    </span>
-                                                                </div>
-                                                                <span className="text-[9px] font-bold uppercase tracking-[2px] animate-pulse text-[#1D5F31]">ENVIANDO PARA O STUDIO...</span>
-                                                            </div>
-                                                        ) : lesson.mux_playback_id ? (
-                                                            <div className="flex flex-col gap-3 w-full p-3">
-                                                                <LessonVideoPreview 
-                                                                    playbackId={lesson.mux_playback_id} 
-                                                                    title={lesson.title || `Aula ${index + 1}`} 
-                                                                />
-                                                                <div className="flex justify-between items-center px-1">
-                                                                    <span className="text-[9px] font-bold uppercase tracking-widest text-[#1D5F31] flex items-center gap-2">
-                                                                        <div className="w-2 h-2 rounded-full bg-[#1D5F31] animate-pulse" />
-                                                                        {uploadingVideoStatus[index] === 'processing' ? 'PROCESSANDO...' : 'STUDIO READY'}
-                                                                    </span>
-                                                                    <button
-                                                                        className="text-[9px] text-red-500 hover:text-red-600 font-bold uppercase tracking-widest transition-colors flex items-center gap-1"
-                                                                        onClick={() => handleUpdateLesson(index, { 
-                                                                            video_url: '',
-                                                                            mux_upload_id: '',
-                                                                            mux_playback_id: '',
-                                                                            mux_asset_id: ''
-                                                                        })}
-                                                                    >
-                                                                        <X size={12} /> REMOVER
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        ) : (
-                                                            <div className="text-center px-6 py-10">
-                                                                <div className="w-12 h-12 bg-black/5 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                                                                    <Upload size={20} className="text-black/40" />
-                                                                </div>
-                                                                <span className="text-[10px] font-bold uppercase tracking-widest text-black">Upload da Aula</span>
-                                                                <p className="text-[8px] text-black/50 mt-1 font-bold uppercase tracking-widest">ARQUIVOS MP4 OU MOV</p>
-                                                            </div>
-                                                        )}
-
-                                                        {!uploadingVideos[index] && !lesson.mux_playback_id && (
-                                                            <input
-                                                                type="file"
-                                                                accept="video/*"
-                                                                className="absolute inset-0 opacity-0 cursor-pointer"
-                                                                onChange={(e) => {
-                                                                    const file = e.target.files?.[0]
-                                                                    if (file) handleVideoUpload(index, file)
-                                                                }}
-                                                            />
-                                                        )}
-                                                    </div>
-                                                </div>
+                                                </>
                                             )}
                                         </div>
                                     </div>
-                                ))}
-                            </div>
-                        )}
+                                )
+                            })()}
+                        </div>
+
+                        {/* Sidebar — Configurações Base */}
+                        <aside className="space-y-12">
+                            <section className="bg-white p-8 rounded-md border border-[#1D5F31]/20">
+                                <h3 className="text-[10px] font-bold uppercase tracking-[5px] text-black/60 mb-6">Configurações Base</h3>
+
+                                <div className="space-y-8">
+                                    {/* Subtítulo */}
+                                    <div className="space-y-4">
+                                        <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Subtítulo Estratégico</label>
+                                        <input
+                                            className="w-full bg-white border border-[#1D5F31]/20 rounded-md px-5 py-3 focus:border-[#1D5F31] outline-none text-sm text-black transition-all"
+                                            placeholder="Ex: Do zero ao avançado"
+                                            value={formData.subtitle || ''}
+                                            onChange={(e) => setStepData({ subtitle: e.target.value })}
+                                        />
+                                    </div>
+
+                                    {/* Descrição */}
+                                    <div className="space-y-4">
+                                        <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Descrição Completa</label>
+                                        <textarea
+                                            className="w-full bg-white border border-[#1D5F31]/20 rounded-md px-6 py-4 focus:border-[#1D5F31] outline-none text-sm text-black transition-all min-h-[120px]"
+                                            placeholder="Descreva o curso em detalhes..."
+                                            value={formData.description || ''}
+                                            onChange={(e) => setStepData({ description: e.target.value })}
+                                        />
+                                    </div>
+
+                                    {/* Categoria */}
+                                    <div className="space-y-4">
+                                        <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Categoria</label>
+                                        <select
+                                            className="w-full bg-white border border-[#1D5F31]/20 rounded-md px-5 py-3 focus:border-[#1D5F31] outline-none text-sm text-black transition-all appearance-none"
+                                            value={formData.category || ''}
+                                            onChange={(e) => setStepData({ category: e.target.value })}
+                                        >
+                                            <option value="">Selecione...</option>
+                                            {CATEGORIES.map((cat) => (
+                                                <option key={cat} value={cat}>{cat}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    {/* Carga Horária */}
+                                    <div className="space-y-4">
+                                        <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Carga Horária (h)</label>
+                                        <input
+                                            type="number"
+                                            className="w-full bg-white border border-[#1D5F31]/20 rounded-md px-6 py-4 focus:border-[#1D5F31] outline-none font-bold text-xl text-black transition-all"
+                                            placeholder="0"
+                                            value={formData.duration || ''}
+                                            onChange={(e) => setStepData({ duration: Number(e.target.value) })}
+                                        />
+                                    </div>
+
+                                    {/* Tags */}
+                                    <div className="space-y-4">
+                                        <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Tags para Busca</label>
+                                        <TagInput
+                                            tags={formData.tags || []}
+                                            onChange={(tags) => setStepData({ tags })}
+                                        />
+                                    </div>
+
+                                    {/* Tipo de Precificação */}
+                                    <div className="space-y-4">
+                                        <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Tipo de Precificação</label>
+                                        <div className="flex gap-2">
+                                            {[
+                                                { id: 'standard' as const, label: 'Padrão' },
+                                                { id: 'free' as const, label: 'Gratuito' },
+                                                { id: 'premium' as const, label: 'Premium' }
+                                            ].map((type) => (
+                                                <button
+                                                    key={type.id}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const newData: any = { pricing_type: type.id }
+                                                        if (type.id === 'free') newData.price = 0
+                                                        setStepData(newData)
+                                                    }}
+                                                    className={`flex-1 px-3 py-3 rounded-md text-[9px] font-bold uppercase tracking-widest transition-all border-2 ${
+                                                        formData.pricing_type === type.id
+                                                            ? 'bg-[#1D5F31] border-[#1D5F31] text-white'
+                                                            : 'bg-white border-[#1D5F31]/20 text-black/60 hover:border-[#1D5F31]'
+                                                    }`}
+                                                >
+                                                    {type.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Valor */}
+                                    {formData.pricing_type !== 'free' && (
+                                        <div className="space-y-4">
+                                            <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Valor do Investimento</label>
+                                            <div className="relative">
+                                                <span className="absolute left-6 top-1/2 -translate-y-1/2 font-bold text-lg text-black/40">R$</span>
+                                                <input
+                                                    type="number"
+                                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-md pl-24 pr-8 py-5 focus:border-[#1D5F31] outline-none font-bold text-2xl text-black transition-all"
+                                                    placeholder="0"
+                                                    value={formData.price || ''}
+                                                    onChange={(e) => setStepData({ price: Number(e.target.value) })}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </section>
+                        </aside>
                     </div>
                 )}
             </div>
 
             {/* Footer de Ações */}
-            <div className="max-w-4xl mx-auto flex justify-between items-center gap-8 mb-20 md:mb-0">
+            <div className="w-full flex justify-between items-center gap-8 mb-20 md:mb-0">
                 <Button
                     variant="ghost"
                     onClick={handleBack}
                     disabled={currentStep === 1}
-                    className="text-black/70 hover:text-black hover:bg-black/5 font-bold uppercase text-[10px] tracking-[4px] px-10 h-14 rounded-xl disabled:opacity-0 transition-all border-2 border-transparent hover:border-black"
+                    className="text-black/70 hover:text-black hover:bg-black/5 font-bold uppercase text-[10px] tracking-[4px] px-10 h-14 disabled:opacity-0 transition-all border-2 border-transparent hover:border-black rounded-md"
                 >
                     <ChevronLeft size={20} className="mr-3" /> VOLTAR
                 </Button>
@@ -879,7 +1169,7 @@ export default function NewCoursePage() {
                         <Button
                             onClick={handleNext}
                             disabled={!isStepValid(currentStep)}
-                            className="bg-[#1D5F31] text-white hover:bg-[#1D5F31]/90 font-bold uppercase text-[10px] tracking-[4px] px-12 h-16 rounded-xl shadow-none border-2 border-[#1D5F31] disabled:opacity-30 group transition-all"
+                            className="bg-[#1D5F31] text-white hover:bg-[#1D5F31]/90 font-bold uppercase text-[10px] tracking-[4px] px-12 h-16 shadow-none border-2 border-[#1D5F31] disabled:opacity-30 group transition-all rounded-md"
                         >
                             PRÓXIMO PASSO <ChevronRight size={20} className="ml-3 group-hover:translate-x-1 transition-transform" />
                         </Button>
@@ -887,7 +1177,7 @@ export default function NewCoursePage() {
                         <Button
                             onClick={handlePublish}
                             disabled={!isPublishable || isPublishing}
-                            className={`bg-[#1D5F31] text-white hover:bg-[#1D5F31]/90 font-bold uppercase text-[10px] tracking-[4px] px-16 h-16 shadow-none border-2 border-[#1D5F31] disabled:opacity-30 group transition-all ${isPublishing ? 'rounded-none' : 'rounded-xl'}`}
+                            className={`bg-[#1D5F31] text-white hover:bg-[#1D5F31]/90 font-bold uppercase text-[10px] tracking-[4px] px-16 h-16 shadow-none border-2 border-[#1D5F31] disabled:opacity-30 group transition-all rounded-md ${isPublishing ? '' : ''}`}
                         >
                             {isPublishing ? (
                                 <Loader2 className="animate-spin mr-3" />
@@ -900,6 +1190,8 @@ export default function NewCoursePage() {
                 </div>
             </div>
 
+            </>
+            )}
         </div>
     )
 }

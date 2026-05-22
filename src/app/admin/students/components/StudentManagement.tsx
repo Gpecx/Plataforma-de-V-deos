@@ -4,6 +4,16 @@ import { useState } from 'react'
 import { Search, User as UserIcon, Loader2, ShieldCheck, ShieldAlert, ChevronRight, BookOpen, Clock, Medal } from 'lucide-react'
 import { toggleUserStatus } from '@/app/actions/admin'
 import StudentDetailsDrawer from './StudentDetailsDrawer'
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogFooter,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from '@/components/ui/alert-dialog'
 
 interface Student {
     id: string
@@ -59,11 +69,20 @@ export default function StudentManagement({ initialStudents }: StudentManagement
     const [loadingId, setLoadingId] = useState<string | null>(null)
     const [isLoading, setIsLoading] = useState(false)
     const [selectedStudentUid, setSelectedStudentUid] = useState<string | null>(null)
+    const [alertOpen, setAlertOpen] = useState(false)
+    const [pendingToggle, setPendingToggle] = useState<{ uid: string; currentStatus: boolean } | null>(null)
 
-    const handleToggleStatus = async (uid: string, currentStatus: boolean) => {
-        if (!confirm(`Deseja ${currentStatus ? 'desativar' : 'ativar'} este aluno?`)) return
-        
+    const handleToggleStatus = (uid: string, currentStatus: boolean) => {
+        setPendingToggle({ uid, currentStatus })
+        setAlertOpen(true)
+    }
+
+    const handleConfirmToggle = async () => {
+        if (!pendingToggle) return
+        const { uid, currentStatus } = pendingToggle
         setLoadingId(uid)
+        setAlertOpen(false)
+        setPendingToggle(null)
         try {
             const res = await toggleUserStatus(uid, currentStatus)
             if (res.success) {
@@ -250,6 +269,29 @@ export default function StudentManagement({ initialStudents }: StudentManagement
                 uid={selectedStudentUid} 
                 onClose={() => setSelectedStudentUid(null)} 
             />
+
+            <AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Confirmar Ação</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            {pendingToggle?.currentStatus
+                                ? "Deseja realmente desativar este aluno? Ele perderá o acesso imediato à plataforma."
+                                : "Deseja realmente ativar este aluno? Ele recuperará o acesso à plataforma."}
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={handleConfirmToggle}
+                            style={{ backgroundColor: '#1D5F31' }}
+                            className="text-white hover:brightness-110"
+                        >
+                            {pendingToggle?.currentStatus ? 'Desativar' : 'Ativar'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     )
 }

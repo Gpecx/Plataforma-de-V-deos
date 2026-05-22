@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
 
 export interface Question {
     id: string
@@ -12,6 +13,9 @@ export interface Lesson {
     video_url: string
     position: number
     description?: string
+    notas?: string
+    status?: string
+    motivoRejeicao?: string
     mux_upload_id?: string
     mux_playback_id?: string
     mux_asset_id?: string
@@ -65,13 +69,24 @@ const defaultFormData: CourseFormData = {
     tags: []
 }
 
-export const useCourseFormStore = create<CourseFormStore>((set) => ({
-    formData: defaultFormData,
-    setStepData: (data) => set((state) => ({
-        formData: { ...state.formData, ...data }
-    })),
-    setLessons: (lessons) => set((state) => ({
-        formData: { ...state.formData, lessons }
-    })),
-    resetForm: () => set({ formData: defaultFormData }),
-}))
+export const useCourseFormStore = create<CourseFormStore>()(
+    persist(
+        (set) => ({
+            formData: defaultFormData,
+            setStepData: (data) => set((state) => ({
+                formData: { ...state.formData, ...data }
+            })),
+            setLessons: (lessons) => set((state) => ({
+                formData: { ...state.formData, lessons }
+            })),
+            resetForm: () => {
+                set({ formData: defaultFormData })
+                useCourseFormStore.persist.clearStorage()
+            },
+        }),
+        {
+            name: 'powerplay_course_draft',
+            storage: createJSONStorage(() => localStorage),
+        }
+    )
+)

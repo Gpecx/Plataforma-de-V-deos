@@ -15,6 +15,7 @@ import {
     Settings,
     BarChart3,
     ShieldAlert,
+    Clapperboard,
     LogOut,
     ChevronRight,
     Loader2,
@@ -75,7 +76,7 @@ const menuItems: MenuItem[] = [
     },
     {
         title: 'Moderação de Conteúdo',
-        icon: ShieldAlert,
+        icon: Clapperboard,
         href: '/admin/approvals',
         description: 'Cursos e Aulas'
     },
