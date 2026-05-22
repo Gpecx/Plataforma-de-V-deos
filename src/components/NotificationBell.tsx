@@ -15,14 +15,15 @@ interface Notification {
     type: 'reply' | 'new_lesson' | 'sale' | 'new_student' | 'lesson_rejected' | 'course_rejected' | 'lesson_approved' | 'course_approved' | 'course_deleted' | 'lesson_deleted' | 'deletion_rejected'
     title: string
     subtitle: string
-    time: string
+    time: any
     read: boolean
     href: string
 }
 
-function getRelativeTimeString(dateString: string): string {
-    if (!dateString) return 'Recentemente'
-    const date = new Date(dateString)
+function getRelativeTimeString(dateValue: any): string {
+    if (!dateValue) return 'Recentemente'
+    const date = parseFirebaseDate(dateValue)
+    if (!date) return 'Data inválida'
     const now = new Date()
     const diffMs = now.getTime() - date.getTime()
     const diffMins = Math.floor(diffMs / 60000)
@@ -100,7 +101,7 @@ export function NotificationBell({
                         type: 'new_lesson', 
                         title: 'Conteúdo atualizado!', 
                         subtitle: `Novas aulas em: ${c.title}`, 
-                        time: parseFirebaseDate(c.updated_at)?.toLocaleDateString('pt-BR') || 'Recentemente', 
+                        time: c.updated_at, 
                         read: false, 
                         href: `/classroom/${courseDoc.id}` 
                     }
@@ -138,7 +139,7 @@ export function NotificationBell({
     const unread = notifications.filter(n => !n.read).length
 
     const markAllRead = () => {
-        setNotifications(prev => prev.map(n => ({ ...n, read: true })))
+        setNotifications([])
     }
 
     const handleClick = (notif: Notification) => {
@@ -152,9 +153,7 @@ export function NotificationBell({
     const toggleOpen = () => {
         setOpen(prev => {
             const next = !prev
-            if (next) {
-                fetchNotifications()
-            }
+            if (next) fetchNotifications()
             return next
         })
     }

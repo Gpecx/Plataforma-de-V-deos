@@ -44,14 +44,14 @@ export async function searchGlobal(query: string): Promise<SearchResult[]> {
             snap.docs.forEach((doc: any) => {
                 const data = doc.data();
                 
-                // Filtro de segurança para professores/admins
-                if (type === 'teacher' && data.role !== 'teacher' && data.role !== 'admin') return;
+                // Apenas professores (admins são invisíveis na busca)
+                if (type === 'teacher' && data.role !== 'teacher') return;
 
                 if (!results.find(r => r.id === doc.id)) {
                     results.push({
                         id: doc.id,
                         title: type === 'course' ? data.title : data.full_name,
-                        subtitle: type === 'course' ? data.category : (data.specialty || (data.role === 'admin' ? 'Administrador' : 'Instrutor')),
+                        subtitle: type === 'course' ? data.category : (data.specialty || 'Instrutor'),
                         image: type === 'course' ? data.image_url : (data.photoURL || data.avatar_url || data.image_url),
                         type,
                         slug: data.slug || doc.id

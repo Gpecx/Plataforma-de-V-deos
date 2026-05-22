@@ -93,8 +93,8 @@ export default async function TeacherDashboard() {
     })
 
     const financialMetrics = [
-        { label: 'Receita Mensal', value: `R$ ${monthlyRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: DollarSign, color: 'text-[#1D5F31]' },
-        { label: 'Vendas Hoje', value: `R$ ${todaySales.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: TrendingUp, color: 'text-purple-500' },
+        { label: 'Receita Mensal', value: `R$ ${monthlyRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: DollarSign },
+        { label: 'Vendas Hoje', value: `R$ ${todaySales.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, icon: TrendingUp },
     ]
 
 
@@ -109,7 +109,7 @@ export default async function TeacherDashboard() {
                     <p className="text-slate-900 mt-3 font-bold uppercase text-[10px] tracking-[3px]">Gerencie seu império de conhecimento hoje.</p>
                 </div>
                 <Link href="/dashboard-teacher/courses/new">
-                    <button className="flex items-center gap-3 bg-[#1D5F31] text-white font-bold uppercase tracking-widest px-10 py-5 rounded-2xl hover:opacity-90 transition shadow-xl shadow-[#1D5F31]/20 shrink-0 active:scale-95">
+                    <button className="flex items-center gap-3 bg-[#1D5F31] text-white font-bold uppercase tracking-widest px-10 py-5 rounded-2xl hover:opacity-90 hover:scale-105 transition-all duration-300 shadow-xl shadow-[#1D5F31]/20 shrink-0 active:scale-95">
                         <Plus size={20} strokeWidth={3} /> Criar Novo Curso
                     </button>
                 </Link>
@@ -121,12 +121,15 @@ export default async function TeacherDashboard() {
                     {/* Linha 1: Financeiro (Estático/SSG) */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {financialMetrics.map((metric, idx) => (
-                            <div key={idx} className="bg-white p-8 rounded-lg border border-black/20 hover:border-black transition-all shadow-sm hover:shadow-xl group">
-                                <div className={`p-4 w-14 h-14 rounded-lg bg-slate-50 border border-black/20 mb-6 flex items-center justify-center transition-transform group-hover:scale-110 ${metric.color}`}>
+                            <div
+                                key={idx}
+                                className="p-8 rounded-lg border border-black/20 bg-white shadow-sm transition-all duration-300 group hover:-translate-y-1 hover:border-black hover:shadow-xl"
+                            >
+                                <div className="p-4 w-14 h-14 rounded-lg bg-emerald-50 border border-emerald-200 text-[#1D5F31] mb-6 flex items-center justify-center transition-all duration-300 group-hover:bg-[#1D5F31] group-hover:text-white group-hover:border-[#1D5F31]">
                                     <metric.icon size={24} />
                                 </div>
-                                <p className="text-slate-900 text-[10px] font-bold uppercase tracking-[3px] mb-1">{metric.label}</p>
-                                <h3 className="text-3xl font-bold tracking-tighter text-slate-900">{metric.value}</h3>
+                                <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[3px] mb-1">{metric.label}</p>
+                                <h3 className="text-3xl font-extrabold tracking-tighter text-slate-900">{metric.value}</h3>
                             </div>
                         ))}
                     </div>
@@ -147,7 +150,11 @@ export default async function TeacherDashboard() {
                                 <p className="text-slate-900 text-[9px] font-bold tracking-[3px] uppercase">Análise dos últimos 7 dias de operação</p>
                             </div>
                         </div>
-                        <div className="bg-slate-50 px-6 py-3 rounded-xl border border-slate-100">
+                        <div className="flex items-center gap-3 border-2 border-[#1D5F31]/30 bg-white px-6 py-3 rounded-xl">
+                            <span className="relative flex h-2.5 w-2.5">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#1D5F31] opacity-75" />
+                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#1D5F31]" />
+                            </span>
                             <span className="text-[10px] font-bold uppercase tracking-widest text-[#1D5F31]">Live Analytics</span>
                         </div>
                     </div>
