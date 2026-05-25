@@ -7,16 +7,66 @@ import {
     ReceiptText,
     ShieldCheck,
     Lock,
-    ChevronRight,
-    ArrowLeft
+    ArrowLeft,
+    CheckCircle2,
+    XCircle,
+    AlertCircle
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { processCheckoutAction, getProfile, getLatestCoursePrices } from '@/app/(app)/dashboard-student/actions'
 import { cn } from '@/lib/utils'
 
 type PaymentMethod = 'credit_card' | 'pix' | 'boleto'
+
+function maskCardNumber(value: string): string {
+    const digits = value.replace(/\D/g, '').slice(0, 16)
+    return digits.replace(/(\d{4})(?=\d)/g, '$1 ')
+}
+
+function maskExpiry(value: string): string {
+    const digits = value.replace(/\D/g, '').slice(0, 4)
+    if (digits.length > 2) return digits.slice(0, 2) + '/' + digits.slice(2)
+    return digits
+}
+
+function maskCvc(value: string): string {
+    return value.replace(/\D/g, '').slice(0, 4)
+}
+
+function maskCpf(value: string): string {
+    const digits = value.replace(/\D/g, '').slice(0, 11)
+    return digits
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
+}
+
+function maskPhone(value: string): string {
+    const digits = value.replace(/\D/g, '').slice(0, 11)
+    if (digits.length <= 10) {
+        return digits.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3')
+    }
+    return digits.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3')
+}
+
+function maskCep(value: string): string {
+    const digits = value.replace(/\D/g, '').slice(0, 8)
+    if (digits.length > 5) return digits.slice(0, 5) + '-' + digits.slice(5)
+    return digits
+}
+
+function detectCardBrand(number: string): string {
+    const cleaned = number.replace(/\D/g, '')
+    if (/^4/.test(cleaned)) return 'Visa'
+    if (/^5[1-5]/.test(cleaned)) return 'Mastercard'
+    if (/^3[47]/.test(cleaned)) return 'Amex'
+    if (/^6(?:011|5)/.test(cleaned)) return 'Discover'
+    if (/^3(?:0[0-5]|[68])/.test(cleaned)) return 'Diners'
+    if (/^2(?:014|149)/.test(cleaned)) return 'Elo'
+    return ''
+}
 
 export default function PagamentoPage() {
     const { items, getTotal, clearCart, showNotification, syncPrices } = useCartStore()
@@ -28,6 +78,39 @@ export default function PagamentoPage() {
     const [isLoadingProfile, setIsLoadingProfile] = useState(true)
     const [termsAccepted, setTermsAccepted] = useState(false)
     const [isLoadingPrices, setIsLoadingPrices] = useState(true)
+    const [paymentError, setPaymentError] = useState<string | null>(null)
+
+    // Credit card form state
+    const [cardNumber, setCardNumber] = useState('')
+    const [cardHolder, setCardHolder] = useState('')
+    const [cardExpiry, setCardExpiry] = useState('')
+    const [cardCvc, setCardCvc] = useState('')
+    const [holderCpf, setHolderCpf] = useState('')
+    const [holderEmail, setHolderEmail] = useState('')
+    const [holderPhone, setHolderPhone] = useState('')
+    const [holderCep, setHolderCep] = useState('')
+    const [holderAddressNumber, setHolderAddressNumber] = useState('')
+
+    // Pre-fill from profile when loaded
+    useEffect(() => {
+        if (userProfile) {
+            if (userProfile.cpf_cnpj || userProfile.cpf) {
+                setHolderCpf(userProfile.cpf_cnpj || userProfile.cpf || '')
+            }
+            if (userProfile.email) {
+                setHolderEmail(userProfile.email || '')
+            }
+            if (userProfile.phone) {
+                setHolderPhone(userProfile.phone || '')
+            }
+            if (userProfile.cep) {
+                setHolderCep(userProfile.cep || '')
+            }
+            if (userProfile.numero || userProfile.numero_endereco) {
+                setHolderAddressNumber(userProfile.numero || userProfile.numero_endereco || '')
+            }
+        }
+    }, [userProfile])
 
     useEffect(() => {
         setMounted(true)
@@ -40,14 +123,12 @@ export default function PagamentoPage() {
         
         const fetchData = async () => {
             if (mounted) {
-                // Fetch Profile
                 const profileResult = await getProfile()
                 if (profileResult.success) {
                     setUserProfile(profileResult.data)
                 }
                 setIsLoadingProfile(false)
 
-                // Sync Cart Prices with Firestore
                 if (items.length > 0) {
                     setIsLoadingPrices(true)
                     const priceResult = await getLatestCoursePrices(items.map(i => i.id))
@@ -63,11 +144,60 @@ export default function PagamentoPage() {
         fetchData()
     }, [mounted, items.length, router, syncPrices, isProcessing])
 
+    const resetCardForm = useCallback(() => {
+        setCardNumber('')
+        setCardHolder('')
+        setCardExpiry('')
+        setCardCvc('')
+        setPaymentError(null)
+    }, [])
+
+    // Reset card form when switching methods away from credit_card
+    useEffect(() => {
+        if (selectedMethod !== 'credit_card') {
+            setPaymentError(null)
+        }
+    }, [selectedMethod])
+
     if (!mounted) return null
 
     const total = getTotal()
+    const cardBrand = detectCardBrand(cardNumber)
+
+    const validateCardForm = (): string | null => {
+        const cleanedNumber = cardNumber.replace(/\s/g, '')
+        if (cleanedNumber.length < 13) return 'Número do cartão inválido.'
+        
+        const nameParts = cardHolder.trim().split(' ')
+        if (nameParts.length < 2 || !cardHolder.trim()) return 'Informe o nome completo do titular como está no cartão.'
+        
+        const expiryDigits = cardExpiry.replace(/\D/g, '')
+        if (expiryDigits.length !== 4) return 'Data de expiração inválida.'
+        const expMonth = parseInt(expiryDigits.slice(0, 2))
+        const expYear = parseInt('20' + expiryDigits.slice(2))
+        if (expMonth < 1 || expMonth > 12) return 'Mês de expiração inválido.'
+        const now = new Date()
+        const expDate = new Date(expYear, expMonth)
+        if (expDate <= now) return 'Cartão expirado.'
+        
+        if (cardCvc.replace(/\D/g, '').length < 3) return 'CVC inválido.'
+
+        const cpfDigits = holderCpf.replace(/\D/g, '')
+        if (cpfDigits.length < 11) return 'CPF/CNPJ do titular inválido.'
+
+        if (!holderEmail.includes('@')) return 'E-mail do titular inválido.'
+
+        const cepDigits = holderCep.replace(/\D/g, '')
+        if (cepDigits.length < 8) return 'CEP inválido.'
+
+        if (!holderAddressNumber.trim()) return 'Número do endereço é obrigatório.'
+
+        return null
+    }
 
     const handlePayment = async () => {
+        setPaymentError(null)
+
         if (!termsAccepted) {
             showNotification('Você precisa aceitar os Termos de Uso e Política de Privacidade para continuar.', 'error')
             return
@@ -79,25 +209,49 @@ export default function PagamentoPage() {
             return
         }
 
-        const courseIds = items.map(item => item.id)
-        const calculatedTotal = getTotal()
-        
+        if (selectedMethod === 'credit_card') {
+            const validationError = validateCardForm()
+            if (validationError) {
+                setPaymentError(validationError)
+                return
+            }
+        }
+
         setIsProcessing(true)
 
         try {
             const courseIds = items.map(item => item.id)
             
-            // Mapeamento de métodos internos para Asaas BillingType
             const methodMap: Record<PaymentMethod, any> = {
                 credit_card: 'CREDIT_CARD',
                 pix: 'PIX',
                 boleto: 'BOLETO'
             }
 
-            const result = await processCheckoutAction(courseIds, methodMap[selectedMethod], termsAccepted)
+            const billingType = methodMap[selectedMethod]
+
+            const cardData = selectedMethod === 'credit_card' ? {
+                creditCard: {
+                    holderName: cardHolder.trim(),
+                    number: cardNumber.replace(/\s/g, ''),
+                    expiryMonth: cardExpiry.replace(/\D/g, '').slice(0, 2),
+                    expiryYear: '20' + cardExpiry.replace(/\D/g, '').slice(2, 4),
+                    ccv: cardCvc.replace(/\D/g, ''),
+                },
+                creditCardHolderInfo: {
+                    name: cardHolder.trim(),
+                    email: holderEmail.trim(),
+                    cpfCnpj: holderCpf.replace(/\D/g, ''),
+                    postalCode: holderCep.replace(/\D/g, ''),
+                    addressNumber: holderAddressNumber.trim(),
+                    phone: holderPhone.replace(/\D/g, '') || undefined,
+                }
+            } : undefined
+
+            const result = await processCheckoutAction(courseIds, billingType, termsAccepted, cardData)
 
             if (!result.success) {
-                showNotification(result.error || "Erro ao processar pagamento", 'error')
+                setPaymentError(result.error || "Erro ao processar pagamento")
                 setIsProcessing(false)
                 return
             }
@@ -109,18 +263,25 @@ export default function PagamentoPage() {
                 setCheckoutResult(result.data)
             }
 
-
             if (result.isFree) {
                 router.push('/dashboard-student')
                 return
             }
 
             if (result.data) {
-                const { paymentId, billingType, invoiceUrl } = result.data
+                const { paymentId, billingType: respBillingType, invoiceUrl, status } = result.data
 
+                if (respBillingType === 'CREDIT_CARD') {
+                    if (status === 'CONFIRMED' || status === 'RECEIVED') {
+                        router.push('/dashboard-student')
+                    } else {
+                        router.push(`/pagamento/sucesso?id=${paymentId}&type=${respBillingType}`)
+                    }
+                    return
+                }
 
-                if (billingType === 'PIX' || billingType === 'BOLETO') {
-                    router.push(`/pagamento/sucesso?id=${paymentId}&type=${billingType}`)
+                if (respBillingType === 'PIX' || respBillingType === 'BOLETO') {
+                    router.push(`/pagamento/sucesso?id=${paymentId}&type=${respBillingType}`)
                     return
                 }
 
@@ -133,7 +294,7 @@ export default function PagamentoPage() {
             router.push('/dashboard-student')
         } catch (error: any) {
             console.error(error)
-            showNotification(error.message || "Erro fatal no pagamento. Tente novamente.", 'error')
+            setPaymentError(error.message || "Erro fatal no pagamento. Tente novamente.")
             setIsProcessing(false)
         }
     }
@@ -287,6 +448,185 @@ export default function PagamentoPage() {
                                 </div>
                             </div>
                         </div>
+
+                        {/* Formulário Cartão de Crédito */}
+                        {selectedMethod === 'credit_card' && (
+                            <div className="border border-gray-200 p-6 md:p-8 space-y-6">
+                                <h3 className="text-sm font-bold uppercase tracking-[5px] text-[#1D5F31]">
+                                    Dados do Cartão
+                                </h3>
+
+                                {/* Card Number */}
+                                <div>
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">
+                                        Número do Cartão
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            placeholder="0000 0000 0000 0000"
+                                            value={cardNumber}
+                                            onChange={e => setCardNumber(maskCardNumber(e.target.value))}
+                                            maxLength={19}
+                                            className="w-full border border-gray-300 px-4 py-3.5 text-sm font-mono bg-white text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]/20 transition-all rounded-none"
+                                        />
+                                        {cardBrand && (
+                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-bold uppercase tracking-wider text-[#1D5F31]">
+                                                {cardBrand}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Holder Name */}
+                                <div>
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">
+                                        Nome do Titular (como está no cartão)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        placeholder="Nome impresso no cartão"
+                                        value={cardHolder}
+                                        onChange={e => setCardHolder(e.target.value.toUpperCase())}
+                                        className="w-full border border-gray-300 px-4 py-3.5 text-sm bg-white text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]/20 transition-all rounded-none uppercase"
+                                    />
+                                </div>
+
+                                {/* Expiry + CVC */}
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">
+                                            Data de Expiração
+                                        </label>
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            placeholder="MM/AA"
+                                            value={cardExpiry}
+                                            onChange={e => setCardExpiry(maskExpiry(e.target.value))}
+                                            maxLength={5}
+                                            className="w-full border border-gray-300 px-4 py-3.5 text-sm font-mono bg-white text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]/20 transition-all rounded-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">
+                                            CVC
+                                        </label>
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            placeholder="123"
+                                            value={cardCvc}
+                                            onChange={e => setCardCvc(maskCvc(e.target.value))}
+                                            maxLength={4}
+                                            className="w-full border border-gray-300 px-4 py-3.5 text-sm font-mono bg-white text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]/20 transition-all rounded-none"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Divider */}
+                                <div className="h-px bg-gray-200" />
+
+                                <h3 className="text-sm font-bold uppercase tracking-[5px] text-[#1D5F31]">
+                                    Dados do Titular
+                                </h3>
+                                <p className="text-xs text-slate-500 font-medium -mt-4">
+                                    Preencha os dados do dono do cartão. CPF/CNPJ, CEP e número são preenchidos automaticamente do seu perfil.
+                                </p>
+
+                                {/* CPF + Email */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">
+                                            CPF / CNPJ
+                                        </label>
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            placeholder="000.000.000-00"
+                                            value={maskCpf(holderCpf)}
+                                            onChange={e => setHolderCpf(e.target.value.replace(/\D/g, '').slice(0, 11))}
+                                            maxLength={14}
+                                            className="w-full border border-gray-300 px-4 py-3.5 text-sm font-mono bg-white text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]/20 transition-all rounded-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">
+                                            E-mail
+                                        </label>
+                                        <input
+                                            type="email"
+                                            placeholder="seu@email.com"
+                                            value={holderEmail}
+                                            onChange={e => setHolderEmail(e.target.value)}
+                                            className="w-full border border-gray-300 px-4 py-3.5 text-sm bg-white text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]/20 transition-all rounded-none"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Phone */}
+                                <div>
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">
+                                        Telefone
+                                    </label>
+                                    <input
+                                        type="text"
+                                        inputMode="numeric"
+                                        placeholder="(11) 99999-9999"
+                                        value={maskPhone(holderPhone)}
+                                        onChange={e => setHolderPhone(e.target.value.replace(/\D/g, '').slice(0, 11))}
+                                        maxLength={15}
+                                        className="w-full border border-gray-300 px-4 py-3.5 text-sm font-mono bg-white text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]/20 transition-all rounded-none"
+                                    />
+                                </div>
+
+                                {/* CEP + Address Number */}
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">
+                                            CEP
+                                        </label>
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            placeholder="00000-000"
+                                            value={maskCep(holderCep)}
+                                            onChange={e => setHolderCep(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                                            maxLength={9}
+                                            className="w-full border border-gray-300 px-4 py-3.5 text-sm font-mono bg-white text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]/20 transition-all rounded-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">
+                                            Número
+                                        </label>
+                                        <input
+                                            type="text"
+                                            placeholder="123"
+                                            value={holderAddressNumber}
+                                            onChange={e => setHolderAddressNumber(e.target.value)}
+                                            className="w-full border border-gray-300 px-4 py-3.5 text-sm bg-white text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]/20 transition-all rounded-none"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Payment Error */}
+                                {paymentError && (
+                                    <div className="bg-red-50 border-l-4 border-red-500 p-4 flex items-start gap-3">
+                                        <XCircle size={20} className="text-red-500 shrink-0 mt-0.5" />
+                                        <div>
+                                            <h4 className="text-xs font-bold uppercase tracking-wider text-red-800">
+                                                Erro no Pagamento
+                                            </h4>
+                                            <p className="text-xs text-red-700 mt-1 leading-relaxed">
+                                                {paymentError}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         {/* Informação Asaas */}
                         <div className="pt-6 border-t border-slate-100 ">

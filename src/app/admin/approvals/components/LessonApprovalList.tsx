@@ -204,7 +204,7 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
                                     {reviewingLesson.type === 'quiz' && reviewingLesson.quizData?.questions ? (
                                         <div className="w-full h-full p-8 overflow-y-auto bg-white">
                                             <div className="max-w-2xl mx-auto space-y-6">
-                                                <h3 className="text-xl font-bold uppercase tracking-tighter text-slate-900 mb-6">
+                                                <h3 className="text-xl font-bold uppercase tracking-tighter !text-[#000000] mb-6">
                                                     {reviewingLesson.quizData.title || reviewingLesson.title}
                                                 </h3>
                                                 {reviewingLesson.quizData.questions.map((question, qIndex) => (
@@ -213,7 +213,7 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
                                                             <span className="bg-slate-900 text-white text-xs font-bold px-3 py-1 rounded-lg">
                                                                 {qIndex + 1}
                                                             </span>
-                                                            <p className="font-bold text-slate-900 flex-1">{question.text}</p>
+                                                            <p className="font-bold !text-[#000000] flex-1">{question.text}</p>
                                                         </div>
                                                         <div className="space-y-2 ml-8">
                                                             {question.options?.map((option, oIndex) => (

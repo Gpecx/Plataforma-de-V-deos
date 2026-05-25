@@ -1,9 +1,58 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { CreditCard, Calendar, ArrowUpRight, Clock, Zap, ShieldCheck, X, Copy, CheckCircle2 as CheckIcon, Download } from 'lucide-react'
-import { getStudentTransactions, getPixDataAction, getBoletoDataAction, getPaymentStatusAction } from '../actions'
+import { CreditCard, Calendar, ArrowUpRight, Clock, Zap, ShieldCheck, X, Copy, CheckCircle2 as CheckIcon, Download, Loader2, CheckCircle, XCircle } from 'lucide-react'
+import { getStudentTransactions, getPixDataAction, getBoletoDataAction, getPaymentStatusAction, payPendingCreditCardAction } from '../actions'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
+
+function maskCardNumber(value: string): string {
+    const digits = value.replace(/\D/g, '').slice(0, 16)
+    return digits.replace(/(\d{4})(?=\d)/g, '$1 ')
+}
+
+function maskExpiry(value: string): string {
+    const digits = value.replace(/\D/g, '').slice(0, 4)
+    if (digits.length > 2) return digits.slice(0, 2) + '/' + digits.slice(2)
+    return digits
+}
+
+function maskCvc(value: string): string {
+    return value.replace(/\D/g, '').slice(0, 4)
+}
+
+function maskCpf(value: string): string {
+    const digits = value.replace(/\D/g, '').slice(0, 11)
+    return digits
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
+}
+
+function maskPhone(value: string): string {
+    const digits = value.replace(/\D/g, '').slice(0, 11)
+    if (digits.length <= 10) {
+        return digits.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3')
+    }
+    return digits.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3')
+}
+
+function maskCep(value: string): string {
+    const digits = value.replace(/\D/g, '').slice(0, 8)
+    if (digits.length > 5) return digits.slice(0, 5) + '-' + digits.slice(5)
+    return digits
+}
+
+function detectCardBrand(number: string): string {
+    const cleaned = number.replace(/\D/g, '')
+    if (/^4/.test(cleaned)) return 'Visa'
+    if (/^5[1-5]/.test(cleaned)) return 'Mastercard'
+    if (/^3[47]/.test(cleaned)) return 'Amex'
+    if (/^6(?:011|5)/.test(cleaned)) return 'Discover'
+    if (/^3(?:0[0-5]|[68])/.test(cleaned)) return 'Diners'
+    if (/^2(?:014|149)/.test(cleaned)) return 'Elo'
+    return ''
+}
 
 export default function PaymentsPage() {
     const [isExporting, setIsExporting] = useState(false)
@@ -15,6 +64,21 @@ export default function PaymentsPage() {
     const [paymentData, setPaymentData] = useState<any>(null)
     const [isFetchingPayment, setIsFetchingPayment] = useState(false)
     const [copied, setCopied] = useState(false)
+    const [pendingPaymentType, setPendingPaymentType] = useState<string>('')
+
+    // Credit card form state (for retry)
+    const [ccNumber, setCcNumber] = useState('')
+    const [ccHolder, setCcHolder] = useState('')
+    const [ccExpiry, setCcExpiry] = useState('')
+    const [ccCvc, setCcCvc] = useState('')
+    const [ccCpf, setCcCpf] = useState('')
+    const [ccEmail, setCcEmail] = useState('')
+    const [ccPhone, setCcPhone] = useState('')
+    const [ccCep, setCcCep] = useState('')
+    const [ccAddressNumber, setCcAddressNumber] = useState('')
+    const [isPayingCard, setIsPayingCard] = useState(false)
+    const [ccError, setCcError] = useState<string | null>(null)
+    const [ccSuccess, setCcSuccess] = useState(false)
 
     useEffect(() => {
         async function fetchTransactions() {
@@ -102,9 +166,24 @@ export default function PaymentsPage() {
         }
     }
 
+    const resetCardForm = () => {
+        setCcNumber('')
+        setCcHolder('')
+        setCcExpiry('')
+        setCcCvc('')
+        setCcCpf('')
+        setCcEmail('')
+        setCcPhone('')
+        setCcCep('')
+        setCcAddressNumber('')
+        setCcError(null)
+        setCcSuccess(false)
+    }
+
     const handleFetchPaymentData = async (t: any) => {
         if ((t.statusPagamento || '').toLowerCase() !== 'pendente') return
         
+        resetCardForm()
         setIsFetchingPayment(true)
         setSelectedPayment(t)
         setPaymentData(null)
@@ -116,30 +195,95 @@ export default function PaymentsPage() {
                 return
             }
 
-            // Busca detalhes reais no Asaas para garantir o tipo correto
             const asaasRes = await getPaymentStatusAction(paymentId)
             const asaasPayment = asaasRes.success ? asaasRes.data : null
             
             const paymentTypeRaw = asaasPayment?.billingType || t.asaasPaymentMethod || t.billingType || ''
             const paymentType = paymentTypeRaw.toUpperCase()
+            setPendingPaymentType(paymentType)
             
             if (paymentType === 'PIX') {
                 const res = await getPixDataAction(paymentId)
                 if (res.success) setPaymentData(res.data)
                 else toast.error(res.error || "Erro ao buscar dados do PIX")
             } else if (paymentType === 'BOLETO') {
-                const res = await getBoletoDataAction(paymentId)
-                if (res.success) setPaymentData(res.data)
-                else toast.error(res.error || "Erro ao buscar dados do Boleto")
-            } else {
-                console.log('Unsupported Payment Type:', paymentType)
-                toast.info(`O método ${paymentType || 'desconhecido'} não suporta visualização direta.`)
+                const [boletoRes, paymentDetail] = await Promise.all([
+                    getBoletoDataAction(paymentId),
+                    asaasRes.success ? Promise.resolve(asaasRes) : getPaymentStatusAction(paymentId),
+                ])
+                const detail = paymentDetail.success ? paymentDetail.data : null
+                if (boletoRes.success) {
+                    setPaymentData({ ...boletoRes.data, bankSlipUrl: detail?.bankSlipUrl || null })
+                } else {
+                    toast.error(boletoRes.error || "Erro ao buscar dados do Boleto")
+                }
             }
+            // CREDIT_CARD: don't fetch visual data, just show the card form in modal
         } catch (error) {
             console.error(error)
             toast.error("Erro ao processar solicitação")
         } finally {
             setIsFetchingPayment(false)
+        }
+    }
+
+    const handlePayWithCard = async () => {
+        setCcError(null)
+
+        const cleanedNumber = ccNumber.replace(/\s/g, '')
+        if (cleanedNumber.length < 13) { setCcError('Número do cartão inválido.'); return }
+        if (ccHolder.trim().split(' ').length < 2) { setCcError('Informe o nome completo do titular como está no cartão.'); return }
+        const expiryDigits = ccExpiry.replace(/\D/g, '')
+        if (expiryDigits.length !== 4) { setCcError('Data de expiração inválida.'); return }
+        if (ccCvc.replace(/\D/g, '').length < 3) { setCcError('CVC inválido.'); return }
+        if (ccCpf.replace(/\D/g, '').length < 11) { setCcError('CPF/CNPJ do titular inválido.'); return }
+        if (!ccEmail.includes('@')) { setCcError('E-mail do titular inválido.'); return }
+        if (ccCep.replace(/\D/g, '').length < 8) { setCcError('CEP inválido.'); return }
+        if (!ccAddressNumber.trim()) { setCcError('Número do endereço é obrigatório.'); return }
+
+        setIsPayingCard(true)
+
+        try {
+            const result = await payPendingCreditCardAction(selectedPayment.paymentId, {
+                creditCard: {
+                    holderName: ccHolder.trim(),
+                    number: cleanedNumber,
+                    expiryMonth: expiryDigits.slice(0, 2),
+                    expiryYear: '20' + expiryDigits.slice(2, 4),
+                    ccv: ccCvc.replace(/\D/g, ''),
+                },
+                creditCardHolderInfo: {
+                    name: ccHolder.trim(),
+                    email: ccEmail.trim(),
+                    cpfCnpj: ccCpf.replace(/\D/g, ''),
+                    postalCode: ccCep.replace(/\D/g, ''),
+                    addressNumber: ccAddressNumber.trim(),
+                    phone: ccPhone.replace(/\D/g, '') || undefined,
+                }
+            })
+
+            if (!result.success) {
+                setCcError(result.error || 'Erro ao processar pagamento')
+                setIsPayingCard(false)
+                return
+            }
+
+            setCcSuccess(true)
+
+            // Refresh transactions list
+            const res = await getStudentTransactions()
+            if (res.success && res.data) {
+                setTransactions(res.data)
+            }
+
+            setTimeout(() => {
+                setSelectedPayment(null)
+            }, 2500)
+
+        } catch (error: any) {
+            setCcError(error.message || 'Erro ao processar pagamento')
+        } finally {
+            setIsPayingCard(false)
         }
     }
 
@@ -165,13 +309,13 @@ export default function PaymentsPage() {
 
             <div className="space-y-8">
                 {/* Tabela de Transações */}
-                <div className="bg-white border border-black rounded-xl shadow-sm p-8 md:p-10 relative overflow-hidden">
+                <div className="bg-white border border-black shadow-sm p-8 md:p-10 relative overflow-hidden rounded-lg">
                     <div className="flex items-center justify-between mb-10">
                         <h2 className="text-lg font-bold uppercase tracking-tighter text-[#1a1a1a]">Histórico de Transações</h2>
                         <button 
                             onClick={handleExportPDF}
                             disabled={isExporting || transactions.length === 0}
-                            className="text-[10px] font-bold uppercase tracking-widest text-gray-700 hover:text-gray-900 border border-black hover:border-black hover:bg-gray-50 px-6 py-3 rounded-xl transition-all shadow-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="text-[10px] font-bold uppercase tracking-widest text-gray-700 hover:text-gray-900 border border-black hover:border-black hover:bg-gray-50 px-6 py-3 transition-all shadow-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed rounded-md"
                         >
                             {isExporting && <Zap size={14} className="animate-pulse text-[#1D5F31]" />}
                             {isExporting ? 'GERANDO PDF...' : 'Exportar PDF'}
@@ -243,17 +387,17 @@ export default function PaymentsPage() {
                                                 </td>
                                                 <td className="py-6 text-right">
                                                     {(t.statusPagamento || '').toLowerCase() === 'pendente' ? (
-                                                        <button 
+                                                    <button 
                                                             onClick={(e) => {
-                                                                e.stopPropagation()
-                                                                handleFetchPaymentData(t)
-                                                            }}
-                                                            className="px-4 py-2 bg-slate-900 text-white text-[9px] font-bold uppercase tracking-widest rounded-md hover:bg-black transition-all"
-                                                        >
-                                                            Pagar Agora
-                                                        </button>
-                                                    ) : (
-                                                        <button className="p-2 text-slate-400 hover:text-[#1D5F31] hover:bg-[#1D5F31]/10 rounded-md transition-all">
+                                                                 e.stopPropagation()
+                                                                 handleFetchPaymentData(t)
+                                                             }}
+                                                             className="px-4 py-2 bg-slate-900 text-white text-[9px] font-bold uppercase tracking-widest hover:bg-black transition-all rounded-md"
+                                                         >
+                                                             Pagar Agora
+                                                         </button>
+                                                     ) : (
+                                                         <button className="p-2 text-slate-400 hover:text-[#1D5F31] hover:bg-[#1D5F31]/10 transition-all rounded-md">
                                                             <ArrowUpRight size={18} />
                                                         </button>
                                                     )}
@@ -270,32 +414,36 @@ export default function PaymentsPage() {
 
             {/* Modal de Pagamento Pendente - Premium Industrial */}
             {selectedPayment && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="bg-white border border-black rounded-none shadow-2xl w-full max-w-lg relative overflow-hidden animate-in zoom-in-95 duration-300">
-                        <div className="absolute top-0 left-0 w-full h-1.5 bg-[#1D5F31]" />
-                        
-                        <div className="p-8">
-                            <div className="flex justify-between items-start mb-8">
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-white border border-black shadow-2xl w-full max-w-xl max-h-[85vh] flex flex-col relative animate-in zoom-in-95 duration-300 rounded-lg">
+                        <div className="absolute top-0 left-0 w-full h-1.5 bg-[#1D5F31] z-10 shrink-0 rounded-t-lg" />
+
+                        {/* Header - sticky top */}
+                        <div className="p-8 pb-4 shrink-0">
+                            <div className="flex justify-between items-start">
                                 <div>
                                     <span className="text-[10px] font-bold uppercase tracking-[4px] text-[#1D5F31] block mb-1">Pagamento Pendente</span>
                                     <h3 className="text-2xl font-bold uppercase tracking-tighter text-[#1a1a1a]">Recuperar Fatura</h3>
                                 </div>
                                 <button 
                                     onClick={() => setSelectedPayment(null)}
-                                    className="p-2 hover:bg-slate-100 rounded-md transition-colors"
+                                    className="p-2 hover:bg-slate-100 transition-colors rounded-md"
                                 >
                                     <X size={20} />
                                 </button>
                             </div>
+                        </div>
 
+                        {/* Content - scrollable */}
+                        <div className="px-8 pb-8 overflow-y-auto flex-1">
                             {isFetchingPayment ? (
                                 <div className="py-12 flex flex-col items-center justify-center gap-4">
                                     <div className="w-10 h-10 border-4 border-slate-200 border-t-[#1D5F31] rounded-full animate-spin" />
                                     <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Sincronizando com Asaas...</span>
                                 </div>
-                            ) : paymentData ? (
-                                <div className="space-y-8">
-                                    <div className="p-6 bg-slate-50 border border-slate-200 rounded-none flex items-center justify-between">
+                            ) : pendingPaymentType === 'CREDIT_CARD' ? (
+                                <div className="space-y-5">
+                                    <div className="p-5 bg-slate-50 border border-slate-200 flex items-center justify-between rounded-md">
                                         <div>
                                             <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1">Valor Total</p>
                                             <p className="text-2xl font-bold tracking-tighter text-black">
@@ -308,89 +456,268 @@ export default function PaymentsPage() {
                                         </div>
                                     </div>
 
-                                    {/* Exibição PIX */}
-                                    {paymentData.encodedImage ? (
-                                        <div className="flex flex-col items-center gap-6">
-                                            <div className="p-4 bg-white border-2 border-[#1D5F31]/20 rounded-none shadow-sm">
-                                                <img 
-                                                    src={`data:image/png;base64,${paymentData.encodedImage}`} 
-                                                    alt="QR Code PIX" 
-                                                    className="w-48 h-48"
-                                                />
-                                            </div>
-                                            
-                                            <div className="w-full space-y-3">
-                                                <p className="text-[10px] font-bold uppercase tracking-[2px] text-center text-slate-500">Código PIX (Copia e Cola)</p>
-                                                <div className="flex gap-2">
-                                                    <input 
-                                                        readOnly 
-                                                        value={paymentData.payload}
-                                                        className="flex-1 bg-slate-100 border border-slate-200 px-4 py-3 text-xs font-mono rounded-none focus:outline-none"
-                                                    />
-                                                    <button 
-                                                        onClick={() => copyToClipboard(paymentData.payload)}
-                                                        className="px-6 bg-[#1D5F31] text-white rounded-none hover:bg-[#164a26] transition-all flex items-center justify-center group"
-                                                    >
-                                                        {copied ? <CheckIcon size={18} /> : <Copy size={18} className="group-hover:scale-110 transition-transform" />}
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ) : paymentData.identificationField ? (
-                                        /* Exibição Boleto */
-                                        <div className="space-y-6">
-                                            <div className="w-full space-y-3">
-                                                <p className="text-[10px] font-bold uppercase tracking-[2px] text-slate-500">Linha Digitável do Boleto</p>
-                                                <div className="flex gap-2">
-                                                    <input 
-                                                        readOnly 
-                                                        value={paymentData.identificationField}
-                                                        className="flex-1 bg-slate-100 border border-slate-200 px-4 py-3 text-xs font-mono rounded-none focus:outline-none"
-                                                    />
-                                                    <button 
-                                                        onClick={() => copyToClipboard(paymentData.identificationField)}
-                                                        className="px-6 bg-slate-900 text-white rounded-none hover:bg-black transition-all flex items-center justify-center group"
-                                                    >
-                                                        {copied ? <CheckIcon size={18} /> : <Copy size={18} className="group-hover:scale-110 transition-transform" />}
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <a 
-                                                href={selectedPayment.invoiceUrl} 
-                                                target="_blank" 
-                                                rel="noopener noreferrer"
-                                                className="w-full flex items-center justify-center gap-3 py-4 border-2 border-slate-900 text-slate-900 font-bold uppercase tracking-widest text-[10px] hover:bg-slate-50 transition-all"
-                                            >
-                                                <Download size={16} /> Baixar Boleto PDF
-                                            </a>
+                                    {ccSuccess ? (
+                                        <div className="py-8 flex flex-col items-center gap-4 bg-green-50 border border-green-200 p-6 rounded-md">
+                                            <CheckCircle size={40} className="text-green-600" />
+                                            <p className="text-xs font-bold text-green-800 uppercase tracking-widest text-center">
+                                                Pagamento Confirmado!
+                                            </p>
+                                            <p className="text-[10px] text-green-700 text-center">
+                                                Seu pagamento foi processado com sucesso. Redirecionando...
+                                            </p>
                                         </div>
                                     ) : (
-                                        <div className="py-8 text-center bg-amber-50 border border-amber-200 p-6">
-                                            <p className="text-xs font-bold text-amber-800 uppercase tracking-widest">
-                                                Não foi possível recuperar os dados dinâmicos.
-                                            </p>
-                                            <a 
-                                                href={selectedPayment.invoiceUrl} 
-                                                target="_blank" 
-                                                rel="noopener noreferrer"
-                                                className="mt-4 inline-block text-[10px] font-bold uppercase tracking-widest text-slate-900 underline"
+                                        <>
+                                            <div>
+                                                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">Número do Cartão</label>
+                                                <div className="relative">
+                                                    <input
+                                                        type="text" inputMode="numeric" placeholder="0000 0000 0000 0000"
+                                                        value={ccNumber}
+                                                        onChange={e => setCcNumber(maskCardNumber(e.target.value))}
+                                                        maxLength={19}
+                                                        className="w-full border border-gray-300 px-4 py-3 text-sm font-mono bg-white text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]/20 transition-all rounded-md"
+                                                    />
+                                                    {detectCardBrand(ccNumber) && (
+                                                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-bold uppercase tracking-wider text-[#1D5F31]">
+                                                            {detectCardBrand(ccNumber)}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">Nome do Titular</label>
+                                                <input
+                                                    type="text" placeholder="Como está no cartão"
+                                                    value={ccHolder}
+                                                    onChange={e => setCcHolder(e.target.value.toUpperCase())}
+                                                    className="w-full border border-gray-300 px-4 py-3 text-sm bg-white text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]/20 transition-all rounded-md uppercase"
+                                                />
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">Expiração</label>
+                                                    <input
+                                                        type="text" inputMode="numeric" placeholder="MM/AA"
+                                                        value={ccExpiry}
+                                                        onChange={e => setCcExpiry(maskExpiry(e.target.value))}
+                                                        maxLength={5}
+                                                        className="w-full border border-gray-300 px-4 py-3 text-sm font-mono bg-white text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]/20 transition-all rounded-md"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">CVC</label>
+                                                    <input
+                                                        type="text" inputMode="numeric" placeholder="123"
+                                                        value={ccCvc}
+                                                        onChange={e => setCcCvc(maskCvc(e.target.value))}
+                                                        maxLength={4}
+                                                        className="w-full border border-gray-300 px-4 py-3 text-sm font-mono bg-white text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]/20 transition-all rounded-md"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="h-px bg-gray-200" />
+
+                                            <p className="text-xs text-slate-500 font-medium">Dados do titular do cartão</p>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">CPF / CNPJ</label>
+                                                    <input
+                                                        type="text" inputMode="numeric" placeholder="000.000.000-00"
+                                                        value={maskCpf(ccCpf)}
+                                                        onChange={e => setCcCpf(e.target.value.replace(/\D/g, '').slice(0, 11))}
+                                                        maxLength={14}
+                                                        className="w-full border border-gray-300 px-4 py-3 text-sm font-mono bg-white text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]/20 transition-all rounded-md"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">E-mail</label>
+                                                    <input
+                                                        type="email" placeholder="titular@email.com"
+                                                        value={ccEmail}
+                                                        onChange={e => setCcEmail(e.target.value)}
+                                                        className="w-full border border-gray-300 px-4 py-3 text-sm bg-white text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]/20 transition-all rounded-md"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div>
+                                                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">Telefone</label>
+                                                <input
+                                                    type="text" inputMode="numeric" placeholder="(11) 99999-9999"
+                                                    value={maskPhone(ccPhone)}
+                                                    onChange={e => setCcPhone(e.target.value.replace(/\D/g, '').slice(0, 11))}
+                                                    maxLength={15}
+                                                    className="w-full border border-gray-300 px-4 py-3 text-sm font-mono bg-white text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]/20 transition-all rounded-md"
+                                                />
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">CEP</label>
+                                                    <input
+                                                        type="text" inputMode="numeric" placeholder="00000-000"
+                                                        value={maskCep(ccCep)}
+                                                        onChange={e => setCcCep(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                                                        maxLength={9}
+                                                        className="w-full border border-gray-300 px-4 py-3 text-sm font-mono bg-white text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]/20 transition-all rounded-md"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">Número</label>
+                                                    <input
+                                                        type="text" placeholder="123"
+                                                        value={ccAddressNumber}
+                                                        onChange={e => setCcAddressNumber(e.target.value)}
+                                                        className="w-full border border-gray-300 px-4 py-3 text-sm bg-white text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31]/20 transition-all rounded-md"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {ccError && (
+                                                <div className="bg-red-50 border-l-4 border-red-500 p-4 flex items-start gap-3 rounded-md">
+                                                    <XCircle size={18} className="text-red-500 shrink-0 mt-0.5" />
+                                                    <div>
+                                                        <p className="text-xs text-red-700 leading-relaxed">{ccError}</p>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <button
+                                                onClick={handlePayWithCard}
+                                                disabled={isPayingCard}
+                                                className={cn(
+                                                    "w-full py-4 font-bold uppercase tracking-[3px] transition-all flex items-center justify-center gap-3 rounded-md",
+                                                    isPayingCard
+                                                        ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                                                        : 'bg-[#1D5F31] text-white hover:brightness-110 active:scale-[0.98]'
+                                                )}
                                             >
-                                                Tentar via Link Direto do Asaas
-                                            </a>
+                                                {isPayingCard ? (
+                                                    <><Loader2 size={18} className="animate-spin" /> Processando...</>
+                                                ) : (
+                                                    'Pagar Agora com Cartão'
+                                                )}
+                                            </button>
+                                        </>
+                                    )}
+
+                                    <div className="pt-4 border-t border-slate-100">
+                                        <p className="text-[9px] text-slate-400 font-medium uppercase tracking-[2px] leading-relaxed">
+                                            Após realizado, o status será atualizado automaticamente.
+                                        </p>
+                                    </div>
+                                </div>
+                            ) : paymentData?.encodedImage ? (
+                                /* PIX */
+                                <div className="space-y-6">
+                                    <div className="p-5 bg-slate-50 border border-slate-200 flex items-center justify-between rounded-md">
+                                        <div>
+                                            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1">Valor Total</p>
+                                            <p className="text-2xl font-bold tracking-tighter text-black">
+                                                R$ {Number(selectedPayment.valorBruto).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                            </p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1">Vencimento</p>
+                                            <p className="text-sm font-bold text-black">{new Date(selectedPayment.dataCriacao).toLocaleDateString('pt-BR')}</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col items-center gap-6">
+                                        <div className="p-4 bg-white border-2 border-[#1D5F31]/20 shadow-sm rounded-md">
+                                            <img 
+                                                src={`data:image/png;base64,${paymentData.encodedImage}`} 
+                                                alt="QR Code PIX" 
+                                                className="w-48 h-48"
+                                            />
+                                        </div>
+                                        
+                                        <div className="w-full space-y-3">
+                                            <p className="text-[10px] font-bold uppercase tracking-[2px] text-center text-slate-500">Código PIX (Copia e Cola)</p>
+                                            <div className="flex gap-2">
+                                                <input 
+                                                    readOnly 
+                                                    value={paymentData.payload}
+                                                    className="flex-1 bg-slate-100 border border-slate-200 px-4 py-3 text-xs font-mono outline-none rounded-md"
+                                                />
+                                                <button 
+                                                    onClick={() => copyToClipboard(paymentData.payload)}
+                                                    className="px-6 bg-[#1D5F31] text-white hover:bg-[#164a26] transition-all flex items-center justify-center group rounded-md"
+                                                >
+                                                    {copied ? <CheckIcon size={18} /> : <Copy size={18} className="group-hover:scale-110 transition-transform" />}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-4 border-t border-slate-100">
+                                        <p className="text-[9px] text-slate-400 font-medium uppercase tracking-[2px] leading-relaxed">
+                                            O PIX é liberado instantaneamente. Após o pagamento, o status será atualizado.
+                                        </p>
+                                    </div>
+                                </div>
+                            ) : paymentData?.identificationField || paymentData?.bankSlipUrl ? (
+                                /* BOLETO */
+                                <div className="space-y-6">
+                                    <div className="p-5 bg-slate-50 border border-slate-200 flex items-center justify-between rounded-md">
+                                        <div>
+                                            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1">Valor Total</p>
+                                            <p className="text-2xl font-bold tracking-tighter text-black">
+                                                R$ {Number(selectedPayment.valorBruto).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                            </p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1">Vencimento</p>
+                                            <p className="text-sm font-bold text-black">{new Date(selectedPayment.dataCriacao).toLocaleDateString('pt-BR')}</p>
+                                        </div>
+                                    </div>
+
+                                    {paymentData.identificationField && (
+                                        <div className="w-full space-y-3">
+                                            <p className="text-[10px] font-bold uppercase tracking-[2px] text-slate-500">Linha Digitável</p>
+                                            <div className="flex gap-2">
+                                                <input 
+                                                    readOnly 
+                                                    value={paymentData.identificationField}
+                                                    className="flex-1 bg-slate-100 border border-slate-200 px-4 py-3 text-xs font-mono outline-none rounded-md"
+                                                />
+                                                <button 
+                                                    onClick={() => copyToClipboard(paymentData.identificationField)}
+                                                    className="px-6 bg-slate-900 text-white hover:bg-black transition-all flex items-center justify-center group rounded-md"
+                                                >
+                                                    {copied ? <CheckIcon size={18} /> : <Copy size={18} className="group-hover:scale-110 transition-transform" />}
+                                                </button>
+                                            </div>
                                         </div>
                                     )}
+
+                                    {(paymentData.bankSlipUrl || selectedPayment.invoiceUrl) && (
+                                        <a
+                                            href={paymentData.bankSlipUrl || selectedPayment.invoiceUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="w-full flex items-center justify-center gap-3 py-4 bg-[#1D5F31] text-white font-bold uppercase tracking-widest text-[10px] hover:brightness-110 transition-all rounded-md"
+                                        >
+                                            <Download size={16} /> VISUALIZAR / IMPRIMIR BOLETO
+                                        </a>
+                                    )}
+
+                                    <div className="pt-4 border-t border-slate-100">
+                                        <p className="text-[9px] text-slate-400 font-medium uppercase tracking-[2px] leading-relaxed">
+                                            O boleto pode levar até 48h úteis para compensação.
+                                        </p>
+                                    </div>
                                 </div>
                             ) : (
                                 <div className="py-12 text-center text-slate-400">
                                     <p className="text-xs font-bold uppercase tracking-widest">Falha ao carregar dados do pagamento.</p>
                                 </div>
                             )}
-
-                            <div className="mt-10 pt-6 border-t border-slate-100">
-                                <p className="text-[9px] text-slate-400 font-medium uppercase tracking-[2px] leading-relaxed">
-                                    Após realizar o pagamento, o status será atualizado automaticamente em alguns minutos. Caso tenha problemas, entre em contato com o suporte.
-                                </p>
-                            </div>
                         </div>
                     </div>
                 </div>

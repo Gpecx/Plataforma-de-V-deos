@@ -3,7 +3,7 @@ import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { cookies, headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createPayment, BillingType, getStudentAsaasId, createCustomer, getPaymentQrCode, getPayment, getPaymentIdentification } from '@/services/asaasService'
+import { createPayment, payWithCreditCard, BillingType, getStudentAsaasId, createCustomer, getPaymentQrCode, getPayment, getPaymentIdentification } from '@/services/asaasService'
 import { sanitizeCpfCnpj } from '@/lib/utils'
 
 async function getClientIp(): Promise<string> {
@@ -120,9 +120,17 @@ export async function buyCourse(courseId: string) {
     }
 }
 
-export async function processCheckoutAction(courseIds: string[], billingType: BillingType = 'PIX', termsAccepted: boolean = false): Promise<
+export async function processCheckoutAction(
+    courseIds: string[],
+    billingType: BillingType = 'PIX',
+    termsAccepted: boolean = false,
+    cardData?: {
+        creditCard: { holderName: string; number: string; expiryMonth: string; expiryYear: string; ccv: string };
+        creditCardHolderInfo: { name: string; email: string; cpfCnpj: string; postalCode: string; addressNumber: string; phone?: string };
+    }
+): Promise<
     | { success: true; isFree: true; data?: undefined; error?: undefined }
-    | { success: true; isFree?: undefined; data: { invoiceUrl: string; paymentId: string; billingType: string; pixData?: any }; error?: undefined }
+    | { success: true; isFree?: undefined; data: { invoiceUrl: string; paymentId: string; billingType: string; status?: string; pixData?: any }; error?: undefined }
     | { success: false; error: string; isFree?: undefined; data?: undefined }
 > {
     const user = await getAuthUser()
@@ -244,14 +252,21 @@ export async function processCheckoutAction(courseIds: string[], billingType: Bi
         }
 
         try {
-            const asaasResponse = await createPayment({
+            const paymentPayload: any = {
                 customer: customerId,
                 billingType,
                 value: totalAmount,
                 dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
                 description: `Compra de ${coursesData.length} curso(s) na plataforma`,
                 externalReference: `checkout-${user.uid}-${Date.now()}`,
-            })
+            }
+
+            if (billingType === 'CREDIT_CARD' && cardData) {
+                paymentPayload.creditCard = cardData.creditCard
+                paymentPayload.creditCardHolderInfo = cardData.creditCardHolderInfo
+            }
+
+            const asaasResponse = await createPayment(paymentPayload)
 
             // Commit das matrículas APÓS Asaas confirmar criação — paymentId incluso para o webhook
             await buildBatch(asaasResponse.id).commit()
@@ -271,6 +286,7 @@ export async function processCheckoutAction(courseIds: string[], billingType: Bi
                     invoiceUrl: asaasResponse.invoiceUrl, 
                     paymentId: asaasResponse.id,
                     billingType: asaasResponse.billingType,
+                    status: asaasResponse.status,
                     pixData
                 } 
             }
@@ -486,6 +502,72 @@ export async function getPaymentStatusAction(paymentId: string) {
     } catch (error: any) {
         console.error('Erro ao buscar status do pagamento:', error)
         return { success: false, error: error.message }
+    }
+}
+
+export async function payPendingCreditCardAction(
+    paymentId: string,
+    cardData: {
+        creditCard: { holderName: string; number: string; expiryMonth: string; expiryYear: string; ccv: string };
+        creditCardHolderInfo: { name: string; email: string; cpfCnpj: string; postalCode: string; addressNumber: string; phone?: string };
+    }
+) {
+    const user = await getAuthUser()
+    if (!user) return { success: false, error: 'Não autorizado' }
+
+    try {
+        const asaasResponse = await payWithCreditCard(paymentId, cardData)
+
+        if (asaasResponse.status === 'CONFIRMED' || asaasResponse.status === 'RECEIVED') {
+            const vendasSnapshot = await adminDb.collection('vendas_logs')
+                .where('paymentId', '==', paymentId)
+                .where('userId', '==', user.uid)
+                .get()
+
+            const batch = adminDb.batch()
+            vendasSnapshot.forEach(doc => {
+                batch.update(doc.ref, {
+                    statusPagamento: 'pago',
+                    paymentDate: new Date(),
+                })
+            })
+
+            const enrollmentsSnapshot = await adminDb.collection('enrollments')
+                .where('user_id', '==', user.uid)
+                .get()
+
+            vendasSnapshot.forEach(vendaDoc => {
+                const vendaData = vendaDoc.data()
+                const cursoId = vendaData.cursoId
+                if (cursoId) {
+                    const matchEnrollment = enrollmentsSnapshot.docs.find(
+                        e => e.data().course_id === cursoId
+                    )
+                    if (matchEnrollment) {
+                        batch.update(matchEnrollment.ref, {
+                            payment_confirmed: true,
+                            payment_id: paymentId,
+                            updated_at: new Date(),
+                        })
+                    }
+                }
+            })
+
+            await batch.commit()
+            revalidatePath('/dashboard-student/payments')
+        }
+
+        return {
+            success: true,
+            data: {
+                status: asaasResponse.status,
+                invoiceUrl: asaasResponse.invoiceUrl,
+            }
+        }
+    } catch (error: any) {
+        console.error('Erro no payPendingCreditCardAction:', error)
+        const asaasMessage = error.response?.data?.errors?.[0]?.description || error.message || 'Erro ao processar pagamento do cartão'
+        return { success: false, error: asaasMessage }
     }
 }
 
