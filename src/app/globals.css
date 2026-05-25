@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+@property --angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes spinGlow {
+  to { --angle: 360deg; }
+}
+
 :root {
   /* === IDENTIDADE: Deep Premium === */
   --background-color: #061629;
@@ -237,6 +247,84 @@ p {
 
 .btn-cta:active {
   transform: translateY(0);
+}
+
+.btn-cta.glow-ring {
+  position: relative;
+  isolation: isolate;
+}
+
+.btn-cta.glow-ring::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  padding: 2px;
+  border-radius: inherit;
+  background: conic-gradient(from var(--angle), #1D5F31, #00ff88, #22d3ee, #4ade80, #1D5F31);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: spinGlow 4s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.btn-cta.glow-ring:hover::before {
+  animation-duration: 1.5s;
+  filter: brightness(1.4);
+}
+
+.hero-badge {
+  position: relative;
+  isolation: isolate;
+}
+
+.hero-badge::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  padding: 2px;
+  border-radius: inherit;
+  background: conic-gradient(from var(--angle), #1D5F31, #00ff88, #22d3ee, #4ade80, #1D5F31);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: spinGlow 6s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.hero-badge:hover::before {
+  animation-duration: 2s;
+  filter: brightness(1.4);
+}
+
+.glow-card {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.glow-card::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  padding: 2px;
+  border-radius: inherit;
+  background: conic-gradient(from var(--angle), transparent 20%, #1D5F31, #00ff88, #22d3ee, transparent 80%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: spinGlow 8s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.glow-card:hover::before {
+  opacity: 1;
+  animation-duration: 3s;
 }
 
 /* Email input hero */

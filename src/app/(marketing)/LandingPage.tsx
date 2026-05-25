@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthProvider";
 import { ArrowRight, Clock, Infinity, Award, Headphones, TrendingUp, Handshake, BarChart3, Loader2 } from "lucide-react";
 import { db, auth } from "@/lib/firebase";
@@ -11,6 +12,7 @@ import { collection, query, where, limit, getDocs, doc, getDoc } from "firebase/
 import { getBanners, getGlobalSettings, BannersData, GlobalSettings } from "@/app/admin/settings/actions";
 import { ExpandableCard } from "@/components/ui/ExpandableCard";
 import { useCartStore } from "@/store/useCartStore";
+import SpaceParticles from "@/components/SpaceParticles";
 
 interface CourseData {
     id: string;
@@ -96,7 +98,9 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
     }
 
     return (
-        <div style={{ minHeight: "100vh", color: "#e2e8f0", background: "transparent" }}>
+        <>
+            <SpaceParticles />
+            <div style={{ position: "relative", zIndex: 1, minHeight: "100vh", color: "#e2e8f0", background: "transparent" }}>
             {/* ───────────────── HERO SECTION ───────────────── */}
             <section
                 className="hero-section"
@@ -116,6 +120,7 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                 >
                     {/* Badge */}
                     <span
+                        className="hero-badge"
                         style={{
                             background: "rgba(29, 95, 49, 0.8)",
                             border: "1px solid rgba(255, 255, 255, 0.2)",
@@ -206,7 +211,7 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                         </div>
                         {user || initialUser ? (
                             <button
-                                className="btn-cta"
+                                className="btn-cta glow-ring"
                                 style={{ whiteSpace: "nowrap", padding: "0.9rem 2rem" }}
                                 onClick={() => useCartStore.getState().showNotification("Você já está logado no sistema.", "info")}
                             >
@@ -214,7 +219,7 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                             </button>
                         ) : (
                             <button
-                                className="btn-cta"
+                                className="btn-cta glow-ring"
                                 style={{ whiteSpace: "nowrap", padding: "0.9rem 2rem" }}
                                 onClick={() => router.push(`/register?email=${encodeURIComponent(email)}`)}
                             >
@@ -251,7 +256,11 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
             </div>
 
             {/* ───────────────── TREINAMENTOS EM DESTAQUE ───────────────── */}
-            <section
+            <motion.section
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
                 style={{
                     padding: "2rem 1rem",
                     maxWidth: "1280px",
@@ -335,10 +344,15 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                         </button>
                     </Link>
                 </div>
-            </section>
+                </motion.section>
 
             {/* ───────────────── BENEFITS SECTION ───────────────── */}
-            <section style={{ padding: "2.5rem 1rem", maxWidth: "1280px", margin: "0 auto" }}>
+            <motion.section
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
+                style={{ padding: "2.5rem 1rem", maxWidth: "1280px", margin: "0 auto" }}>
                 <div style={{ textAlign: "center", marginBottom: "3rem" }}>
                     <h2
                         style={{
@@ -367,7 +381,7 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                     {benefits.map((b, i) => {
                         const Icon = b.icon;
                         return (
-                            <div key={i} className="benefit-card">
+                            <div key={i} className="benefit-card glow-card">
                                 <div
                                     style={{
                                         width: "56px",
@@ -403,10 +417,16 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                         );
                     })}
                 </div>
-            </section>
+                </motion.section>
 
             {/* ───────────────── SEÇÃO DE BANNERS DINÂMICOS ───────────────── */}
-            <section style={{ position: "relative" }}>
+            <motion.section
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+                style={{ position: "relative" }}
+            >
                 {banners?.hero_home && banners.hero_home.length > 0 ? (
                     banners.hero_home
                         .sort((a, b) => a.order - b.order)
@@ -483,7 +503,7 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                                                 </p>
                                                 {user || initialUser ? (
                                                     <button
-                                                        className="btn-cta"
+                                                        className="btn-cta glow-ring"
                                                         onClick={() => useCartStore.getState().showNotification("Você já está logado no sistema.", "info")}
                                                     >
                                                         {idx >= 2 ? 'Explorar Cursos' : 'Começar agora'}
@@ -518,7 +538,7 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                                     </p>
                                     {user || initialUser ? (
                                         <button
-                                            className="btn-cta"
+                                            className="btn-cta glow-ring"
                                             onClick={() => useCartStore.getState().showNotification("Você já está logado no sistema.", "info")}
                                         >
                                             Registrar Conta
@@ -533,11 +553,15 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                         </div>
                     </div>
                 )}
-            </section>
+            </motion.section>
 
 
             {/* ───────────────── GRID DE DIFERENCIAIS ───────────────── */}
-            <section
+            <motion.section
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
                 style={{
                     padding: "2.5rem 1rem",
                     borderTop: "1px solid rgba(255,255,255,0.05)",
@@ -599,8 +623,8 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                         ))}
                     </div>
                 </div>
-            </section>
+            </motion.section>
 
         </div>
-    );
+        </>);
 }
