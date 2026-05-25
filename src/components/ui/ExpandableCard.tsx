@@ -188,7 +188,7 @@ export function ExpandableCard({
                     <h3 className="text-white font-bold text-[11px] line-clamp-2 uppercase leading-tight tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">{title}</h3>
                 </div>
 
-                <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-[12]">
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-[12]">
                     <div className="flex flex-col items-center gap-2">
                         <span className="text-white font-bold uppercase tracking-[3px] text-[10px]">Ver Detalhes</span>
                         <div className="w-8 h-px bg-[#1D5F31]" />
