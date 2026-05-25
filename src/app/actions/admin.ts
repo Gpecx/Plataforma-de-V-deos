@@ -276,14 +276,23 @@ export async function getPendingCourses() {
         return [];
     }
     try {
-        const coursesSnap = await adminDb.collection('courses')
+        const pendingStatusSnap = await adminDb.collection('courses')
             .where('status', '==', 'PENDENTE')
             .get()
-            
-        const courses = coursesSnap.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }))
+
+        const pendingTrailerSnap = await adminDb.collection('courses')
+            .where('trailer_review_status', '==', 'trailer_pending_review')
+            .get()
+
+        const coursesMap = new Map()
+        pendingStatusSnap.docs.forEach(doc => {
+            coursesMap.set(doc.id, { id: doc.id, ...doc.data() })
+        })
+        pendingTrailerSnap.docs.forEach(doc => {
+            coursesMap.set(doc.id, { id: doc.id, ...doc.data() })
+        })
+
+        const courses = Array.from(coursesMap.values())
 
         return JSON.parse(JSON.stringify(courses))
     } catch (error) {
@@ -1258,6 +1267,179 @@ export async function getTeacherDetails(uid: string) {
     } catch (error: any) {
         console.error('Error fetching teacher details:', error)
         return { success: false, error: error.message || 'Falha ao buscar detalhes do professor.' }
+    }
+}
+
+/**
+ * Aprova um trailer pendente de um curso APROVADO.
+ * Gera playback ID público no Mux, mapeia campos temporários para principais,
+ * limpa campos temporários e notifica o professor.
+ */
+export async function approveTrailerAction(courseId: string) {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        return { success: false, error: 'Não autorizado' };
+    }
+    try {
+        const courseRef = adminDb.collection('courses').doc(courseId)
+        const courseDoc = await courseRef.get()
+        const courseData = courseDoc.data()
+
+        if (!courseDoc.exists || !courseData) {
+            return { success: false, error: 'Curso não encontrado.' }
+        }
+
+        const pendingAssetId = courseData.pendingTrailerAssetId
+        if (!pendingAssetId) {
+            return { success: false, error: 'Nenhum trailer pendente para aprovar.' }
+        }
+
+        // Gera playback ID público no Mux
+        const { ensurePublicPlaybackId } = await import('@/app/actions/mux')
+        const playbackResult = await ensurePublicPlaybackId(pendingAssetId)
+        if (playbackResult.error || !playbackResult.playback_id) {
+            return { success: false, error: playbackResult.error || 'Falha ao gerar playback ID público.' }
+        }
+
+        // Mapeia campos temporários para principais
+        await courseRef.update({
+            intro_video_url: courseData.pendingTrailerUrl || '',
+            intro_video_mux_id: courseData.pendingTrailerMuxId || '',
+            intro_video_asset_id: courseData.pendingTrailerAssetId || '',
+            intro_video_playback_id: playbackResult.playback_id,
+            pendingTrailerUrl: null,
+            pendingTrailerMuxId: null,
+            pendingTrailerAssetId: null,
+            pendingTrailerPlaybackId: null,
+            trailer_review_status: 'APROVADO',
+            updated_at: new Date()
+        })
+
+        // Notifica professor
+        if (courseData.teacher_id) {
+            await adminDb.collection('notifications').add({
+                user_id: courseData.teacher_id,
+                type: 'trailer_approved',
+                title: 'Trailer Aprovado!',
+                message: `O novo trailer do seu curso "${courseData.title}" foi aprovado e já está visível para os alunos.`,
+                course_id: courseId,
+                read: false,
+                created_at: new Date()
+            })
+        }
+
+        revalidatePath('/admin/all-courses')
+        revalidatePath('/course')
+        revalidatePath('/dashboard-student')
+        return { success: true }
+    } catch (error) {
+        console.error("Error approving trailer:", error)
+        return { success: false, error: "Falha ao aprovar trailer." }
+    }
+}
+
+/**
+ * Rejeita um trailer pendente de um curso APROVADO.
+ * Remove o asset do Mux, limpa campos temporários e notifica o professor.
+ */
+export async function rejectTrailerAction(courseId: string, reason: string) {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        return { success: false, error: 'Não autorizado' };
+    }
+    try {
+        const courseRef = adminDb.collection('courses').doc(courseId)
+        const courseDoc = await courseRef.get()
+        const courseData = courseDoc.data()
+
+        if (!courseDoc.exists || !courseData) {
+            return { success: false, error: 'Curso não encontrado.' }
+        }
+
+        const pendingAssetId = courseData.pendingTrailerAssetId
+
+        // Apaga o vídeo pendente no Mux
+        if (pendingAssetId) {
+            const { deleteMuxAsset } = await import('@/app/actions/mux')
+            const muxResult = await deleteMuxAsset(pendingAssetId)
+            if (muxResult.error) {
+                console.error('[rejectTrailerAction] Erro ao deletar Mux asset:', muxResult.error)
+            }
+        }
+
+        // Limpa campos temporários e salva rejeição
+        await courseRef.update({
+            pendingTrailerUrl: null,
+            pendingTrailerMuxId: null,
+            pendingTrailerAssetId: null,
+            pendingTrailerPlaybackId: null,
+            trailer_review_status: 'REJEITADO',
+            motivoRejeicaoTrailer: reason,
+            updated_at: new Date()
+        })
+
+        // Notifica professor
+        if (courseData.teacher_id) {
+            await adminDb.collection('notifications').add({
+                user_id: courseData.teacher_id,
+                type: 'trailer_rejected',
+                title: 'Trailer Rejeitado',
+                message: `O novo trailer do seu curso "${courseData.title}" foi rejeitado. Motivo: ${reason}`,
+                course_id: courseId,
+                read: false,
+                created_at: new Date()
+            })
+        }
+
+        revalidatePath('/admin/all-courses')
+        return { success: true }
+    } catch (error) {
+        console.error("Error rejecting trailer:", error)
+        return { success: false, error: "Falha ao rejeitar trailer." }
+    }
+}
+
+/**
+ * Remove o trailer ativo de um curso (apaga asset no Mux e limpa campos principais).
+ */
+export async function deleteActiveTrailerAction(courseId: string) {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        return { success: false, error: 'Não autorizado' };
+    }
+    try {
+        const courseRef = adminDb.collection('courses').doc(courseId)
+        const courseDoc = await courseRef.get()
+        const courseData = courseDoc.data()
+
+        if (!courseDoc.exists || !courseData) {
+            return { success: false, error: 'Curso não encontrado.' }
+        }
+
+        // Apaga o asset ativo no Mux
+        if (courseData.intro_video_asset_id) {
+            const { deleteMuxAsset } = await import('@/app/actions/mux')
+            const muxResult = await deleteMuxAsset(courseData.intro_video_asset_id)
+            if (muxResult.error) {
+                console.error('[deleteActiveTrailerAction] Erro ao deletar Mux asset:', muxResult.error)
+            }
+        }
+
+        // Limpa campos principais
+        await courseRef.update({
+            intro_video_url: '',
+            intro_video_mux_id: '',
+            intro_video_asset_id: '',
+            intro_video_playback_id: '',
+            trailer_review_status: null,
+            updated_at: new Date()
+        })
+
+        revalidatePath('/admin/all-courses')
+        return { success: true }
+    } catch (error) {
+        console.error("Error deleting active trailer:", error)
+        return { success: false, error: "Falha ao deletar trailer ativo." }
     }
 }
 

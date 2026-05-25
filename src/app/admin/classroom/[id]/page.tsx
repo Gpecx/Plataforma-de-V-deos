@@ -11,11 +11,15 @@ import {
     PlayCircle,
     Loader2,
     HelpCircle,
-    AlertTriangle
+    AlertTriangle,
+    ShieldCheck,
+    XCircle
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { getAdminClassroomData, adminSuspendLesson } from './actions'
+import { approveLesson, rejectLesson } from '@/app/actions/admin'
 import SecureMuxPlayer from '@/components/SecureMuxPlayer'
+import { toast } from 'sonner'
 
 const scrollbarHideStyle = {
     msOverflowStyle: 'none',
@@ -214,14 +218,122 @@ export default function AdminClassroomPage({ params }: { params: Promise<{ id: s
                     <div className="flex-1 flex items-center justify-center p-0 md:p-6 lg:p-8">
                         <div className="w-full max-w-[1440px] aspect-video relative group animate-in zoom-in-95 duration-700">
                             {currentLesson?.type === 'quiz' ? (
-                                <div className="w-full h-full rounded-2xl overflow-hidden border border-slate-700 bg-slate-800 flex flex-col items-center justify-center p-8">
-                                    <HelpCircle size={64} className="text-[#1D5F31] mb-4" />
-                                    <h2 className="text-2xl font-bold uppercase tracking-tighter text-white mb-2">
-                                        {currentLesson?.title || 'Questionário'}
-                                    </h2>
-                                    <p className="text-slate-400 font-medium">
-                                        {currentLesson?.quizData?.questions?.length || 0} questões cadastradas
-                                    </p>
+                                <div className="w-full h-full rounded-2xl overflow-hidden border border-slate-700 bg-slate-800 flex flex-col p-8 overflow-y-auto">
+                                    {currentLesson?.status === 'PENDENTE' && course?.status === 'APROVADO' && (
+                                        <div className="mb-6 p-4 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-start gap-3">
+                                            <AlertTriangle size={20} className="text-amber-400 shrink-0 mt-0.5" />
+                                            <div>
+                                                <p className="text-sm font-bold text-amber-400 uppercase tracking-tight">Alterações pendentes de auditoria</p>
+                                                <p className="text-xs text-slate-400 mt-1">
+                                                    Este questionário foi editado recentemente pelo professor e as alterações ainda não estão em produção para os alunos.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="flex items-center gap-4 mb-8">
+                                        <div className="w-14 h-14 rounded-xl bg-[#1D5F31]/20 flex items-center justify-center">
+                                            <HelpCircle size={28} className="text-[#1D5F31]" />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-2xl font-bold uppercase tracking-tighter text-white">
+                                                {currentLesson?.title || 'Questionário'}
+                                            </h2>
+                                            <p className="text-slate-400 font-medium text-sm mt-1">
+                                                {currentLesson?.quizData?.description || `${currentLesson?.quizData?.questions?.length || 0} questões cadastradas`}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {currentLesson?.quizData?.questions?.map((question: any, qIdx: number) => (
+                                        <div key={qIdx} className="mb-6 p-6 bg-slate-900 rounded-xl border border-slate-700">
+                                            <p className="text-sm font-bold text-white mb-4 tracking-tight">
+                                                <span className="text-[#1D5F31]">{qIdx + 1}.</span> {question.text || question.question || 'Sem enunciado'}
+                                            </p>
+                                            <div className="space-y-2 ml-4">
+                                                {(question.options || question.alternatives || []).map((opt: string, oIdx: number) => {
+                                                    const isCorrect = oIdx === question.correctAnswer || oIdx === question.correct
+                                                    return (
+                                                        <div
+                                                            key={oIdx}
+                                                            className={`flex items-center gap-3 px-4 py-3 rounded-lg border text-sm font-medium ${
+                                                                isCorrect
+                                                                    ? 'bg-green-900/30 border-green-600/50 text-green-300'
+                                                                    : 'bg-slate-800/50 border-slate-700 text-slate-300'
+                                                            }`}
+                                                        >
+                                                            <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                                                                isCorrect
+                                                                    ? 'bg-green-600 text-white'
+                                                                    : 'bg-slate-700 text-slate-400'
+                                                            }`}>
+                                                                {String.fromCharCode(65 + oIdx)}
+                                                            </div>
+                                                            <span className="flex-1">{opt}</span>
+                                                            {isCorrect && (
+                                                                <CheckCircle2 size={16} className="text-green-400 shrink-0" />
+                                                            )}
+                                                        </div>
+                                                    )
+                                                })}
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                    {(!currentLesson?.quizData?.questions || currentLesson.quizData.questions.length === 0) && (
+                                        <div className="flex flex-col items-center justify-center py-16 text-slate-500">
+                                            <HelpCircle size={48} className="mb-4 opacity-30" />
+                                            <p className="text-sm font-bold uppercase tracking-tight">Nenhuma questão cadastrada</p>
+                                        </div>
+                                    )}
+
+                                    {/* Ações de Moderação */}
+                                    {currentLesson?.status === 'PENDENTE' && course?.status === 'APROVADO' && (
+                                        <div className="mt-8 pt-6 border-t border-slate-700 flex items-center gap-4">
+                                            <button
+                                                onClick={async () => {
+                                                    try {
+                                                        const result = await approveLesson(currentLesson.id)
+                                                        if (result.success) {
+                                                            toast.success('Questionário aprovado!')
+                                                            setCurrentLesson((prev: any) => prev ? { ...prev, status: 'APROVADO' } : null)
+                                                            setLessons((prev: any[]) => prev.map(l => l.id === currentLesson.id ? { ...l, status: 'APROVADO' } : l))
+                                                        } else {
+                                                            toast.error(result.error || 'Erro ao aprovar.')
+                                                        }
+                                                    } catch (err: any) {
+                                                        toast.error(err.message || 'Erro ao aprovar.')
+                                                    }
+                                                }}
+                                                className="flex items-center gap-2 px-8 py-4 bg-[#1D5F31] text-white rounded-xl text-[10px] font-bold uppercase tracking-[4px] hover:bg-[#1D5F31]/90 transition-all"
+                                            >
+                                                <ShieldCheck size={16} />
+                                                Aprovar Questionário
+                                            </button>
+                                            <button
+                                                onClick={async () => {
+                                                    const reason = prompt('Motivo da rejeição:')
+                                                    if (!reason) return
+                                                    try {
+                                                        const result = await rejectLesson(currentLesson.id, reason)
+                                                        if (result.success) {
+                                                            toast.success('Questionário rejeitado.')
+                                                            setCurrentLesson((prev: any) => prev ? { ...prev, status: 'REJEITADO' } : null)
+                                                            setLessons((prev: any[]) => prev.map(l => l.id === currentLesson.id ? { ...l, status: 'REJEITADO' } : l))
+                                                        } else {
+                                                            toast.error(result.error || 'Erro ao rejeitar.')
+                                                        }
+                                                    } catch (err: any) {
+                                                        toast.error(err.message || 'Erro ao rejeitar.')
+                                                    }
+                                                }}
+                                                className="flex items-center gap-2 px-6 py-4 bg-red-500/10 text-red-400 border-2 border-red-500/30 rounded-xl text-[10px] font-bold uppercase tracking-[4px] hover:bg-red-500/20 transition-all"
+                                            >
+                                                <XCircle size={16} />
+                                                Rejeitar Questionário
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             ) : currentLesson?.mux_playback_id ? (
                                 <div className="relative w-full h-full rounded-2xl overflow-hidden border border-slate-100 shadow-2xl transition-all duration-500 bg-black">

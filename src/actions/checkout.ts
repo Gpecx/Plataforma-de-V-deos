@@ -102,6 +102,10 @@ export async function createPixCharge(
   }
   const studentData = studentSnap.data() as StudentProfileDoc;
 
+  if ((studentData as any).ativo === false) {
+    throw new Error("UNAUTHORIZED: Sua conta está inativa ou suspensa.");
+  }
+
   if (!studentData.asaas_customer_id) {
     throw new Error(
       "CUSTOMER_NOT_FOUND: Student does not have a linked Asaas customer ID."

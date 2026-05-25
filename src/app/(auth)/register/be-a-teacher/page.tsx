@@ -23,7 +23,17 @@ const QUESTIONS = [
         id: "primary_topic",
         type: "select",
         question: "Sobre qual tópico principal você pretende ensinar?",
-        options: ["Programação", "Negócios", "Design", "Marketing", "Desenvolvimento Pessoal"]
+        options: [
+            "Programação & Desenvolvimento de Software",
+            "Engenharia Elétrica & Automação Industrial",
+            "Infraestrutura de TI & Cloud Computing",
+            "Banco de Dados & Data Science",
+            "Design UI/UX & Identidade Visual",
+            "Negócios, Gestão & Empreendedorismo",
+            "Marketing Digital & Vendas",
+            "Desenvolvimento Pessoal & Produtividade",
+            "Finanças & Investimentos",
+        ]
     },
     {
         id: "experience_level",

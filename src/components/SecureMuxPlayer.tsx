@@ -31,6 +31,7 @@ export default function SecureMuxPlayer({
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [muxError, setMuxError] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -44,6 +45,9 @@ export default function SecureMuxPlayer({
         }
         return;
       }
+
+      // Limpa erro do player Mux ao trocar de vídeo
+      if (isMounted) setMuxError(null);
 
       try {
         if (authLoading) return;
@@ -110,6 +114,9 @@ export default function SecureMuxPlayer({
 
     fetchPlaybackToken();
 
+    // M-02: Quando o playbackId muda, limpa erros anteriores do player
+    setMuxError(null);
+
     // M-01: Atualiza o token proativamente a cada 50 minutos (antes de expirar em 1h)
     const refreshInterval = setInterval(() => {
         console.log("[SecureMuxPlayer] Renovando token de vídeo proativamente...");
@@ -135,12 +142,14 @@ export default function SecureMuxPlayer({
     );
   }
 
-  if (!isPublic && (error || !token)) {
+  const displayError = (!isPublic && (error || !token)) || muxError;
+  if (displayError) {
+    const message = muxError || error || "Não foi possível autenticar o acesso ao vídeo.";
     return (
       <div className={`relative w-full aspect-video rounded-md overflow-hidden bg-slate-900 border border-slate-800 flex flex-col items-center justify-center text-slate-400 p-6 text-center ${className}`}>
         <AlertCircle className="w-10 h-10 mb-4 text-red-500/80" />
-        <p className="text-xs md:text-sm font-bold uppercase tracking-[2px]">{error || "Não foi possível autenticar o acesso ao vídeo."}</p>
-        <p className="text-[10px] mt-2 opacity-50 uppercase tracking-widest ">Erro de Autenticação Industrial</p>
+        <p className="text-xs md:text-sm font-bold uppercase tracking-[2px]">{message}</p>
+        <p className="text-[10px] mt-2 opacity-50 uppercase tracking-widest ">Erro de Reprodução</p>
       </div>
     );
   }
@@ -168,6 +177,15 @@ export default function SecureMuxPlayer({
         }}
         onPause={onPause}
         onEnded={onEnded}
+        onError={(e) => {
+            const mediaError = (e.target as any)?.error;
+            const msg = mediaError?.message || '';
+            if (msg.includes('does not exist') || msg.includes('not found') || msg.includes('404')) {
+                setMuxError("Vídeo não encontrado ou foi removido. Entre em contato com o suporte.");
+            } else {
+                setMuxError("Erro ao reproduzir o vídeo. Tente novamente mais tarde.");
+            }
+        }}
         className="w-full h-full object-contain"
         style={{
             "--controls-backdrop-color": "transparent",

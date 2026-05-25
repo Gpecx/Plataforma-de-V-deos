@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import {
     FileText,
-    Download,
     Trash2,
     Edit3,
     Reply,
@@ -20,6 +19,7 @@ interface ClassroomTabsProps {
     lessonTitle: string;
     description?: string;
     courseId?: string;
+    notas?: string;
 }
 
 interface Comment {
@@ -70,7 +70,7 @@ const MOCK_COMMENTS: Comment[] = [
 
 const SHOW_QA = false; // Defina como true para reativar a aba de Comentários (Q&A)
 
-export function ClassroomTabs({ lessonId, description, courseId }: ClassroomTabsProps) {
+export function ClassroomTabs({ lessonId, description, courseId, notas }: ClassroomTabsProps) {
     const [activeTab, setActiveTab] = useState<'overview' | 'comments' | 'evaluate'>('overview')
     const [comments, setComments] = useState<Comment[]>([])
     const [commentText, setCommentText] = useState('')
@@ -218,57 +218,19 @@ export function ClassroomTabs({ lessonId, description, courseId }: ClassroomTabs
                 {activeTab === 'evaluate' ? (
                     courseId ? <EvaluationForm courseId={courseId} /> : null
                 ) : activeTab === 'overview' ? (
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                        <div className="lg:col-span-2 space-y-6">
-                            <h3 className="text-xl font-bold uppercase tracking-tighter text-white">Sobre esta aula</h3>
-                            <p className="leading-relaxed text-white">
-                                {description || "Nesta aula vamos explorar os conceitos fundamentais para o desenvolvimento de alta performance. Preste atenção em cada detalhe da implementação e utilize o código fonte disponível nos materiais."}
-                            </p>
-                            <div className="p-6 rounded-xl border border-slate-800 bg-slate-800/30">
-                                <h4 className="text-sm font-bold uppercase tracking-widest mb-4 flex items-center gap-2 text-white">
-                                    <FileText size={16} className="text-green-500" />
-                                    Notas da Aula
-                                </h4>
-                                <ul className="text-sm text-white space-y-2 list-disc list-inside">
-                                    <li>Conceitos de Renderização no Servidor</li>
-                                    <li>Setup inicial do Design System</li>
-                                    <li>Boas práticas com Tailwind CSS 4.0</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <div className="space-y-6">
-                            <h3 className="text-xl font-bold uppercase tracking-tighter text-white">Materiais</h3>
-                            <div className="space-y-3">
-                                <div className="flex items-center justify-between p-4 border border-slate-800 bg-slate-800/30 rounded-xl opacity-60 cursor-not-allowed">
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-xl bg-[#061629] text-slate-500 shadow-sm">
-                                            <FileText size={18} />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-bold text-slate-400">Resumo da Aula.pdf</p>
-                                            <p className="text-[10px] text-slate-500 uppercase tracking-widest">2.4 MB</p>
-                                        </div>
-                                    </div>
-                                    <span className="px-3 py-1 bg-[#00c853] text-black text-[10px] font-bold uppercase tracking-widest rounded-full">
-                                        Em Breve
-                                    </span>
+                    <div className="space-y-6">
+                        <div className="p-6 rounded-xl border border-slate-800 bg-slate-800/30">
+                            <h4 className="text-sm font-bold uppercase tracking-widest mb-4 flex items-center gap-2 text-white">
+                                <FileText size={16} className="text-green-500" />
+                                Notas da Aula
+                            </h4>
+                            {notas ? (
+                                <div className="text-sm text-white space-y-2 whitespace-pre-wrap">
+                                    {notas}
                                 </div>
-                                <div className="flex items-center justify-between p-4 border border-slate-800 bg-slate-800/30 rounded-xl opacity-60 cursor-not-allowed">
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-xl bg-[#061629] text-slate-500 shadow-sm">
-                                            <Download size={18} />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-bold text-slate-400">Codigo_Fonte.zip</p>
-                                            <p className="text-[10px] text-slate-500 uppercase tracking-widest">15.8 MB</p>
-                                        </div>
-                                    </div>
-                                    <span className="px-3 py-1 bg-[#00c853] text-black text-[10px] font-bold uppercase tracking-widest rounded-full">
-                                        Em Breve
-                                    </span>
-                                </div>
-                            </div>
+                            ) : (
+                                <p className="text-sm text-slate-400">Nenhuma nota cadastrada para esta aula.</p>
+                            )}
                         </div>
                     </div>
                 ) : activeTab === 'comments' && SHOW_QA ? (

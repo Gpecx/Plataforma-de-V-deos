@@ -3,6 +3,7 @@
 import { adminDb } from '@/lib/firebase-admin'
 import { revalidatePath } from 'next/cache'
 import { suspendLesson } from '@/app/actions/admin'
+import { getSessionUser } from '@/app/actions/auth'
 
 function serializeFirestoreData(data: any): any {
     if (data === null || data === undefined) return null
@@ -24,6 +25,11 @@ function serializeFirestoreData(data: any): any {
 }
 
 export async function getAdminClassroomData(courseId: string) {
+    const session = await getSessionUser()
+    if (!session || (session.role !== 'admin' && session.role !== 'teacher')) {
+        return { success: false, error: 'UNAUTHORIZED' }
+    }
+
     try {
         // Busca curso
         const courseDoc = await adminDb.collection('courses').doc(courseId).get()

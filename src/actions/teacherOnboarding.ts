@@ -77,6 +77,11 @@ export async function createTeacherWallet(
   }
 
   const adminData = adminUserSnap.data();
+
+  if (adminData?.ativo === false) {
+    return { success: false, error: "FORBIDDEN: Sua conta administrativa está inativa ou suspensa." };
+  }
+
   // Allow super-admin exact email bypassing if defined by use-permissions
   const isSuperAdminEmail = adminData?.email === "frederico.motta@gpecx.com.br";
   const hasAdminRole = adminData?.role === "admin" || adminData?.role === "Administrador";

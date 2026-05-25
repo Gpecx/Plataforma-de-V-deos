@@ -24,7 +24,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; connect-src 'self' *.googleapis.com *.firebaseapp.com *.mux.com *.asaas.com; frame-src 'self' *.mux.com *.asaas.com; img-src 'self' data: blob: *.googleusercontent.com *.asaas.com *.googleapis.com images.unsplash.com; style-src 'self' 'unsafe-inline'; font-src 'self' data:; media-src 'self' blob: *.mux.com; object-src 'none'; base-uri 'self';",
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.gstatic.com; connect-src 'self' *.googleapis.com *.firebaseapp.com *.mux.com *.asaas.com https://inferred.litix.io; frame-src 'self' *.mux.com *.asaas.com; img-src 'self' data: blob: *.mux.com *.googleusercontent.com *.asaas.com *.googleapis.com images.unsplash.com; style-src 'self' 'unsafe-inline'; font-src 'self' data:; media-src 'self' blob: *.mux.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self';",
           },
           {
             key: 'X-Content-Type-Options',

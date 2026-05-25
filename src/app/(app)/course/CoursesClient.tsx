@@ -436,11 +436,15 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: Cou
             </div>
 
             {/* Course Modal */}
-            <CourseModal
-                course={selectedCourse}
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-            />
+            {isModalOpen && selectedCourse && (
+                <div className="no-theme-override">
+                    <CourseModal 
+                        course={selectedCourse} 
+                        isOpen={isModalOpen} 
+                        onClose={() => setIsModalOpen(false)} 
+                    />
+                </div>
+            )}
         </div>
     );
 }

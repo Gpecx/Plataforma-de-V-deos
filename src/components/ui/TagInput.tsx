@@ -48,11 +48,11 @@ export default function TagInput({ tags, onChange, maxTags = 5, placeholder = "D
 
     return (
         <div className="space-y-3">
-            <div className="flex flex-wrap gap-2 min-h-[40px] p-2 border-2 border-black rounded-none bg-white">
+            <div className="flex flex-wrap gap-2 min-h-[40px] p-2 border-2 border-black rounded-md bg-white">
                 {tags.map((tag, index) => (
                     <span
                         key={index}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#1D5F31] text-white text-[10px] font-bold uppercase tracking-widest rounded-none"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#1D5F31] text-white text-[10px] font-bold uppercase tracking-widest rounded-md"
                     >
                         {tag}
                         <button
@@ -73,7 +73,7 @@ export default function TagInput({ tags, onChange, maxTags = 5, placeholder = "D
                 onBlur={addTag}
                 placeholder={tags.length >= maxTags ? "Limite atingido" : placeholder}
                 disabled={tags.length >= maxTags}
-                className="bg-white border-2 border-black focus:border-black focus:ring-black h-12 rounded-none text-sm font-medium transition-all text-black placeholder:text-black/50"
+                className="bg-white border-2 border-black focus:border-black focus:ring-black h-12 rounded-md text-sm font-medium transition-all text-black placeholder:text-black/50"
             />
             <p className="text-[9px] text-black/60 font-bold uppercase tracking-widest">
                 {tags.length}/{maxTags} tags • Pressione Enter ou vírgula para adicionar

@@ -69,7 +69,6 @@ export default function QuizForm({ initialData, onSave, isAdmin = false }: QuizF
         ...q,
         id: q.id || Math.random().toString(),
       })) as Question[],
-      status: isAdmin ? 'published' : 'pending',
     });
   };
 
@@ -207,10 +206,10 @@ export default function QuizForm({ initialData, onSave, isAdmin = false }: QuizF
       <div className="flex justify-end pt-8 sticky bottom-8">
         <button
           type="submit"
-          className="flex items-center gap-3 bg-slate-900 text-white px-12 py-5 rounded-xl font-bold uppercase tracking-[3px] hover:bg-black transition-all active:scale-95 shadow-2xl group"
+          className="flex items-center gap-3 bg-slate-900 text-white px-12 py-5 rounded-md font-bold uppercase tracking-[3px] hover:bg-black transition-all active:scale-95 shadow-2xl group"
         >
           <Save size={20} className="group-hover:scale-110 transition-transform" />
-          {isAdmin ? 'Publicar Quiz' : 'Enviar para Aprovação'}
+          Salvar Quiz
         </button>
       </div>
     </form>

@@ -1,13 +1,15 @@
 'use server'
 
-import { getMuxClient } from '@/lib/mux'
+import { getMuxClient, signMuxPlaybackToken, sanitizeKey } from '@/lib/mux'
 import { getSessionUser } from './auth'
+import { adminDb } from '@/lib/firebase-admin'
 
 /**
  * Gera uma URL de Direct Upload no Mux para envio de vídeos.
  * @param context - 'intro' para vídeos de introdução (público), 'lesson' para aulas (signed)
+ * @param courseId - ID do curso (opcional). Se o curso estiver APROVADO, força signed policy mesmo para intro.
  */
-export async function getMuxUploadUrl(context?: 'intro' | 'lesson') {
+export async function getMuxUploadUrl(context?: 'intro' | 'lesson', courseId?: string) {
     const user = await getSessionUser()
 
     if (!user || (user.role !== 'teacher' && user.role !== 'admin')) {
@@ -16,7 +18,15 @@ export async function getMuxUploadUrl(context?: 'intro' | 'lesson') {
 
     let playbackPolicy: 'public'[] | 'signed'[]
 
-    if (context === 'intro') {
+    if (context === 'intro' && courseId) {
+        const courseDoc = await adminDb.collection('courses').doc(courseId).get()
+        const courseData = courseDoc.data()
+        if (courseData?.status === 'APROVADO') {
+            playbackPolicy = ['signed']
+        } else {
+            playbackPolicy = ['public']
+        }
+    } else if (context === 'intro') {
         playbackPolicy = ['public']
     } else {
         playbackPolicy = ['signed']
@@ -208,14 +218,11 @@ export async function getLessonPlaybackToken(playbackId: string) {
     }
 
     try {
-        const mux = getMuxClient()
-        
-        // Mux SDK v12+ JWT signing
-        const token = await mux.jwt.signPlaybackId(playbackId, {
-            keyId: process.env.MUX_SIGNING_KEY_ID,
-            keySecret: process.env.MUX_SIGNING_KEY,
-            type: 'video',
-            expiration: '1h'
+        const token = await signMuxPlaybackToken(playbackId, {
+            aud: 'v',
+            keyId: sanitizeKey(process.env.MUX_SIGNING_KEY_ID),
+            keySecret: sanitizeKey(process.env.MUX_SIGNING_KEY),
+            expiration: '1h',
         })
         
         return { success: true, token }

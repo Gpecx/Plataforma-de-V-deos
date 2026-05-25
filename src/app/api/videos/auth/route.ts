@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { adminDb } from '@/lib/firebase-admin'
 import { adminAuth } from '@/lib/firebase-admin'
-// @ts-ignore - Garantir compatibilidade de tipos do Mux no build
-import { Mux } from '@mux/mux-node'
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -11,7 +9,7 @@ interface VideoAuthRequest {
     playbackId: string
 }
 
-import { getMuxClient } from '@/lib/mux'
+import { signMuxPlaybackToken, sanitizeKey } from '@/lib/mux'
 
 // ─── Rota POST ────────────────────────────────────────────────────────────────
 
@@ -119,24 +117,20 @@ export async function POST(request: NextRequest) {
 
         // ── 4. Geração do Token Mux (JWT assinado) ───────────────────────────
         // Assina o token de reprodução usando as Signing Keys configuradas.
-        const mux = getMuxClient()
-        
-        const keyId = process.env.MUX_SIGNING_KEY_ID
-        const keySecret = process.env.MUX_SIGNING_KEY
+        const keyId = sanitizeKey(process.env.MUX_SIGNING_KEY_ID)
+        const keySecret = sanitizeKey(process.env.MUX_SIGNING_KEY)
 
         if (!keyId || !keySecret) {
             console.error('Mux Auth: Falha na assinatura - MUX_SIGNING_KEY_ID ou MUX_SIGNING_KEY ausentes.')
             throw new Error('Configuração de segurança do Mux incompleta')
         }
 
-        const token = await mux.jwt.signPlaybackId(playbackId, {
+        const token = await signMuxPlaybackToken(playbackId, {
+            aud: 'v',     // video playback — Mux exige 'v' para playback de vídeo (não confundir com 's' de storyboard)
             keyId,
             keySecret,
-            type: 'video',
-            expiration: '1h', // Reduzido de 6h para 1h (M-01)
-            params: {
-                sub: uid, // Identificador do usuário
-            },
+            expiration: '1h',
+            sub: uid,     // Identificador do usuário
         })
 
         // ── 5. Retorno ────────────────────────────────────────────────────────

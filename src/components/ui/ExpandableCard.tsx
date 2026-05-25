@@ -253,22 +253,30 @@ export function ExpandableCard({
                                         <span className="text-white !text-white" style={{ color: 'white' }}>{title}</span>
                                     </h2>
 
-                                    {teacherId && (
-                                        <div className="flex items-center gap-2 mb-6">
-                                            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest leading-none">Instrutor:</span>
+                                    <div className="flex items-center gap-2 mb-6">
+                                        <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest leading-none">Instrutor:</span>
+                                        {teacherId ? (
                                             <Link 
                                                 href={`/professor/${teacherId}` as any}
                                                 onClick={() => setIsOpen(false)}
                                                 className="text-[9px] font-bold text-[#1D5F31] uppercase tracking-[2px] hover:underline leading-none"
                                             >
-                                                {teacherName}
+                                                {teacherName || 'Instrutor PowerPlay'}
                                             </Link>
-                                        </div>
-                                    )}
+                                        ) : (
+                                            <span className="text-[9px] font-bold text-[#1D5F31] uppercase tracking-[2px] leading-none">
+                                                {teacherName || 'Instrutor PowerPlay'}
+                                            </span>
+                                        )}
+                                    </div>
                                     
-                                    <p className="text-slate-400 !text-slate-400 text-sm md:text-base leading-relaxed mb-8 font-medium" style={{ color: '#94a3b8' }}>
-                                        {description || 'Explore técnicas avançadas e domine o mercado com este treinamento exclusivo da PowerPlay.'}
-                                    </p>
+                                    <div className="my-2 shrink-0">
+                                        <p className="text-slate-300 text-sm leading-relaxed line-clamp-2 overflow-hidden text-ellipsis">
+                                            {description && description.length > 120 
+                                                ? `${description.substring(0, 120)}...` 
+                                                : (description || 'Explore técnicas avançadas e domine o mercado com este treinamento exclusivo da PowerPlay.')}
+                                        </p>
+                                    </div>
 
                                     {/* Info Grid */}
                                     <div className="grid grid-cols-2 gap-y-6 gap-x-4 mb-10">

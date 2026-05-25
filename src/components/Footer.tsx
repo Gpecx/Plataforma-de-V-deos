@@ -20,7 +20,9 @@ export default function Footer({ variant = 'light' }: { variant?: 'light' | 'dar
         <footer className={`relative pt-20 pb-12 overflow-hidden font-montserrat z-[10] ${
             isClassroomRoute 
                 ? 'bg-[#061629] border-t border-white/5' 
-                : (isCourseDetailRoute || isHomePage)
+                : isCourseDetailRoute
+                    ? 'bg-transparent border-none'
+                : isHomePage
                     ? 'bg-transparent border-none' 
                     : isDark ? 'bg-[#061629] border-t border-white/5' : 'bg-white border-t border-slate-100'
         }`}>

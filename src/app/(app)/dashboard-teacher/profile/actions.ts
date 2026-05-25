@@ -3,6 +3,20 @@
 import { adminDb } from '@/lib/firebase-admin'
 import { getServerSession } from '@/lib/auth-utils'
 import { revalidatePath } from 'next/cache'
+import { z } from 'zod'
+
+const profileSchema = z.object({
+    full_name: z.string().min(1, 'Nome é obrigatório'),
+    specialty: z.string().nullable().optional().transform(val => val || ''),
+    bio: z.string().nullable().optional().transform(val => val || ''),
+    avatar_url: z.string().nullable().optional().transform(val => val || ''),
+    website: z.string().nullable().optional().transform(val => val || ''),
+    linkedin: z.string().nullable().optional().transform(val => val || ''),
+    twitter: z.string().nullable().optional().transform(val => val || ''),
+    youtube: z.string().nullable().optional().transform(val => val || ''),
+    instagram: z.string().nullable().optional().transform(val => val || ''),
+    tiktok: z.string().nullable().optional().transform(val => val || ''),
+})
 
 export async function updateTeacherProfile(data: any) {
     const session = await getServerSession()
@@ -10,16 +24,20 @@ export async function updateTeacherProfile(data: any) {
         throw new Error('Não autorizado')
     }
 
+    const validatedData = profileSchema.parse(data)
+
     try {
         const updateData: Record<string, any> = {
-            full_name: data.full_name,
-            specialty: data.specialty,
-            bio: data.bio,
-            avatar_url: data.avatar_url,
-            linkedin: data.linkedin,
-            website: data.website,
-            twitter: data.twitter,
-            youtube: data.youtube,
+            full_name: validatedData.full_name,
+            specialty: validatedData.specialty,
+            bio: validatedData.bio,
+            avatar_url: validatedData.avatar_url,
+            linkedin: validatedData.linkedin,
+            website: validatedData.website,
+            twitter: validatedData.twitter,
+            youtube: validatedData.youtube,
+            instagram: validatedData.instagram,
+            tiktok: validatedData.tiktok,
             updated_at: new Date().toISOString()
         }
 
@@ -105,3 +123,111 @@ export async function updateTeacherSettings(prevState: any, formData: FormData) 
         return { success: false, error: 'Erro ao salvar configurações' }
     }
 }
+
+export async function getTeacherNotificationsAction() {
+    const session = await getServerSession()
+    if (!session || (session.role !== 'teacher' && session.role !== 'admin')) {
+        return { success: false, error: 'Não autorizado' }
+    }
+
+    try {
+        // 1. Busca os cursos do professor logado
+        const coursesSnapshot = await adminDb
+            .collection('courses')
+            .where('teacher_id', '==', session.uid)
+            .get()
+
+        const courseMap: Record<string, string> = {}
+        const courseIds: string[] = []
+
+        coursesSnapshot.forEach(doc => {
+            courseMap[doc.id] = doc.data().title || 'Curso'
+            courseIds.push(doc.id)
+        })
+
+        if (courseIds.length === 0) {
+            return { success: true, notifications: [] }
+        }
+
+        // 2. Busca matrículas nos cursos em lotes de 30 para evitar limitações do operador "in"
+        const chunks: string[][] = []
+        for (let i = 0; i < courseIds.length; i += 30) {
+            chunks.push(courseIds.slice(i, i + 30))
+        }
+
+        const enrollmentPromises = chunks.map(chunk =>
+            adminDb.collection('enrollments')
+                .where('course_id', 'in', chunk)
+                .orderBy('created_at', 'desc')
+                .limit(10)
+                .get()
+        )
+
+        const enrollmentSnapshots = await Promise.all(enrollmentPromises)
+        const enrollments: any[] = []
+
+        enrollmentSnapshots.forEach(snapshot => {
+            snapshot.forEach(doc => {
+                const data = doc.data()
+                enrollments.push({
+                    id: doc.id,
+                    course_id: data.course_id,
+                    user_id: data.user_id,
+                    created_at: data.created_at?.toDate ? data.created_at.toDate().toISOString() : (data.created_at || null)
+                })
+            })
+        })
+
+        // 3. Ordena os resultados agregados e limita aos top 10
+        enrollments.sort((a, b) => {
+            const dateA = a.created_at ? new Date(a.created_at).getTime() : 0
+            const dateB = b.created_at ? new Date(b.created_at).getTime() : 0
+            return dateB - dateA
+        })
+
+        const topEnrollments = enrollments.slice(0, 10)
+
+        if (topEnrollments.length === 0) {
+            return { success: true, notifications: [] }
+        }
+
+        // 4. Busca os nomes dos alunos envolvidos em paralelo (lote de no máximo 10 requisições)
+        const studentIds = Array.from(new Set(topEnrollments.map(e => e.user_id)))
+        const studentMap: Record<string, string> = {}
+
+        if (studentIds.length > 0) {
+            const studentPromises = studentIds.map(id => adminDb.collection('profiles').doc(id).get())
+            const studentSnapshots = await Promise.all(studentPromises)
+            studentSnapshots.forEach(doc => {
+                if (doc.exists) {
+                    studentMap[doc.id] = doc.data()?.full_name || 'Aluno'
+                } else {
+                    studentMap[doc.id] = 'Aluno'
+                }
+            })
+        }
+
+        // 5. Mapeia para o objeto estruturado e serializado
+        const notifications = topEnrollments.map(e => {
+            const courseTitle = courseMap[e.course_id] || 'Curso'
+            const studentName = studentMap[e.user_id] || 'Aluno'
+            return {
+                id: e.id,
+                type: 'sale',
+                title: 'Nova venda realizada!',
+                subtitle: `Novo Aluno matriculado no curso ${courseTitle}!`,
+                time: e.created_at,
+                student_name: studentName,
+                course_title: courseTitle,
+                read: false,
+                href: '#'
+            }
+        })
+
+        return { success: true, notifications }
+    } catch (error: any) {
+        console.error("Erro ao buscar notificações do professor:", error)
+        return { success: false, error: 'Erro interno ao buscar notificações' }
+    }
+}
+

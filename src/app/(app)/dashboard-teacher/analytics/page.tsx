@@ -12,7 +12,7 @@ import {
     ChevronRight,
     Search
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+// import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { parseFirebaseDate } from '@/lib/date-utils'
 import { AnalyticsExportButton } from '../components/AnalyticsExportButton'
@@ -146,9 +146,12 @@ export default async function FinancialDashboardPage() {
                         courses={courses} 
                         teacherName={teacherName} 
                     />
+                    {/* TODO: Implementar e exibir este botão quando a Server Action de transferências/saques do Asaas for integrada ao escopo */}
+                    {/* 
                     <Button className="bg-[#1D5F31] text-white font-bold uppercase text-xs tracking-widest px-8 shadow-none border-2 border-[#1D5F31] hover:bg-[#1D5F31]/90 transition-all rounded-xl">
                         Solicitar Saque
                     </Button>
+                    */}
                 </div>
             </header>
 

@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Trash2, Loader2, AlertTriangle } from 'lucide-react'
+import { Trash2, Loader2 } from 'lucide-react'
 import { deleteCourse } from '@/app/actions/admin'
+import { toast } from 'sonner'
 
 interface CourseDeleteButtonProps {
     courseId: string
@@ -12,27 +13,37 @@ interface CourseDeleteButtonProps {
 export default function CourseDeleteButton({ courseId, courseTitle }: CourseDeleteButtonProps) {
     const [isDeleting, setIsDeleting] = useState(false)
 
-    const handleDelete = async () => {
-        const confirmMessage = `⚠️ ATENÇÃO: Esta ação é IRREVERSÍVEL!\n\nO curso "${courseTitle}" e TODAS as suas aulas serão excluídos permanentemente.\n\nDeseja continuar?`
-        
-        if (!confirm(confirmMessage)) return
-
-        setIsDeleting(true)
-        try {
-            const result = await deleteCourse(courseId)
-            if (!result.success) {
-                alert(result.error || 'Erro ao excluir curso')
+    const handleDeleteClick = () => {
+        toast(`Deseja excluir o curso "${courseTitle}"?`, {
+            description: "ESTA AÇÃO É IRREVERSÍVEL E TODAS AS AULAS SERÃO REMOVIDAS.",
+            action: {
+                label: "Confirmar",
+                onClick: async () => {
+                    setIsDeleting(true)
+                    try {
+                        const result = await deleteCourse(courseId)
+                        if (result.success) {
+                            toast.success("Curso excluído com sucesso!")
+                        } else {
+                            toast.error(result.error || 'Erro ao excluir curso')
+                        }
+                    } catch (error) {
+                        toast.error('Erro ao excluir curso')
+                    } finally {
+                        setIsDeleting(false)
+                    }
+                }
+            },
+            cancel: {
+                label: "Cancelar",
+                onClick: () => {}
             }
-        } catch (error) {
-            alert('Erro ao excluir curso')
-        } finally {
-            setIsDeleting(false)
-        }
+        })
     }
 
     return (
         <button
-            onClick={handleDelete}
+            onClick={handleDeleteClick}
             disabled={isDeleting}
             className="px-4 py-3 rounded-lg flex items-center gap-2 transition-all active:scale-95 hover:shadow-md"
             style={{ 
@@ -50,3 +61,4 @@ export default function CourseDeleteButton({ courseId, courseTitle }: CourseDele
         </button>
     )
 }
+

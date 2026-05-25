@@ -732,6 +732,7 @@ export default function ClassroomPage() {
                             lessonTitle={currentLesson?.title || ''}
                             description={course?.description || ''}
                             courseId={course?.id}
+                            notas={currentLesson?.notas || ''}
                         />
                     </div>
                 </div>

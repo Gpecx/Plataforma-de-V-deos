@@ -66,7 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             
             if (currentUser && !isMfaPending) {
                 // Limpeza Proativa do Carrinho (Ação Imediata)
-                getPurchasedCourseIds(currentUser.uid).then(ids => {
+                getPurchasedCourseIds().then(ids => {
                     useCartStore.getState().setPurchasedCourses(ids)
                 }).catch(err => console.error("Erro na limpeza proativa:", err))
 

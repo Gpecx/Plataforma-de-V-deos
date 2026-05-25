@@ -31,6 +31,12 @@ export async function getServerSession(): Promise<UserSession | null> {
         
         const profileDoc = await adminDb.collection('profiles').doc(uid).get();
         const profileData = profileDoc.data();
+
+        // Bloqueio de acesso para usuários inativos ou banidos
+        if (profileData?.ativo === false || (profileData?.role === 'teacher' && profileData?.teacher_status === 'banned')) {
+            console.warn(`[getServerSession] Acesso bloqueado: Usuário ${uid} está inativo ou banido.`);
+            return null;
+        }
         
         // A-03: EXCLUSIVE source of truth: Custom Claims.
         // Do not use profileData?.role as fallback for authorization.

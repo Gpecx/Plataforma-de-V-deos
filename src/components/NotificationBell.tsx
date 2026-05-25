@@ -5,20 +5,37 @@ import { useRouter } from 'next/navigation'
 import { Bell, MessageSquare, PlayCircle, CheckCheck, X, TrendingUp, Users, AlertCircle, CheckCircle2, Trash2 } from 'lucide-react'
 import { onAuthStateChanged } from 'firebase/auth'
 import { auth, db } from '@/lib/firebase'
-import { collection, query, where, orderBy, limit, getDocs, onSnapshot, doc, getDoc, updateDoc } from 'firebase/firestore'
-import { getPublicProfile } from '@/app/actions/profile'
+import { collection, query, where, orderBy, limit, getDocs, onSnapshot } from 'firebase/firestore'
 import { parseFirebaseDate } from '@/lib/date-utils'
 import { cn } from '@/lib/utils'
-
+import { getTeacherNotificationsAction } from '@/app/(app)/dashboard-teacher/profile/actions'
 
 interface Notification {
     id: string
     type: 'reply' | 'new_lesson' | 'sale' | 'new_student' | 'lesson_rejected' | 'course_rejected' | 'lesson_approved' | 'course_approved' | 'course_deleted' | 'lesson_deleted' | 'deletion_rejected'
     title: string
     subtitle: string
-    time: string
+    time: any
     read: boolean
     href: string
+}
+
+function getRelativeTimeString(dateValue: any): string {
+    if (!dateValue) return 'Recentemente'
+    const date = parseFirebaseDate(dateValue)
+    if (!date) return 'Data inválida'
+    const now = new Date()
+    const diffMs = now.getTime() - date.getTime()
+    const diffMins = Math.floor(diffMs / 60000)
+    const diffHours = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMins < 1) return 'agora mesmo'
+    if (diffMins < 60) return `há ${diffMins} min`
+    if (diffHours < 24) return `há ${diffHours} ${diffHours === 1 ? 'hora' : 'horas'}`
+    if (diffDays < 30) return `há ${diffDays} ${diffDays === 1 ? 'dia' : 'dias'}`
+    
+    return date.toLocaleDateString('pt-BR')
 }
 
 export function NotificationBell({
@@ -35,7 +52,6 @@ export function NotificationBell({
     const [notifications, setNotifications] = useState<Notification[]>([])
     const [loading, setLoading] = useState(true)
     const menuRef = useRef<HTMLDivElement>(null)
-
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -57,93 +73,64 @@ export function NotificationBell({
         const user = auth.currentUser
         if (!user) return
         try {
+            setLoading(true)
             if (isTeacher) {
-                // Busca cursos do professor
-                const coursesRef = collection(db, 'courses')
-                const coursesQuery = query(coursesRef, where('teacher_id', '==', user.uid))
-                const coursesSnapshot = await getDocs(coursesQuery)
-                const courseIds = coursesSnapshot.docs.map(doc => doc.id)
-
-                // Array para acumular notificações
-                let teacherNotifs: Notification[] = []
-
-                // Busca notificações da coleção notifications (rejeições)
-                const notifsRef = collection(db, 'notifications')
-                const notifsQuery = query(notifsRef, where('user_id', '==', user.uid), orderBy('created_at', 'desc'), limit(10))
-                const notifsSnapshot = await getDocs(notifsQuery)
-                const rejectionNotifs: Notification[] = notifsSnapshot.docs.map(doc => {
-                    const n = doc.data()
-                    return {
-                        id: doc.id,
-                        type: n.type as any,
-                        title: n.title || 'Notificação',
-                        subtitle: n.message || '',
-                        time: parseFirebaseDate(n.created_at)?.toLocaleDateString('pt-BR') || 'Recentemente',
-                        read: n.read || false,
-                        href: n.course_id ? `/dashboard-teacher/courses/${n.course_id}/edit` : '#'
-                    }
-                })
-                teacherNotifs = [...rejectionNotifs]
-
-                // Se tiver cursos, busca vendas
-                if (courseIds.length > 0) {
-                    const enrollmentsRef = collection(db, 'enrollments')
-                    const enrollmentsQuery = query(enrollmentsRef, where('course_id', 'in', courseIds), orderBy('created_at', 'desc'), limit(5))
-                    const enrollmentsSnapshot = await getDocs(enrollmentsQuery)
-                    const saleNotifs: Notification[] = await Promise.all(enrollmentsSnapshot.docs.map(async (enrollDoc) => {
-                        const e = enrollDoc.data()
-                        const userData = await getPublicProfile(e.user_id)
-                        const courseDoc = await getDoc(doc(db, 'courses', e.course_id))
-                        const courseData = courseDoc.data()
-                        return { id: enrollDoc.id, type: 'sale' as any, title: 'Nova venda realizada!', subtitle: `${userData?.full_name || 'Aluno'} comprou ${courseData?.title || 'Curso'}`, time: parseFirebaseDate(e.created_at)?.toLocaleDateString('pt-BR') || 'Recentemente', read: false, href: `/dashboard-teacher/analytics?saleId=${enrollDoc.id}` }
-                    }))
-                    teacherNotifs = [...teacherNotifs, ...saleNotifs]
+                const result = await getTeacherNotificationsAction()
+                if (result.success && result.notifications) {
+                    setNotifications(result.notifications as any)
+                } else {
+                    setNotifications([])
                 }
-
-                // Ordena por mais recente (inverte para mostrar mais recentes primeiro)
-                teacherNotifs.sort((a, b) => b.time.localeCompare(a.time))
-                setNotifications(teacherNotifs.slice(0, 10))
             } else {
                 const enrollmentsRef = collection(db, 'enrollments')
                 const enrollmentsQuery = query(enrollmentsRef, where('user_id', '==', user.uid))
                 const enrollmentsSnapshot = await getDocs(enrollmentsQuery)
                 const myCourseIds = enrollmentsSnapshot.docs.map(doc => doc.data().course_id)
-                if (myCourseIds.length === 0) { setNotifications([]); setLoading(false); return }
+                if (myCourseIds.length === 0) { 
+                    setNotifications([])
+                    setLoading(false)
+                    return 
+                }
                 const coursesRef = collection(db, 'courses')
                 const coursesQuery = query(coursesRef, where('__name__', 'in', myCourseIds), orderBy('updated_at', 'desc'), limit(5))
                 const coursesSnapshot = await getDocs(coursesQuery)
                 const studentNotifs: Notification[] = coursesSnapshot.docs.map(courseDoc => {
                     const c = courseDoc.data()
-                    return { id: courseDoc.id, type: 'new_lesson', title: 'Conteúdo atualizado!', subtitle: `Novas aulas em: ${c.title}`, time: parseFirebaseDate(c.updated_at)?.toLocaleDateString('pt-BR') || 'Recentemente', read: false, href: `/classroom/${courseDoc.id}` }
+                    return { 
+                        id: courseDoc.id, 
+                        type: 'new_lesson', 
+                        title: 'Conteúdo atualizado!', 
+                        subtitle: `Novas aulas em: ${c.title}`, 
+                        time: c.updated_at, 
+                        read: false, 
+                        href: `/classroom/${courseDoc.id}` 
+                    }
                 })
                 setNotifications(studentNotifs)
             }
-        } catch (error) { console.error("Erro ao buscar notificações:", error) } finally { setLoading(false) }
+        } catch (error) { 
+            console.error("Erro ao buscar notificações:", error) 
+        } finally { 
+            setLoading(false) 
+        }
     }
 
     useEffect(() => {
         const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
             if (user) {
-                fetchNotifications();
+                fetchNotifications()
 
-                const enrollmentsRef = collection(db, 'enrollments');
-                const qEnroll = isTeacher ? query(enrollmentsRef, limit(1)) : query(enrollmentsRef, where('user_id', '==', user.uid), limit(1));
-                const unsubscribeEnroll = onSnapshot(qEnroll, () => { fetchNotifications() });
-
-                let unsubscribeNotifs = () => { };
-                if (isTeacher) {
-                    const notifsRef = collection(db, 'notifications');
-                    const qNotifs = query(notifsRef, where('user_id', '==', user.uid), orderBy('created_at', 'desc'), limit(1));
-                    unsubscribeNotifs = onSnapshot(qNotifs, () => { fetchNotifications() });
+                if (!isTeacher) {
+                    const enrollmentsRef = collection(db, 'enrollments')
+                    const qEnroll = query(enrollmentsRef, where('user_id', '==', user.uid), limit(1))
+                    const unsubscribeEnroll = onSnapshot(qEnroll, () => { fetchNotifications() })
+                    return () => {
+                        unsubscribeEnroll()
+                    }
                 }
-
-                return () => {
-                    unsubscribeEnroll();
-                    unsubscribeNotifs();
-                };
             } else {
-                setNotifications([]);
-                setLoading(false);
+                setNotifications([])
+                setLoading(false)
             }
         })
         return () => unsubscribeAuth()
@@ -151,32 +138,29 @@ export function NotificationBell({
 
     const unread = notifications.filter(n => !n.read).length
 
-    const markAllRead = async () => {
-        setNotifications(prev => prev.map(n => ({ ...n, read: true })))
-        const dbNotifTypes = ['lesson_rejected', 'course_rejected', 'lesson_approved', 'course_approved', 'course_deleted', 'lesson_deleted', 'deletion_rejected']
-        const unreadNotifs = notifications.filter(n => !n.read && dbNotifTypes.includes(n.type))
-        unreadNotifs.forEach(async (n) => {
-            try {
-                await updateDoc(doc(db, 'notifications', n.id), { read: true })
-            } catch (err) { console.error('Error marking as read:', err) }
-        })
+    const markAllRead = () => {
+        setNotifications([])
     }
 
-    const handleClick = async (notif: Notification) => {
-        setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, read: true } : n));
-        setOpen(false);
-        const dbNotifTypes = ['lesson_rejected', 'course_rejected', 'lesson_approved', 'course_approved', 'course_deleted', 'lesson_deleted', 'deletion_rejected']
-        if (dbNotifTypes.includes(notif.type) && !notif.read) {
-            try {
-                await updateDoc(doc(db, 'notifications', notif.id), { read: true })
-            } catch (err) { console.error('Error marking as read:', err) }
+    const handleClick = (notif: Notification) => {
+        setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, read: true } : n))
+        setOpen(false)
+        if (notif.href && notif.href !== '#') {
+            router.push(notif.href as any)
         }
-        router.push(notif.href as any)
+    }
+
+    const toggleOpen = () => {
+        setOpen(prev => {
+            const next = !prev
+            if (next) fetchNotifications()
+            return next
+        })
     }
 
     return (
         <div className="relative" ref={menuRef}>
-            <button onClick={() => setOpen(prev => !prev)} className={cn("transition cursor-pointer relative outline-none flex items-center justify-center", light ? "text-slate-900 hover:text-[#1D5F31]" : "text-white hover:text-[#1D5F31]")}>
+            <button onClick={toggleOpen} className={cn("transition cursor-pointer relative outline-none flex items-center justify-center", light ? "text-slate-900 hover:text-[#1D5F31]" : "text-white hover:text-[#1D5F31]")}>
                 <Bell size={20} />
                 {unread > 0 && (
                     <span className={cn(
@@ -189,7 +173,7 @@ export function NotificationBell({
             </button>
 
             {open && (
-                <div className="absolute right-0 mt-3 w-80 md:w-96 z-[1000] bg-white border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 rounded-2xl">
+                <div className="absolute right-0 mt-3 w-80 md:w-96 z-[1000] bg-white border border-black/20 shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 rounded-lg">
                     {/* Header com contraste corrigido */}
                     <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
                         <div>
@@ -251,10 +235,13 @@ export function NotificationBell({
                                             {notif.title}
                                         </p>
                                         <p className={cn(
-                                            "text-[11px] truncate ",
+                                            "text-[11px] truncate mb-1",
                                             notif.read ? "text-slate-400" : "text-slate-600"
                                         )}>
                                             {notif.subtitle}
+                                        </p>
+                                        <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">
+                                            {getRelativeTimeString(notif.time)}
                                         </p>
                                     </div>
                                     {!notif.read && <div className="w-2 h-2 mt-2 shrink-0 rounded-full bg-[#1D5F31]" />}

@@ -1,8 +1,9 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { auth } from '@/lib/firebase'
+import { auth, db } from '@/lib/firebase'
 import { onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth'
+import { collection, query, where, getDocs } from 'firebase/firestore'
 import { getPublicProfile } from '@/app/actions/profile'
 import { removeSessionCookie } from '@/app/actions/auth'
 import Link from 'next/link'
@@ -66,6 +67,10 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
         pathname.startsWith('/instructor') ||
         pathname.startsWith('/painel-professor')
 
+    const isStudentMode = pathname.startsWith('/dashboard-student') ||
+        pathname.startsWith('/classroom') ||
+        pathname.startsWith('/course')
+
     const isTeacherLogin = pathname === '/auth/teacher/login' || 
                          pathname === '/login/teacher' || 
                          pathname === '/professor/login'
@@ -86,6 +91,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
     const [searchResults, setSearchResults] = useState<SearchResult[]>([])
     const [isSearching, setIsSearching] = useState(false)
     const [showSearchDropdown, setShowSearchDropdown] = useState(false)
+    const [teacherCourses, setTeacherCourses] = useState<{ id: string; slug: string; title: string; image?: string; status: string }[]>([])
 
     useEffect(() => {
         const queryFromUrl = searchParams.get('s') || ''
@@ -97,17 +103,34 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
         let cancelled = false
 
         const timer = setTimeout(async () => {
-            if (searchQuery.length >= 2 && isSearchOpen && !isTeacherMode) {
-                setIsSearching(true)
-                setShowSearchDropdown(true)
-                try {
-                    const results = await searchGlobal(searchQuery)
-                    if (!cancelled) setSearchResults(results)
-                } catch (error) {
-                    console.error("Erro na busca:", error)
-                    if (!cancelled) setSearchResults([])
-                } finally {
-                    if (!cancelled) setIsSearching(false)
+            if (searchQuery.length >= 2 && isSearchOpen) {
+                if (isTeacherMode) {
+                    const filtered = teacherCourses.filter(course =>
+                        course.title.toLowerCase().includes(searchQuery.toLowerCase())
+                    )
+                    if (!cancelled) {
+                        setSearchResults(filtered.map(c => ({
+                            id: c.id,
+                            type: 'course' as const,
+                            title: c.title,
+                            slug: c.slug,
+                            image: c.image,
+                            subtitle: c.status
+                        })))
+                        setShowSearchDropdown(true)
+                    }
+                } else {
+                    setIsSearching(true)
+                    setShowSearchDropdown(true)
+                    try {
+                        const results = await searchGlobal(searchQuery)
+                        if (!cancelled) setSearchResults(results)
+                    } catch (error) {
+                        console.error("Erro na busca:", error)
+                        if (!cancelled) setSearchResults([])
+                    } finally {
+                        if (!cancelled) setIsSearching(false)
+                    }
                 }
             } else {
                 setSearchResults([])
@@ -119,7 +142,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
             cancelled = true
             clearTimeout(timer)
         }
-    }, [searchQuery, isSearchOpen, isTeacherMode])
+    }, [searchQuery, isSearchOpen, isTeacherMode, teacherCourses])
 
     // Close dropdown on click outside
     useEffect(() => {
@@ -172,6 +195,40 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
             window.removeEventListener('scroll', handleScroll)
         }
     }, [])
+
+    // Fetch teacher courses for live search
+    useEffect(() => {
+        if (!isLoggedIn || !isTeacherMode) {
+            setTeacherCourses([])
+            return
+        }
+
+        const user = auth.currentUser
+        if (!user?.uid) return
+        const uid: string = user.uid
+
+        async function fetchCourses() {
+            try {
+                const q = query(
+                    collection(db, 'courses'),
+                    where('teacher_id', '==', uid)
+                )
+                const snapshot = await getDocs(q)
+                const courses = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    slug: doc.data().slug || '',
+                    title: doc.data().title || '',
+                    image: doc.data().image_url || undefined,
+                    status: doc.data().status || ''
+                }))
+                setTeacherCourses(courses)
+            } catch (error) {
+                console.error("Erro ao buscar cursos do professor:", error)
+            }
+        }
+
+        fetchCourses()
+    }, [isLoggedIn, isTeacherMode])
 
     // Close mobile menu on route change
     useEffect(() => {
@@ -322,8 +379,9 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                                 router.push(`/dashboard-teacher/courses?q=${encodeURIComponent(searchQuery.trim())}` as any)
                                             } else if (searchQuery.trim()) {
                                                 router.push(`/course?s=${encodeURIComponent(searchQuery.trim())}` as any)
-                                                setShowSearchDropdown(false)
                                             }
+                                            setSearchQuery('')
+                                            setShowSearchDropdown(false)
                                             setIsSearchOpen(false)
                                         }
                                     }}
@@ -361,10 +419,11 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                                 <div className="p-2">
                                                     <p className={cn("px-3 py-2 text-[10px] font-bold uppercase tracking-widest opacity-50", light ? "text-slate-900" : "text-white")}>Cursos Sugeridos</p>
                                                     {searchResults.filter(r => r.type === 'course').map(result => (
-                                                        <button
+                                                        <Link
                                                             key={result.id}
+                                                            href={(isTeacherMode ? `/dashboard-teacher/courses/${result.id}/edit` : `/course/${result.slug}`) as any}
                                                             onClick={() => {
-                                                                router.push(`/course/${result.slug}` as any)
+                                                                setSearchQuery('')
                                                                 setShowSearchDropdown(false)
                                                                 setIsSearchOpen(false)
                                                             }}
@@ -373,13 +432,11 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                                                 light ? "hover:bg-slate-50" : "hover:bg-white/5"
                                                             )}
                                                         >
-                                                            <div className="w-16 aspect-video rounded-lg overflow-hidden border border-black/10 shrink-0 relative">
+                                                            <div className="w-14 h-10 rounded-md overflow-hidden border border-black/10 shrink-0 relative bg-slate-100 dark:bg-slate-800">
                                                                 {result.image ? (
-                                                                    <NextImage src={result.image} alt={result.title} fill className="object-cover" sizes="64px" />
+                                                                    <NextImage src={result.image} alt={result.title} fill className="object-cover" sizes="56px" />
                                                                 ) : (
-                                                                    <div className="w-full h-full bg-slate-100 flex items-center justify-center">
-                                                                        <BookOpen size={16} className="text-slate-400" />
-                                                                    </div>
+                                                                    <div className="w-full h-full" />
                                                                 )}
                                                             </div>
                                                             <div className="flex flex-col min-w-0">
@@ -387,10 +444,10 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                                                     {result.title}
                                                                 </span>
                                                                 <span className={cn("text-[10px] font-medium uppercase tracking-tight opacity-60 mt-1", light ? "text-slate-600" : "text-white/60")}>
-                                                                    {result.subtitle}
+                                                                    {isTeacherMode ? (result.subtitle === 'published' ? 'Publicado' : result.subtitle === 'draft' ? 'Rascunho' : result.subtitle) : result.subtitle}
                                                                 </span>
                                                             </div>
-                                                        </button>
+                                                        </Link>
                                                     ))}
                                                 </div>
                                             )}
@@ -439,7 +496,12 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                         </div>
                                         <button
                                             onClick={() => {
-                                                router.push(`/course?s=${encodeURIComponent(searchQuery)}` as any)
+                                                if (isTeacherMode) {
+                                                    router.push(`/dashboard-teacher/courses?q=${encodeURIComponent(searchQuery)}` as any)
+                                                } else {
+                                                    router.push(`/course?s=${encodeURIComponent(searchQuery)}` as any)
+                                                }
+                                                setSearchQuery('')
                                                 setShowSearchDropdown(false)
                                                 setIsSearchOpen(false)
                                             }}
@@ -448,7 +510,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                                 light ? "text-[#1D5F31] border-slate-100 bg-slate-50/50" : "text-[#1D5F31] border-white/5 bg-white/5"
                                             )}
                                         >
-                                            Ver todos os resultados
+                                            {isTeacherMode ? 'Ver todos os meus cursos' : 'Ver todos os resultados'}
                                         </button>
                                     </motion.div>
                                 )}
@@ -550,7 +612,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                             "font-bold uppercase tracking-tighter text-sm line-clamp-1",
                                             light ? "!text-black opacity-100" : "text-white"
                                         )}>
-                                            {isTeacherMode || userProfile?.role === 'teacher' || userProfile?.role === 'admin' ? 'PROFESSOR POWERPLAY' : 'ESTUDANTE POWERPLAY'}
+                                            {isTeacherMode ? 'PROFESSOR POWERPLAY' : 'ESTUDANTE POWERPLAY'}
                                         </p>
                                         <p className={cn(
                                             "text-[10px] font-bold uppercase tracking-widest mt-1 line-clamp-1",
@@ -567,21 +629,20 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                     </div>
 
                                     <div className="p-1 space-y-1">
-                                        {isTeacherMode || userProfile?.role === 'teacher' || userProfile?.role === 'admin' ? (
+                                        {userProfile?.role === 'admin' && !isTeacherMode && (
+                                            <>
+                                                <DropdownMenuItem onSelect={() => router.push("/admin/dashboard")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-[#1D5F31]/20 text-[#22c55e] transition-colors outline-none focus:bg-[#1D5F31]/20 border border-[#1D5F31]/30 mb-1 bg-[#1D5F31]/10">
+                                                    <ShieldAlert size={18} className="text-[#22c55e]" /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Voltar ao Painel Admin</span>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuSeparator className={cn("my-2", light ? "bg-slate-100" : "bg-white/5")} />
+                                            </>
+                                        )}
+                                        {isTeacherMode ? (
                                             <>
                                                 {userProfile?.role === 'admin' && (
-                                                    <>
-                                                        <DropdownMenuItem onSelect={() => router.push("/admin/dashboard")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-[#1D5F31]/20 text-[#22c55e] transition-colors outline-none focus:bg-[#1D5F31]/20 border border-[#1D5F31]/30 mb-1 bg-[#1D5F31]/10">
-                                                            <ShieldAlert size={18} className="text-[#22c55e]" /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Acessar Painel Admin</span>
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/courses")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-[#1D5F31]/20 text-[#1D5F31] transition-colors outline-none focus:bg-[#1D5F31]/20 border border-[#1D5F31]/30 mb-1">
-                                                            <BookOpen size={18} className="text-[#1D5F31]" /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Modo Professor</span>
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem onSelect={() => router.push("/dashboard-student")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-[#1D5F31]/20 text-[#1D5F31] transition-colors outline-none focus:bg-[#1D5F31]/20 border border-[#1D5F31]/30 mb-1">
-                                                            <GraduationCap size={18} className="text-[#1D5F31]" /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Modo Aluno</span>
-                                                        </DropdownMenuItem>
-
-                                                    </>
+                                                    <DropdownMenuItem onSelect={() => router.push("/dashboard-student")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-[#1D5F31]/20 text-[#1D5F31] transition-colors outline-none focus:bg-[#1D5F31]/20 border border-[#1D5F31]/30 mb-1">
+                                                        <GraduationCap size={18} className="text-[#1D5F31]" /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Modo Aluno</span>
+                                                    </DropdownMenuItem>
                                                 )}
                                                 <DropdownMenuSeparator className={cn("my-2", light ? "bg-slate-100" : "bg-white/5")} />
                                                 <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/profile")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>

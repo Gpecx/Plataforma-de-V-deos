@@ -1,9 +1,27 @@
 import { notFound } from 'next/navigation'
-import { ArrowLeft, Globe, Linkedin, Twitter, Youtube, Facebook } from 'lucide-react'
+import { ArrowLeft, Globe, Linkedin, Twitter, Youtube, Facebook, Instagram } from 'lucide-react'
 import Link from 'next/link'
 import { getInstructorProfile, getInstructorStats, getInstructorCourses } from '@/app/actions/instructor'
 import { Button } from '@/components/ui/button'
 import NextImage from 'next/image'
+
+// Ícone TikTok customizado (idêntico ao padrão oficial do Lucide)
+const Tiktok = ({ size = 18, ...props }: { size?: number; className?: string }) => (
+    <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width={size}
+        height={size}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        {...props}
+    >
+        <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
+    </svg>
+)
 
 export const dynamic = 'force-dynamic'
 
@@ -217,6 +235,28 @@ export default async function ProfessorProfilePage({ params, searchParams }: Pag
                                             title="YouTube"
                                         >
                                             <Youtube size={20} />
+                                        </a>
+                                    )}
+                                    {profile.social.instagram && (
+                                        <a 
+                                            href={profile.social.instagram.startsWith('http') ? profile.social.instagram : `https://instagram.com/${profile.social.instagram.replace(/^@/, '')}`} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="w-12 h-12 flex items-center justify-center rounded-lg border border-[#1D5F31] text-[#1D5F31] hover:bg-[#1D5F31] hover:text-white transition-all duration-300"
+                                            title="Instagram"
+                                        >
+                                            <Instagram size={20} />
+                                        </a>
+                                    )}
+                                    {profile.social.tiktok && (
+                                        <a 
+                                            href={profile.social.tiktok.startsWith('http') ? profile.social.tiktok : `https://tiktok.com/@${profile.social.tiktok.replace(/^@/, '')}`} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="w-12 h-12 flex items-center justify-center rounded-lg border border-[#1D5F31] text-[#1D5F31] hover:bg-[#1D5F31] hover:text-white transition-all duration-300"
+                                            title="TikTok"
+                                        >
+                                            <Tiktok size={20} />
                                         </a>
                                     )}
                                     {profile.social.facebook && (
