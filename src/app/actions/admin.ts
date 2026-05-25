@@ -1473,3 +1473,91 @@ export async function markTeacherSalesAsPaid(enrollmentIds: string[]) {
         return { success: false, error: "Falha ao marcar como pago." }
     }
 }
+
+/**
+ * Busca detalhes completos de um curso para o modal de visualização do admin.
+ * Suporta paginação incremental: retorna apenas `page * pageSize` lessons
+ * no total, corretamente agrupadas por módulo.
+ */
+export async function getCourseFullDetailsAdmin(courseId: string, page: number = 1, pageSize: number = 10) {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        return { success: false, error: 'Não autorizado' };
+    }
+    try {
+        const courseDoc = await adminDb.collection('courses').doc(courseId).get()
+        if (!courseDoc.exists) {
+            return { success: false, error: 'Curso não encontrado.' }
+        }
+        const courseData = courseDoc.data()!
+
+        const lessonsSnap = await adminDb.collection('lessons')
+            .where('course_id', '==', courseId)
+            .orderBy('position', 'asc')
+            .get()
+
+        const allLessons = lessonsSnap.docs.map(doc => {
+            const d = doc.data()
+            return {
+                id: doc.id,
+                title: d.title,
+                type: d.type || 'video',
+                status: d.status,
+                duration: d.duration,
+                position: d.position,
+                module_id: d.module_id || 'sem-modulo',
+                module_title: d.module_title || 'Sem módulo',
+                is_quiz: d.is_quiz || false,
+            }
+        }) as any[]
+
+        const totalCount = allLessons.length
+
+        // Aplica paginação: page * pageSize define quantas lessons incluir
+        const limit = page * pageSize
+        const paginatedLessons = allLessons.slice(0, limit)
+
+        // Agrupa as lessons paginadas por módulo
+        const moduleMap = new Map<string, { id: string; title: string; lessons: any[] }>()
+        for (const lesson of paginatedLessons) {
+            const moduleId = lesson.module_id
+            const moduleTitle = lesson.module_title
+            if (!moduleMap.has(moduleId)) {
+                moduleMap.set(moduleId, { id: moduleId, title: moduleTitle, lessons: [] })
+            }
+            moduleMap.get(moduleId)!.lessons.push({
+                id: lesson.id,
+                title: lesson.title,
+                type: lesson.type,
+                status: lesson.status,
+                duration: lesson.duration,
+                position: lesson.position,
+                is_quiz: lesson.is_quiz,
+            })
+        }
+
+        // Se o curso tiver campo modules (da criação), respeita a ordem original
+        const courseModules = (courseData as any).modules
+        const modules = courseModules?.length > 0
+            ? courseModules.map((m: any) => ({
+                id: m.id,
+                title: m.title,
+                lessons: moduleMap.get(m.id)?.lessons || []
+            })).filter((m: any) => m.lessons.length > 0)
+            : Array.from(moduleMap.values())
+
+        return JSON.parse(JSON.stringify({
+            success: true,
+            course: { id: courseDoc.id, ...courseData },
+            modules,
+            totalCount,
+            currentPage: page,
+            totalPages: Math.ceil(totalCount / pageSize),
+            hasMore: limit < totalCount,
+            pageSize,
+        }))
+    } catch (error) {
+        console.error("Error getting course full details:", error)
+        return { success: false, error: "Falha ao buscar detalhes do curso." }
+    }
+}
