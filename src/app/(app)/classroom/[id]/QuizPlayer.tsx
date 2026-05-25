@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { CheckCircle2, XCircle, ChevronRight, HelpCircle, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { CheckCircle2, XCircle, ChevronRight, HelpCircle, AlertCircle, RotateCcw } from 'lucide-react';
 import { Question } from '@/lib/types/quiz';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -25,10 +25,22 @@ export function QuizPlayer({ quizData, onComplete }: QuizPlayerProps) {
 
   const questions = quizData.questions || [];
   const currentQuestion = questions[currentQuestionIndex];
+  const percentage = questions.length > 0 ? Math.round((score / questions.length) * 100) : 0;
+  const passed = percentage >= 100;
+
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
+  const completionFiredRef = useRef(false);
+
+  useEffect(() => {
+    if (isFinished && passed && !completionFiredRef.current) {
+      completionFiredRef.current = true;
+      onCompleteRef.current();
+    }
+  }, [isFinished, passed]);
 
   const handleConfirm = () => {
     if (selectedOption === null) return;
-    
     if (selectedOption === currentQuestion.correctAnswer) {
       setScore(prev => prev + 1);
     }
@@ -45,11 +57,14 @@ export function QuizPlayer({ quizData, onComplete }: QuizPlayerProps) {
     }
   };
 
-  useEffect(() => {
-    if (isFinished) {
-      onComplete();
-    }
-  }, [isFinished, onComplete]);
+  const resetQuiz = () => {
+    setCurrentQuestionIndex(0);
+    setSelectedOption(null);
+    setIsConfirmed(false);
+    setScore(0);
+    setIsFinished(false);
+    completionFiredRef.current = false;
+  };
 
   if (questions.length === 0) {
     return (
@@ -62,32 +77,59 @@ export function QuizPlayer({ quizData, onComplete }: QuizPlayerProps) {
   }
 
   if (isFinished) {
-    const percentage = Math.round((score / questions.length) * 100);
     return (
       <div className="flex flex-col items-center justify-center h-full p-12 text-center bg-slate-900 border border-slate-800 animate-in fade-in zoom-in-95 duration-500">
-        <div className="w-24 h-24 rounded-none border-2 border-green-500 flex items-center justify-center mb-6">
-          <CheckCircle2 size={48} className="text-green-500" />
-        </div>
-        <h3 className="text-3xl font-bold uppercase tracking-tighter text-white mb-2">Quiz Finalizado!</h3>
-        <p className="text-slate-400 text-sm uppercase tracking-[4px] font-bold mb-8">RESULTADO DA AVALIAÇÃO ESTRATÉGICA</p>
-        
-        <div className="grid grid-cols-2 gap-8 mb-12 w-full max-w-md">
-          <div className="p-6 border border-slate-800 bg-slate-800/50">
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Acertos</p>
-            <p className="text-3xl font-bold text-white">{score} / {questions.length}</p>
-          </div>
-          <div className="p-6 border border-slate-800 bg-slate-800/50">
-            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Aproveitamento</p>
-            <p className="text-3xl font-bold text-green-500">{percentage}%</p>
-          </div>
-        </div>
+        {passed ? (
+          <>
+            <div className="w-24 h-24 border-2 border-green-500 flex items-center justify-center mb-6 rounded-md">
+              <CheckCircle2 size={48} className="text-green-500" />
+            </div>
+            <h3 className="text-3xl font-bold uppercase tracking-tighter text-white mb-2">Quiz Finalizado!</h3>
+            <p className="text-slate-400 text-sm uppercase tracking-[4px] font-bold mb-8">AVALIAÇÃO CONCLUÍDA COM SUCESSO</p>
 
-        <button
-          onClick={() => window.location.reload()}
-          className="px-12 py-5 bg-green-600 text-white font-bold uppercase tracking-[3px] text-xs hover:bg-green-500 transition-all shadow-2xl active:scale-95"
-        >
-          Refazer Avaliação
-        </button>
+            <div className="grid grid-cols-2 gap-8 mb-12 w-full max-w-md">
+              <div className="p-6 border border-slate-800 bg-slate-800/50">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Acertos</p>
+                <p className="text-3xl font-bold text-white">{score} / {questions.length}</p>
+              </div>
+              <div className="p-6 border border-slate-800 bg-slate-800/50">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Aproveitamento</p>
+                <p className="text-3xl font-bold text-green-500">{percentage}%</p>
+              </div>
+            </div>
+
+            <div className="px-12 py-5 bg-green-600 text-white font-bold uppercase tracking-[3px] text-xs opacity-80 cursor-default rounded-md">
+              Aprovado
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="w-24 h-24 border-2 border-rose-500 flex items-center justify-center mb-6 rounded-md">
+              <XCircle size={48} className="text-rose-500" />
+            </div>
+            <h3 className="text-3xl font-bold uppercase tracking-tighter text-white mb-2">Não foi desta vez!</h3>
+            <p className="text-slate-400 text-sm uppercase tracking-[4px] font-bold mb-8">VOCÊ PRECISA DE 100% PARA APROVAÇÃO</p>
+
+            <div className="grid grid-cols-2 gap-8 mb-12 w-full max-w-md">
+              <div className="p-6 border border-slate-800 bg-slate-800/50">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Acertos</p>
+                <p className="text-3xl font-bold text-white">{score} / {questions.length}</p>
+              </div>
+              <div className="p-6 border border-slate-800 bg-slate-800/50">
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Aproveitamento</p>
+                <p className="text-3xl font-bold text-rose-500">{percentage}%</p>
+              </div>
+            </div>
+
+            <button
+              onClick={resetQuiz}
+              className="px-12 py-5 bg-rose-600 text-white font-bold uppercase tracking-[3px] text-xs hover:bg-rose-500 transition-all shadow-2xl active:scale-95 flex items-center gap-3 rounded-md"
+            >
+              <RotateCcw size={18} strokeWidth={3} />
+              Tentar Novamente
+            </button>
+          </>
+        )}
       </div>
     );
   }
@@ -184,14 +226,14 @@ export function QuizPlayer({ quizData, onComplete }: QuizPlayerProps) {
             <button
               disabled={selectedOption === null}
               onClick={handleConfirm}
-              className="px-12 py-5 bg-green-600 text-white font-bold uppercase tracking-[3px] text-xs hover:bg-green-500 transition-all border-none shadow-xl disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
+              className="px-12 py-5 bg-green-600 text-white font-bold uppercase tracking-[3px] text-xs hover:bg-green-500 transition-all border-none shadow-xl disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 rounded-md"
             >
               Confirmar Resposta
             </button>
           ) : (
             <button
               onClick={handleNext}
-              className="px-12 py-5 bg-white text-black font-bold uppercase tracking-[3px] text-xs hover:bg-slate-200 transition-all border-none shadow-xl flex items-center gap-3 active:scale-95"
+              className="px-12 py-5 bg-white text-black font-bold uppercase tracking-[3px] text-xs hover:bg-slate-200 transition-all border-none shadow-xl flex items-center gap-3 active:scale-95 rounded-md"
             >
               {currentQuestionIndex === questions.length - 1 ? 'Finalizar Quiz' : 'Próxima Questão'}
               <ChevronRight size={16} strokeWidth={3} />

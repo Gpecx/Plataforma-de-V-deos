@@ -196,9 +196,6 @@ export default async function FinancialDashboardPage() {
                                 <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-2">Comissão PowerPlay</p>
                             </div>
                         </div>
-                        <button className="text-[10px] font-bold uppercase tracking-widest text-[#1D5F31] hover:text-black transition flex items-center gap-1 mt-6">
-                            Detalhes do plano <ChevronRight size={12} />
-                        </button>
                     </div>
                 </div>
             </div>

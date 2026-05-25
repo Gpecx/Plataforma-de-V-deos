@@ -26,6 +26,7 @@
   --foreground: #f8fafc;
   --border: rgba(29, 95, 49, 0.3);
   --input: rgba(29, 95, 49, 0.2);
+  --ring: #1D5F31;
   --radius: 0.75rem;
   --global-bg-gradient: linear-gradient(135deg, #061629 0%, #061629 25%, #1D5F31 100%) fixed;
 

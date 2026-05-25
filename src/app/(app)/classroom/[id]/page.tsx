@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import Link from 'next/link'
 import {
     CheckCircle2,
     ChevronLeft,
     ChevronRight,
+    ChevronDown,
     Menu,
     X,
     PlayCircle,
@@ -59,6 +60,48 @@ export default function ClassroomPage() {
     const isMountedRef = useRef(true)
     const touchStartX = useRef(0)
     const sidebarRef = useRef<HTMLDivElement>(null)
+
+    // Accordion: módulos abertos (default = apenas o da aula atual)
+    const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set())
+
+    // Agrupa aulas por módulo para a sidebar hierárquica
+    const modulesWithLessons = useMemo(() => {
+        const courseMods = course?.modules || []
+        if (!courseMods.length) {
+            // Fallback: dados legados sem módulos
+            return lessons.length > 0
+                ? [{ id: 'default', title: 'ESTRUTURA DO CURSO', position: 0, lessons }]
+                : []
+        }
+        const grouped = courseMods.map((m: any) => ({
+            ...m,
+            lessons: lessons.filter((l: any) => l.module_id === m.id),
+        }))
+        // Inclui aulas órfãs (sem module_id) como módulo extra
+        const orphanLessons = lessons.filter(
+            (l: any) => !l.module_id || !courseMods.some((m: any) => m.id === l.module_id)
+        )
+        if (orphanLessons.length > 0) {
+            grouped.push({ id: 'default', title: 'CONTEÚDO ADICIONAL', position: 999, lessons: orphanLessons })
+        }
+        return grouped
+    }, [course, lessons])
+
+    // Garante que o módulo da aula atual esteja aberto
+    useEffect(() => {
+        if (currentLesson?.module_id) {
+            setExpandedModules((prev) => new Set(prev).add(currentLesson.module_id))
+        }
+    }, [currentLesson?.module_id])
+
+    const toggleModuleExpanded = (moduleId: string) => {
+        setExpandedModules((prev) => {
+            const next = new Set(prev)
+            if (next.has(moduleId)) next.delete(moduleId)
+            else next.add(moduleId)
+            return next
+        })
+    }
 
     // Refs for tracking time and state safely on unmount/events
     const currentUserRef = useRef<any>(null)
@@ -270,18 +313,22 @@ export default function ClassroomPage() {
 
     const toggleLessonStatus = async (id: string, autoNext: boolean = false) => {
         if (!currentUser) return
-        
+
+        // Quiz lessons só podem ser concluídas pelo próprio quiz (não por clique manual)
+        const lesson = lessons.find(l => l.id === id)
+        if (lesson?.type === 'quiz' && !completedLessons.includes(id)) return
+
         const isCompleted = completedLessons.includes(id)
-        
+
         setIsToggling(true)
-        
+
         try {
             await toggleLessonCompletion(course?.id, id, currentUser.uid, !isCompleted)
-            
+
             const newCompletedLessons = (prev: string[]) =>
                 prev.includes(id) ? prev.filter((item: string) => item !== id) : [...prev, id]
             setCompletedLessons(newCompletedLessons)
-            
+
             if (autoNext) {
                 const index = lessons.findIndex(l => l.id === id)
                 if (index < lessons.length - 1) {
@@ -301,6 +348,37 @@ export default function ClassroomPage() {
             }
         } catch (err) {
             console.error("Erro ao salvar conclusão:", err)
+        } finally {
+            setIsToggling(false)
+        }
+    }
+
+    const handleQuizComplete = async (lessonId: string) => {
+        if (!currentUser || !course) return
+        setIsToggling(true)
+        try {
+            const result = await toggleLessonCompletion(course.id, lessonId, currentUser.uid, true)
+            if (result.success) {
+                setCompletedLessons(prev =>
+                    prev.includes(lessonId) ? prev : [...prev, lessonId]
+                )
+                // Navega para próxima aula após aprovação no quiz
+                goToNextLesson()
+            }
+            // Verifica certificação após quiz aprovado
+            const updatedCount = completedLessons.includes(lessonId)
+                ? completedLessons.length
+                : completedLessons.length + 1
+            const progressPercent = lessons.length > 0 ? Math.round((updatedCount / lessons.length) * 100) : 0
+            if (progressPercent === 100 && !certificateIssued) {
+                const certResult = await processCertificateIssuance(course?.id, currentUser.uid)
+                if (certResult.success && certResult.data) {
+                    setCertificateIssued(true)
+                    setShowCongratulations(true)
+                }
+            }
+        } catch (err) {
+            console.error("Erro ao completar quiz:", err)
         } finally {
             setIsToggling(false)
         }
@@ -353,6 +431,8 @@ export default function ClassroomPage() {
     const progressPercent = lessons.length > 0
         ? Math.round((completedLessons.length / lessons.length) * 100)
         : 0
+
+    const isQuizLesson = currentLesson?.type === 'quiz'
 
     if (showCongratulations) {
         return (
@@ -462,7 +542,7 @@ export default function ClassroomPage() {
                                 {currentLesson?.type === 'quiz' ? (
                                     <QuizPlayer
                                         quizData={currentLesson.quizData || {}}
-                                        onComplete={() => toggleLessonStatus(currentLesson.id)}
+                                        onComplete={() => handleQuizComplete(currentLesson.id)}
                                     />
                                 ) : currentLesson?.mux_playback_id ? (
                                     <SecureMuxPlayer
@@ -612,26 +692,28 @@ export default function ClassroomPage() {
                             <span>Anterior</span>
                         </button>
 
-                        <button
-                            onClick={() => toggleLessonStatus(currentLesson?.id)}
-                            disabled={isToggling}
-                            className={`flex items-center justify-center gap-2 flex-1 min-h-[44px] px-4
-                                rounded-xl font-bold font-montserrat uppercase tracking-tighter text-xs
-                                transition-all border
-                                ${
-                                    completedLessons.includes(currentLesson?.id)
-                                        ? 'bg-[#00c853]/20 text-[#00c853] border-[#00c853]/30'
-                                        : 'bg-slate-800 text-white hover:bg-slate-700 border-slate-700 active:scale-95'
-                                }`}
-                        >
-                            {isToggling ? (
-                                <span>Carregando...</span>
-                            ) : completedLessons.includes(currentLesson?.id) ? (
-                                <><CheckCircle2 size={16} /><span>Concluída</span></>
-                            ) : (
-                                <span>Marcar Concluída</span>
-                            )}
-                        </button>
+                        {(!isQuizLesson || completedLessons.includes(currentLesson?.id)) && (
+                            <button
+                                onClick={() => toggleLessonStatus(currentLesson?.id)}
+                                disabled={isToggling}
+                                className={`flex items-center justify-center gap-2 flex-1 min-h-[44px] px-4
+                                    rounded-xl font-bold font-montserrat uppercase tracking-tighter text-xs
+                                    transition-all border
+                                    ${
+                                        completedLessons.includes(currentLesson?.id)
+                                            ? 'bg-[#00c853]/20 text-[#00c853] border-[#00c853]/30'
+                                            : 'bg-slate-800 text-white hover:bg-slate-700 border-slate-700 active:scale-95'
+                                    }`}
+                            >
+                                {isToggling ? (
+                                    <span>Carregando...</span>
+                                ) : completedLessons.includes(currentLesson?.id) ? (
+                                    <><CheckCircle2 size={16} /><span>Concluída</span></>
+                                ) : (
+                                    <span>Marcar Concluída</span>
+                                )}
+                            </button>
+                        )}
 
                         <button
                             onClick={goToNextLesson}
@@ -650,7 +732,7 @@ export default function ClassroomPage() {
                         </button>
                     </div>
 
-                    {/* Lista de Aulas Embutida (APENAS mobile <lg) */}
+                    {/* Lista de Aulas por Módulo (APENAS mobile <lg) */}
                     <div className="lg:hidden">
                         <div className="px-4 pt-4 pb-2 flex items-center justify-between">
                             <h3 className="text-[10px] font-bold uppercase tracking-[4px] text-[#1D5F31]">
@@ -661,67 +743,99 @@ export default function ClassroomPage() {
                             </span>
                         </div>
                         <div className="divide-y divide-slate-800/60">
-                            {lessons.map((lesson) => (
-                                <button
-                                    key={lesson.id}
-                                    onClick={() => {
-                                        cancelAutoNext()
-                                        setCurrentLesson(lesson)
-                                        // Scroll suave ao topo para ver o player
-                                        window.scrollTo({ top: 0, behavior: 'smooth' })
-                                    }}
-                                    className={`
-                                        w-full flex items-center gap-4 px-4 py-5 text-left transition-all
-                                        relative border-b border-slate-800/60 touch-manipulation
-                                        ${currentLesson?.id === lesson.id
-                                            ? 'bg-slate-800/50'
-                                            : 'active:bg-slate-800/30'}
-                                    `}
-                                >
-                                    {/* Indicador aula ativa */}
-                                    {currentLesson?.id === lesson.id && (
-                                        <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#1D5F31] rounded-r-full" />
-                                    )}
-
-                                    {/* Botão de conclusão com 44px de área */}
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            toggleLessonStatus(lesson.id)
-                                        }}
-                                        className={`
-                                            flex-shrink-0 w-11 h-11 -mx-1.5 rounded-full flex items-center justify-center
-                                            transition-all touch-manipulation
-                                            ${completedLessons.includes(lesson.id)
-                                                ? 'bg-[#1D5F31]/20 text-[#1D5F31]'
-                                                : 'bg-slate-800/50 text-slate-500'}
-                                        `}
-                                        aria-label={completedLessons.includes(lesson.id) ? 'Desmarcar aula' : 'Marcar como concluída'}
-                                    >
-                                        {completedLessons.includes(lesson.id)
-                                            ? <CheckCircle2 size={20} />
-                                            : <PlayCircle size={18} />
-                                        }
-                                    </button>
-
-                                    <div className="flex-1 min-w-0">
-                                        <p className={`text-sm font-bold tracking-tight line-clamp-2 leading-snug
-                                            ${currentLesson?.id === lesson.id ? 'text-white' : 'text-slate-400'}`}
+                            {modulesWithLessons.map((mod: any) => {
+                                const isExpanded = expandedModules.has(mod.id)
+                                return (
+                                    <div key={mod.id}>
+                                        <button
+                                            onClick={() => toggleModuleExpanded(mod.id)}
+                                            className="w-full flex items-center justify-between px-4 py-4 text-left hover:bg-slate-800/30 transition-colors touch-manipulation border-b border-slate-800/60"
                                         >
-                                            {lesson.title}
-                                        </p>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">
-                                                {lesson.type === 'quiz' ? 'Questionário' : 'Vídeo Aula'}
-                                            </span>
-                                            {currentLesson?.id === lesson.id && (
-                                                <span className="flex h-1.5 w-1.5 rounded-full bg-[#1D5F31] animate-pulse" />
-                                            )}
-                                        </div>
+                                            <div className="flex-1 min-w-0 pr-2">
+                                                <p className="text-[9px] font-bold uppercase tracking-[2px] text-[#1D5F31] leading-tight">
+                                                    MÓDULO {mod.position !== undefined && mod.position !== null ? (mod.position + 1) : ''}
+                                                </p>
+                                                <p className="text-sm font-bold text-white leading-snug mt-0.5 line-clamp-1">
+                                                    {mod.title}
+                                                </p>
+                                            </div>
+                                            <ChevronDown
+                                                size={16}
+                                                className={`text-slate-400 shrink-0 transition-transform duration-200 ${
+                                                    isExpanded ? 'rotate-0' : '-rotate-90'
+                                                }`}
+                                            />
+                                        </button>
+
+                                        {isExpanded && (
+                                            <div>
+                                                {mod.lessons.map((lesson: any) => (
+                                                    <button
+                                                        key={lesson.id}
+                                                        onClick={() => {
+                                                            cancelAutoNext()
+                                                            setCurrentLesson(lesson)
+                                                            window.scrollTo({ top: 0, behavior: 'smooth' })
+                                                        }}
+                                                        className={`
+                                                            w-full flex items-center gap-4 pl-8 pr-4 py-4 text-left transition-all
+                                                            relative border-b border-slate-800/40 touch-manipulation
+                                                            ${currentLesson?.id === lesson.id
+                                                                ? 'bg-slate-800/50'
+                                                                : 'active:bg-slate-800/30'}
+                                                        `}
+                                                    >
+                                                        {currentLesson?.id === lesson.id && (
+                                                            <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#1D5F31] rounded-r-full" />
+                                                        )}
+
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                toggleLessonStatus(lesson.id)
+                                                            }}
+                                                            className={`
+                                                                flex-shrink-0 w-11 h-11 -mx-1.5 rounded-full flex items-center justify-center
+                                                                transition-all touch-manipulation
+                                                                ${completedLessons.includes(lesson.id)
+                                                                    ? 'bg-[#1D5F31]/20 text-[#1D5F31]'
+                                                                    : 'bg-slate-800/50 text-slate-500'}
+                                                            `}
+                                                            aria-label={
+                                                                completedLessons.includes(lesson.id)
+                                                                    ? 'Desmarcar aula'
+                                                                    : 'Marcar como concluída'
+                                                            }
+                                                        >
+                                                            {completedLessons.includes(lesson.id)
+                                                                ? <CheckCircle2 size={20} />
+                                                                : <PlayCircle size={18} />
+                                                            }
+                                                        </button>
+
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className={`text-sm font-bold tracking-tight line-clamp-2 leading-snug
+                                                                ${currentLesson?.id === lesson.id ? 'text-white' : 'text-slate-400'}`}
+                                                            >
+                                                                {lesson.title}
+                                                            </p>
+                                                            <div className="flex items-center gap-2 mt-1">
+                                                                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">
+                                                                    {lesson.type === 'quiz' ? 'Questionário' : 'Vídeo Aula'}
+                                                                </span>
+                                                                {currentLesson?.id === lesson.id && (
+                                                                    <span className="flex h-1.5 w-1.5 rounded-full bg-[#1D5F31] animate-pulse" />
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
-                                </button>
-                            ))}
+                                )
+                            })}
                         </div>
                     </div>
 
@@ -788,71 +902,122 @@ export default function ClassroomPage() {
                             </span>
                         </div>
 
-                        {/* Lista de Aulas */}
+                        {/* Lista de Aulas por Módulo (Accordion) */}
                         <div
                             className="flex-1 overflow-y-auto scrollbar-hide"
                             style={scrollbarHideStyle}
                         >
-                            {lessons.map((lesson) => (
-                                <button
-                                    key={lesson.id}
-                                    onClick={() => {
-                                        cancelAutoNext()
-                                        setCurrentLesson(lesson)
-                                        if (window.innerWidth < 1024) setSidebarOpen(false)
-                                    }}
-                                    className={`
-                                        w-full flex items-center gap-4 px-6 py-5 text-left
-                                        transition-all relative border-b border-slate-800/60
-                                        touch-manipulation
-                                        ${currentLesson?.id === lesson.id
-                                            ? 'bg-slate-800/50'
-                                            : 'hover:bg-slate-800/30 active:bg-slate-800/40'}
-                                    `}
-                                >
-                                    {currentLesson?.id === lesson.id && (
-                                        <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#1D5F31] rounded-r-full" />
-                                    )}
-
-                                    {/* Botão de conclusão 44px */}
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation()
-                                            toggleLessonStatus(lesson.id)
-                                        }}
-                                        className={`
-                                            flex-shrink-0 w-11 h-11 -mx-1 rounded-full flex items-center justify-center
-                                            transition-all touch-manipulation
-                                            ${completedLessons.includes(lesson.id)
-                                                ? 'bg-[#1D5F31]/20 text-[#1D5F31]'
-                                                : 'bg-slate-800/60 text-slate-500 hover:text-[#1D5F31]'}
-                                        `}
-                                        aria-label={completedLessons.includes(lesson.id) ? 'Desmarcar aula' : 'Marcar como concluída'}
-                                    >
-                                        {completedLessons.includes(lesson.id)
-                                            ? <CheckCircle2 size={18} />
-                                            : <PlayCircle size={16} />
-                                        }
-                                    </button>
-
-                                    <div className="flex-1 min-w-0">
-                                        <p className={`text-[13px] font-bold tracking-tight line-clamp-2 leading-snug
-                                            ${currentLesson?.id === lesson.id ? 'text-white' : 'text-slate-400 hover:text-white'}`}
+                            {modulesWithLessons.map((mod: any) => {
+                                const isExpanded = expandedModules.has(mod.id)
+                                const moduleLessonCount = mod.lessons.length
+                                const moduleCompletedCount = mod.lessons.filter(
+                                    (l: any) => completedLessons.includes(l.id)
+                                ).length
+                                return (
+                                    <div key={mod.id} className="border-b border-slate-800/60">
+                                        {/* Cabeçalho do Módulo (colapsável) */}
+                                        <button
+                                            onClick={() => toggleModuleExpanded(mod.id)}
+                                            className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-slate-800/30 transition-colors touch-manipulation"
                                         >
-                                            {lesson.title}
-                                        </p>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">
-                                                {lesson.type === 'quiz' ? 'Questionário' : 'Vídeo Aula'}
-                                            </span>
-                                            {currentLesson?.id === lesson.id && (
-                                                <span className="flex h-1 w-1 rounded-full bg-[#1D5F31] animate-pulse" />
-                                            )}
-                                        </div>
+                                            <div className="flex-1 min-w-0 pr-2">
+                                                <p className="text-[10px] font-bold uppercase tracking-[3px] text-[#1D5F31] leading-tight">
+                                                    MÓDULO {mod.position !== undefined && mod.position !== null ? (mod.position + 1) : ''}
+                                                </p>
+                                                <p className="text-[13px] font-bold text-white leading-snug mt-0.5 line-clamp-2">
+                                                    {mod.title}
+                                                </p>
+                                            </div>
+                                            <div className="flex items-center gap-3 shrink-0">
+                                                <span className="text-[10px] font-bold text-slate-500">
+                                                    {moduleCompletedCount}/{moduleLessonCount}
+                                                </span>
+                                                <ChevronDown
+                                                    size={16}
+                                                    className={`text-slate-400 transition-transform duration-200 ${
+                                                        isExpanded ? 'rotate-0' : '-rotate-90'
+                                                    }`}
+                                                />
+                                            </div>
+                                        </button>
+
+                                        {/* Lista de aulas do módulo */}
+                                        {isExpanded && (
+                                            <div className="pb-2">
+                                                {mod.lessons.map((lesson: any) => (
+                                                    <button
+                                                        key={lesson.id}
+                                                        onClick={() => {
+                                                            cancelAutoNext()
+                                                            setCurrentLesson(lesson)
+                                                            if (window.innerWidth < 1024) setSidebarOpen(false)
+                                                        }}
+                                                        className={`
+                                                            w-full flex items-center gap-4 pl-10 pr-6 py-4 text-left
+                                                            transition-all relative
+                                                            touch-manipulation
+                                                            ${currentLesson?.id === lesson.id
+                                                                ? 'bg-slate-800/50'
+                                                                : 'hover:bg-slate-800/30 active:bg-slate-800/40'}
+                                                        `}
+                                                    >
+                                                        {currentLesson?.id === lesson.id && (
+                                                            <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#1D5F31] rounded-r-full" />
+                                                        )}
+
+                                                        <button
+                                                            type="button"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                toggleLessonStatus(lesson.id)
+                                                            }}
+                                                            className={`
+                                                                flex-shrink-0 w-11 h-11 -mx-1 rounded-full flex items-center justify-center
+                                                                transition-all touch-manipulation
+                                                                ${completedLessons.includes(lesson.id)
+                                                                    ? 'bg-[#1D5F31]/20 text-[#1D5F31]'
+                                                                    : 'bg-slate-800/60 text-slate-500 hover:text-[#1D5F31]'}
+                                                            `}
+                                                            aria-label={
+                                                                completedLessons.includes(lesson.id)
+                                                                    ? 'Desmarcar aula'
+                                                                    : 'Marcar como concluída'
+                                                            }
+                                                        >
+                                                            {completedLessons.includes(lesson.id)
+                                                                ? <CheckCircle2 size={18} />
+                                                                : <PlayCircle size={16} />
+                                                            }
+                                                        </button>
+
+                                                        <div className="flex-1 min-w-0">
+                                                            <p className={`text-[13px] font-bold tracking-tight line-clamp-2 leading-snug
+                                                                ${currentLesson?.id === lesson.id ? 'text-white' : 'text-slate-400 hover:text-white'}`}
+                                                            >
+                                                                {lesson.title}
+                                                            </p>
+                                                            <div className="flex items-center gap-2 mt-1">
+                                                                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">
+                                                                    {lesson.type === 'quiz' ? 'Questionário' : 'Vídeo Aula'}
+                                                                </span>
+                                                                {currentLesson?.id === lesson.id && (
+                                                                    <span className="flex h-1 w-1 rounded-full bg-[#1D5F31] animate-pulse" />
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </button>
+                                                ))}
+
+                                                {mod.lessons.length === 0 && (
+                                                    <p className="text-[11px] text-slate-600 pl-10 pr-6 py-4 italic">
+                                                        Nenhuma aula neste módulo.
+                                                    </p>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
-                                </button>
-                            ))}
+                                )
+                            })}
                         </div>
                     </div>
                 </aside>

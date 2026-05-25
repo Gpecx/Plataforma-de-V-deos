@@ -9,6 +9,8 @@ export interface Question {
 }
 
 export interface Lesson {
+    id?: string
+    module_id?: string
     title: string
     video_url: string
     position: number
@@ -27,6 +29,12 @@ export interface Lesson {
     }
 }
 
+export interface Module {
+    id: string
+    title: string
+    lessons: Lesson[]
+}
+
 interface CourseFormData {
     title: string
     category: string
@@ -42,6 +50,7 @@ interface CourseFormData {
     intro_video_playback_id?: string
     curriculum: string[]
     lessons: Lesson[]
+    modules: Module[]
     tags: string[]
 }
 
@@ -49,6 +58,7 @@ interface CourseFormStore {
     formData: CourseFormData
     setStepData: (data: Partial<CourseFormData>) => void
     setLessons: (lessons: Lesson[]) => void
+    setModules: (modules: Module[]) => void
     resetForm: () => void
 }
 
@@ -66,6 +76,7 @@ const defaultFormData: CourseFormData = {
     intro_video_playback_id: '',
     curriculum: [],
     lessons: [],
+    modules: [],
     tags: []
 }
 
@@ -78,6 +89,9 @@ export const useCourseFormStore = create<CourseFormStore>()(
             })),
             setLessons: (lessons) => set((state) => ({
                 formData: { ...state.formData, lessons }
+            })),
+            setModules: (modules) => set((state) => ({
+                formData: { ...state.formData, modules }
             })),
             resetForm: () => {
                 set({ formData: defaultFormData })

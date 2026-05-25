@@ -46,13 +46,23 @@ export async function getAdminClassroomData(courseId: string) {
         // Busca todas as lições SEM filtro de status
         const lessonsSnapshot = await adminDb.collection('lessons')
             .where('course_id', '==', courseId)
-            .orderBy('position', 'asc')
             .get()
         
         const lessonsData = lessonsSnapshot.docs.map(doc => {
             const data = doc.data()
             data.id = doc.id
             return serializeFirestoreData(data)
+        })
+
+        // Ordena por módulo (position) → lição (position)
+        const courseModules: { id: string; position: number }[] = courseRawData.modules || []
+        const modulePositionMap = new Map<string, number>()
+        courseModules.forEach((m) => modulePositionMap.set(m.id, m.position))
+        lessonsData.sort((a: any, b: any) => {
+            const aModPos = modulePositionMap.get(a.module_id) ?? 999
+            const bModPos = modulePositionMap.get(b.module_id) ?? 999
+            if (aModPos !== bModPos) return aModPos - bModPos
+            return (a.position ?? 0) - (b.position ?? 0)
         })
 
         // Busca nome do professor

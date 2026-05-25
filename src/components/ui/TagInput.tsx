@@ -73,7 +73,7 @@ export default function TagInput({ tags, onChange, maxTags = 5, placeholder = "D
                 onBlur={addTag}
                 placeholder={tags.length >= maxTags ? "Limite atingido" : placeholder}
                 disabled={tags.length >= maxTags}
-                className="bg-white border-2 border-black focus:border-black focus:ring-black h-12 rounded-md text-sm font-medium transition-all text-black placeholder:text-black/50"
+                className="bg-white border-2 border-black focus:border-[#1D5F31] focus-visible:ring-0 focus-visible:border-[#1D5F31] h-12 rounded-md text-sm font-medium transition-all text-black placeholder:text-black/50"
             />
             <p className="text-[9px] text-black/60 font-bold uppercase tracking-widest">
                 {tags.length}/{maxTags} tags • Pressione Enter ou vírgula para adicionar

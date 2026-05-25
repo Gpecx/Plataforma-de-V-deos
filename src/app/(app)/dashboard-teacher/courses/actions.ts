@@ -24,6 +24,24 @@ export async function createCourseAction(formData: any) {
     if (!user) return { error: "Não autorizado" }
 
     try {
+        // Constrói metadados dos módulos
+        const modules =
+            formData.modules && formData.modules.length > 0
+                ? formData.modules.map((m: any, i: number) => ({
+                      id: m.id || `mod-${Date.now()}-${i}`,
+                      title: m.title || `MÓDULO ${i + 1}`,
+                      position: i,
+                  }))
+                : formData.lessons && formData.lessons.length > 0
+                  ? [
+                        {
+                            id: `mod-${Date.now()}`,
+                            title: 'ESTRUTURA DO CURSO',
+                            position: 0,
+                        },
+                    ]
+                  : []
+
         const courseData = {
             teacher_id: user.uid,
             title: formData.title,
@@ -41,6 +59,7 @@ export async function createCourseAction(formData: any) {
             intro_video_playback_id: formData.intro_video_playback_id || '',
             curriculum: formData.curriculum || [],
             tags: formData.tags || [],
+            modules,
             created_at: new Date(),
             updated_at: new Date()
         }
@@ -49,31 +68,39 @@ export async function createCourseAction(formData: any) {
         const courseId = courseRef.id
 
         // 2. Insere as aulas vinculadas a este curso
-        if (formData.lessons && formData.lessons.length > 0) {
+        if (formData.lessons && formData.lessons.length > 0 && modules.length > 0) {
             const batch = adminDb.batch()
-            const total = formData.lessons.length
-            formData.lessons.forEach((lesson: any, index: number) => {
-                const lessonRef = adminDb.collection('lessons').doc()
-                const lessonPayload: any = {
-                    course_id: courseId,
-                    title: lesson.title,
-                    video_url: lesson.video_url || '',
-                    mux_upload_id: lesson.mux_upload_id || '',
-                    mux_playback_id: lesson.mux_playback_id || '',
-                    mux_asset_id: lesson.mux_asset_id || '',
-                    // Ídice 0 (topo/mais nova para o professor) recebe o maior número de posição;
-                    // O aluno na Classroom ordena por 'position asc', vendo as mais antigas primeiro.
-                    position: total - index,
-                    description: lesson.description || '',
-                    notas: lesson.notas || '',
-                    status: 'PENDENTE',
-                    created_at: new Date()
-                }
 
-                if (lesson.type) lessonPayload.type = lesson.type
-                if (lesson.quizData) lessonPayload.quizData = lesson.quizData
+            // Se não veio estrutura de módulos explícita, usa módulo único
+            const moduleLessonMap =
+                formData.modules && formData.modules.length > 0
+                    ? formData.modules
+                    : [{ ...modules[0], lessons: formData.lessons }]
 
-                batch.set(lessonRef, lessonPayload)
+            moduleLessonMap.forEach((module: any) => {
+                const moduleId = modules.find((m: any) => m.position === module.position)?.id || module.id
+                ;(module.lessons || []).forEach((lesson: any, index: number) => {
+                    const lessonRef = adminDb.collection('lessons').doc()
+                    const lessonPayload: any = {
+                        course_id: courseId,
+                        module_id: moduleId,
+                        title: lesson.title,
+                        video_url: lesson.video_url || '',
+                        mux_upload_id: lesson.mux_upload_id || '',
+                        mux_playback_id: lesson.mux_playback_id || '',
+                        mux_asset_id: lesson.mux_asset_id || '',
+                        position: index,
+                        description: lesson.description || '',
+                        notas: lesson.notas || '',
+                        status: 'PENDENTE',
+                        created_at: new Date(),
+                    }
+
+                    if (lesson.type) lessonPayload.type = lesson.type
+                    if (lesson.quizData) lessonPayload.quizData = lesson.quizData
+
+                    batch.set(lessonRef, lessonPayload)
+                })
             })
             await batch.commit()
         }
@@ -222,6 +249,16 @@ export async function updateCourseAction(courseId: string, formData: any) {
 
         await courseRef.update(updateData)
 
+        // Atualiza metadados dos módulos no curso
+        if (formData.modules !== undefined) {
+            const modulesMeta = formData.modules.map((m: any, i: number) => ({
+                id: m.id,
+                title: m.title,
+                position: i,
+            }))
+            await courseRef.update({ modules: modulesMeta })
+        }
+
         // 3. Gerencia as aulas
         const lessons = formData.lessons || []
         const lessonsRef = adminDb.collection('lessons')
@@ -254,57 +291,65 @@ export async function updateCourseAction(courseId: string, formData: any) {
             }
         }
 
+        // Agrupa aulas por module_id para position relativa ao módulo
+        const lessonsByModule: Record<string, any[]> = {}
+        lessons.forEach((lesson: any) => {
+            const mid = lesson.module_id || 'default'
+            if (!lessonsByModule[mid]) lessonsByModule[mid] = []
+            lessonsByModule[mid].push(lesson)
+        })
+
         // Upsert
-        const totalLessons = lessons.length
-        lessons.forEach((lesson: any, index: number) => {
-            const isNew = !lesson.id || lesson.id.startsWith('new-')
-            const lessonRef = isNew ? lessonsRef.doc() : lessonsRef.doc(lesson.id)
+        Object.values(lessonsByModule).forEach((moduleLessons: any[]) => {
+            moduleLessons.forEach((lesson: any, lessonIndex: number) => {
+                const isNew = !lesson.id || lesson.id.startsWith('new-')
+                const lessonRef = isNew ? lessonsRef.doc() : lessonsRef.doc(lesson.id)
 
-            const payload: any = {
-                course_id: courseId,
-                title: lesson.title,
-                video_url: lesson.video_url || '',
-                mux_upload_id: lesson.mux_upload_id || '',
-                mux_playback_id: lesson.mux_playback_id || '',
-                mux_asset_id: lesson.mux_asset_id || '',
-                // Índice 0 (topo/mais nova para o professor) recebe o maior número de posição;
-                // O aluno na Classroom ordena por 'position asc', vendo as mais antigas primeiro.
-                position: totalLessons - index,
-                description: lesson.description || '',
-                notas: lesson.notas || '',
-                updated_at: new Date()
-            }
+                const payload: any = {
+                    course_id: courseId,
+                    module_id: lesson.module_id || 'default',
+                    title: lesson.title,
+                    video_url: lesson.video_url || '',
+                    mux_upload_id: lesson.mux_upload_id || '',
+                    mux_playback_id: lesson.mux_playback_id || '',
+                    mux_asset_id: lesson.mux_asset_id || '',
+                    position: lessonIndex,
+                    description: lesson.description || '',
+                    notas: lesson.notas || '',
+                    updated_at: new Date()
+                }
 
-            if (lesson.type) {
-                payload.type = lesson.type
-            }
-            if (lesson.quizData) {
-                payload.quizData = lesson.quizData
-            }
+                if (lesson.type) {
+                    payload.type = lesson.type
+                }
+                if (lesson.quizData) {
+                    payload.quizData = lesson.quizData
+                }
 
-            // Se o status for explicitamento enviado (ex: resubmit), usa ele
-            if (lesson.status && !isNew) {
-                payload.status = lesson.status
-            } else if (isNew) {
-                payload.created_at = new Date()
-                payload.status = 'PENDENTE'
-            } else {
-                // Se já existia, verifica se mudou algo vital para resetar o status
-                const existing = existingLessonsMap.get(lesson.id)
-                if (existing) {
-                    const hasChanged = existing.title !== lesson.title || 
-                                      existing.video_url !== lesson.video_url || 
-                                      existing.description !== lesson.description ||
-                                      existing.notas !== lesson.notas ||
-                                      JSON.stringify(existing.quizData) !== JSON.stringify(lesson.quizData)
-                    // Só reseta para PENDENTE se não for uma solicitação de exclusão e houver mudanças
-                    if (hasChanged && lesson.status !== 'SOLICITADO_EXCLUSAO') {
-                        payload.status = 'PENDENTE'
+                // Se o status for explicitamento enviado (ex: resubmit), usa ele
+                if (lesson.status && !isNew) {
+                    payload.status = lesson.status
+                } else if (isNew) {
+                    payload.created_at = new Date()
+                    payload.status = 'PENDENTE'
+                } else {
+                    // Se já existia, verifica se mudou algo vital para resetar o status
+                    const existing = existingLessonsMap.get(lesson.id)
+                    if (existing) {
+                        const hasChanged = existing.title !== lesson.title || 
+                                          existing.video_url !== lesson.video_url || 
+                                          existing.description !== lesson.description ||
+                                          existing.notas !== lesson.notas ||
+                                          JSON.stringify(existing.quizData) !== JSON.stringify(lesson.quizData)
+                        // Só reseta para PENDENTE se não for uma solicitação de exclusão e houver mudanças
+                        if (hasChanged && lesson.status !== 'SOLICITADO_EXCLUSAO') {
+                            payload.status = 'PENDENTE'
+                        }
                     }
                 }
-            }
 
-            batch.set(lessonRef, payload, { merge: true })
+                batch.set(lessonRef, payload, { merge: true })
+            })
         })
 
         await batch.commit()
@@ -533,11 +578,11 @@ export async function deleteTrailerAction(courseId: string) {
 }
 
 /**
- * Autosave: persiste apenas as aulas/lessons em background.
- * Upserts todas as aulas do estado local, deleta as removidas (com limpeza Mux),
+ * Autosave: persiste módulos + aulas em background.
+ * Upserts todos os módulos e aulas do estado local, deleta aulas removidas,
  * e retorna um mapa de IDs new-* → IDs reais do Firestore.
  */
-export async function autosaveCourseAction(courseId: string, formData: { lessons: any[] }) {
+export async function autosaveCourseAction(courseId: string, formData: { modules: any[] }) {
     const user = await getAuthUser()
     if (!user) return { error: "Não autorizado" }
 
@@ -548,15 +593,24 @@ export async function autosaveCourseAction(courseId: string, formData: { lessons
             return { error: "Curso não encontrado ou você não tem permissão para editá-lo." }
         }
 
-        const lessons = formData.lessons || []
+        const modules = formData.modules || []
+        const allLessons = modules.flatMap((m: any) => m.lessons || [])
         const lessonsRef = adminDb.collection('lessons')
         const batch = adminDb.batch()
         const idMap: Record<string, string> = {}
 
+        // Salva metadados dos módulos no documento do curso
+        const modulesMeta = modules.map((m: any, i: number) => ({
+            id: m.id,
+            title: m.title,
+            position: i,
+        }))
+        batch.set(courseRef, { modules: modulesMeta, updated_at: new Date() }, { merge: true })
+
         // Deleta aulas que foram removidas pelo professor
         const existingLessonsSnapshot = await lessonsRef.where('course_id', '==', courseId).get()
         const existingIds = existingLessonsSnapshot.docs.map(doc => doc.id)
-        const incomingIds = lessons.map((l: any) => l.id).filter((id: string) => id && !id.startsWith('new-'))
+        const incomingIds = allLessons.map((l: any) => l.id).filter((id: string) => id && !id.startsWith('new-'))
         const idsToDelete = existingIds.filter(id => !incomingIds.includes(id))
 
         for (const id of idsToDelete) {
@@ -576,46 +630,45 @@ export async function autosaveCourseAction(courseId: string, formData: { lessons
             }
         }
 
-        // Upsert aulas atuais
-        const totalLessons = lessons.length
-        lessons.forEach((lesson: any, index: number) => {
-            const isNew = !lesson.id || lesson.id.startsWith('new-')
-            const lessonRef = isNew ? lessonsRef.doc() : lessonsRef.doc(lesson.id)
+        // Upsert aulas com module_id e position relativa ao módulo
+        modules.forEach((module: any) => {
+            ;(module.lessons || []).forEach((lesson: any, lessonIndex: number) => {
+                const isNew = !lesson.id || lesson.id.startsWith('new-')
+                const lessonRef = isNew ? lessonsRef.doc() : lessonsRef.doc(lesson.id)
 
-            if (isNew) {
-                idMap[lesson.id] = lessonRef.id
-            }
+                if (isNew) {
+                    idMap[lesson.id] = lessonRef.id
+                }
 
-            const payload: any = {
-                course_id: courseId,
-                title: lesson.title,
-                video_url: lesson.video_url || '',
-                mux_upload_id: lesson.mux_upload_id || '',
-                mux_playback_id: lesson.mux_playback_id || '',
-                mux_asset_id: lesson.mux_asset_id || '',
-                position: totalLessons - index,
-                description: lesson.description || '',
-                notas: lesson.notas || '',
-                updated_at: new Date()
-            }
+                const payload: any = {
+                    course_id: courseId,
+                    module_id: module.id,
+                    title: lesson.title,
+                    video_url: lesson.video_url || '',
+                    mux_upload_id: lesson.mux_upload_id || '',
+                    mux_playback_id: lesson.mux_playback_id || '',
+                    mux_asset_id: lesson.mux_asset_id || '',
+                    position: lessonIndex,
+                    description: lesson.description || '',
+                    notas: lesson.notas || '',
+                    updated_at: new Date(),
+                }
 
-            if (lesson.type) payload.type = lesson.type
-            if (lesson.quizData) payload.quizData = lesson.quizData
+                if (lesson.type) payload.type = lesson.type
+                if (lesson.quizData) payload.quizData = lesson.quizData
 
-            if (isNew) {
-                payload.created_at = new Date()
-                payload.status = 'PENDENTE'
-            } else {
-                payload.status = lesson.status || 'PENDENTE'
-            }
+                if (isNew) {
+                    payload.created_at = new Date()
+                    payload.status = 'PENDENTE'
+                } else {
+                    payload.status = lesson.status || 'PENDENTE'
+                }
 
-            batch.set(lessonRef, payload, { merge: true })
+                batch.set(lessonRef, payload, { merge: true })
+            })
         })
 
         await batch.commit()
-
-        // Atualiza timestamp do curso
-        await courseRef.update({ updated_at: new Date() })
 
         return { success: true, idMap }
     } catch (error) {

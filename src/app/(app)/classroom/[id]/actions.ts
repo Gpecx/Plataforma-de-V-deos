@@ -214,10 +214,9 @@ export async function getClassroomData(courseId: string, userId: string) {
             ...courseRawData,
         })
 
-        // 3. Busca lições
+        // 3. Busca lições (sem orderBy — a ordenação será feita por módulo + posição)
         const lessonsSnapshot = await adminDb.collection('lessons')
             .where('course_id', '==', courseId)
-            .orderBy('position', 'asc')
             .get()
         
         const isTeacher = courseRawData.teacher_id === userId
@@ -231,6 +230,17 @@ export async function getClassroomData(courseId: string, userId: string) {
         if (!isAdmin && !isTeacher) {
             lessonsData = lessonsData.filter((l: any) => l.status === 'APROVADO')
         }
+
+        // Ordena por módulo (position) → lição (position)
+        const courseModules: { id: string; position: number }[] = courseRawData.modules || []
+        const modulePositionMap = new Map<string, number>()
+        courseModules.forEach((m) => modulePositionMap.set(m.id, m.position))
+        lessonsData.sort((a: any, b: any) => {
+            const aModPos = modulePositionMap.get(a.module_id) ?? 999
+            const bModPos = modulePositionMap.get(b.module_id) ?? 999
+            if (aModPos !== bModPos) return aModPos - bModPos
+            return (a.position ?? 0) - (b.position ?? 0)
+        })
 
         // 4. Busca progresso do usuário
         const progressResult = await getUserCourseProgress(userId, courseId)
