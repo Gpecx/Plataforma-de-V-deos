@@ -160,25 +160,27 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                     </h1>
 
                     {/* Subtítulo */}
-                    <p
+                    <span
+                        className="hero-badge"
                         style={{
+                            background: "rgba(29, 95, 49, 0.8)",
+                            border: "1px solid rgba(255, 255, 255, 0.2)",
                             color: "#ffffff",
-                            fontSize: "clamp(1rem, 2vw, 1.2rem)",
-                            fontWeight: 600,
+                            fontSize: "0.75rem",
+                            fontWeight: 800,
+                            letterSpacing: "0.15em",
+                            textTransform: "uppercase",
+                            padding: "0.6rem 1.5rem",
                             marginBottom: "2.5rem",
-                            maxWidth: "560px",
-                            lineHeight: 1.6,
-                            background: "rgba(29, 95, 49, 0.6)",
-                            border: "1px solid rgba(255, 255, 255, 0.15)",
+                            display: "inline-block",
                             borderRadius: "100px",
-                            padding: "0.5rem 1.5rem",
                             backdropFilter: "blur(10px)",
-                            boxShadow: "0 4px 15px rgba(0, 0, 0, 0.2)",
+                            boxShadow: "0 4px 15px rgba(0, 0, 0, 0.2), 0 0 15px rgba(29, 95, 49, 0.4)",
                             textShadow: "0 1px 2px rgba(0,0,0,0.5)"
                         }}
                     >
                         Cursos ilimitados em Engenharia Elétrica &amp; Computação
-                    </p>
+                    </span>
 
                     {/* Email + CTA */}
                     <div
@@ -594,29 +596,36 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                             { Icon: Handshake, title: "Soluções", text: "Metodologias exclusivas que transformam desafios em oportunidades." },
                             { Icon: BarChart3, title: "Resultados", text: "Métricas claras e acompanhamento em tempo real do seu progresso." },
                         ].map(({ Icon, title, text }, i) => (
-                            <div
-                                key={i}
-                                style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}
-                            >
+                            <div key={i} className="benefit-card glow-card">
                                 <div
                                     style={{
-                                        width: "72px",
-                                        height: "72px",
+                                        width: "56px",
+                                        height: "56px",
                                         background: "rgba(255, 255, 255, 0.1)",
                                         border: "1px solid rgba(255, 255, 255, 0.3)",
                                         display: "flex",
                                         alignItems: "center",
                                         justifyContent: "center",
+                                        marginBottom: "1.25rem",
                                         color: "#ffffff",
-                                        borderRadius: "16px",
+                                        borderRadius: "12px",
                                     }}
                                 >
-                                    <Icon size={32} />
+                                    <Icon size={26} />
                                 </div>
-                                <h3 style={{ color: "#f1f5f9", fontWeight: 800, fontSize: "1.1rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                                <h3
+                                    style={{
+                                        color: "#f1f5f9",
+                                        fontWeight: 800,
+                                        fontSize: "1.05rem",
+                                        marginBottom: "0.6rem",
+                                        textTransform: "uppercase",
+                                        letterSpacing: "0.03em",
+                                    }}
+                                >
                                     {title}
                                 </h3>
-                                <p style={{ color: "#ffffff", fontSize: "0.9rem", lineHeight: 1.7, maxWidth: "260px" }}>
+                                <p style={{ color: "#ffffff", fontSize: "0.9rem", lineHeight: 1.65 }}>
                                     {text}
                                 </p>
                             </div>
