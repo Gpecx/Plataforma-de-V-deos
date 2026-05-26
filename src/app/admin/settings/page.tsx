@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { getSettings, saveSettings, GlobalSettings, BannersData, BannerItem, searchCourses, SearchedCourse, getCoursesByIds } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
 import { Image as ImageIcon, Settings, Palette, Globe, UploadCloud, Loader2, ArrowUp, ArrowDown, Search, X, BookOpen, Plus, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
-import { uploadCourseImage } from '@/lib/storage-helpers'
+import { uploadCourseImage, uploadBannerImage } from '@/lib/storage-helpers'
 import Logo from '@/components/Logo'
 
 function CourseCard({ course, index, onAdd, onRemove, variant = 'search' }: {
@@ -109,6 +109,7 @@ export default function AdminSettingsPage() {
     const [selectedCourses, setSelectedCourses] = useState<SearchedCourse[]>([])
     const [searchTimeout, setSearchTimeout] = useState<ReturnType<typeof setTimeout> | null>(null)
     const [activeSlides, setActiveSlides] = useState<Record<string, number>>({})
+    const [uploadingBannerCategory, setUploadingBannerCategory] = useState<keyof BannersData | null>(null)
 
     const setActiveSlide = useCallback((id: keyof BannersData, index: number) => {
         setActiveSlides(prev => ({ ...prev, [id]: index }))
@@ -236,6 +237,28 @@ export default function AdminSettingsPage() {
             alert("Erro no upload: " + error.message)
         } finally {
             setUploadingLogo(false)
+        }
+    }
+
+    const fileInputRef = useRef<HTMLInputElement>(null)
+
+    const handleBannerUpload = async (file: File) => {
+        const category = selectedCategory
+        if (!file || !category) return
+        const items = settings.banners[category]
+        const sortedItems = [...items].sort((a, b) => a.order - b.order)
+        const totalSlides = sortedItems.length
+        const rawIndex = activeSlides[category] ?? 0
+        const index = Math.min(rawIndex, Math.max(0, totalSlides - 1))
+
+        setUploadingBannerCategory(category)
+        try {
+            const url = await uploadBannerImage(file, category)
+            updateBanner(category, index, 'url', url)
+        } catch (error: any) {
+            alert("Erro no upload do banner: " + error.message)
+        } finally {
+            setUploadingBannerCategory(null)
         }
     }
 
@@ -680,12 +703,39 @@ export default function AdminSettingsPage() {
                                                                     REMOVER ITEM ✕
                                                                 </button>
                                                             </div>
-                                                            <Input
-                                                                value={activeItem.url}
-                                                                onChange={(e) => updateBanner(currentId, activeIndex, 'url', e.target.value)}
-                                                                placeholder="https://images.unsplash.com/photo-..."
-                                                                className="bg-white border border-black rounded-md h-12 text-[11px] text-slate-900 font-bold placeholder:text-slate-500 w-full focus:border-black shadow-inner"
-                                                            />
+                                                            <div className="flex items-center gap-2">
+                                                                <Input
+                                                                    value={activeItem.url}
+                                                                    onChange={(e) => updateBanner(currentId, activeIndex, 'url', e.target.value)}
+                                                                    placeholder="https://images.unsplash.com/photo-..."
+                                                                    className="bg-white border border-black rounded-md h-12 text-[11px] text-slate-900 font-bold placeholder:text-slate-500 w-full focus:border-black shadow-inner"
+                                                                />
+                                                                <input
+                                                                    ref={fileInputRef}
+                                                                    type="file"
+                                                                    accept="image/jpeg,image/png,image/webp"
+                                                                    className="hidden"
+                                                                    onChange={(e) => {
+                                                                        const file = e.target.files?.[0]
+                                                                        if (file) {
+                                                                            handleBannerUpload(file)
+                                                                            e.target.value = ''
+                                                                        }
+                                                                    }}
+                                                                />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => fileInputRef.current?.click()}
+                                                                    disabled={uploadingBannerCategory === currentId}
+                                                                    className="w-12 h-12 rounded-md border border-black/20 bg-white flex items-center justify-center hover:bg-slate-50 hover:border-black/40 disabled:opacity-40 disabled:cursor-not-allowed transition-all shrink-0"
+                                                                >
+                                                                    {uploadingBannerCategory === currentId ? (
+                                                                        <Loader2 size={18} className="animate-spin text-[#1D5F31]" />
+                                                                    ) : (
+                                                                        <UploadCloud size={18} className="text-slate-600" />
+                                                                    )}
+                                                                </button>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>

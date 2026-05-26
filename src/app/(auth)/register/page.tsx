@@ -150,6 +150,7 @@ function RegisterForm() {
     const [estado, setEstado] = useState('')
     const [isCepLoading, setIsCepLoading] = useState(false)
     const [isCnpjLoading, setIsCnpjLoading] = useState(false)
+    const [cnpjError, setCnpjError] = useState<string | null>(null)
     const [cepError, setCepError] = useState('')
 
     const validateStep1 = () => {
@@ -229,6 +230,7 @@ function RegisterForm() {
 
     const handleCpfCnpjChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCpfCnpj(personType === 'CPF' ? maskCPF(e.target.value) : maskCNPJ(e.target.value))
+        if (cnpjError) setCnpjError(null)
     }
 
     const handleTypeChange = (type: 'CPF' | 'CNPJ') => {
@@ -236,6 +238,7 @@ function RegisterForm() {
             setPersonType(type)
             setCpfCnpj('')
             setCpfCnpjTouched(false)
+            setCnpjError(null)
         }
     }
 
@@ -280,37 +283,44 @@ function RegisterForm() {
         }
     }
 
-    // Busca automática de CNPJ - Refatorado para fetch direto (Instrução do Usuário)
+    // Busca automática de CNPJ via API Route interna (evita CORS + fallback ReceitaWS)
     useEffect(() => {
         const triggerCnpjLookup = async () => {
             if (personType !== 'CNPJ') return
-            
-            // Limpeza Obrigatória: extrair apenas os números
-            const cnpjLimpo = cpfCnpj.replace(/\D/g, '') 
-            
-            // Condição de Disparo: exatamente 14 dígitos numéricos
+
+            setCnpjError(null)
+
+            const cnpjLimpo = cpfCnpj.replace(/\D/g, '')
+
             if (cnpjLimpo.length === 14) {
                 setIsCnpjLoading(true)
                 try {
-                    const response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpjLimpo}`)
-                    
+                    const response = await fetch(`/api/cnpj?cnpj=${cnpjLimpo}`)
+
                     if (response.ok) {
-                        const data = await response.json()
-                        
-                        // Ajuste de Valor: preencher campos de Razão Social e Endereço
-                        setRazaoSocial(data.razao_social || data.nome_fantasia || '')
-                        
-                        if (data.cep) setCep(maskCep(data.cep))
-                        if (data.logradouro) setRua(data.logradouro)
-                        if (data.bairro) setBairro(data.logradouro) // Fallback para bairro se necessário
-                        if (data.bairro) setBairro(data.bairro)
-                        if (data.municipio) setCidade(data.municipio)
-                        if (data.uf) setEstado(data.uf)
-                        if (data.numero) setNumero(data.numero)
-                        if (data.complemento) setComplemento(data.complemento)
+                        const result = await response.json()
+
+                        if (result.success) {
+                            const d = result.data
+                            setRazaoSocial(d.razao_social || '')
+
+                            if (d.cep) setCep(maskCep(d.cep))
+                            if (d.logradouro) setRua(d.logradouro)
+                            if (d.bairro) setBairro(d.bairro)
+                            if (d.municipio) setCidade(d.municipio)
+                            if (d.uf) setEstado(d.uf)
+                            if (d.numero) setNumero(d.numero)
+                            if (d.complemento) setComplemento(d.complemento)
+                        } else {
+                            setCnpjError(result.error || 'CNPJ não encontrado')
+                        }
+                    } else {
+                        const result = await response.json()
+                        setCnpjError(result.error || 'Erro ao consultar CNPJ')
                     }
                 } catch (error) {
-                    console.error('Brasil API Client Error:', error)
+                    console.error('CNPJ lookup error:', error)
+                    setCnpjError('Serviço indisponível. Preencha manualmente.')
                 } finally {
                     setIsCnpjLoading(false)
                 }
@@ -666,6 +676,9 @@ function RegisterForm() {
                                                         </div>
                                                     )}
                                                 </div>
+                                                {cnpjError && (
+                                                    <p className="text-[10px] text-red-400 font-medium mt-1">{cnpjError}</p>
+                                                )}
                                             </div>
 
                                             {personType === 'CPF' ? (

@@ -192,6 +192,14 @@ export async function processCheckoutAction(
 
         if (totalAmount === 0) {
             await buildBatch().commit()
+
+            // Remove cursos gratuitos da lista de desejos
+            const batch = adminDb.batch()
+            for (const courseData of coursesData) {
+                const wishlistRef = adminDb.collection('profiles').doc(user.uid).collection('wishlist').doc(courseData.id)
+                batch.delete(wishlistRef)
+            }
+            await batch.commit()
         }
 
         // Consent Log (LGPD) - Separate collection for audit
@@ -549,6 +557,10 @@ export async function payPendingCreditCardAction(
                             payment_id: paymentId,
                             updated_at: new Date(),
                         })
+
+                        // Remove da lista de desejos, se existir
+                        const wishlistRef = adminDb.collection('profiles').doc(user.uid).collection('wishlist').doc(cursoId)
+                        batch.delete(wishlistRef)
                     }
                 }
             })

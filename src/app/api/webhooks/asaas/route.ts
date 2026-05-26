@@ -84,6 +84,10 @@ export async function POST(request: NextRequest) {
                         payment_id: payment.id,
                         updated_at: FieldValue.serverTimestamp(),
                     })
+
+                    // Remove da lista de desejos, se existir
+                    const wishlistRef = adminDb.collection('profiles').doc(userId).collection('wishlist').doc(cursoId)
+                    batch.delete(wishlistRef)
                 } else {
                     // A-04: Removida a criação automática de enrollment (fallback inseguro).
                     // As matrículas devem ser pré-criadas no fluxo de checkout legítimo.
