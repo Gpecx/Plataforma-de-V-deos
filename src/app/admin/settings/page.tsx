@@ -150,41 +150,53 @@ export default function AdminSettingsPage() {
         }
     }
 
-    const setBanners = (banners: BannersData) => setSettings(s => ({ ...s, banners }))
     const setBranding = (key: keyof GlobalSettings['branding'], value: string) =>
         setSettings(s => ({ ...s, branding: { ...s.branding, [key]: value } }))
 
     const addBanner = (id: keyof BannersData) => {
-        const newList = [...settings.banners[id], { url: '', order: settings.banners[id].length + 1 }]
-        setBanners({ ...settings.banners, [id]: newList })
+        setSettings(prev => {
+            const newList = [...prev.banners[id], { url: '', order: prev.banners[id].length + 1 }]
+            return { ...prev, banners: { ...prev.banners, [id]: newList } }
+        })
     }
 
     const removeBanner = (id: keyof BannersData, index: number) => {
-        const list = [...settings.banners[id]]; list.splice(index, 1)
-        // Adjust orders
-        const adjusted = list.map((item, i) => ({ ...item, order: i + 1 }))
-        setBanners({ ...settings.banners, [id]: adjusted })
+        setSettings(prev => {
+            const list = [...prev.banners[id]]
+            list.splice(index, 1)
+            const adjusted = list.map((item, i) => ({ ...item, order: i + 1 }))
+            return { ...prev, banners: { ...prev.banners, [id]: adjusted } }
+        })
+        setActiveSlides(prev => {
+            const current = prev[id] ?? 0
+            const totalBefore = settings.banners[id].length - 1
+            if (current >= totalBefore && totalBefore > 0) return { ...prev, [id]: totalBefore - 1 }
+            if (totalBefore <= 0) return { ...prev, [id]: 0 }
+            return prev
+        })
     }
 
     const updateBanner = (id: keyof BannersData, index: number, field: keyof BannerItem, value: any) => {
-        const list = [...settings.banners[id]]
-        list[index] = { ...list[index], [field]: field === 'order' ? Number(value) : value }
-        setBanners({ ...settings.banners, [id]: list })
+        setSettings(prev => {
+            const list = [...prev.banners[id]]
+            list[index] = { ...list[index], [field]: field === 'order' ? Number(value) : value }
+            return { ...prev, banners: { ...prev.banners, [id]: list } }
+        })
     }
 
     const moveBanner = (id: keyof BannersData, index: number, direction: 'up' | 'down') => {
-        const list = [...settings.banners[id]]
-        const targetIndex = direction === 'up' ? index - 1 : index + 1
-        if (targetIndex < 0 || targetIndex >= list.length) return
+        setSettings(prev => {
+            const list = [...prev.banners[id]]
+            const targetIndex = direction === 'up' ? index - 1 : index + 1
+            if (targetIndex < 0 || targetIndex >= list.length) return prev
 
-        // Swap
-        const temp = list[index]
-        list[index] = list[targetIndex]
-        list[targetIndex] = temp
+            const temp = list[index]
+            list[index] = list[targetIndex]
+            list[targetIndex] = temp
 
-        // Re-calculate orders based on new positions
-        const adjusted = list.map((item, i) => ({ ...item, order: i + 1 }))
-        setBanners({ ...settings.banners, [id]: adjusted })
+            const adjusted = list.map((item, i) => ({ ...item, order: i + 1 }))
+            return { ...prev, banners: { ...prev.banners, [id]: adjusted } }
+        })
     }
 
     const onDropLogo = async (acceptedFiles: File[]) => {
