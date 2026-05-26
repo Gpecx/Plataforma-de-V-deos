@@ -285,6 +285,8 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
             ? [] 
             : navLinks
 
+    const effectiveLight = light || isEffectivelyLoggedIn
+
     if (isHidden) {
         return null
     }
@@ -294,7 +296,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
             <header
                 className={cn(
                     "fixed top-0 left-0 right-0 z-[100] w-full transition-all duration-300 antialiased border-b",
-                    light ? "bg-white/80 border-slate-200" : "bg-[#061629]/80 border-[#1D5F31]"
+                    effectiveLight ? "bg-white/80 border-slate-200" : "bg-[#061629]/80 border-[#1D5F31]"
                 )}
                 style={{
                     backdropFilter: 'blur(12px)',
@@ -303,19 +305,19 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
             >
                 <nav className={cn(
                     "flex items-center justify-between px-6 md:px-12 py-5 font-montserrat w-full",
-                    light ? "text-slate-900" : "text-white"
+                    effectiveLight ? "text-slate-900" : "text-white"
                 )}>
                     {/* Left: Logo + Desktop Nav */}
                     <div className="flex items-center gap-6 lg:gap-10">
                         <Logo 
                             className="h-14" 
-                            light={light} 
+                            light={effectiveLight} 
                             href={isTeacherLogin ? null : (isEffectivelyLoggedIn ? (isTeacherMode || userProfile?.role === 'teacher' || userProfile?.role === 'admin' ? '/dashboard-teacher/courses' : '/course') : '/')} 
                         />
                         {isTeacherMode && isEffectivelyLoggedIn && (
                             <span className={cn(
                                 "hidden sm:inline ml-1 text-[8px] px-2 py-0.5 rounded-xl font-bold tracking-widest uppercase",
-                                light ? "bg-slate-100 text-slate-600" : "bg-slate-900 text-white"
+                                effectiveLight ? "bg-slate-100 text-slate-600" : "bg-slate-900 text-white"
                             )}>Painel</span>
                         )}
 
@@ -329,7 +331,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                             "transition-colors duration-200 text-[13px] font-medium uppercase tracking-tight px-4 py-2 font-montserrat",
                                             pathname === link.href
                                                 ? 'text-black font-bold border-b-2 border-[#1D5F31]'
-                                                : light ? 'text-slate-400 hover:text-black' : 'text-white/60 hover:text-white'
+                                                : effectiveLight ? 'text-slate-800 hover:text-black' : 'text-white/60 hover:text-white'
                                         )}
                                 >
                                     {link.label}
@@ -352,17 +354,17 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                         <div className={cn("flex items-center gap-2 relative search-container", isHomePage && !isLoggedIn && "!hidden")}>
                             <div className={cn(
                                 "flex items-center rounded-xl px-3 py-1.5 transition-all duration-300",
-                                light ? "bg-slate-100 border border-slate-200" : "bg-white/10 border border-white/20",
+                                effectiveLight ? "bg-slate-100 border border-slate-200" : "bg-white/10 border border-white/20",
                                 isSearchOpen ? 'w-40 md:w-64 opacity-100' : 'w-0 opacity-0 pointer-events-none border-none'
                             )}>
-                                <Search size={16} className={cn(light ? "text-slate-400" : "text-white", "mr-2 shrink-0")} />
+                                <Search size={16} className={cn(effectiveLight ? "text-slate-400" : "text-white", "mr-2 shrink-0")} />
                                 <input
                                     type="text"
                                     placeholder={isTeacherMode ? "BUSCAR MEUS CURSOS..." : (userProfile?.role === 'student' || pathname.includes('/dashboard') ? "Procure por qualquer coisa" : "Buscar cursos...")}
                                     className={cn(
                                         // font-size mínimo 16px em mobile previne zoom automático do iOS
                                         "bg-transparent border-none outline-none text-base md:text-[10px] font-bold uppercase tracking-widest w-full",
-                                        light ? "placeholder:text-slate-400 text-slate-900" : "placeholder:text-white/50 text-white"
+                                        effectiveLight ? "placeholder:text-slate-400 text-slate-900" : "placeholder:text-white/50 text-white"
                                     )}
                                     value={searchQuery}
                                     onChange={e => {
@@ -397,7 +399,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                         exit={{ opacity: 0, y: 10 }}
                                         className={cn(
                                             "absolute top-full right-0 left-0 md:left-auto md:w-[450px] mt-2 shadow-2xl border z-[200] overflow-hidden rounded-xl search-container",
-                                            light ? "bg-white border-slate-200" : "bg-[#061629] border-white/10"
+                                            effectiveLight ? "bg-white border-slate-200" : "bg-[#061629] border-white/10"
                                         )}
                                     >
                                         <div className="max-h-[70vh] overflow-y-auto">
@@ -405,19 +407,19 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                             {isSearching && (
                                                 <div className="p-8 flex flex-col items-center justify-center gap-3">
                                                     <div className="w-6 h-6 border-2 border-[#1D5F31] border-t-transparent rounded-full animate-spin" />
-                                                    <p className={cn("text-[10px] font-bold uppercase tracking-widest opacity-50", light ? "text-slate-900" : "text-white")}>Buscando...</p>
+                                                    <p className={cn("text-[10px] font-bold uppercase tracking-widest opacity-50", effectiveLight ? "text-slate-900" : "text-white")}>Buscando...</p>
                                                 </div>
                                             )}
 
                                             {!isSearching && searchResults.length === 0 && searchQuery.length >= 2 && (
                                                 <div className="p-8 text-center">
-                                                    <p className={cn("text-[11px] font-bold uppercase tracking-widest opacity-50", light ? "text-slate-900" : "text-white")}>Nenhum resultado encontrado</p>
+                                                    <p className={cn("text-[11px] font-bold uppercase tracking-widest opacity-50", effectiveLight ? "text-slate-900" : "text-white")}>Nenhum resultado encontrado</p>
                                                 </div>
                                             )}
                                             {/* Resultados de Cursos */}
                                             {searchResults.filter(r => r.type === 'course').length > 0 && (
                                                 <div className="p-2">
-                                                    <p className={cn("px-3 py-2 text-[10px] font-bold uppercase tracking-widest opacity-50", light ? "text-slate-900" : "text-white")}>Cursos Sugeridos</p>
+                                                    <p className={cn("px-3 py-2 text-[10px] font-bold uppercase tracking-widest opacity-50", effectiveLight ? "text-slate-900" : "text-white")}>Cursos Sugeridos</p>
                                                     {searchResults.filter(r => r.type === 'course').map(result => (
                                                         <Link
                                                             key={result.id}
@@ -429,7 +431,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                                             }}
                                                             className={cn(
                                                                 "w-full flex items-center gap-4 p-3 rounded-xl transition-colors text-left group",
-                                                                light ? "hover:bg-slate-50" : "hover:bg-white/5"
+                                                                effectiveLight ? "hover:bg-slate-50" : "hover:bg-white/5"
                                                             )}
                                                         >
                                                             <div className="w-14 h-10 rounded-md overflow-hidden border border-black/10 shrink-0 relative bg-slate-100 dark:bg-slate-800">
@@ -440,10 +442,10 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                                                 )}
                                                             </div>
                                                             <div className="flex flex-col min-w-0">
-                                                                <span className={cn("text-[13px] font-bold leading-tight line-clamp-2 group-hover:text-[#1D5F31] transition-colors", light ? "text-slate-900" : "text-white")}>
+                                                                <span className={cn("text-[13px] font-bold leading-tight line-clamp-2 group-hover:text-[#1D5F31] transition-colors", effectiveLight ? "text-slate-900" : "text-white")}>
                                                                     {result.title}
                                                                 </span>
-                                                                <span className={cn("text-[10px] font-medium uppercase tracking-tight opacity-60 mt-1", light ? "text-slate-600" : "text-white/60")}>
+                                                                <span className={cn("text-[10px] font-medium uppercase tracking-tight opacity-60 mt-1", effectiveLight ? "text-slate-600" : "text-white/60")}>
                                                                     {isTeacherMode ? (result.subtitle === 'published' ? 'Publicado' : result.subtitle === 'draft' ? 'Rascunho' : result.subtitle) : result.subtitle}
                                                                 </span>
                                                             </div>
@@ -454,13 +456,13 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
 
                                             {/* Divisor se houver ambos */}
                                             {searchResults.filter(r => r.type === 'course').length > 0 && searchResults.filter(r => r.type === 'teacher').length > 0 && (
-                                                <div className={cn("h-[1px] mx-4", light ? "bg-slate-100" : "bg-white/5")} />
+                                                <div className={cn("h-[1px] mx-4", effectiveLight ? "bg-slate-100" : "bg-white/5")} />
                                             )}
 
                                             {/* Resultados de Instrutores */}
                                             {searchResults.filter(r => r.type === 'teacher').length > 0 && (
                                                 <div className="p-2">
-                                                    <p className={cn("px-3 py-2 text-[10px] font-bold uppercase tracking-widest opacity-50", light ? "text-slate-900" : "text-white")}>Instrutores</p>
+                                                    <p className={cn("px-3 py-2 text-[10px] font-bold uppercase tracking-widest opacity-50", effectiveLight ? "text-slate-900" : "text-white")}>Instrutores</p>
                                                     {searchResults.filter(r => r.type === 'teacher').map(result => (
                                                         <button
                                                             key={result.id}
@@ -471,7 +473,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                                             }}
                                                             className={cn(
                                                                 "w-full flex items-center gap-4 p-3 rounded-xl transition-colors text-left group",
-                                                                light ? "hover:bg-slate-50" : "hover:bg-white/5"
+                                                                effectiveLight ? "hover:bg-slate-50" : "hover:bg-white/5"
                                                             )}
                                                         >
                                                             <div className="w-10 h-10 rounded-full overflow-hidden border border-black/10 shrink-0 bg-slate-100 flex items-center justify-center relative">
@@ -482,10 +484,10 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                                                 )}
                                                             </div>
                                                             <div className="flex flex-col min-w-0">
-                                                                <span className={cn("text-[13px] font-bold leading-tight group-hover:text-[#1D5F31] transition-colors", light ? "text-slate-900" : "text-white")}>
+                                                                <span className={cn("text-[13px] font-bold leading-tight group-hover:text-[#1D5F31] transition-colors", effectiveLight ? "text-slate-900" : "text-white")}>
                                                                     {result.title}
                                                                 </span>
-                                                                <span className={cn("text-[10px] font-medium uppercase tracking-tight opacity-60 mt-1", light ? "text-slate-600" : "text-white/60")}>
+                                                                <span className={cn("text-[10px] font-medium uppercase tracking-tight opacity-60 mt-1", effectiveLight ? "text-slate-600" : "text-white/60")}>
                                                                     {result.subtitle}
                                                                 </span>
                                                             </div>
@@ -507,7 +509,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                             }}
                                             className={cn(
                                                 "w-full p-4 text-[11px] font-bold uppercase tracking-widest text-center border-t hover:bg-[#1D5F31]/5 transition-colors",
-                                                light ? "text-[#1D5F31] border-slate-100 bg-slate-50/50" : "text-[#1D5F31] border-white/5 bg-white/5"
+                                                effectiveLight ? "text-[#1D5F31] border-slate-100 bg-slate-50/50" : "text-[#1D5F31] border-white/5 bg-white/5"
                                             )}
                                         >
                                             {isTeacherMode ? 'Ver todos os meus cursos' : 'Ver todos os resultados'}
@@ -530,7 +532,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                 }}
                                 className={cn(
                                     "transition cursor-pointer outline-none flex items-center justify-center",
-                                    light ? "text-slate-900 hover:text-[#1D5F31]" : "text-white hover:opacity-70"
+                                    effectiveLight ? "text-slate-900 hover:text-[#1D5F31]" : "text-white hover:opacity-70"
                                 )}
                             >
                                 {isSearchOpen ? <X size={20} /> : <Search size={20} />}
@@ -543,7 +545,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                 <NotificationBell
                                     accent={isTeacherMode ? '#1D5F31' : '#1D5F31'}
                                     isTeacher={isTeacherMode}
-                                    light={light}
+                                    light={effectiveLight}
                                 />
                             </div>
                         )}
@@ -552,13 +554,13 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                         {isEffectivelyLoggedIn && !isTeacherMode && (
                             <Link href="/cart" className={cn(
                                 "transition cursor-pointer relative flex items-center justify-center",
-                                light ? "text-slate-900 hover:text-[#1D5F31]" : "text-white hover:opacity-70"
+                                effectiveLight ? "text-slate-900 hover:text-[#1D5F31]" : "text-white hover:opacity-70"
                             )}>
                                 <ShoppingCart size={20} />
                                 {mounted && items.length > 0 && (
                                     <span className={cn(
                                         "absolute -top-1.5 -right-2 min-w-[20px] h-5 px-1 rounded-full bg-[#1D5F31] !text-white text-[11px] font-bold flex items-center justify-center border-2",
-                                        light ? "border-white" : "border-[#061629]"
+                                        effectiveLight ? "border-white" : "border-[#061629]"
                                     )}>
                                         {items.length > 99 ? '99+' : items.length}
                                     </span>
@@ -588,7 +590,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                 <DropdownMenuTrigger asChild>
                                     <div className={cn(
                                         "w-9 h-9 md:w-10 md:h-10 flex items-center justify-center font-bold transition-all cursor-pointer border-2 outline-none hover:scale-105 shadow-sm overflow-hidden rounded-full relative",
-                                        light ? "bg-white text-slate-900 border-black/20" : "bg-slate-900 text-white border-black/20"
+                                        effectiveLight ? "bg-white text-slate-900 border-black/20" : "bg-slate-900 text-white border-black/20"
                                     )}>
                                         {userProfile?.photoURL ? (
                                             <NextImage src={userProfile.photoURL} alt="Avatar" fill className="object-cover" sizes="40px" />
@@ -602,27 +604,27 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                 <DropdownMenuPortal>
                                     <DropdownMenuContent className={cn(
                                         "w-[calc(100vw-2rem)] sm:w-64 max-h-[85vh] overflow-y-auto shadow-sm border rounded-2xl p-3 z-[9999] mt-2",
-                                        light ? "bg-white text-slate-900 border-slate-200" : "bg-[#061629] text-white border-white/10"
+                                        effectiveLight ? "bg-white text-slate-900 border-slate-200" : "bg-[#061629] text-white border-white/10"
                                     )} align="end" alignOffset={-30} sideOffset={10}>
                                     <div className={cn(
                                         "px-5 py-6 mb-2 rounded-xl",
-                                        light ? "bg-slate-50" : "bg-white/5"
+                                        effectiveLight ? "bg-slate-50" : "bg-white/5"
                                     )}>
                                         <p className={cn(
                                             "font-bold uppercase tracking-tighter text-sm line-clamp-1",
-                                            light ? "!text-black opacity-100" : "text-white"
+                                            effectiveLight ? "!text-black opacity-100" : "text-white"
                                         )}>
                                             {isTeacherMode ? 'PROFESSOR POWERPLAY' : 'ESTUDANTE POWERPLAY'}
                                         </p>
                                         <p className={cn(
                                             "text-[10px] font-bold uppercase tracking-widest mt-1 line-clamp-1",
-                                            light ? "!text-black opacity-100" : "text-white"
+                                            effectiveLight ? "!text-black opacity-100" : "text-white"
                                         )}>
                                             {userProfile?.full_name || 'Membro PowerPlay'}
                                         </p>
                                         <p className={cn(
                                             "text-[9px] font-bold uppercase tracking-[2px] mt-2",
-                                            light ? "!text-slate-900 opacity-100" : "text-white/70"
+                                            effectiveLight ? "!text-slate-900 opacity-100" : "text-white/70"
                                         )}>
                                             Registrado em {formatDate(userProfile?.created_at || null)}
                                         </p>
@@ -634,7 +636,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                                 <DropdownMenuItem onSelect={() => router.push("/admin/dashboard")} className="flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer hover:bg-[#1D5F31]/20 text-[#22c55e] transition-colors outline-none focus:bg-[#1D5F31]/20 border border-[#1D5F31]/30 mb-1 bg-[#1D5F31]/10">
                                                     <ShieldAlert size={18} className="text-[#22c55e]" /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Voltar ao Painel Admin</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuSeparator className={cn("my-2", light ? "bg-slate-100" : "bg-white/5")} />
+                                                <DropdownMenuSeparator className={cn("my-2", effectiveLight ? "bg-slate-100" : "bg-white/5")} />
                                             </>
                                         )}
                                         {isTeacherMode ? (
@@ -644,45 +646,45 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                                         <GraduationCap size={18} className="text-[#1D5F31]" /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Modo Aluno</span>
                                                     </DropdownMenuItem>
                                                 )}
-                                                <DropdownMenuSeparator className={cn("my-2", light ? "bg-slate-100" : "bg-white/5")} />
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/profile")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <UserCog size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Editar Perfil</span>
+                                                <DropdownMenuSeparator className={cn("my-2", effectiveLight ? "bg-slate-100" : "bg-white/5")} />
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/profile")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", effectiveLight ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <UserCog size={18} className={effectiveLight ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Editar Perfil</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/students")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <Users size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Alunos</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/students")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", effectiveLight ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <Users size={18} className={effectiveLight ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Alunos</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/courses")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <BookOpen size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Cursos</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/courses")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", effectiveLight ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <BookOpen size={18} className={effectiveLight ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Cursos</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/analytics")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <TrendingUp size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Vendas</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/analytics")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", effectiveLight ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <TrendingUp size={18} className={effectiveLight ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Vendas</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/chat")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <MessageSquare size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Mensagens</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-teacher/chat")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", effectiveLight ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <MessageSquare size={18} className={effectiveLight ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Mensagens</span>
                                                 </DropdownMenuItem>
                                             </>
                                         ) : (
                                             <>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/profile")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <User size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Meu Perfil</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/profile")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", effectiveLight ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <User size={18} className={effectiveLight ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Meu Perfil</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/certificates")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <Award size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Meus Certificados</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/certificates")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", effectiveLight ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <Award size={18} className={effectiveLight ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Meus Certificados</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/payments")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <CreditCard size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Histórico de Compras</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/payments")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", effectiveLight ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <CreditCard size={18} className={effectiveLight ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Histórico de Compras</span>
                                                 </DropdownMenuItem>
-{/* <DropdownMenuItem onSelect={() => router.push("/dashboard-student/subscriptions")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <Zap size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Assinaturas</span>
+{/* <DropdownMenuItem onSelect={() => router.push("/dashboard-student/subscriptions")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", effectiveLight ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <Zap size={18} className={effectiveLight ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Assinaturas</span>
                                                 </DropdownMenuItem> */}
-                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/my-list")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", light ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
-                                                    <Heart size={18} className={light ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Minha Lista</span>
+                                                <DropdownMenuItem onSelect={() => router.push("/dashboard-student/my-list")} className={cn("flex items-center gap-4 px-4 py-3 rounded-xl cursor-pointer transition-colors outline-none border-none", effectiveLight ? "text-black hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]" : "text-white hover:bg-green-50 hover:!text-[#1D5F31] focus:bg-green-50 focus:!text-[#1D5F31]")}>
+                                                    <Heart size={18} className={effectiveLight ? "text-slate-900" : "text-white/80"} /><span className="text-[11px] font-bold uppercase tracking-widest leading-none">Minha Lista</span>
                                                 </DropdownMenuItem>
                                             </>
                                         )}
                                     </div>
 
-                                    <DropdownMenuSeparator className={cn("my-2", light ? "bg-slate-100" : "bg-white/5")} />
+                                    <DropdownMenuSeparator className={cn("my-2", effectiveLight ? "bg-slate-100" : "bg-white/5")} />
                                     <DropdownMenuItem
                                         onSelect={async () => {
                                             try {
@@ -709,8 +711,8 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                         {/* Hamburger Button (mobile only) */}
                         {!isHomePage && (
                              <button
-                                onClick={() => setIsMobileMenuOpen(prev => !prev)}
-                                className={`md:hidden flex items-center justify-center min-w-[44px] min-h-[44px] transition outline-none ml-1 ${'text-white hover:text-[#1D5F31]'}`}
+                                 onClick={() => setIsMobileMenuOpen(prev => !prev)}
+                                className={`md:hidden flex items-center justify-center min-w-[44px] min-h-[44px] transition outline-none ml-1 ${effectiveLight ? 'text-slate-900 hover:text-[#1D5F31]' : 'text-white hover:text-[#1D5F31]'}`}
                                 aria-label="Abrir menu"
                             >
                                 {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -723,7 +725,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                 {isMobileMenuOpen && (
                     <div className={cn(
                         "md:hidden border-t px-4 py-4 space-y-1 animate-in slide-in-from-top-2 duration-200 shadow-sm border max-h-[calc(100vh-70px)] overflow-y-auto backdrop-blur-[6px]",
-                        light ? "bg-white/90 border-slate-200" : "bg-[#061629]/90 border-white/10"
+                        effectiveLight ? "bg-white/90 border-slate-200" : "bg-[#061629]/90 border-white/10"
                     )}>
                         {filteredNavLinks.map(link => (
                             <Link
@@ -734,7 +736,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                         "flex items-center px-4 py-3 min-h-[44px] rounded-xl text-sm tracking-tight transition-colors font-medium",
                                         pathname === link.href
                                             ? 'text-[#1D5F31] font-bold border-l-4 border-[#1D5F31]'
-                                            : light ? 'text-slate-500' : 'text-white/70'
+                                            : effectiveLight ? 'text-slate-500' : 'text-white/70'
                                     )}
                             >
                                 {link.label}
@@ -744,7 +746,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                         {!isEffectivelyLoggedIn && (
                             <div className={cn(
                                 "pt-3 space-y-2 border-t mt-3",
-                                light ? "border-slate-100" : "border-white/10"
+                                effectiveLight ? "border-slate-100" : "border-white/10"
                             )}>
 
                                 <div className="flex gap-2">
