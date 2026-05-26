@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import ScrollToTop from '@/components/ScrollToTop'
 import { getServerSession } from '@/lib/auth-utils'
 import { redirect } from 'next/navigation'
