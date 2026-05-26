@@ -20,46 +20,73 @@ function CourseCard({ course, index, onAdd, onRemove, variant = 'search' }: {
 }) {
     return (
         <div className={`
-            relative group overflow-hidden rounded-xl border border-black/10 bg-white
-            transition-all duration-300 hover:border-black/40 hover:shadow-lg hover:-translate-y-1
-            ${variant === 'selected' ? 'p-4' : 'p-3'}
+            relative group overflow-hidden
+            ${variant === 'selected'
+                ? 'rounded-lg border border-black/10 bg-white transition-all duration-300 hover:border-black/40 hover:shadow-lg hover:-translate-y-1'
+                : 'border-b border-black/5 last:border-b-0 bg-white hover:bg-slate-50 transition-all'
+            }
         `}>
-            <div className="flex items-start gap-3">
-                {variant === 'selected' && index !== undefined && (
-                    <span className="text-xs font-bold text-white bg-[#1D5F31] w-6 h-6 rounded-full flex items-center justify-center shrink-0">
-                        {index + 1}
-                    </span>
-                )}
-                {course.image_url && (
-                    <img 
-                        src={course.image_url} 
-                        alt={course.title} 
-                        className={`object-cover rounded-lg ${variant === 'selected' ? 'w-12 h-12' : 'w-14 h-14'}`}
-                    />
-                )}
-                <div className="flex-1 min-w-0">
-                    <p className="font-bold text-slate-900 text-sm truncate leading-tight">{course.title}</p>
-                    <p className="text-[10px] text-slate-500 mt-1">{course.tag}</p>
-                    <p className="text-xs font-bold text-[#1D5F31] mt-2">R$ {course.price.toFixed(2)}</p>
+            {variant === 'selected' ? (
+                <div className="p-4 flex flex-col gap-3">
+                    <div className="relative aspect-[16/9] rounded-lg overflow-hidden bg-slate-100">
+                        {course.image_url ? (
+                            <img
+                                src={course.image_url}
+                                alt={course.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                                <ImageIcon size={32} className="text-slate-300" strokeWidth={1} />
+                            </div>
+                        )}
+                        {index !== undefined && (
+                            <span className="absolute top-2 left-2 text-[10px] font-bold text-white bg-[#1D5F31] w-6 h-6 rounded-full flex items-center justify-center shadow-md">
+                                {index + 1}
+                            </span>
+                        )}
+                        {onRemove && (
+                            <button
+                                onClick={onRemove}
+                                className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/40 backdrop-blur-sm hover:bg-rose-500 flex items-center justify-center transition-all hover:scale-110"
+                            >
+                                <X size={12} className="text-white" />
+                            </button>
+                        )}
+                    </div>
+                    <div className="space-y-1 px-0.5">
+                        <p className="font-bold text-slate-900 text-xs leading-tight line-clamp-2">{course.title}</p>
+                        <div className="flex items-center justify-between">
+                            <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">{course.tag || 'CURSO'}</span>
+                            <span className="text-[11px] font-bold text-[#1D5F31]">R$ {course.price.toFixed(2)}</span>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            
-            {variant === 'search' && onAdd && (
-                <button
-                    onClick={onAdd}
-                    className="absolute top-2 right-2 w-7 h-7 rounded-lg bg-[#1D5F31] text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-[#1a5230] hover:scale-110 shadow-md"
-                >
-                    <Plus size={14} />
-                </button>
-            )}
-            
-            {variant === 'selected' && onRemove && (
-                <button
-                    onClick={onRemove}
-                    className="absolute top-2 right-2 w-6 h-6 rounded-full bg-slate-200 hover:bg-rose-100 flex items-center justify-center transition-all hover:scale-110"
-                >
-                    <X size={14} className="text-rose-600" />
-                </button>
+            ) : (
+                <div className="flex items-center gap-3 px-4 py-3 cursor-default">
+                    <div className="w-12 h-9 rounded-md overflow-hidden bg-slate-100 shrink-0">
+                        {course.image_url ? (
+                            <img src={course.image_url} alt={course.title} className="w-full h-full object-cover" />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                                <ImageIcon size={14} className="text-slate-300" strokeWidth={1} />
+                            </div>
+                        )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="font-bold text-slate-900 text-[11px] truncate leading-tight">{course.title}</p>
+                        <p className="text-[9px] text-slate-500 mt-0.5">{course.tag || 'Curso'}</p>
+                    </div>
+                    <span className="text-[10px] font-bold text-[#1D5F31] shrink-0">R$ {course.price.toFixed(2)}</span>
+                    {onAdd && (
+                        <button
+                            onClick={onAdd}
+                            className="w-7 h-7 rounded-md bg-[#1D5F31] text-white flex items-center justify-center hover:bg-[#1a5230] hover:scale-110 transition-all shadow-sm shrink-0"
+                        >
+                            <Plus size={14} />
+                        </button>
+                    )}
+                </div>
             )}
         </div>
     )
@@ -108,7 +135,7 @@ export default function AdminSettingsPage() {
     }, [])
 
     const handleSearch = useCallback(async (term: string) => {
-        if (term.length < 2) {
+        if (term.length < 1) {
             setSearchResults([])
             return
         }
@@ -127,7 +154,7 @@ export default function AdminSettingsPage() {
 
     useEffect(() => {
         if (searchTimeout) clearTimeout(searchTimeout)
-        if (searchTerm.length >= 2) {
+        if (searchTerm.length >= 1) {
             const timeout = setTimeout(() => handleSearch(searchTerm), 300)
             setSearchTimeout(timeout)
         } else {
@@ -410,7 +437,7 @@ export default function AdminSettingsPage() {
 
                     <Card className="rounded-md border border-black shadow-sm bg-white overflow-hidden">
                         <CardContent className="p-12 space-y-8">
-                            <div className="space-y-4">
+                            <div className="relative space-y-4">
                                 <Label className="text-[10px] font-bold uppercase tracking-wider !text-[#000000] flex items-center gap-2">
                                     <Search size={14} className="text-[#1D5F31]" /> Buscar Curso
                                 </Label>
@@ -418,9 +445,9 @@ export default function AdminSettingsPage() {
                                     <Input
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        placeholder="Digite o nome do curso (mínimo 2 caracteres)"
+                                        placeholder="Digite o nome do curso (mínimo 3 caracteres)"
                                         disabled={selectedCourses.length >= 5}
-                                        className="rounded-xl h-14 font-bold text-slate-900 text-base bg-slate-50 border border-black focus:border-black focus:bg-white transition-all shadow-inner px-6 placeholder:text-slate-500 pr-12"
+                                        className="rounded-lg h-14 font-bold text-slate-900 text-base bg-slate-50 border border-black focus:border-black focus:bg-white transition-all shadow-inner px-6 placeholder:text-slate-500 pr-12"
                                     />
                                     <div className="absolute right-4 top-1/2 -translate-y-1/2">
                                         {searching ? (
@@ -435,8 +462,8 @@ export default function AdminSettingsPage() {
                                     </div>
                                 </div>
                                 {searchResults.length > 0 && (
-                                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-white border border-black rounded-xl shadow-xl animate-in fade-in slide-in-from-top-2 duration-300">
-                                        {searchResults.slice(0, 5).map(course => (
+                                    <div className="absolute z-50 top-full mt-2 left-0 w-full bg-white border border-black/20 rounded-lg shadow-xl animate-in fade-in slide-in-from-top-2 duration-200 overflow-hidden">
+                                        {searchResults.map(course => (
                                             <CourseCard 
                                                 key={course.id} 
                                                 course={course} 
@@ -444,6 +471,11 @@ export default function AdminSettingsPage() {
                                                 onAdd={() => addFeaturedCourse(course)}
                                             />
                                         ))}
+                                    </div>
+                                )}
+                                {!searching && searchTerm.length >= 1 && searchResults.length === 0 && selectedCourses.length < 5 && (
+                                    <div className="absolute z-50 top-full mt-2 left-0 w-full bg-white border border-black/20 rounded-lg shadow-xl px-5 py-4 text-center">
+                                        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Nenhum curso encontrado</p>
                                     </div>
                                 )}
                                 {selectedCourses.length >= 5 && (

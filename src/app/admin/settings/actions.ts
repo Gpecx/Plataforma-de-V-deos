@@ -120,21 +120,25 @@ export interface SearchedCourse {
 
 export async function searchCourses(term: string): Promise<SearchedCourse[]> {
     try {
+        const normalizedTerm = term.toLowerCase()
         const coursesRef = adminDb.collection('courses')
         const snapshot = await coursesRef
             .where('status', '==', 'APROVADO')
-            .where('title', '>=', term)
-            .where('title', '<=', term + '\uf8ff')
-            .limit(10)
+            .limit(50)
             .get()
 
-        return snapshot.docs.map((d: any) => ({
-            id: d.id,
-            title: d.data().title || '',
-            image_url: d.data().image_url || '',
-            price: Number(d.data().price) || 0,
-            tag: d.data().tag || ''
-        }))
+        const results = snapshot.docs
+            .map((d: any) => ({
+                id: d.id,
+                title: d.data().title || '',
+                image_url: d.data().image_url || '',
+                price: Number(d.data().price) || 0,
+                tag: d.data().tag || ''
+            }))
+            .filter(c => c.title.toLowerCase().includes(normalizedTerm))
+            .slice(0, 8)
+
+        return results
     } catch (error) {
         console.error('Error searching courses:', error)
         return []
