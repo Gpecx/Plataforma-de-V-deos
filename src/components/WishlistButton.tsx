@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Heart } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { toggleWishlist, getWishlistCourseIds } from '@/app/actions/wishlist'
 import { auth } from '@/lib/firebase'
 import { onAuthStateChanged } from 'firebase/auth'
@@ -15,6 +16,7 @@ interface WishlistButtonProps {
 }
 
 export default function WishlistButton({ courseId, className = '', isPurchased = false }: WishlistButtonProps) {
+    const router = useRouter()
     const [isInWishlist, setIsInWishlist] = useState(false)
     const [isLoggedIn, setIsLoggedIn] = useState(false)
     const [isToggling, setIsToggling] = useState(false)
@@ -39,7 +41,8 @@ export default function WishlistButton({ courseId, className = '', isPurchased =
         e.stopPropagation()
         
         if (!isLoggedIn) {
-            window.location.href = '/login'
+            const currentPath = encodeURIComponent(window.location.pathname)
+            router.push(`/login?redirectTo=${currentPath}`)
             return
         }
 

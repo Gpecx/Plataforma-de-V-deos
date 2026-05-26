@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ArrowRight, Heart, Clock, Globe, CheckCircle2, ShieldCheck } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { isNewCourse } from '@/lib/date-utils'
 import { toggleWishlist, getWishlistCourseIds } from '@/app/actions/wishlist'
 import { auth } from '@/lib/firebase'
@@ -39,6 +40,7 @@ export function ExpandableCard({
     pricing_type = 'standard',
     created_at
 }: ExpandableCardProps) {
+    const router = useRouter()
     const [isOpen, setIsOpen] = useState(false)
     const [isInWishlist, setIsInWishlist] = useState(initialIsInWishlist)
     const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -58,7 +60,8 @@ export function ExpandableCard({
     const handleToggleWishlist = async (e: React.MouseEvent) => {
         e.stopPropagation()
         if (!isLoggedIn) {
-            window.location.href = '/login'
+            const currentPath = encodeURIComponent(window.location.pathname)
+            router.push(`/login?redirectTo=${currentPath}`)
             return
         }
         
