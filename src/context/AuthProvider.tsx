@@ -90,7 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                             setRole(null)
                             // Limpa cookies de sessao via API existente
                             await fetch('/api/auth/signout').catch(() => {})
-                            router.push('/login?error=account_suspended')
+                            router.push('/login?error=account_suspended' as any)
                             return
                         }
 

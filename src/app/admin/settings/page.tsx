@@ -5,8 +5,8 @@ import { getSettings, saveSettings, GlobalSettings, BannersData, BannerItem, sea
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Image as ImageIcon, Settings, Palette, Globe, UploadCloud, Loader2, ArrowUp, ArrowDown, Search, X, BookOpen, Plus } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Image as ImageIcon, Settings, Palette, Globe, UploadCloud, Loader2, ArrowUp, ArrowDown, Search, X, BookOpen, Plus, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
 import { uploadCourseImage } from '@/lib/storage-helpers'
 import Logo from '@/components/Logo'
@@ -67,7 +67,7 @@ function CourseCard({ course, index, onAdd, onRemove, variant = 'search' }: {
 
 export default function AdminSettingsPage() {
     const [settings, setSettings] = useState<GlobalSettings>({
-        banners: { hero_home: [], hero_dashboard: [], hero_course: [] },
+        banners: { hero_home: [], hero_dashboard: [], hero_course: [], hero_wishlist: [] },
         branding: { logoUrl: '', siteName: 'PowerPlay', primaryColor: '#1D5F31' },
         featuredCourseIds: []
     })
@@ -81,6 +81,13 @@ export default function AdminSettingsPage() {
     const [searching, setSearching] = useState(false)
     const [selectedCourses, setSelectedCourses] = useState<SearchedCourse[]>([])
     const [searchTimeout, setSearchTimeout] = useState<ReturnType<typeof setTimeout> | null>(null)
+    const [activeSlides, setActiveSlides] = useState<Record<string, number>>({})
+
+    const setActiveSlide = useCallback((id: keyof BannersData, index: number) => {
+        setActiveSlides(prev => ({ ...prev, [id]: index }))
+    }, [])
+
+    const [selectedCategory, setSelectedCategory] = useState<keyof BannersData>('hero_home')
 
     useEffect(() => {
         getSettings()
@@ -243,90 +250,12 @@ export default function AdminSettingsPage() {
         </div>
     )
 
-    const BannerField = ({ id, label, description, items }: { id: keyof BannersData; label: string; description: string; items: BannerItem[] }) => (
-        <Card className="mb-8 rounded-md border border-black shadow-sm bg-white overflow-hidden group/card hover:border-black/50 transition-all duration-700">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between p-8 gap-6">
-                <div>
-                    <CardTitle className="text-xl font-bold uppercase tracking-tighter !text-[#000000]">{label}</CardTitle>
-                    <CardDescription className="uppercase tracking-widest text-xs font-medium !text-[#000000] mt-2">{description}</CardDescription>
-                </div>
-                <Button onClick={() => addBanner(id)} className="bg-[#1D5F31] text-white hover:bg-slate-900 text-xs font-bold uppercase h-12 px-8 rounded-md transition-all shadow-sm active:scale-95 ml-auto">
-                    + Adicionar Slide
-                </Button>
-            </CardHeader>
-            <CardContent className="p-8 space-y-8">
-                {items.length === 0 && (
-                    <div className="text-center py-16 border-2 border-dashed border-black/10 rounded-xl bg-slate-50/50">
-                        <ImageIcon className="mx-auto text-black/30 mb-6" size={48} strokeWidth={1} />
-                        <p className="!text-[#000000] font-bold uppercase tracking-wider text-[10px]">Galeria de Banners Vazia</p>
-                    </div>
-                )}
-                <div className="grid grid-cols-1 gap-8">
-                    {items.sort((a, b) => a.order - b.order).map((item, index) => (
-                        <div key={index} className="group/item relative p-6 border border-black/10 rounded-xl bg-slate-50/30 transition-all hover:bg-white hover:border-black/40 hover:shadow-lg">
-                            <div className="flex flex-col lg:flex-row gap-8 items-start">
-                                <div className="flex flex-col gap-4">
-                                    <Label className="text-[10px] font-bold uppercase tracking-wider !text-[#000000]">Ordenação</Label>
-                                    <div className="flex flex-col gap-3">
-                                        <Input
-                                            type="number"
-                                            value={item.order}
-                                            onChange={(e) => updateBanner(id, index, 'order', e.target.value)}
-                                            className="w-20 bg-white border border-black rounded-lg h-12 text-base font-bold text-center text-slate-900 focus:border-black shadow-inner"
-                                        />
-                                        <div className="flex gap-2">
-                                            <Button
-                                                variant="outline"
-                                                size="icon"
-                                                onClick={() => moveBanner(id, index, 'up')}
-                                                disabled={index === 0}
-                                                className="w-10 h-10 rounded-lg border-slate-100 text-slate-700 hover:text-[#1D5F31] hover:bg-[#1D5F31]/10 disabled:opacity-20 transition-all"
-                                            >
-                                                <ArrowUp size={16} strokeWidth={3} />
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                size="icon"
-                                                onClick={() => moveBanner(id, index, 'down')}
-                                                disabled={index === items.length - 1}
-                                                className="w-10 h-10 rounded-lg border-slate-100 text-slate-700 hover:text-[#1D5F31] hover:bg-[#1D5F31]/10 disabled:opacity-20 transition-all"
-                                            >
-                                                <ArrowDown size={16} strokeWidth={3} />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex-1 space-y-6 w-full">
-                                    <div className="space-y-4">
-                                        <div className="flex justify-between items-end">
-                                            <Label className="text-[10px] font-bold uppercase tracking-wider !text-[#000000]">Endpoint da Imagem (CDN URL)</Label>
-                                            <button onClick={() => removeBanner(id, index)} className="!text-[#000000] hover:text-rose-500 text-[9px] font-bold uppercase tracking-wider transition-all mb-1 active:scale-90">
-                                                REMOVER ITEM ✕
-                                            </button>
-                                        </div>
-                                        <Input
-                                            value={item.url}
-                                            onChange={(e) => updateBanner(id, index, 'url', e.target.value)}
-                                            placeholder="https://images.unsplash.com/photo-..."
-                                            className="bg-white border border-black rounded-xl h-12 text-[11px] text-slate-900 font-bold placeholder:text-slate-500 w-full focus:border-black shadow-inner"
-                                        />
-                                    </div>
-
-                                    {item.url && (
-                                        <div className="relative rounded-xl overflow-hidden bg-slate-50 aspect-[21/9] w-full border border-black shadow-sm group-hover/item:border-black/40 transition-all group/preview">
-                                            <img src={item.url} alt={label} className="object-cover w-full h-full opacity-90 group-hover/preview:scale-105 transition-transform duration-1000" />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/10 to-transparent pointer-events-none" />
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </CardContent>
-        </Card>
-    )
+    const BANNER_CATEGORIES: { id: keyof BannersData; label: string; description: string }[] = [
+        { id: 'hero_home', label: 'Landing Hero', description: 'Primeira impressão na home pública' },
+        { id: 'hero_dashboard', label: 'User Welcome', description: 'Cabeçalho do painel do aluno' },
+        { id: 'hero_course', label: 'Catalog Header', description: 'Topo da listagem de cursos' },
+        { id: 'hero_wishlist', label: 'Wishlist Banner', description: 'Banner da página Minha Lista' },
+    ]
 
     return (
         <div className="min-h-screen bg-transparent text-slate-900 font-montserrat">
@@ -556,10 +485,174 @@ export default function AdminSettingsPage() {
                         <div className="flex-1 h-px bg-slate-50 ml-6" />
                     </div>
 
-                    <BannerField id="hero_home" label="Landing Hero" description="Primeira impressão na home pública" items={settings.banners.hero_home} />
-                    <BannerField id="hero_dashboard" label="User Welcome" description="Cabeçalho do painel do aluno" items={settings.banners.hero_dashboard} />
-                    <BannerField id="hero_course" label="Catalog Header" description="Topo da listagem de cursos" items={settings.banners.hero_course} />
-                </div>
+                    {(() => {
+                        const currentId = selectedCategory
+                        const items = settings.banners[currentId]
+                        const sortedItems = [...items].sort((a, b) => a.order - b.order)
+                        const totalSlides = sortedItems.length
+                        const rawIndex = activeSlides[currentId] ?? 0
+                        const activeIndex = Math.min(rawIndex, Math.max(0, totalSlides - 1))
+                        const activeItem = sortedItems[activeIndex]
+
+                        return (
+                            <Card className="mb-8 rounded-lg border border-black shadow-sm bg-white overflow-hidden">
+                                <CardContent className="p-8 space-y-8">
+                                    {totalSlides === 0 ? (
+                                        <div className="text-center py-16 border-2 border-dashed border-black/10 rounded-lg bg-slate-50/50">
+                                            <ImageIcon className="mx-auto text-black/30 mb-6" size={48} strokeWidth={1} />
+                                            <p className="!text-[#000000] font-bold uppercase tracking-wider text-[10px]">{BANNER_CATEGORIES.find(c => c.id === currentId)?.label} — Galeria de Banners Vazia</p>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {/* Unified Carousel Preview */}
+                                            <div className="relative rounded-lg border border-black/10 bg-slate-50/30 overflow-hidden">
+                                                {activeItem.url ? (
+                                                    <div className="relative aspect-[21/9] w-full bg-slate-100">
+                                                        <img
+                                                            src={activeItem.url}
+                                                            alt={BANNER_CATEGORIES.find(c => c.id === currentId)?.label}
+                                                            className="object-cover w-full h-full opacity-90"
+                                                        />
+                                                        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/10 to-transparent pointer-events-none" />
+                                                    </div>
+                                                ) : (
+                                                    <div className="aspect-[21/9] w-full flex items-center justify-center bg-slate-100 border-b border-black/5">
+                                                        <div className="text-center">
+                                                            <ImageIcon className="mx-auto text-black/20 mb-3" size={40} strokeWidth={1} />
+                                                            <p className="text-[10px] font-bold uppercase tracking-wider text-black/30">Preview Indisponível</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Carousel Index Badge */}
+                                                <div className="absolute top-3 right-3 bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-md">
+                                                    <span className="text-white text-[10px] font-bold uppercase tracking-wider">
+                                                        CAROUSEL INDEX: {activeIndex + 1} / {totalSlides}
+                                                    </span>
+                                                </div>
+
+                                                {/* Navigation Arrows */}
+                                                <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between pointer-events-none px-2">
+                                                    <button
+                                                        onClick={() => setActiveSlide(currentId, activeIndex - 1)}
+                                                        disabled={activeIndex === 0}
+                                                        className="pointer-events-auto w-10 h-10 flex items-center justify-center bg-black/40 backdrop-blur-sm text-white font-bold text-lg hover:bg-black/60 disabled:opacity-10 disabled:cursor-not-allowed transition-all rounded-md"
+                                                    >
+                                                        <ChevronLeft size={20} strokeWidth={3} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setActiveSlide(currentId, activeIndex + 1)}
+                                                        disabled={activeIndex === totalSlides - 1}
+                                                        className="pointer-events-auto w-10 h-10 flex items-center justify-center bg-black/40 backdrop-blur-sm text-white font-bold text-lg hover:bg-black/60 disabled:opacity-10 disabled:cursor-not-allowed transition-all rounded-md"
+                                                    >
+                                                        <ChevronRight size={20} strokeWidth={3} />
+                                                    </button>
+                                                </div>
+
+                                                {/* Pagination Bullets */}
+                                                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2">
+                                                    {sortedItems.map((_, idx) => (
+                                                        <button
+                                                            key={idx}
+                                                            onClick={() => setActiveSlide(currentId, idx)}
+                                                            className={`rounded-full transition-all duration-300 ${
+                                                                idx === activeIndex
+                                                                    ? 'w-6 h-1.5 bg-[#1D5F31]'
+                                                                    : 'w-2 h-1.5 bg-white/60 hover:bg-white/90'
+                                                            }`}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Category Tabs */}
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                {BANNER_CATEGORIES.map(cat => {
+                                                    const count = settings.banners[cat.id].length
+                                                    const isActive = cat.id === currentId
+                                                    return (
+                                                        <button
+                                                            key={cat.id}
+                                                            onClick={() => setSelectedCategory(cat.id)}
+                                                            className={`px-5 py-3 text-[10px] font-bold uppercase tracking-widest transition-all rounded-lg border ${
+                                                                isActive
+                                                                    ? 'bg-[#1D5F31] text-white border-[#1D5F31] shadow-sm'
+                                                                    : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400 hover:bg-slate-50'
+                                                            }`}
+                                                        >
+                                                            {cat.label} <span className="opacity-70">({count})</span>
+                                                        </button>
+                                                    )
+                                                })}
+                                                <div className="flex-1" />
+                                                <Button
+                                                    onClick={() => { addBanner(currentId); setActiveSlide(currentId, totalSlides) }}
+                                                    className="bg-[#1D5F31] text-white hover:bg-slate-900 text-xs font-bold uppercase h-12 px-8 rounded-lg transition-all shadow-sm active:scale-95"
+                                                >
+                                                    + Adicionar Slide
+                                                </Button>
+                                            </div>
+
+                                            {/* Edit Controls for Active Slide */}
+                                            <div className="border border-black/10 rounded-lg p-6 bg-slate-50/30">
+                                                <div className="flex flex-col lg:flex-row gap-8 items-start">
+                                                    <div className="flex flex-col gap-4">
+                                                        <Label className="text-[10px] font-bold uppercase tracking-wider !text-[#000000]">Ordenação</Label>
+                                                        <div className="flex flex-col gap-3">
+                                                            <Input
+                                                                type="number"
+                                                                value={activeItem.order}
+                                                                onChange={(e) => updateBanner(currentId, activeIndex, 'order', e.target.value)}
+                                                                className="w-20 bg-white border border-black rounded-md h-12 text-base font-bold text-center text-slate-900 focus:border-black shadow-inner"
+                                                            />
+                                                            <div className="flex gap-2">
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="icon"
+                                                                    onClick={() => { moveBanner(currentId, activeIndex, 'up'); setActiveSlide(currentId, activeIndex - 1) }}
+                                                                    disabled={activeIndex === 0}
+                                                                    className="w-10 h-10 rounded-md border-slate-100 text-slate-700 hover:text-[#1D5F31] hover:bg-[#1D5F31]/10 disabled:opacity-20 transition-all"
+                                                                >
+                                                                    <ArrowUp size={16} strokeWidth={3} />
+                                                                </Button>
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="icon"
+                                                                    onClick={() => { moveBanner(currentId, activeIndex, 'down'); setActiveSlide(currentId, activeIndex + 1) }}
+                                                                    disabled={activeIndex === totalSlides - 1}
+                                                                    className="w-10 h-10 rounded-md border-slate-100 text-slate-700 hover:text-[#1D5F31] hover:bg-[#1D5F31]/10 disabled:opacity-20 transition-all"
+                                                                >
+                                                                    <ArrowDown size={16} strokeWidth={3} />
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex-1 space-y-6 w-full">
+                                                        <div className="space-y-4">
+                                                            <div className="flex justify-between items-end">
+                                                                <Label className="text-[10px] font-bold uppercase tracking-wider !text-[#000000]">Endpoint da Imagem (CDN URL)</Label>
+                                                                <button onClick={() => removeBanner(currentId, activeIndex)} className="!text-[#000000] hover:text-rose-500 text-[9px] font-bold uppercase tracking-wider transition-all mb-1 active:scale-90">
+                                                                    REMOVER ITEM ✕
+                                                                </button>
+                                                            </div>
+                                                            <Input
+                                                                value={activeItem.url}
+                                                                onChange={(e) => updateBanner(currentId, activeIndex, 'url', e.target.value)}
+                                                                placeholder="https://images.unsplash.com/photo-..."
+                                                                className="bg-white border border-black rounded-md h-12 text-[11px] text-slate-900 font-bold placeholder:text-slate-500 w-full focus:border-black shadow-inner"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        )
+                    })()}
+            </div>
             </div>
 
             {/* Sticky Save Bar */}
