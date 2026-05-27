@@ -131,7 +131,7 @@ export async function processCheckoutAction(
     }
 ): Promise<
     | { success: true; isFree: true; data?: undefined; error?: undefined }
-    | { success: true; isFree?: undefined; data: { invoiceUrl: string; paymentId: string; billingType: string; status?: string; pixData?: any }; error?: undefined }
+    | { success: true; isFree?: undefined; data: { invoiceUrl: string; paymentId: string; billingType: string; status?: string; pixQrCode?: string; payload?: string }; error?: undefined }
     | { success: false; error: string; isFree?: undefined; data?: undefined }
 > {
     const user = await getAuthUser()
@@ -366,10 +366,14 @@ export async function processCheckoutAction(
                 })
             }
 
-            let pixData = null
+            // Para PIX: busca QR Code via API (não usa pixTransaction do createPayment)
+            let pixQrCode: string | undefined
+            let pixPayload: string | undefined
             if (billingType === 'PIX') {
                 try {
-                    pixData = await getPaymentQrCode(asaasResponse.id)
+                    const pixResponse = await getPaymentQrCode(asaasResponse.id)
+                    pixQrCode = pixResponse.encodedImage
+                    pixPayload = pixResponse.payload
                 } catch (pixError) {
                     console.error("ERRO_AO_BUSCAR_QRCODE_PIX_NO_CHECKOUT:", pixError)
                 }
@@ -385,7 +389,7 @@ export async function processCheckoutAction(
                     paymentId: asaasResponse.id,
                     billingType: asaasResponse.billingType,
                     status: asaasResponse.status,
-                    pixData,
+                    ...(billingType === 'PIX' ? { pixQrCode, payload: pixPayload } : {}),
                     ...(creditCardConfirmed ? { paymentConfirmed: true } : {})
                 } 
             }
