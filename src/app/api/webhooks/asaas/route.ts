@@ -34,12 +34,25 @@ export async function POST(request: NextRequest) {
         const { event, payment } = payload
 
         if (event === 'PAYMENT_RECEIVED' || event === 'PAYMENT_CONFIRMED') {
-            // A-04: Validação cruzada com a API do Asaas para garantir a integridade do pagamento
-            const asaasPayment = await getPayment(payment.id)
-            if (!['RECEIVED', 'CONFIRMED'].includes(asaasPayment.status)) {
-                console.error(`Webhook Asaas: Status divergente na API (${asaasPayment.status}) para o evento ${event}`)
+            // A-04: Validação cruzada com a API do Asaas.
+            // Se a consulta falhar (timeout/rate-limit), usa como fallback o status do próprio payload
+            // para não travar a conciliação automática.
+            let asaasPayment = null
+            try {
+                asaasPayment = await getPayment(payment.id)
+            } catch (err) {
+                console.warn(`Webhook Asaas: Consulta à API falhou para ${payment.id}, usando fallback do payload.`, err)
+            }
+            const confirmedStatuses = ['RECEIVED', 'CONFIRMED']
+            const isConfirmed = asaasPayment
+                ? confirmedStatuses.includes(asaasPayment.status)
+                : confirmedStatuses.includes(payment.status)
+            if (!isConfirmed) {
+                const statusForLog = asaasPayment?.status ?? payment.status
+                console.error(`Webhook Asaas: Status não confirmado (${statusForLog}) para o evento ${event}`)
                 return NextResponse.json({ error: 'Integrity check failed' }, { status: 400 })
             }
+            const invoiceUrl = asaasPayment?.invoiceUrl || null
 
             // 1. Busca todas as linhas de vendas_logs com este paymentId (pode ser compra multi-curso)
             const vendasLogsQuery = await adminDb.collection('vendas_logs')
@@ -69,7 +82,7 @@ export async function POST(request: NextRequest) {
                 batch.update(saleDoc.ref, {
                     statusPagamento: 'pago',
                     paymentDate: FieldValue.serverTimestamp(),
-                    invoiceUrl: asaasPayment.invoiceUrl || saleData.invoiceUrl || null,
+                    invoiceUrl: invoiceUrl || saleData.invoiceUrl || null,
                 })
 
                 // Confirma o enrollment (muda status para confirmado se existir o campo)
@@ -84,6 +97,7 @@ export async function POST(request: NextRequest) {
                         payment_confirmed: true,
                         payment_id: payment.id,
                         updated_at: FieldValue.serverTimestamp(),
+                        status: FieldValue.delete(),
                     })
 
                     // Remove da lista de desejos, se existir

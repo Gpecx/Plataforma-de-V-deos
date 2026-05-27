@@ -1,5 +1,6 @@
 'use server'
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
+import { FieldValue } from 'firebase-admin/firestore'
 import { cookies, headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
@@ -159,6 +160,7 @@ export async function processCheckoutAction(
         // Para cursos PAGOS: commit apenas após Asaas criar o pagamento com paymentId válido
         const buildBatch = (paymentId?: string, asaasStatus?: string, invoiceUrl?: string) => {
             const isInstantlyConfirmed = billingType === 'CREDIT_CARD' && (asaasStatus === 'CONFIRMED' || asaasStatus === 'RECEIVED')
+            const isFree = totalAmount === 0
             const batch = adminDb.batch()
             for (const courseData of coursesData) {
                 const enrollRef = adminDb.collection('enrollments').doc()
@@ -166,11 +168,13 @@ export async function processCheckoutAction(
                     user_id: user.uid,
                     course_id: courseData.id,
                     created_at: new Date(),
-                    ...(isInstantlyConfirmed ? {
+                    ...(paymentId ? { payment_id: paymentId } : {}),
+                    ...(isInstantlyConfirmed || isFree ? {
                         payment_confirmed: true,
-                        payment_id: paymentId,
-                        updated_at: new Date()
-                    } : {})
+                        ...(isInstantlyConfirmed ? { updated_at: new Date() } : {})
+                    } : {
+                        status: 'pending',
+                    })
                 })
 
                 const platformShare = (Number(courseData.price) || 0) * (platformTaxPercent / 100)
@@ -606,6 +610,7 @@ export async function payPendingCreditCardAction(
                             payment_confirmed: true,
                             payment_id: paymentId,
                             updated_at: new Date(),
+                            status: FieldValue.delete(),
                         })
 
                         // Remove da lista de desejos, se existir
@@ -652,6 +657,67 @@ export async function getBoletoDataAction(paymentId: string) {
         return { success: false, error: error.message }
     }
 }
+
+export async function syncPaymentStatusAction(paymentId: string) {
+    const user = await getAuthUser()
+    if (!user) return { success: false, error: 'Não autorizado' }
+
+    try {
+        const asaasPayment = await getPayment(paymentId)
+
+        if (!['RECEIVED', 'CONFIRMED'].includes(asaasPayment.status)) {
+            return { success: false, error: 'Pagamento ainda não confirmado no Asaas' }
+        }
+
+        const vendasSnapshot = await adminDb.collection('vendas_logs')
+            .where('paymentId', '==', paymentId)
+            .where('userId', '==', user.uid)
+            .get()
+
+        if (vendasSnapshot.empty) {
+            return { success: false, error: 'Transação não encontrada no banco local' }
+        }
+
+        const batch = adminDb.batch()
+        vendasSnapshot.forEach(doc => {
+            batch.update(doc.ref, {
+                statusPagamento: 'pago',
+                paymentDate: new Date(),
+                invoiceUrl: asaasPayment.invoiceUrl || doc.data().invoiceUrl || null,
+            })
+        })
+
+        const enrollmentsSnapshot = await adminDb.collection('enrollments')
+            .where('user_id', '==', user.uid)
+            .get()
+
+        vendasSnapshot.forEach(vendaDoc => {
+            const vendaData = vendaDoc.data()
+            const cursoId = vendaData.cursoId
+            if (cursoId) {
+                const matchEnrollment = enrollmentsSnapshot.docs.find(
+                    e => e.data().course_id === cursoId
+                )
+                if (matchEnrollment) {
+                    batch.update(matchEnrollment.ref, {
+                        payment_confirmed: true,
+                        payment_id: paymentId,
+                        updated_at: new Date(),
+                        status: FieldValue.delete(),
+                    })
+                }
+            }
+        })
+
+        await batch.commit()
+        revalidatePath('/dashboard-student/payments')
+        return { success: true }
+    } catch (error: any) {
+        console.error('Erro no syncPaymentStatusAction:', error)
+        return { success: false, error: error.message }
+    }
+}
+
 export async function getStudentStats() {
     const user = await getAuthUser()
     if (!user) return { success: false, error: 'Não autorizado' }

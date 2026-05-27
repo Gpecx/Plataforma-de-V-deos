@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
                 .where('course_id', '==', cursoId)
                 .limit(1) // Otimização para busca rápida
                 .get()
-            hasEnrollment = !enrollmentsSnapshot.empty
+            hasEnrollment = !enrollmentsSnapshot.empty && enrollmentsSnapshot.docs[0].data().status !== 'pending'
         }
 
         if (!isAdmin && !isAuthor && !hasPurchased && !hasEnrollment) {

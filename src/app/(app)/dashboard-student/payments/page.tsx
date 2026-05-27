@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { CreditCard, Calendar, ArrowUpRight, Clock, Zap, ShieldCheck, X, Copy, CheckCircle2 as CheckIcon, Download, Loader2, CheckCircle, XCircle, ShoppingCart, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
-import { getStudentTransactions, getPixDataAction, getBoletoDataAction, getPaymentStatusAction, payPendingCreditCardAction } from '../actions'
+import { getStudentTransactions, getPixDataAction, getBoletoDataAction, getPaymentStatusAction, payPendingCreditCardAction, syncPaymentStatusAction } from '../actions'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import Logo from '@/components/Logo'
@@ -111,6 +111,7 @@ export default function PaymentsPage() {
     const [isFetchingPayment, setIsFetchingPayment] = useState(false)
     const [copied, setCopied] = useState(false)
     const [pendingPaymentType, setPendingPaymentType] = useState<string>('')
+    const [paymentAlreadyConfirmed, setPaymentAlreadyConfirmed] = useState(false)
 
     // Credit card form state (for retry)
     const [ccNumber, setCcNumber] = useState('')
@@ -233,6 +234,7 @@ export default function PaymentsPage() {
         setIsFetchingPayment(true)
         setSelectedPayment(t)
         setPaymentData(null)
+        setPaymentAlreadyConfirmed(false)
         
         try {
             const paymentId = t.paymentId
@@ -243,6 +245,20 @@ export default function PaymentsPage() {
 
             const asaasRes = await getPaymentStatusAction(paymentId)
             const asaasPayment = asaasRes.success ? asaasRes.data : null
+            
+            // Se o Asaas já confirma como pago, reconcilia e mostra tela de sucesso
+            if (asaasPayment && ['RECEIVED', 'CONFIRMED'].includes(asaasPayment.status)) {
+                await syncPaymentStatusAction(paymentId)
+                setPaymentAlreadyConfirmed(true)
+                setIsFetchingPayment(false)
+                
+                // Recarrega a lista de transações para refletir o novo status
+                const res = await getStudentTransactions()
+                if (res.success && res.data) {
+                    setTransactions(res.data)
+                }
+                return
+            }
             
             const paymentTypeRaw = asaasPayment?.billingType || t.asaasPaymentMethod || t.billingType || ''
             const paymentType = paymentTypeRaw.toUpperCase()
@@ -542,8 +558,12 @@ export default function PaymentsPage() {
                         <div className="p-8 pb-4 shrink-0">
                             <div className="flex justify-between items-start">
                                 <div>
-                                    <span className="text-[10px] font-bold uppercase tracking-[4px] text-[#1D5F31] block mb-1">Pagamento Pendente</span>
-                                    <h3 className="text-2xl font-bold uppercase tracking-tighter text-[#1a1a1a]">Recuperar Fatura</h3>
+                                    <span className="text-[10px] font-bold uppercase tracking-[4px] text-[#1D5F31] block mb-1">
+                                        {paymentAlreadyConfirmed ? 'Pagamento Confirmado' : 'Pagamento Pendente'}
+                                    </span>
+                                    <h3 className="text-2xl font-bold uppercase tracking-tighter text-[#1a1a1a]">
+                                        {paymentAlreadyConfirmed ? 'Pagamento Compensado' : 'Recuperar Fatura'}
+                                    </h3>
                                 </div>
                                 <button 
                                     onClick={() => setSelectedPayment(null)}
@@ -560,6 +580,22 @@ export default function PaymentsPage() {
                                 <div className="py-12 flex flex-col items-center justify-center gap-4">
                                     <div className="w-10 h-10 border-4 border-slate-200 border-t-[#1D5F31] rounded-full animate-spin" />
                                     <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Sincronizando com Asaas...</span>
+                                </div>
+                            ) : paymentAlreadyConfirmed ? (
+                                <div className="py-8 flex flex-col items-center gap-4 bg-green-50 border border-green-200 p-6 rounded-md">
+                                    <CheckCircle size={40} className="text-green-600" />
+                                    <p className="text-xs font-bold text-green-800 uppercase tracking-widest text-center">
+                                        Pagamento Já Confirmado!
+                                    </p>
+                                    <p className="text-[10px] text-green-700 text-center">
+                                        Este pagamento já foi compensado no Asaas. Seu curso já está disponível no dashboard.
+                                    </p>
+                                    <button
+                                        onClick={() => setSelectedPayment(null)}
+                                        className="mt-2 px-8 py-3 bg-[#1D5F31] text-white text-[10px] font-bold uppercase tracking-[2px] hover:brightness-110 transition-all rounded-md"
+                                    >
+                                        Fechar
+                                    </button>
                                 </div>
                             ) : pendingPaymentType === 'CREDIT_CARD' ? (
                                 <div className="space-y-5">

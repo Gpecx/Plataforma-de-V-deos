@@ -254,7 +254,7 @@ function SucessoContent() {
                     </div>
                 )}
 
-                {(payment?.status === 'RECEIVED' || payment?.status === 'CONFIRMED' || !loading) && (
+                {payment?.status === 'RECEIVED' || payment?.status === 'CONFIRMED' ? (
                     <div className="flex flex-col md:flex-row gap-4 justify-center">
                         <Link
                             href="/dashboard-student"
@@ -263,9 +263,16 @@ function SucessoContent() {
                             IR PARA MEUS CURSOS →
                         </Link>
                     </div>
-                )}
-
-                {loading && (
+                ) : !loading ? (
+                    <div className="flex flex-col md:flex-row gap-4 justify-center">
+                        <Link
+                            href="/dashboard-student/payments"
+                            className="px-10 py-5 bg-[#061629] !text-white font-bold uppercase tracking-[3px] hover:bg-[#061629]/90 transition-all text-sm rounded-none"
+                        >
+                            ACOMPANHAR PAGAMENTO →
+                        </Link>
+                    </div>
+                ) : (
                     <div className="flex flex-col md:flex-row gap-4 justify-center">
                         <Link
                             href="/dashboard-student"

@@ -192,7 +192,8 @@ export async function getClassroomData(courseId: string, userId: string) {
             .where('course_id', '==', courseId)
             .get()
 
-        const hasEnrollment = !enrollmentsSnapshot.empty
+        const enrollmentData = !enrollmentsSnapshot.empty ? enrollmentsSnapshot.docs[0].data() : null
+        const hasEnrollment = !!enrollmentData && enrollmentData.status !== 'pending'
         
         const hasCourse = isAdmin || 
                          hasEnrollment || 
