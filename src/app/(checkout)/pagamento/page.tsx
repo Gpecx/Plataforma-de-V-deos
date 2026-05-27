@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { processCheckoutAction, getProfile, getLatestCoursePrices } from '@/app/(app)/dashboard-student/actions'
 import { cn } from '@/lib/utils'
 
@@ -73,6 +73,7 @@ export default function PagamentoPage() {
     const router = useRouter()
     const [mounted, setMounted] = useState(false)
     const [isProcessing, setIsProcessing] = useState(false)
+    const hasTriggeredRedirect = useRef(false)
     const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('credit_card')
     const [userProfile, setUserProfile] = useState<any>(null)
     const [isLoadingProfile, setIsLoadingProfile] = useState(true)
@@ -117,7 +118,8 @@ export default function PagamentoPage() {
     }, [])
 
     useEffect(() => {
-        if (mounted && items.length === 0 && !isProcessing) {
+        if (mounted && items.length === 0 && !isProcessing && !hasTriggeredRedirect.current) {
+            hasTriggeredRedirect.current = true
             router.push('/course')
         }
         
@@ -256,6 +258,7 @@ export default function PagamentoPage() {
                 return
             }
 
+            setIsProcessing(false)
             clearCart()
             
             if (result.data) {
@@ -272,11 +275,7 @@ export default function PagamentoPage() {
                 const { paymentId, billingType: respBillingType, invoiceUrl, status } = result.data
 
                 if (respBillingType === 'CREDIT_CARD') {
-                    if (status === 'CONFIRMED' || status === 'RECEIVED') {
-                        router.push('/dashboard-student')
-                    } else {
-                        router.push(`/pagamento/sucesso?id=${paymentId}&type=${respBillingType}`)
-                    }
+                    router.push(`/pagamento/sucesso?id=${paymentId}&type=${respBillingType}`)
                     return
                 }
 

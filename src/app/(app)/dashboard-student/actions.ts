@@ -157,14 +157,20 @@ export async function processCheckoutAction(
 
         // Para cursos GRATUITOS: commit imediato (não precisa de confirmação externa)
         // Para cursos PAGOS: commit apenas após Asaas criar o pagamento com paymentId válido
-        const buildBatch = (paymentId?: string) => {
+        const buildBatch = (paymentId?: string, asaasStatus?: string) => {
+            const isInstantlyConfirmed = billingType === 'CREDIT_CARD' && (asaasStatus === 'CONFIRMED' || asaasStatus === 'RECEIVED')
             const batch = adminDb.batch()
             for (const courseData of coursesData) {
                 const enrollRef = adminDb.collection('enrollments').doc()
                 batch.set(enrollRef, {
                     user_id: user.uid,
                     course_id: courseData.id,
-                    created_at: new Date()
+                    created_at: new Date(),
+                    ...(isInstantlyConfirmed ? {
+                        payment_confirmed: true,
+                        payment_id: paymentId,
+                        updated_at: new Date()
+                    } : {})
                 })
 
                 const platformShare = (Number(courseData.price) || 0) * (platformTaxPercent / 100)
@@ -182,10 +188,16 @@ export async function processCheckoutAction(
                     valorBruto: Number(courseData.price) || 0,
                     taxaPlataforma: platformShare,
                     repasseProfessor: teacherShare,
-                    statusPagamento: totalAmount === 0 ? 'pago' : 'pendente',
+                    statusPagamento: totalAmount === 0 || isInstantlyConfirmed ? 'pago' : 'pendente',
                     billingType: billingType,
-                    dataCriacao: new Date()
+                    dataCriacao: new Date(),
+                    ...(isInstantlyConfirmed ? { paymentDate: new Date() } : {})
                 })
+
+                if (isInstantlyConfirmed) {
+                    const wishlistRef = adminDb.collection('profiles').doc(user.uid).collection('wishlist').doc(courseData.id)
+                    batch.delete(wishlistRef)
+                }
             }
             return batch
         }
@@ -277,7 +289,7 @@ export async function processCheckoutAction(
             const asaasResponse = await createPayment(paymentPayload)
 
             // Commit das matrículas APÓS Asaas confirmar criação — paymentId incluso para o webhook
-            await buildBatch(asaasResponse.id).commit()
+            await buildBatch(asaasResponse.id, asaasResponse.status).commit()
 
             let pixData = null
             if (billingType === 'PIX') {
@@ -288,14 +300,18 @@ export async function processCheckoutAction(
                 }
             }
 
+            const creditCardConfirmed = billingType === 'CREDIT_CARD' && (asaasResponse.status === 'CONFIRMED' || asaasResponse.status === 'RECEIVED')
+
             return { 
-                success: true, 
+                success: true,
+                ...(creditCardConfirmed ? { status: asaasResponse.status } : {}),
                 data: { 
                     invoiceUrl: asaasResponse.invoiceUrl, 
                     paymentId: asaasResponse.id,
                     billingType: asaasResponse.billingType,
                     status: asaasResponse.status,
-                    pixData
+                    pixData,
+                    ...(creditCardConfirmed ? { paymentConfirmed: true } : {})
                 } 
             }
         } catch (asaasError: any) {
@@ -436,14 +452,46 @@ export async function getStudentTransactions() {
             .where('alunoId', '==', user.uid)
             .get()
 
-        let transactions = vendasSnapshot.docs.map(doc => {
+        function serializeDoc(data: Record<string, any>): Record<string, any> {
+            const plain: Record<string, any> = {}
+            for (const [key, value] of Object.entries(data)) {
+                if (value && typeof value === 'object' && typeof (value as any).toDate === 'function') {
+                    plain[key] = (value as any).toDate().toISOString()
+                } else {
+                    plain[key] = value
+                }
+            }
+            return plain
+        }
+
+        let transactions = await Promise.all(vendasSnapshot.docs.map(async doc => {
             const data = doc.data()
+            let cursoTitulo = 'Curso'
+            let courseThumbnail = null
+
+            if (data.cursoId) {
+                try {
+                    const courseDoc = await adminDb.collection('courses').doc(data.cursoId).get()
+                    if (courseDoc.exists) {
+                        cursoTitulo = courseDoc.data()?.title || 'Curso'
+                        courseThumbnail = courseDoc.data()?.thumbnail || null
+                    }
+                } catch (e) {
+                    console.error('Erro ao buscar curso:', e)
+                }
+            }
+
             return {
                 id: doc.id,
-                ...data,
-                dataCriacao: data.dataCriacao?.toDate?.().toISOString() || new Date().toISOString()
+                ...serializeDoc(data),
+                cursoTitulo,
+                courseThumbnail,
+                dataCriacao: (() => {
+                    const d = data.dataCriacao
+                    return d?.toDate?.().toISOString() || new Date().toISOString()
+                })()
             }
-        })
+        }))
 
         // Sort on server side to avoid missing index errors in Firebase
         transactions.sort((a, b) => new Date(b.dataCriacao).getTime() - new Date(a.dataCriacao).getTime())

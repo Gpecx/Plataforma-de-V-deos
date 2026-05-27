@@ -1,10 +1,12 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { CreditCard, Calendar, ArrowUpRight, Clock, Zap, ShieldCheck, X, Copy, CheckCircle2 as CheckIcon, Download, Loader2, CheckCircle, XCircle } from 'lucide-react'
+import { CreditCard, Calendar, ArrowUpRight, Clock, Zap, ShieldCheck, X, Copy, CheckCircle2 as CheckIcon, Download, Loader2, CheckCircle, XCircle, ShoppingCart } from 'lucide-react'
+import Link from 'next/link'
 import { getStudentTransactions, getPixDataAction, getBoletoDataAction, getPaymentStatusAction, payPendingCreditCardAction } from '../actions'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import Logo from '@/components/Logo'
 
 function maskCardNumber(value: string): string {
     const digits = value.replace(/\D/g, '').slice(0, 16)
@@ -61,6 +63,7 @@ export default function PaymentsPage() {
 
     // Estados para Recuperação de Pagamento
     const [selectedPayment, setSelectedPayment] = useState<any>(null)
+    const [receiptTransaction, setReceiptTransaction] = useState<any>(null)
     const [paymentData, setPaymentData] = useState<any>(null)
     const [isFetchingPayment, setIsFetchingPayment] = useState(false)
     const [copied, setCopied] = useState(false)
@@ -323,21 +326,52 @@ export default function PaymentsPage() {
                     </div>
 
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left">
+                        <table className="w-full text-left border-collapse min-w-[800px]">
                             <thead>
-                                <tr className="border-b border-slate-200 uppercase text-[9px] font-bold text-slate-500 tracking-[2px]">
-                                    <th className="pb-6">Data</th>
-                                    <th className="pb-6">Valor</th>
-                                    <th className="pb-6">Método</th>
-                                    <th className="pb-6">Status</th>
-                                    <th className="pb-6 text-right">Ação</th>
+                                <tr className="border-b-2 border-black uppercase text-[10px] font-bold text-black tracking-[3px]">
+                                    <th className="pb-4 pl-4">Produto</th>
+                                    <th className="pb-4 px-4">Data</th>
+                                    <th className="pb-4 px-4">Valor</th>
+                                    <th className="pb-4 px-4">Pagamento</th>
+                                    <th className="pb-4 pr-4 text-right">Ações</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100">
+                            <tbody className="divide-y divide-black">
                                 {loading ? (
-                                    <tr><td colSpan={5} className="py-8 text-center text-xs font-bold text-slate-400 uppercase tracking-widest">Carregando transações...</td></tr>
+                                    <>
+                                        {[...Array(3)].map((_, i) => (
+                                            <tr key={i} className="group border-b border-black last:border-b-0">
+                                                <td className="py-6 pl-4 pr-4">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-12 h-12 bg-slate-200 animate-pulse border-2 border-black rounded-md shrink-0"></div>
+                                                        <div className="space-y-2 w-full max-w-[200px]">
+                                                            <div className="h-4 bg-slate-200 animate-pulse w-full"></div>
+                                                            <div className="h-2 bg-slate-200 animate-pulse w-24"></div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td className="py-6 px-4">
+                                                    <div className="h-4 bg-slate-200 animate-pulse w-24"></div>
+                                                </td>
+                                                <td className="py-6 px-4">
+                                                    <div className="h-5 bg-slate-200 animate-pulse w-20"></div>
+                                                </td>
+                                                <td className="py-6 px-4">
+                                                    <div className="space-y-2">
+                                                        <div className="h-4 bg-slate-200 animate-pulse w-28"></div>
+                                                        <div className="h-2 bg-slate-200 animate-pulse w-16"></div>
+                                                    </div>
+                                                </td>
+                                                <td className="py-6 pr-4 text-right">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <div className="h-9 bg-slate-200 animate-pulse w-20 border-2 border-black rounded-md"></div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </>
                                 ) : transactions.length === 0 ? (
-                                    <tr><td colSpan={5} className="py-8 text-center text-xs font-bold text-slate-400 uppercase tracking-widest">Nenhuma transação encontrada.</td></tr>
+                                    <tr><td colSpan={5} className="py-12 text-center text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-black">Nenhuma transação encontrada.</td></tr>
                                 ) : (
                                     transactions.map((t) => {
                                         let methodText = 'Processado via Asaas'
@@ -360,47 +394,100 @@ export default function PaymentsPage() {
                                             methodText = 'Bolsa / Gratuito'
                                         }
 
-                                        const dateFormatted = new Date(t.dataCriacao).toLocaleDateString('pt-BR')
+                                        const dateFormatted = new Date(t.dataCriacao).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
                                         const valueFormatted = isFree ? 'Gratuito' : `R$ ${Number(t.valorBruto).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+
+                                        const isPaid = (t.statusPagamento || '').toLowerCase() === 'pago'
+                                        const isPending = (t.statusPagamento || '').toLowerCase() === 'pendente'
 
                                         return (
                                             <tr 
                                                 key={t.id} 
-                                                className={`group hover:bg-slate-50 transition-colors ${(t.statusPagamento || '').toLowerCase() === 'pendente' ? 'cursor-pointer' : ''}`}
-                                                onClick={() => (t.statusPagamento || '').toLowerCase() === 'pendente' && handleFetchPaymentData(t)}
+                                                className={`group hover:bg-slate-50 transition-colors border-b border-black last:border-b-0 ${isPending ? 'cursor-pointer' : ''}`}
+                                                onClick={() => isPending && handleFetchPaymentData(t)}
                                             >
-                                                <td className="py-6 text-xs font-bold text-[#1a1a1a] tracking-tight">{dateFormatted}</td>
-                                                <td className="py-6 text-sm font-bold text-[#1a1a1a] tracking-tighter">{valueFormatted}</td>
-                                                <td className="py-6">
-                                                    <div className="flex items-center gap-3">
-                                                        <MethodIcon size={14} className="text-[#1D5F31]" />
-                                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{methodText}</span>
+                                                <td className="py-6 pl-4 pr-4">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-12 h-12 border-2 border-black bg-slate-100 flex items-center justify-center shrink-0 rounded-md overflow-hidden relative">
+                                                            {t.courseThumbnail ? (
+                                                                <img src={t.courseThumbnail} alt="" className="w-full h-full object-cover grayscale opacity-80 mix-blend-multiply transition-all group-hover:grayscale-0 group-hover:opacity-100" />
+                                                            ) : (
+                                                                <ShoppingCart size={20} className="text-black" />
+                                                            )}
+                                                        </div>
+                                                        <div className="flex flex-col">
+                                                            {isPaid && t.cursoId ? (
+                                                                <Link href={`/dashboard-student/course/${t.cursoId}`} className="text-sm font-bold text-black uppercase tracking-tight hover:text-[#1D5F31] transition-colors line-clamp-2 max-w-[250px] leading-tight">
+                                                                    {t.cursoTitulo || 'Produto Adquirido'}
+                                                                </Link>
+                                                            ) : (
+                                                                <span className="text-sm font-bold text-black uppercase tracking-tight line-clamp-2 max-w-[250px] leading-tight">
+                                                                    {t.cursoTitulo || 'Produto Adquirido'}
+                                                                </span>
+                                                            )}
+                                                            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1.5">Ref: {t.idTransacao || t.id}</span>
+                                                        </div>
                                                     </div>
                                                 </td>
-                                                <td className="py-6">
+                                                <td className="py-6 px-4">
+                                                    <span className="text-xs font-bold text-[#1a1a1a] tracking-tight">
+                                                        {dateFormatted}
+                                                    </span>
+                                                </td>
+                                                <td className="py-6 px-4">
+                                                    <span className="text-base font-black text-[#1D5F31] tracking-tighter">
+                                                        {valueFormatted}
+                                                    </span>
+                                                </td>
+                                                <td className="py-6 px-4">
+                                                    <div className="flex items-center gap-2 mb-1.5">
+                                                        <MethodIcon size={14} className="text-black shrink-0" />
+                                                        <span className="text-[10px] font-bold text-black uppercase tracking-widest">{methodText}</span>
+                                                    </div>
                                                     <div className="flex items-center gap-2">
-                                                        <div className={`w-1.5 h-1.5 rounded-full ${(t.statusPagamento || '').toLowerCase() === 'pendente' ? 'bg-amber-500' : 'bg-[#1D5F31]'}`} />
-                                                        <span className={`text-[9px] font-bold uppercase tracking-widest ${(t.statusPagamento || '').toLowerCase() === 'pendente' ? 'text-amber-600' : 'text-[#1D5F31]'}`}>
+                                                        <div className={`w-1.5 h-1.5 rounded-none ${isPending ? 'bg-amber-500' : 'bg-[#1D5F31]'}`} />
+                                                        <span className={`text-[9px] font-bold uppercase tracking-[2px] ${isPending ? 'text-amber-600' : 'text-[#1D5F31]'}`}>
                                                             {t.statusPagamento || 'Concluído'}
                                                         </span>
                                                     </div>
                                                 </td>
-                                                <td className="py-6 text-right">
-                                                    {(t.statusPagamento || '').toLowerCase() === 'pendente' ? (
-                                                    <button 
-                                                            onClick={(e) => {
-                                                                 e.stopPropagation()
-                                                                 handleFetchPaymentData(t)
-                                                             }}
-                                                             className="px-4 py-2 bg-slate-900 text-white text-[9px] font-bold uppercase tracking-widest hover:bg-black transition-all rounded-md"
-                                                         >
-                                                             Pagar Agora
-                                                         </button>
-                                                     ) : (
-                                                         <button className="p-2 text-slate-400 hover:text-[#1D5F31] hover:bg-[#1D5F31]/10 transition-all rounded-md">
-                                                            <ArrowUpRight size={18} />
-                                                        </button>
-                                                    )}
+                                                <td className="py-6 pr-4 text-right">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        {isPending ? (
+                                                            <button 
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation()
+                                                                    handleFetchPaymentData(t)
+                                                                }}
+                                                                className="px-6 py-3 bg-black text-white text-[10px] font-bold uppercase tracking-[2px] hover:bg-[#1D5F31] transition-colors border-2 border-black rounded-md whitespace-nowrap"
+                                                            >
+                                                                Pagar Agora
+                                                            </button>
+                                                        ) : (
+                                                            <>
+                                                                <button
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation()
+                                                                        setReceiptTransaction(t)
+                                                                    }}
+                                                                    className="px-5 py-2.5 border-2 border-black bg-transparent text-black text-[10px] font-bold uppercase tracking-[2px] hover:bg-black hover:text-white transition-all rounded-md"
+                                                                >
+                                                                    Recibo
+                                                                </button>
+                                                                {(t.invoiceUrl || t.bankSlipUrl) && (
+                                                                    <a
+                                                                        href={t.invoiceUrl || t.bankSlipUrl}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        onClick={(e) => e.stopPropagation()}
+                                                                        className="px-5 py-2.5 border-2 border-black bg-slate-100 text-black text-[10px] font-bold uppercase tracking-[2px] hover:bg-[#1D5F31] hover:text-white hover:border-[#1D5F31] transition-all rounded-md flex items-center justify-center gap-1.5"
+                                                                    >
+                                                                        <ArrowUpRight size={14} /> Fatura
+                                                                    </a>
+                                                                )}
+                                                            </>
+                                                        )}
+                                                    </div>
                                                 </td>
                                             </tr>
                                         )
@@ -415,8 +502,8 @@ export default function PaymentsPage() {
             {/* Modal de Pagamento Pendente - Premium Industrial */}
             {selectedPayment && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="bg-white border border-black shadow-2xl w-full max-w-xl max-h-[85vh] flex flex-col relative animate-in zoom-in-95 duration-300 rounded-lg">
-                        <div className="absolute top-0 left-0 w-full h-1.5 bg-[#1D5F31] z-10 shrink-0 rounded-t-lg" />
+                    <div className="bg-white border border-black shadow-2xl w-full max-w-xl max-h-[85vh] flex flex-col relative animate-in zoom-in-95 duration-300 rounded-xl">
+                        <div className="absolute top-0 left-0 w-full h-1.5 bg-[#1D5F31] z-10 shrink-0 rounded-t-xl" />
 
                         {/* Header - sticky top */}
                         <div className="p-8 pb-4 shrink-0">
@@ -719,6 +806,114 @@ export default function PaymentsPage() {
                                 </div>
                             )}
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de Comprovante / Recibo - Udemy Style */}
+            {receiptTransaction && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-white w-full max-w-4xl max-h-[90vh] flex flex-col relative animate-in zoom-in-95 duration-300 shadow-2xl overflow-hidden rounded-xl">
+                        
+                        {(() => {
+                            const t = receiptTransaction
+                            const methodLabels: Record<string, string> = {
+                                CREDIT_CARD: 'Cartão de Crédito',
+                                PIX: 'PIX',
+                                BOLETO: 'Boleto Bancário',
+                            }
+                            const method = t.asaasPaymentMethod || t.billingType || ''
+                            const methodText = methodLabels[method] || 'Processado via Asaas'
+                            const isPaid = (t.statusPagamento || '').toLowerCase() === 'pago'
+                            const isPending = (t.statusPagamento || '').toLowerCase() === 'pendente'
+
+                            return (
+                                <>
+                                    {/* Header */}
+                                    <div className="px-10 pt-10 pb-6 flex justify-between items-start shrink-0 relative">
+                                        <button
+                                            onClick={() => setReceiptTransaction(null)}
+                                            className="absolute top-4 right-4 p-2 text-gray-400 hover:text-black transition-colors rounded-md hover:bg-gray-100"
+                                        >
+                                            <X size={20} />
+                                        </button>
+                                        
+                                        <div className="flex flex-col">
+                                            <Logo light={true} className="h-10 md:h-12 w-auto mb-2" href={null} />
+                                        </div>
+
+                                        <div className="text-right mt-2">
+                                            <h2 className="text-3xl tracking-tight text-gray-800 font-normal uppercase mb-3">Recibo</h2>
+                                            <div className="text-xs text-gray-500 font-medium space-y-1">
+                                                <p>Recibo #: {t.idTransacao || t.id || '-'}</p>
+                                                <p>Data: {new Date(t.dataCriacao).toLocaleDateString('pt-BR')}</p>
+                                                {t.paymentDate && (
+                                                    <p>Data do Pgto: {new Date(t.paymentDate).toLocaleDateString('pt-BR')}</p>
+                                                )}
+                                                <p>Status: <span className={isPaid ? "text-green-600 font-bold" : isPending ? "text-amber-600 font-bold" : "text-gray-600 font-bold"}>{t.statusPagamento || 'Concluído'}</span></p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Content - scrollable */}
+                                    <div className="px-10 pb-10 overflow-y-auto flex-1">
+                                        <div className="flex justify-between items-start border-t border-b border-gray-100 py-8 mb-8">
+                                            <div>
+                                                <h3 className="text-sm font-bold text-gray-600 mb-2">Fornecido por:</h3>
+                                                <div className="text-xs text-gray-800 space-y-1">
+                                                    <p className="font-bold">PowerPlay</p>
+                                                    <p>Plataforma de Ensino</p>
+                                                    <p>Brasil</p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <h3 className="text-sm font-bold text-gray-600 mb-2">Fornecido para:</h3>
+                                                <div className="text-xs text-gray-800 space-y-1">
+                                                    <p className="font-bold">Aluno da Plataforma</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="w-full">
+                                            <div className="grid grid-cols-12 border-b border-gray-200 pb-2 mb-4 text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+                                                <div className="col-span-6">Descrição</div>
+                                                <div className="col-span-2 text-right">Método</div>
+                                                <div className="col-span-2 text-right">Valor</div>
+                                                <div className="col-span-2 text-right">Total</div>
+                                            </div>
+                                            
+                                            <div className="grid grid-cols-12 py-4 border-b border-gray-100 text-sm text-gray-800 items-center">
+                                                <div className="col-span-6 pr-4">
+                                                    {t.cursoTitulo || 'Pagamento de Cursos / Mensalidade na plataforma PowerPlay'}
+                                                </div>
+                                                <div className="col-span-2 text-right text-xs">
+                                                    {methodText}
+                                                </div>
+                                                <div className="col-span-2 text-right">
+                                                    {t.valorBruto === 0 ? 'R$ 0,00' : `R$ ${Number(t.valorBruto).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                                                </div>
+                                                <div className="col-span-2 text-right">
+                                                    {t.valorBruto === 0 ? 'R$ 0,00' : `R$ ${Number(t.valorBruto).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-12 py-4 text-sm font-bold text-gray-900 bg-gray-50/50 mt-2 px-2">
+                                                <div className="col-span-10">Total</div>
+                                                <div className="col-span-2 text-right">
+                                                    BRL {t.valorBruto === 0 ? '0,00' : Number(t.valorBruto).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {t.paymentId && (
+                                            <div className="mt-8 text-xs text-gray-400 text-center">
+                                                Código de Autenticação: {t.paymentId}
+                                            </div>
+                                        )}
+                                    </div>
+                                </>
+                            )
+                        })()}
                     </div>
                 </div>
             )}
