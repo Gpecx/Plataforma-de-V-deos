@@ -277,6 +277,19 @@ export async function processCheckoutAction(
         }
 
         try {
+            // 1. Cria enrollment ANTES de chamar o Asaas
+            const enrollRefs: any[] = []
+            for (const courseData of coursesData) {
+                const enrollRef = adminDb.collection('enrollments').doc()
+                await enrollRef.set({
+                    user_id: user.uid,
+                    course_id: courseData.id,
+                    status: 'pending',
+                    created_at: new Date(),
+                })
+                enrollRefs.push({ ref: enrollRef, courseData })
+            }
+
             const paymentPayload: any = {
                 customer: customerId,
                 billingType,
@@ -293,8 +306,35 @@ export async function processCheckoutAction(
 
             const asaasResponse = await createPayment(paymentPayload)
 
-            // Commit das matrículas APÓS Asaas confirmar criação — paymentId incluso para o webhook
-            await buildBatch(asaasResponse.id, asaasResponse.status, asaasResponse.invoiceUrl).commit()
+            // 3. Atualiza enrollment com o paymentId
+            for (const { ref } of enrollRefs) {
+                await ref.update({
+                    payment_id: asaasResponse.id
+                })
+            }
+
+            // Cria vendas_logs
+            const isInstantlyConfirmed = billingType === 'CREDIT_CARD' && (asaasResponse.status === 'CONFIRMED' || asaasResponse.status === 'RECEIVED')
+            for (const { courseData } of enrollRefs) {
+                const platformShare = (Number(courseData.price) || 0) * (platformTaxPercent / 100)
+                const teacherShare = (Number(courseData.price) || 0) - platformShare
+                await adminDb.collection('vendas_logs').add({
+                    idTransacao: `TR-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                    paymentId: asaasResponse.id,
+                    invoiceUrl: asaasResponse.invoiceUrl || null,
+                    alunoId: user.uid,
+                    userId: user.uid,
+                    cursoId: courseData.id,
+                    professorId: courseData.teacher_id,
+                    valorBruto: Number(courseData.price) || 0,
+                    taxaPlataforma: platformShare,
+                    repasseProfessor: teacherShare,
+                    statusPagamento: isInstantlyConfirmed ? 'pago' : 'pendente',
+                    billingType: billingType,
+                    dataCriacao: new Date(),
+                    ...(isInstantlyConfirmed ? { paymentDate: new Date() } : {})
+                })
+            }
 
             let pixData = null
             if (billingType === 'PIX') {

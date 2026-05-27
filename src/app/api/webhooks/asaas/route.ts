@@ -85,19 +85,17 @@ export async function POST(request: NextRequest) {
                     invoiceUrl: invoiceUrl || saleData.invoiceUrl || null,
                 })
 
-                // Confirma o enrollment (muda status para confirmado se existir o campo)
+                // Confirma o enrollment (muda status para ativo)
                 const enrollmentQuery = await adminDb.collection('enrollments')
-                    .where('user_id', '==', userId)
-                    .where('course_id', '==', cursoId)
+                    .where('payment_id', '==', payment.id)
                     .limit(1)
                     .get()
 
                 if (!enrollmentQuery.empty) {
                     batch.update(enrollmentQuery.docs[0].ref, {
                         payment_confirmed: true,
-                        payment_id: payment.id,
                         updated_at: FieldValue.serverTimestamp(),
-                        status: FieldValue.delete(),
+                        status: 'active'
                     })
 
                     // Remove da lista de desejos, se existir
