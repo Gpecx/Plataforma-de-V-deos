@@ -4,7 +4,7 @@ import { FieldValue } from 'firebase-admin/firestore'
 import { cookies, headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createPayment, payWithCreditCard, BillingType, getStudentAsaasId, createCustomer, getPaymentQrCode, getPayment, getPaymentIdentification } from '@/services/asaasService'
+import { createPayment, payWithCreditCard, BillingType, getStudentAsaasId, createCustomer, getPaymentQrCode, getPayment, getPaymentIdentification, getTeacherWalletInfo } from '@/services/asaasService'
 import { sanitizeCpfCnpj } from '@/lib/utils'
 
 async function getClientIp(): Promise<string> {
@@ -290,6 +290,29 @@ export async function processCheckoutAction(
                 enrollRefs.push({ ref: enrollRef, courseData })
             }
 
+            // Split de Pagamentos — calcula repasse por professor
+            const uniqueTeacherIds = [...new Set(coursesData.map((c: any) => c.teacher_id).filter(Boolean))]
+            const teacherSplits: { walletId: string; fixedValue: number }[] = []
+            let allWalletsFound = true
+
+            for (const teacherId of uniqueTeacherIds) {
+                const teacherWallet = await getTeacherWalletInfo(teacherId)
+                if (!teacherWallet) {
+                    allWalletsFound = false
+                    break
+                }
+                const teacherCourses = coursesData.filter((c: any) => c.teacher_id === teacherId)
+                let totalTeacherShare = 0
+                for (const c of teacherCourses) {
+                    const platformShare = (Number(c.price) || 0) * (platformTaxPercent / 100)
+                    totalTeacherShare += (Number(c.price) || 0) - platformShare
+                }
+                teacherSplits.push({
+                    walletId: teacherWallet.walletId,
+                    fixedValue: Math.round(totalTeacherShare * 100) / 100,
+                })
+            }
+
             const paymentPayload: any = {
                 customer: customerId,
                 billingType,
@@ -297,6 +320,13 @@ export async function processCheckoutAction(
                 dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
                 description: `Compra de ${coursesData.length} curso(s) na plataforma`,
                 externalReference: `checkout-${user.uid}-${Date.now()}`,
+            }
+
+            if (allWalletsFound && teacherSplits.length > 0) {
+                paymentPayload.split = teacherSplits.map(t => ({
+                    walletId: t.walletId,
+                    fixedValue: t.fixedValue,
+                }))
             }
 
             if (billingType === 'CREDIT_CARD' && cardData) {
