@@ -164,33 +164,38 @@ export const verifyMfaCode = functions
     }
 
     try {
-        // 2. Buscar PIN no Firestore
-        const pinDoc = await admin.firestore().collection("temp_mfa_codes").doc(uid).get();
+        // 2. Buscar PIN no perfil do usuário
+        const profileDoc = await admin.firestore().collection("profiles").doc(uid).get();
 
-        if (!pinDoc.exists) {
+        if (!profileDoc.exists) {
+            return { success: false, error: "Perfil não encontrado." };
+        }
+
+        const profileData = profileDoc.data()!;
+        const mfaAuthTemp = profileData.mfa_auth_temp;
+
+        if (!mfaAuthTemp) {
             return { success: false, error: "Código não encontrado ou já expirado." };
         }
 
-        const pinData = pinDoc.data();
-
         // 3. Validar expiração
-        if (Date.now() > pinData?.expiresAt) {
-            await admin.firestore().collection("temp_mfa_codes").doc(uid).delete().catch(() => {});
+        if (Date.now() > mfaAuthTemp.expiresAt) {
+            await admin.firestore().collection("profiles").doc(uid).update({
+                mfa_auth_temp: admin.firestore.FieldValue.delete()
+            }).catch(() => {});
             return { success: false, error: "Este código expirou." };
         }
 
         // 4. Validar valor do PIN
-        if (pinData?.code !== code) {
+        if (mfaAuthTemp.code !== code) {
             return { success: false, error: "Código de verificação incorreto." };
         }
 
         // 5. Sucesso: Limpeza
-        // Deletar PIN
-        await admin.firestore().collection("temp_mfa_codes").doc(uid).delete().catch(() => {});
-        // Resetar mfaCodeRequested no perfil
         await admin.firestore().collection("profiles").doc(uid).update({
+            mfa_auth_temp: admin.firestore.FieldValue.delete(),
             mfaCodeRequested: false
-        }).catch(() => {});
+        });
 
         return { success: true };
     } catch (error) {
