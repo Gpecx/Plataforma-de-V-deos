@@ -69,6 +69,7 @@ export async function POST(request: NextRequest) {
                 batch.update(saleDoc.ref, {
                     statusPagamento: 'pago',
                     paymentDate: FieldValue.serverTimestamp(),
+                    invoiceUrl: asaasPayment.invoiceUrl || saleData.invoiceUrl || null,
                 })
 
                 // Confirma o enrollment (muda status para confirmado se existir o campo)

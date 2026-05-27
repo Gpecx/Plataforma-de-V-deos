@@ -74,6 +74,7 @@ export default function PagamentoPage() {
     const [mounted, setMounted] = useState(false)
     const [isProcessing, setIsProcessing] = useState(false)
     const hasTriggeredRedirect = useRef(false)
+    const [checkoutTotal, setCheckoutTotal] = useState(0)
     const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('credit_card')
     const [userProfile, setUserProfile] = useState<any>(null)
     const [isLoadingProfile, setIsLoadingProfile] = useState(true)
@@ -118,10 +119,17 @@ export default function PagamentoPage() {
     }, [])
 
     useEffect(() => {
-        if (mounted && items.length === 0 && !isProcessing && !hasTriggeredRedirect.current) {
+        if (!mounted) return
+
+        // Só redireciona se o carrinho estiver vazio no mount inicial
+        if (items.length === 0 && !hasTriggeredRedirect.current) {
             hasTriggeredRedirect.current = true
             router.push('/course')
+            return
         }
+
+        // Bloqueia redirects futuros causados por clearCart durante checkout
+        hasTriggeredRedirect.current = true
         
         const fetchData = async () => {
             if (mounted) {
@@ -138,13 +146,14 @@ export default function PagamentoPage() {
                         syncPrices(priceResult.data)
                     }
                     setIsLoadingPrices(false)
+                    setCheckoutTotal(getTotal())
                 } else {
                     setIsLoadingPrices(false)
                 }
             }
         }
         fetchData()
-    }, [mounted, items.length, router, syncPrices, isProcessing])
+    }, [mounted, items.length, router, syncPrices, isProcessing, getTotal])
 
     const resetCardForm = useCallback(() => {
         setCardNumber('')
@@ -163,7 +172,6 @@ export default function PagamentoPage() {
 
     if (!mounted) return null
 
-    const total = getTotal()
     const cardBrand = detectCardBrand(cardNumber)
 
     const validateCardForm = (): string | null => {
@@ -699,19 +707,20 @@ export default function PagamentoPage() {
                                 </label>
                             </div>
 
-                            <div className="space-y-4 mb-10">
+                                <div className="space-y-4 mb-10">
                                 <div className="flex justify-between font-bold uppercase text-[10px] tracking-widest text-slate-400">
                                     <span>Subtotal</span>
-                                    <span>R$ {total.toFixed(2)}</span>
+                                    <span>R$ {(checkoutTotal > 0 ? checkoutTotal : getTotal()).toFixed(2)}</span>
                                 </div>
                                 <div className="flex flex-col gap-1">
                                     <span className="text-[10px] font-bold uppercase tracking-[4px] text-slate-400">Total Final</span>
                                     <div className="text-4xl font-bold tracking-tighter text-[#1D5F31]">
-                                        {(isLoadingPrices || isProcessing) ? (
-                                            <div className="h-10 w-32 bg-slate-100 animate-pulse" />
-                                        ) : (
-                                            total === 0 ? 'Gratuito' : `R$ ${total.toFixed(2)}`
-                                        )}
+                                        {checkoutTotal > 0
+                                            ? `R$ ${checkoutTotal.toFixed(2)}`
+                                            : isLoadingPrices
+                                                ? <div className="h-10 w-32 bg-slate-100 animate-pulse" />
+                                                : getTotal() === 0 ? 'Gratuito' : `R$ ${getTotal().toFixed(2)}`
+                                        }
                                     </div>
                                 </div>
                             </div>

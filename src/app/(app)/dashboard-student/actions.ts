@@ -157,7 +157,7 @@ export async function processCheckoutAction(
 
         // Para cursos GRATUITOS: commit imediato (não precisa de confirmação externa)
         // Para cursos PAGOS: commit apenas após Asaas criar o pagamento com paymentId válido
-        const buildBatch = (paymentId?: string, asaasStatus?: string) => {
+        const buildBatch = (paymentId?: string, asaasStatus?: string, invoiceUrl?: string) => {
             const isInstantlyConfirmed = billingType === 'CREDIT_CARD' && (asaasStatus === 'CONFIRMED' || asaasStatus === 'RECEIVED')
             const batch = adminDb.batch()
             for (const courseData of coursesData) {
@@ -181,6 +181,7 @@ export async function processCheckoutAction(
                     idTransacao: `TR-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
                     // paymentId do Asaas — usado pelo webhook para confirmar matrícula em cursos pagos
                     ...(paymentId ? { paymentId } : {}),
+                    ...(invoiceUrl ? { invoiceUrl } : {}),
                     alunoId: user.uid,
                     userId: user.uid,
                     cursoId: courseData.id,
@@ -289,7 +290,7 @@ export async function processCheckoutAction(
             const asaasResponse = await createPayment(paymentPayload)
 
             // Commit das matrículas APÓS Asaas confirmar criação — paymentId incluso para o webhook
-            await buildBatch(asaasResponse.id, asaasResponse.status).commit()
+            await buildBatch(asaasResponse.id, asaasResponse.status, asaasResponse.invoiceUrl).commit()
 
             let pixData = null
             if (billingType === 'PIX') {
@@ -585,6 +586,7 @@ export async function payPendingCreditCardAction(
                 batch.update(doc.ref, {
                     statusPagamento: 'pago',
                     paymentDate: new Date(),
+                    invoiceUrl: asaasResponse.invoiceUrl || doc.data().invoiceUrl || null,
                 })
             })
 

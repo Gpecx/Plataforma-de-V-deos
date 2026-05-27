@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { CreditCard, Calendar, ArrowUpRight, Clock, Zap, ShieldCheck, X, Copy, CheckCircle2 as CheckIcon, Download, Loader2, CheckCircle, XCircle, ShoppingCart } from 'lucide-react'
+import { CreditCard, Calendar, ArrowUpRight, Clock, Zap, ShieldCheck, X, Copy, CheckCircle2 as CheckIcon, Download, Loader2, CheckCircle, XCircle, ShoppingCart, ExternalLink } from 'lucide-react'
 import Link from 'next/link'
 import { getStudentTransactions, getPixDataAction, getBoletoDataAction, getPaymentStatusAction, payPendingCreditCardAction } from '../actions'
 import { toast } from 'sonner'
@@ -54,6 +54,49 @@ function detectCardBrand(number: string): string {
     if (/^3(?:0[0-5]|[68])/.test(cleaned)) return 'Diners'
     if (/^2(?:014|149)/.test(cleaned)) return 'Elo'
     return ''
+}
+
+function FaturaButton({ transaction }: { transaction: any }) {
+    const [loadingFatura, setLoadingFatura] = useState(false)
+
+    const handleOpenFatura = async (e: React.MouseEvent) => {
+        e.stopPropagation()
+        if (transaction.invoiceUrl) {
+            window.open(transaction.invoiceUrl, '_blank', 'noopener,noreferrer')
+            return
+        }
+        if (!transaction.paymentId) return
+        setLoadingFatura(true)
+        try {
+            const res = await getPaymentStatusAction(transaction.paymentId)
+            if (res.success && res.data?.invoiceUrl) {
+                window.open(res.data.invoiceUrl, '_blank', 'noopener,noreferrer')
+            } else {
+                toast.error('Fatura não disponível para esta transação.')
+            }
+        } catch {
+            toast.error('Erro ao buscar fatura.')
+        } finally {
+            setLoadingFatura(false)
+        }
+    }
+
+    if (!transaction.paymentId) return null
+
+    return (
+        <button
+            onClick={handleOpenFatura}
+            disabled={loadingFatura}
+            className="px-5 py-2.5 border border-slate-200 bg-white text-black text-[10px] font-bold uppercase tracking-[2px] hover:border-[#1D5F31] hover:bg-[#1D5F31] hover:text-white transition-all rounded-md flex items-center justify-center gap-1.5 disabled:opacity-50 shadow-sm"
+        >
+            {loadingFatura ? (
+                <Loader2 size={14} className="animate-spin" />
+            ) : (
+                <ArrowUpRight size={14} />
+            )}
+            Fatura
+        </button>
+    )
 }
 
 export default function PaymentsPage() {
@@ -312,13 +355,13 @@ export default function PaymentsPage() {
 
             <div className="space-y-8">
                 {/* Tabela de Transações */}
-                <div className="bg-white border border-black shadow-sm p-8 md:p-10 relative overflow-hidden rounded-lg">
+                <div className="bg-white border border-slate-200 shadow-sm p-8 md:p-10 relative overflow-hidden rounded-lg">
                     <div className="flex items-center justify-between mb-10">
                         <h2 className="text-lg font-bold uppercase tracking-tighter text-[#1a1a1a]">Histórico de Transações</h2>
                         <button 
                             onClick={handleExportPDF}
                             disabled={isExporting || transactions.length === 0}
-                            className="text-[10px] font-bold uppercase tracking-widest text-gray-700 hover:text-gray-900 border border-black hover:border-black hover:bg-gray-50 px-6 py-3 transition-all shadow-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed rounded-md"
+                            className="text-[10px] font-bold uppercase tracking-widest text-gray-700 hover:text-gray-900 border border-slate-200 hover:border-slate-300 hover:bg-gray-50 px-6 py-3 transition-all shadow-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed rounded-md"
                         >
                             {isExporting && <Zap size={14} className="animate-pulse text-[#1D5F31]" />}
                             {isExporting ? 'GERANDO PDF...' : 'Exportar PDF'}
@@ -328,7 +371,7 @@ export default function PaymentsPage() {
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse min-w-[800px]">
                             <thead>
-                                <tr className="border-b-2 border-black uppercase text-[10px] font-bold text-black tracking-[3px]">
+                                <tr className="border-b border-slate-200 uppercase text-[10px] font-bold text-slate-500 tracking-[3px]">
                                     <th className="pb-4 pl-4">Produto</th>
                                     <th className="pb-4 px-4">Data</th>
                                     <th className="pb-4 px-4">Valor</th>
@@ -336,14 +379,14 @@ export default function PaymentsPage() {
                                     <th className="pb-4 pr-4 text-right">Ações</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-black">
+                            <tbody className="divide-y divide-slate-100">
                                 {loading ? (
                                     <>
                                         {[...Array(3)].map((_, i) => (
-                                            <tr key={i} className="group border-b border-black last:border-b-0">
+                                            <tr key={i} className="group border-b border-slate-100 last:border-b-0">
                                                 <td className="py-6 pl-4 pr-4">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="w-12 h-12 bg-slate-200 animate-pulse border-2 border-black rounded-md shrink-0"></div>
+                                                        <div className="w-12 h-12 bg-slate-200 animate-pulse border border-slate-200 rounded-md shrink-0"></div>
                                                         <div className="space-y-2 w-full max-w-[200px]">
                                                             <div className="h-4 bg-slate-200 animate-pulse w-full"></div>
                                                             <div className="h-2 bg-slate-200 animate-pulse w-24"></div>
@@ -364,14 +407,14 @@ export default function PaymentsPage() {
                                                 </td>
                                                 <td className="py-6 pr-4 text-right">
                                                     <div className="flex items-center justify-end gap-2">
-                                                        <div className="h-9 bg-slate-200 animate-pulse w-20 border-2 border-black rounded-md"></div>
+                                                        <div className="h-9 bg-slate-200 animate-pulse w-20 border border-slate-200 rounded-md"></div>
                                                     </div>
                                                 </td>
                                             </tr>
                                         ))}
                                     </>
                                 ) : transactions.length === 0 ? (
-                                    <tr><td colSpan={5} className="py-12 text-center text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-black">Nenhuma transação encontrada.</td></tr>
+                                    <tr><td colSpan={5} className="py-12 text-center text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100">Nenhuma transação encontrada.</td></tr>
                                 ) : (
                                     transactions.map((t) => {
                                         let methodText = 'Processado via Asaas'
@@ -403,12 +446,12 @@ export default function PaymentsPage() {
                                         return (
                                             <tr 
                                                 key={t.id} 
-                                                className={`group hover:bg-slate-50 transition-colors border-b border-black last:border-b-0 ${isPending ? 'cursor-pointer' : ''}`}
+                                                className={`group hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 ${isPending ? 'cursor-pointer' : ''}`}
                                                 onClick={() => isPending && handleFetchPaymentData(t)}
                                             >
                                                 <td className="py-6 pl-4 pr-4">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="w-12 h-12 border-2 border-black bg-slate-100 flex items-center justify-center shrink-0 rounded-md overflow-hidden relative">
+                                                        <div className="w-12 h-12 border border-slate-200 bg-slate-50 flex items-center justify-center shrink-0 rounded-md overflow-hidden relative">
                                                             {t.courseThumbnail ? (
                                                                 <img src={t.courseThumbnail} alt="" className="w-full h-full object-cover grayscale opacity-80 mix-blend-multiply transition-all group-hover:grayscale-0 group-hover:opacity-100" />
                                                             ) : (
@@ -435,7 +478,7 @@ export default function PaymentsPage() {
                                                     </span>
                                                 </td>
                                                 <td className="py-6 px-4">
-                                                    <span className="text-base font-black text-[#1D5F31] tracking-tighter">
+                                                    <span className="text-base font-semibold text-[#1D5F31] tracking-tight">
                                                         {valueFormatted}
                                                     </span>
                                                 </td>
@@ -459,7 +502,7 @@ export default function PaymentsPage() {
                                                                     e.stopPropagation()
                                                                     handleFetchPaymentData(t)
                                                                 }}
-                                                                className="px-6 py-3 bg-black text-white text-[10px] font-bold uppercase tracking-[2px] hover:bg-[#1D5F31] transition-colors border-2 border-black rounded-md whitespace-nowrap"
+                                                                className="px-6 py-3 bg-black text-white text-[10px] font-bold uppercase tracking-[2px] hover:bg-[#1D5F31] transition-colors rounded-md whitespace-nowrap shadow-sm"
                                                             >
                                                                 Pagar Agora
                                                             </button>
@@ -470,21 +513,11 @@ export default function PaymentsPage() {
                                                                         e.stopPropagation()
                                                                         setReceiptTransaction(t)
                                                                     }}
-                                                                    className="px-5 py-2.5 border-2 border-black bg-transparent text-black text-[10px] font-bold uppercase tracking-[2px] hover:bg-black hover:text-white transition-all rounded-md"
+                                                                    className="px-5 py-2.5 border border-slate-200 bg-white text-black text-[10px] font-bold uppercase tracking-[2px] hover:border-black hover:bg-black hover:text-white transition-all rounded-md shadow-sm"
                                                                 >
                                                                     Recibo
                                                                 </button>
-                                                                {(t.invoiceUrl || t.bankSlipUrl) && (
-                                                                    <a
-                                                                        href={t.invoiceUrl || t.bankSlipUrl}
-                                                                        target="_blank"
-                                                                        rel="noopener noreferrer"
-                                                                        onClick={(e) => e.stopPropagation()}
-                                                                        className="px-5 py-2.5 border-2 border-black bg-slate-100 text-black text-[10px] font-bold uppercase tracking-[2px] hover:bg-[#1D5F31] hover:text-white hover:border-[#1D5F31] transition-all rounded-md flex items-center justify-center gap-1.5"
-                                                                    >
-                                                                        <ArrowUpRight size={14} /> Fatura
-                                                                    </a>
-                                                                )}
+                                                                <FaturaButton transaction={t} />
                                                             </>
                                                         )}
                                                     </div>
@@ -502,7 +535,7 @@ export default function PaymentsPage() {
             {/* Modal de Pagamento Pendente - Premium Industrial */}
             {selectedPayment && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="bg-white border border-black shadow-2xl w-full max-w-xl max-h-[85vh] flex flex-col relative animate-in zoom-in-95 duration-300 rounded-xl">
+                    <div className="bg-white border border-slate-200 shadow-2xl w-full max-w-xl max-h-[85vh] flex flex-col relative animate-in zoom-in-95 duration-300 rounded-xl">
                         <div className="absolute top-0 left-0 w-full h-1.5 bg-[#1D5F31] z-10 shrink-0 rounded-t-xl" />
 
                         {/* Header - sticky top */}
@@ -908,6 +941,18 @@ export default function PaymentsPage() {
                                         {t.paymentId && (
                                             <div className="mt-8 text-xs text-gray-400 text-center">
                                                 Código de Autenticação: {t.paymentId}
+                                            </div>
+                                        )}
+                                        {t.invoiceUrl && (
+                                            <div className="mt-4 text-center">
+                                                <a
+                                                    href={t.invoiceUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="inline-flex items-center gap-2 px-6 py-3 bg-[#1D5F31] text-white text-[10px] font-bold uppercase tracking-widest hover:brightness-110 transition-all rounded-md"
+                                                >
+                                                    <ExternalLink size={14} /> Ver Fatura Original
+                                                </a>
                                             </div>
                                         )}
                                     </div>

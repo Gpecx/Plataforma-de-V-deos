@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { Heart } from 'lucide-react'
+import { Zap } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { toggleWishlist, getWishlistCourseIds } from '@/app/actions/wishlist'
 import { auth } from '@/lib/firebase'
@@ -76,7 +76,7 @@ export default function WishlistButton({ courseId, className = '', isPurchased =
                     : 'bg-black/50 border-white/30 text-white hover:border-[#1D5F31] hover:text-[#1D5F31]'
             } ${className}`}
         >
-            <Heart 
+            <Zap 
                 size={16} 
                 className={`transition-all ${isInWishlist ? 'fill-current' : ''}`}
             />

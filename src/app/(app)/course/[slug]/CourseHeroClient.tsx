@@ -4,7 +4,7 @@ import { useEffect } from "react"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
 import MuxPlayer from "@mux/mux-player-react"
-import { ArrowLeft, Clock, Globe, ShieldCheck, Play, Plus, Check, X, User, Heart } from "lucide-react"
+import { ArrowLeft, Clock, Globe, ShieldCheck, Play, Plus, Check, X, User, Zap } from "lucide-react"
 import SecureMuxPlayer from "@/components/SecureMuxPlayer"
 import { useCartStore } from '@/store/useCartStore'
 import { useTrailerStore } from '@/store/useTrailerStore'
@@ -287,10 +287,14 @@ export function CourseHeroClient({ course, isAdmin, hasAccess, purchasedCourseId
                                 <button
                                     onClick={handleToggleWishlist}
                                     disabled={isTogglingWishlist}
-                                    className={`w-full sm:w-auto bg-transparent hover:bg-white/10 border ${isInWishlist ? 'border-[#1D5F31] text-[#1D5F31]' : 'border-[#FFFFFF] text-[#FFFFFF]'} px-8 py-4 rounded-md font-bold text-base flex items-center justify-center gap-3 transition-colors shrink-0`}
+                                    className={`w-full sm:w-auto px-8 py-4 rounded-md font-bold text-base flex items-center justify-center gap-3 transition-colors shrink-0 ${
+                                        isInWishlist 
+                                            ? 'bg-[#FFFFFF] hover:bg-gray-100 text-[#041E10] shadow-2xl' 
+                                            : 'bg-transparent hover:bg-white/10 border border-[#FFFFFF] text-[#FFFFFF]'
+                                    }`}
                                 >
-                                    <Heart size={20} className={isInWishlist ? 'fill-[#1D5F31]' : ''} />
-                                    {isInWishlist ? 'Na lista de desejos' : 'lista de desejos'}
+                                    <Zap size={18} className={isInWishlist ? 'fill-currentColor' : ''} />
+                                    {isInWishlist ? 'Na lista de desejos' : 'Lista de desejos'}
                                 </button>
                             )}
                         </div>
