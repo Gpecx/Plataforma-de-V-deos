@@ -211,6 +211,8 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
     matcher: [
-        '/((?!_next/static|_next/image|favicon|images/|fonts/|icons/).*)',
+        // Exclui assets estáticos, imagens e rotas de webhook (Asaas, etc.)
+        // Webhooks são autenticados internamente pelo seu próprio token — não pelo middleware.
+        '/((?!_next/static|_next/image|favicon|images/|fonts/|icons/|api/webhooks/).*)',
     ],
 }
