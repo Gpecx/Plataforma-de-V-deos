@@ -4,7 +4,7 @@ import { FieldValue } from 'firebase-admin/firestore'
 import { cookies, headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createPayment, payWithCreditCard, BillingType, getStudentAsaasId, createCustomer, getPaymentQrCode, getPayment, getPaymentIdentification, getTeacherWalletInfo } from '@/services/asaasService'
+import { createPayment, payWithCreditCard, BillingType, getStudentAsaasId, createCustomer, getPaymentQrCode, getPayment, getPaymentIdentification, getTeacherWalletInfo, calculateSplitValues } from '@/services/asaasService'
 import { sanitizeCpfCnpj } from '@/lib/utils'
 
 async function getClientIp(): Promise<string> {
@@ -177,8 +177,7 @@ export async function processCheckoutAction(
                     })
                 })
 
-                const platformShare = (Number(courseData.price) || 0) * (platformTaxPercent / 100)
-                const teacherShare = (Number(courseData.price) || 0) - platformShare
+                const { platformAmount: platformShare, teacherAmount: teacherShare } = calculateSplitValues(Number(courseData.price) || 0, platformTaxPercent)
 
                 const saleRef = adminDb.collection('vendas_logs').doc()
                 batch.set(saleRef, {
@@ -318,10 +317,14 @@ export async function processCheckoutAction(
             if (allWalletsFound) {
                 paymentPayload.split = {
                     container: {
-                        splits: coursesData.map((course: any) => ({
-                            walletId: teacherWalletMap.get(course.teacher_id),
-                            percent: 100 - platformTaxPercent,
-                        }))
+                        splits: coursesData.map((course: any) => {
+                            const { teacherAmount } = calculateSplitValues(Number(course.price) || 0, platformTaxPercent)
+                            return {
+                                walletId: teacherWalletMap.get(course.teacher_id),
+                                percent: 100 - platformTaxPercent,
+                                amount: teacherAmount,
+                            }
+                        })
                     }
                 }
             }
@@ -343,8 +346,7 @@ export async function processCheckoutAction(
             // Cria vendas_logs
             const isInstantlyConfirmed = billingType === 'CREDIT_CARD' && (asaasResponse.status === 'CONFIRMED' || asaasResponse.status === 'RECEIVED')
             for (const { courseData } of enrollRefs) {
-                const platformShare = (Number(courseData.price) || 0) * (platformTaxPercent / 100)
-                const teacherShare = (Number(courseData.price) || 0) - platformShare
+                const { platformAmount: platformShare, teacherAmount: teacherShare } = calculateSplitValues(Number(courseData.price) || 0, platformTaxPercent)
                 await adminDb.collection('vendas_logs').add({
                     idTransacao: `TR-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
                     paymentId: asaasResponse.id,
@@ -534,8 +536,6 @@ export async function getStudentTransactions() {
             seen.add(doc.id)
             return true
         })
-        const vendasSnapshot = { docs: vendasDocs, empty: vendasDocs.length === 0 } as any
-
         function serializeDoc(data: Record<string, any>): Record<string, any> {
             const plain: Record<string, any> = {}
             for (const [key, value] of Object.entries(data)) {
@@ -548,34 +548,43 @@ export async function getStudentTransactions() {
             return plain
         }
 
-        let transactions = await Promise.all(vendasSnapshot.docs.map(async doc => {
+        type Transaction = Record<string, any> & {
+            id: string
+            cursoTitulo: string
+            courseThumbnail: string | null
+            dataCriacao: string
+        }
+
+        const transactionPromises: Promise<Transaction>[] = vendasDocs.map(async (doc) => {
             const data = doc.data()
             let cursoTitulo = 'Curso'
-            let courseThumbnail = null
+            let courseThumbnail: string | null = null
 
             if (data.cursoId) {
                 try {
                     const courseDoc = await adminDb.collection('courses').doc(data.cursoId).get()
                     if (courseDoc.exists) {
-                        cursoTitulo = courseDoc.data()?.title || 'Curso'
-                        courseThumbnail = courseDoc.data()?.thumbnail || null
+                        const courseData = courseDoc.data()
+                        cursoTitulo = courseData?.title || 'Curso'
+                        courseThumbnail = courseData?.thumbnail || null
                     }
                 } catch (e) {
                     console.error('Erro ao buscar curso:', e)
                 }
             }
 
+            const dataCriacao = data.dataCriacao?.toDate?.().toISOString() || new Date().toISOString()
+
             return {
                 id: doc.id,
                 ...serializeDoc(data),
                 cursoTitulo,
                 courseThumbnail,
-                dataCriacao: (() => {
-                    const d = data.dataCriacao
-                    return d?.toDate?.().toISOString() || new Date().toISOString()
-                })()
+                dataCriacao,
             }
-        }))
+        })
+
+        const transactions = await Promise.all(transactionPromises)
 
         // Sort on server side to avoid missing index errors in Firebase
         transactions.sort((a, b) => new Date(b.dataCriacao).getTime() - new Date(a.dataCriacao).getTime())
