@@ -79,48 +79,6 @@ export async function getProfile() {
     }
 }
 
-export async function buyCourse(courseId: string) {
-    const user = await getAuthUser()
-    if (!user) throw new Error('Não autorizado')
-
-    try {
-        const courseDoc = await adminDb.collection('courses').doc(courseId).get()
-        if (!courseDoc.exists) return { success: false, error: 'Curso não encontrado' }
-
-        const courseData = courseDoc.data() as any
-        const settingsDoc = await adminDb.collection('config').doc('platform_settings').get()
-        const platformTaxPercent = settingsDoc.exists ? settingsDoc.data()?.platform_tax : 20
-
-        const platformShare = (courseData.price || 0) * (platformTaxPercent / 100)
-        const teacherShare = (courseData.price || 0) - platformShare
-
-        await adminDb.collection('enrollments').add({
-            user_id: user.uid,
-            course_id: courseId,
-            created_at: new Date()
-        })
-
-        // Log da Venda
-        await adminDb.collection('vendas_logs').add({
-            idTransacao: `TR-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-            alunoId: user.uid,
-            cursoId: courseId,
-            professorId: courseData.teacher_id,
-            valorBruto: courseData.price || 0,
-            taxaPlataforma: platformShare,
-            repasseProfessor: teacherShare,
-            statusPagamento: 'pago',
-            dataCriacao: new Date()
-        })
-
-        revalidatePath('/dashboard-student')
-        return { success: true }
-    } catch (error) {
-        console.error('Erro na compra:', error)
-        return { success: false }
-    }
-}
-
 export async function processCheckoutAction(
     courseIds: string[],
     billingType: BillingType = 'PIX',
