@@ -10,7 +10,13 @@ async function getAuthUser() {
     if (!token) return null
 
     try {
-        return await adminAuth.verifySessionCookie(token, true)
+        const decoded = await adminAuth.verifySessionCookie(token, true)
+        // Validação de role: busca o perfil e verifica se é teacher ou admin
+        const profileDoc = await adminDb.collection('profiles').doc(decoded.uid).get()
+        if (!profileDoc.exists) return null
+        const role = profileDoc.data()?.role
+        if (role !== 'teacher' && role !== 'admin') return null
+        return decoded
     } catch (error) {
         return null
     }

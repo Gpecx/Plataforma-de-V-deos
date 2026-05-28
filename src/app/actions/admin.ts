@@ -1133,25 +1133,51 @@ export async function getStudentDetails(uid: string) {
         const mfaStatus = profileData.mfaEnabled === true
         const lastLogin = authUser.metadata.lastSignInTime
 
-        // 3. Dados Acadêmicos (Matrículas e Progresso)
+        // 3. Dados Acadêmicos — busca apenas cursos onde o aluno está matriculado
         const enrollmentsSnap = await adminDb.collection('enrollments')
             .where('user_id', '==', uid)
             .get()
-        
-        const coursesSnap = await adminDb.collection('courses').get()
-        const coursesMap = new Map()
-        coursesSnap.docs.forEach(doc => coursesMap.set(doc.id, { id: doc.id, ...doc.data() }))
 
-        const lessonsSnap = await adminDb.collection('lessons')
-            .where('status', '==', 'APROVADO')
-            .get()
-        
-        // Agrupa lições por curso para contar total
+        const courseIds = [...new Set(enrollmentsSnap.docs.map(d => d.data().course_id).filter(Boolean))] as string[]
+
+        const coursesMap = new Map()
         const lessonsCountByCourse = new Map()
-        lessonsSnap.docs.forEach(doc => {
-            const courseId = doc.data().course_id
-            lessonsCountByCourse.set(courseId, (lessonsCountByCourse.get(courseId) || 0) + 1)
-        })
+
+        if (courseIds.length > 0) {
+            // Busca apenas os cursos do aluno (em chunks de 30)
+            const courseChunks: string[][] = []
+            for (let i = 0; i < courseIds.length; i += 30) {
+                courseChunks.push(courseIds.slice(i, i + 30))
+            }
+            const courseSnapshots = await Promise.all(
+                courseChunks.map(chunk =>
+                    adminDb.collection('courses').where('__name__', 'in', chunk).get()
+                )
+            )
+            courseSnapshots.forEach(snap =>
+                snap.docs.forEach(doc => coursesMap.set(doc.id, { id: doc.id, ...doc.data() }))
+            )
+
+            // Busca lições aprovadas apenas desses cursos
+            const lessonChunks: string[][] = []
+            for (let i = 0; i < courseIds.length; i += 30) {
+                lessonChunks.push(courseIds.slice(i, i + 30))
+            }
+            const lessonSnapshots = await Promise.all(
+                lessonChunks.map(chunk =>
+                    adminDb.collection('lessons')
+                        .where('course_id', 'in', chunk)
+                        .where('status', '==', 'APROVADO')
+                        .get()
+                )
+            )
+            lessonSnapshots.forEach(snap =>
+                snap.docs.forEach(doc => {
+                    const cid = doc.data().course_id
+                    lessonsCountByCourse.set(cid, (lessonsCountByCourse.get(cid) || 0) + 1)
+                })
+            )
+        }
 
         const academicData = enrollmentsSnap.docs.map(doc => {
             const data = doc.data()
@@ -1159,8 +1185,7 @@ export async function getStudentDetails(uid: string) {
             const completedCount = data.completed_lessons?.length || 0
             const totalCount = lessonsCountByCourse.get(data.course_id) || 0
             const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
-            
-            // Verifica se tem certificado gerado no perfil
+
             const certificate = profileData.concluded_courses?.find((c: any) => c.courseId === data.course_id)
 
             return {
@@ -1175,7 +1200,7 @@ export async function getStudentDetails(uid: string) {
             }
         })
 
-        // 4. Montar Objeto Final (Padrão Industrial)
+        // 4. Montar Objeto Final
         return JSON.parse(JSON.stringify({
             success: true,
             student: {
