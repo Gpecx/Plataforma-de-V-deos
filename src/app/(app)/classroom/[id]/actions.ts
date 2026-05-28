@@ -331,21 +331,19 @@ export async function processCertificateIssuance(courseId: string, userId: strin
             verificationCode,
             credentialId: verificationCode,
             percentage: 100,
-            status: 'pending_rules'
+            status: 'issued'
         }
 
-        // 9. Tentativa de gravação no Firestore (comentada aguardando liberação das Security Rules)
-        /*
+        // 9. Gravar certificado no Firestore
         try {
             await adminDb.collection('certificates').add({
                 ...certificate,
                 createdAt: new Date()
             })
-            certificate.status = 'issued'
         } catch (firestoreError) {
-            console.error('Certificado preparado mas gravação no Firestore aguardando liberação das Security Rules:', firestoreError)
+            console.error('Erro ao gravar certificado no Firestore:', firestoreError)
+            return { success: false, data: null, error: 'Erro ao salvar certificado' }
         }
-        */
 
         return { success: true, data: certificate }
 
