@@ -70,7 +70,23 @@ export async function POST(request: NextRequest) {
                 return NextResponse.json({ success: true, updated: 'course' }, { status: 200 })
             }
 
-            // 2. Busca a aula pelo mux_asset_id
+            // 2. Busca o curso pelo pendingTrailerAssetId (trailer pendente de aprovação)
+            const pendingTrailerQuery = await adminDb.collection('courses')
+                .where('pendingTrailerAssetId', '==', assetId)
+                .limit(1)
+                .get()
+
+            if (!pendingTrailerQuery.empty) {
+                const courseDoc = pendingTrailerQuery.docs[0]
+                await courseDoc.ref.update({
+                    pendingTrailerPlaybackId: playbackId,
+                    updated_at: new Date()
+                })
+                console.log(`Webhook Mux: Curso ${courseDoc.id} atualizado com pendingTrailerPlaybackId ${playbackId}`)
+                return NextResponse.json({ success: true, updated: 'pending_trailer' }, { status: 200 })
+            }
+
+            // 3. Busca a aula pelo mux_asset_id
             const lessonsQuery = await adminDb.collection('lessons')
                 .where('mux_asset_id', '==', assetId)
                 .limit(1)
