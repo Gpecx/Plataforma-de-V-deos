@@ -1,9 +1,10 @@
 'use server'
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
+import { FieldValue } from 'firebase-admin/firestore'
 import { cookies, headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createPayment, BillingType, getStudentAsaasId, createCustomer, getPaymentQrCode, getPayment, getPaymentIdentification } from '@/services/asaasService'
+import { createPayment, payWithCreditCard, BillingType, getStudentAsaasId, createCustomer, getPaymentQrCode, getPayment, getPaymentIdentification, getTeacherWalletInfo, calculateSplitValues } from '@/services/asaasService'
 import { sanitizeCpfCnpj } from '@/lib/utils'
 
 async function getClientIp(): Promise<string> {
@@ -120,9 +121,17 @@ export async function buyCourse(courseId: string) {
     }
 }
 
-export async function processCheckoutAction(courseIds: string[], billingType: BillingType = 'PIX', termsAccepted: boolean = false): Promise<
+export async function processCheckoutAction(
+    courseIds: string[],
+    billingType: BillingType = 'PIX',
+    termsAccepted: boolean = false,
+    cardData?: {
+        creditCard: { holderName: string; number: string; expiryMonth: string; expiryYear: string; ccv: string };
+        creditCardHolderInfo: { name: string; email: string; cpfCnpj: string; postalCode: string; addressNumber: string; phone?: string };
+    }
+): Promise<
     | { success: true; isFree: true; data?: undefined; error?: undefined }
-    | { success: true; isFree?: undefined; data: { invoiceUrl: string; paymentId: string; billingType: string; pixData?: any }; error?: undefined }
+    | { success: true; isFree?: undefined; data: { invoiceUrl: string; paymentId: string; billingType: string; status?: string; pixQrCode?: string; payload?: string }; error?: undefined }
     | { success: false; error: string; isFree?: undefined; data?: undefined }
 > {
     const user = await getAuthUser()
@@ -149,24 +158,33 @@ export async function processCheckoutAction(courseIds: string[], billingType: Bi
 
         // Para cursos GRATUITOS: commit imediato (não precisa de confirmação externa)
         // Para cursos PAGOS: commit apenas após Asaas criar o pagamento com paymentId válido
-        const buildBatch = (paymentId?: string) => {
+        const buildBatch = (paymentId?: string, asaasStatus?: string, invoiceUrl?: string) => {
+            const isInstantlyConfirmed = billingType === 'CREDIT_CARD' && (asaasStatus === 'CONFIRMED' || asaasStatus === 'RECEIVED')
+            const isFree = totalAmount === 0
             const batch = adminDb.batch()
             for (const courseData of coursesData) {
                 const enrollRef = adminDb.collection('enrollments').doc()
                 batch.set(enrollRef, {
                     user_id: user.uid,
                     course_id: courseData.id,
-                    created_at: new Date()
+                    created_at: new Date(),
+                    ...(paymentId ? { payment_id: paymentId } : {}),
+                    ...(isInstantlyConfirmed || isFree ? {
+                        payment_confirmed: true,
+                        ...(isInstantlyConfirmed ? { updated_at: new Date() } : {})
+                    } : {
+                        status: 'pending',
+                    })
                 })
 
-                const platformShare = (Number(courseData.price) || 0) * (platformTaxPercent / 100)
-                const teacherShare = (Number(courseData.price) || 0) - platformShare
+                const { platformAmount: platformShare, teacherAmount: teacherShare } = calculateSplitValues(Number(courseData.price) || 0, platformTaxPercent)
 
                 const saleRef = adminDb.collection('vendas_logs').doc()
                 batch.set(saleRef, {
                     idTransacao: `TR-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
                     // paymentId do Asaas — usado pelo webhook para confirmar matrícula em cursos pagos
                     ...(paymentId ? { paymentId } : {}),
+                    ...(invoiceUrl ? { invoiceUrl } : {}),
                     alunoId: user.uid,
                     userId: user.uid,
                     cursoId: courseData.id,
@@ -174,16 +192,30 @@ export async function processCheckoutAction(courseIds: string[], billingType: Bi
                     valorBruto: Number(courseData.price) || 0,
                     taxaPlataforma: platformShare,
                     repasseProfessor: teacherShare,
-                    statusPagamento: totalAmount === 0 ? 'pago' : 'pendente',
+                    statusPagamento: totalAmount === 0 || isInstantlyConfirmed ? 'pago' : 'pendente',
                     billingType: billingType,
-                    dataCriacao: new Date()
+                    dataCriacao: new Date(),
+                    ...(isInstantlyConfirmed ? { paymentDate: new Date() } : {})
                 })
+
+                if (isInstantlyConfirmed) {
+                    const wishlistRef = adminDb.collection('profiles').doc(user.uid).collection('wishlist').doc(courseData.id)
+                    batch.delete(wishlistRef)
+                }
             }
             return batch
         }
 
         if (totalAmount === 0) {
             await buildBatch().commit()
+
+            // Remove cursos gratuitos da lista de desejos
+            const batch = adminDb.batch()
+            for (const courseData of coursesData) {
+                const wishlistRef = adminDb.collection('profiles').doc(user.uid).collection('wishlist').doc(courseData.id)
+                batch.delete(wishlistRef)
+            }
+            await batch.commit()
         }
 
         // Consent Log (LGPD) - Separate collection for audit
@@ -226,6 +258,13 @@ export async function processCheckoutAction(courseIds: string[], billingType: Bi
             const sanitizedCep = rawCep ? rawCep.replace(/\D/g, '') : undefined
             const addressNumber = profileData?.numero || profileData?.numero_endereco || undefined
 
+            if (!sanitizedCep || !addressNumber) {
+                return { 
+                    success: false, 
+                    error: "Você precisa cadastrar seu CEP e Número de Endereço em 'Perfil' antes de realizar o pagamento." 
+                }
+            }
+
             const newCustomer = await createCustomer({
                 name: profileData?.name || profileData?.displayName || profileData?.full_name || 'Aluno',
                 email: profileData?.email || user.email || '',
@@ -244,34 +283,127 @@ export async function processCheckoutAction(courseIds: string[], billingType: Bi
         }
 
         try {
-            const asaasResponse = await createPayment({
+            // 1. Cria enrollment ANTES de chamar o Asaas
+            const enrollRefs: any[] = []
+            for (const courseData of coursesData) {
+                const enrollRef = adminDb.collection('enrollments').doc()
+                await enrollRef.set({
+                    user_id: user.uid,
+                    course_id: courseData.id,
+                    status: 'pending',
+                    created_at: new Date(),
+                })
+                enrollRefs.push({ ref: enrollRef, courseData })
+            }
+
+            // 1. Mapeia as wallets dos professores necessários
+            const uniqueTeacherIds = [...new Set(coursesData.map((c: any) => c.teacher_id).filter(Boolean))]
+            const teacherWalletMap = new Map<string, string>()
+            let allWalletsFound = true
+
+            for (const teacherId of uniqueTeacherIds) {
+                const teacherWallet = await getTeacherWalletInfo(teacherId)
+                if (!teacherWallet) {
+                    allWalletsFound = false
+                    break
+                }
+                teacherWalletMap.set(teacherId, teacherWallet.walletId)
+            }
+
+            // 2. Define o Payload Base do Asaas
+            const paymentPayload: any = {
                 customer: customerId,
                 billingType,
                 value: totalAmount,
                 dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
                 description: `Compra de ${coursesData.length} curso(s) na plataforma`,
                 externalReference: `checkout-${user.uid}-${Date.now()}`,
-            })
+            }
 
-            // Commit das matrículas APÓS Asaas confirmar criação — paymentId incluso para o webhook
-            await buildBatch(asaasResponse.id).commit()
+            // 3. Adiciona o Split no formato estrito exigido pela API do Asaas
+            if (allWalletsFound) {
+                paymentPayload.split = {
+                    container: {
+                        splits: coursesData.map((course: any) => {
+                            const { teacherAmount } = calculateSplitValues(Number(course.price) || 0, platformTaxPercent)
+                            return {
+                                walletId: teacherWalletMap.get(course.teacher_id),
+                                percent: 100 - platformTaxPercent,
+                                amount: teacherAmount,
+                            }
+                        })
+                    }
+                }
+            }
 
-            let pixData = null
+            if (billingType === 'CREDIT_CARD' && cardData) {
+                paymentPayload.creditCard = cardData.creditCard
+                paymentPayload.creditCardHolderInfo = cardData.creditCardHolderInfo
+            }
+
+            const asaasResponse = await createPayment(paymentPayload)
+
+            // 3. Atualiza enrollment com o paymentId e status se confirmado instantaneamente
+            const isInstantlyConfirmed = billingType === 'CREDIT_CARD' && (asaasResponse.status === 'CONFIRMED' || asaasResponse.status === 'RECEIVED')
+            
+            for (const { ref } of enrollRefs) {
+                const updateData: any = {
+                    payment_id: asaasResponse.id
+                }
+                if (isInstantlyConfirmed) {
+                    updateData.payment_confirmed = true
+                    updateData.status = 'active'
+                    updateData.updated_at = new Date()
+                }
+                await ref.update(updateData)
+            }
+
+            // Cria vendas_logs
+            for (const { courseData } of enrollRefs) {
+                const { platformAmount: platformShare, teacherAmount: teacherShare } = calculateSplitValues(Number(courseData.price) || 0, platformTaxPercent)
+                await adminDb.collection('vendas_logs').add({
+                    idTransacao: `TR-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                    paymentId: asaasResponse.id,
+                    invoiceUrl: asaasResponse.invoiceUrl || null,
+                    alunoId: user.uid,
+                    userId: user.uid,
+                    cursoId: courseData.id,
+                    professorId: courseData.teacher_id,
+                    valorBruto: Number(courseData.price) || 0,
+                    taxaPlataforma: platformShare,
+                    repasseProfessor: teacherShare,
+                    statusPagamento: isInstantlyConfirmed ? 'pago' : 'pendente',
+                    billingType: billingType,
+                    dataCriacao: new Date(),
+                    ...(isInstantlyConfirmed ? { paymentDate: new Date() } : {})
+                })
+            }
+
+            // Para PIX: busca QR Code via API (não usa pixTransaction do createPayment)
+            let pixQrCode: string | undefined
+            let pixPayload: string | undefined
             if (billingType === 'PIX') {
                 try {
-                    pixData = await getPaymentQrCode(asaasResponse.id)
+                    const pixResponse = await getPaymentQrCode(asaasResponse.id)
+                    pixQrCode = pixResponse.encodedImage
+                    pixPayload = pixResponse.payload
                 } catch (pixError) {
                     console.error("ERRO_AO_BUSCAR_QRCODE_PIX_NO_CHECKOUT:", pixError)
                 }
             }
 
+            const creditCardConfirmed = billingType === 'CREDIT_CARD' && (asaasResponse.status === 'CONFIRMED' || asaasResponse.status === 'RECEIVED')
+
             return { 
-                success: true, 
+                success: true,
+                ...(creditCardConfirmed ? { status: asaasResponse.status } : {}),
                 data: { 
                     invoiceUrl: asaasResponse.invoiceUrl, 
                     paymentId: asaasResponse.id,
                     billingType: asaasResponse.billingType,
-                    pixData
+                    status: asaasResponse.status,
+                    ...(billingType === 'PIX' ? { pixQrCode, payload: pixPayload } : {}),
+                    ...(creditCardConfirmed ? { paymentConfirmed: true } : {})
                 } 
             }
         } catch (asaasError: any) {
@@ -407,19 +539,66 @@ export async function getStudentTransactions() {
     if (!user) return { success: false, error: 'Não autorizado' }
 
     try {
-        const vendasSnapshot = await adminDb
-            .collection('vendas_logs')
-            .where('alunoId', '==', user.uid)
-            .get()
+        // Busca por alunoId (legado) e userId (checkout novo) para cobrir todos os sistemas
+        const [alunoSnap, userSnap] = await Promise.all([
+            adminDb.collection('vendas_logs').where('alunoId', '==', user.uid).get(),
+            adminDb.collection('vendas_logs').where('userId', '==', user.uid).get(),
+        ])
+        const seen = new Set<string>()
+        const vendasDocs = [...alunoSnap.docs, ...userSnap.docs].filter(doc => {
+            if (seen.has(doc.id)) return false
+            seen.add(doc.id)
+            return true
+        })
+        function serializeDoc(data: Record<string, any>): Record<string, any> {
+            const plain: Record<string, any> = {}
+            for (const [key, value] of Object.entries(data)) {
+                if (value && typeof value === 'object' && typeof (value as any).toDate === 'function') {
+                    plain[key] = (value as any).toDate().toISOString()
+                } else {
+                    plain[key] = value
+                }
+            }
+            return plain
+        }
 
-        let transactions = vendasSnapshot.docs.map(doc => {
+        type Transaction = Record<string, any> & {
+            id: string
+            cursoTitulo: string
+            courseThumbnail: string | null
+            dataCriacao: string
+        }
+
+        const transactionPromises: Promise<Transaction>[] = vendasDocs.map(async (doc) => {
             const data = doc.data()
+            let cursoTitulo = 'Curso'
+            let courseThumbnail: string | null = null
+
+            if (data.cursoId) {
+                try {
+                    const courseDoc = await adminDb.collection('courses').doc(data.cursoId).get()
+                    if (courseDoc.exists) {
+                        const courseData = courseDoc.data()
+                        cursoTitulo = courseData?.title || 'Curso'
+                        courseThumbnail = courseData?.thumbnail || null
+                    }
+                } catch (e) {
+                    console.error('Erro ao buscar curso:', e)
+                }
+            }
+
+            const dataCriacao = data.dataCriacao?.toDate?.().toISOString() || new Date().toISOString()
+
             return {
                 id: doc.id,
-                ...data,
-                dataCriacao: data.dataCriacao?.toDate?.().toISOString() || new Date().toISOString()
+                ...serializeDoc(data),
+                cursoTitulo,
+                courseThumbnail,
+                dataCriacao,
             }
         })
+
+        const transactions = await Promise.all(transactionPromises)
 
         // Sort on server side to avoid missing index errors in Firebase
         transactions.sort((a, b) => new Date(b.dataCriacao).getTime() - new Date(a.dataCriacao).getTime())
@@ -489,6 +668,78 @@ export async function getPaymentStatusAction(paymentId: string) {
     }
 }
 
+export async function payPendingCreditCardAction(
+    paymentId: string,
+    cardData: {
+        creditCard: { holderName: string; number: string; expiryMonth: string; expiryYear: string; ccv: string };
+        creditCardHolderInfo: { name: string; email: string; cpfCnpj: string; postalCode: string; addressNumber: string; phone?: string };
+    }
+) {
+    const user = await getAuthUser()
+    if (!user) return { success: false, error: 'Não autorizado' }
+
+    try {
+        const asaasResponse = await payWithCreditCard(paymentId, cardData)
+
+        if (asaasResponse.status === 'CONFIRMED' || asaasResponse.status === 'RECEIVED') {
+            const vendasSnapshot = await adminDb.collection('vendas_logs')
+                .where('paymentId', '==', paymentId)
+                .where('userId', '==', user.uid)
+                .get()
+
+            const batch = adminDb.batch()
+            vendasSnapshot.forEach(doc => {
+                batch.update(doc.ref, {
+                    statusPagamento: 'pago',
+                    paymentDate: new Date(),
+                    invoiceUrl: asaasResponse.invoiceUrl || doc.data().invoiceUrl || null,
+                })
+            })
+
+            const enrollmentsSnapshot = await adminDb.collection('enrollments')
+                .where('user_id', '==', user.uid)
+                .get()
+
+            vendasSnapshot.forEach(vendaDoc => {
+                const vendaData = vendaDoc.data()
+                const cursoId = vendaData.cursoId
+                if (cursoId) {
+                    const matchEnrollment = enrollmentsSnapshot.docs.find(
+                        e => e.data().course_id === cursoId
+                    )
+                    if (matchEnrollment) {
+                        batch.update(matchEnrollment.ref, {
+                            payment_confirmed: true,
+                            payment_id: paymentId,
+                            updated_at: new Date(),
+                            status: FieldValue.delete(),
+                        })
+
+                        // Remove da lista de desejos, se existir
+                        const wishlistRef = adminDb.collection('profiles').doc(user.uid).collection('wishlist').doc(cursoId)
+                        batch.delete(wishlistRef)
+                    }
+                }
+            })
+
+            await batch.commit()
+            revalidatePath('/dashboard-student/payments')
+        }
+
+        return {
+            success: true,
+            data: {
+                status: asaasResponse.status,
+                invoiceUrl: asaasResponse.invoiceUrl,
+            }
+        }
+    } catch (error: any) {
+        console.error('Erro no payPendingCreditCardAction:', error)
+        const asaasMessage = error.response?.data?.errors?.[0]?.description || error.message || 'Erro ao processar pagamento do cartão'
+        return { success: false, error: asaasMessage }
+    }
+}
+
 export async function getPixDataAction(paymentId: string) {
     try {
         const pix = await getPaymentQrCode(paymentId)
@@ -508,6 +759,67 @@ export async function getBoletoDataAction(paymentId: string) {
         return { success: false, error: error.message }
     }
 }
+
+export async function syncPaymentStatusAction(paymentId: string) {
+    const user = await getAuthUser()
+    if (!user) return { success: false, error: 'Não autorizado' }
+
+    try {
+        const asaasPayment = await getPayment(paymentId)
+
+        if (!['RECEIVED', 'CONFIRMED'].includes(asaasPayment.status)) {
+            return { success: false, error: 'Pagamento ainda não confirmado no Asaas' }
+        }
+
+        const vendasSnapshot = await adminDb.collection('vendas_logs')
+            .where('paymentId', '==', paymentId)
+            .where('userId', '==', user.uid)
+            .get()
+
+        if (vendasSnapshot.empty) {
+            return { success: false, error: 'Transação não encontrada no banco local' }
+        }
+
+        const batch = adminDb.batch()
+        vendasSnapshot.forEach(doc => {
+            batch.update(doc.ref, {
+                statusPagamento: 'pago',
+                paymentDate: new Date(),
+                invoiceUrl: asaasPayment.invoiceUrl || doc.data().invoiceUrl || null,
+            })
+        })
+
+        const enrollmentsSnapshot = await adminDb.collection('enrollments')
+            .where('user_id', '==', user.uid)
+            .get()
+
+        vendasSnapshot.forEach(vendaDoc => {
+            const vendaData = vendaDoc.data()
+            const cursoId = vendaData.cursoId
+            if (cursoId) {
+                const matchEnrollment = enrollmentsSnapshot.docs.find(
+                    e => e.data().course_id === cursoId
+                )
+                if (matchEnrollment) {
+                    batch.update(matchEnrollment.ref, {
+                        payment_confirmed: true,
+                        payment_id: paymentId,
+                        updated_at: new Date(),
+                        status: FieldValue.delete(),
+                    })
+                }
+            }
+        })
+
+        await batch.commit()
+        revalidatePath('/dashboard-student/payments')
+        return { success: true }
+    } catch (error: any) {
+        console.error('Erro no syncPaymentStatusAction:', error)
+        return { success: false, error: error.message }
+    }
+}
+
 export async function getStudentStats() {
     const user = await getAuthUser()
     if (!user) return { success: false, error: 'Não autorizado' }

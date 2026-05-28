@@ -192,7 +192,12 @@ export async function getClassroomData(courseId: string, userId: string) {
             .where('course_id', '==', courseId)
             .get()
 
-        const hasEnrollment = !enrollmentsSnapshot.empty
+        const enrollmentData = !enrollmentsSnapshot.empty ? enrollmentsSnapshot.docs[0].data() : null
+        const hasEnrollment = !!enrollmentData && (
+            enrollmentData.payment_confirmed === true   // Cartão/PIX confirmado instantaneamente
+            || enrollmentData.status === 'active'       // Boleto: webhook atualizou o status
+            || enrollmentData.payment_id == null        // Curso gratuito (sem payment_id)
+        )
         
         const hasCourse = isAdmin || 
                          hasEnrollment || 
@@ -214,10 +219,9 @@ export async function getClassroomData(courseId: string, userId: string) {
             ...courseRawData,
         })
 
-        // 3. Busca lições
+        // 3. Busca lições (sem orderBy — a ordenação será feita por módulo + posição)
         const lessonsSnapshot = await adminDb.collection('lessons')
             .where('course_id', '==', courseId)
-            .orderBy('position', 'asc')
             .get()
         
         const isTeacher = courseRawData.teacher_id === userId
@@ -231,6 +235,17 @@ export async function getClassroomData(courseId: string, userId: string) {
         if (!isAdmin && !isTeacher) {
             lessonsData = lessonsData.filter((l: any) => l.status === 'APROVADO')
         }
+
+        // Ordena por módulo (position) → lição (position)
+        const courseModules: { id: string; position: number }[] = courseRawData.modules || []
+        const modulePositionMap = new Map<string, number>()
+        courseModules.forEach((m) => modulePositionMap.set(m.id, m.position))
+        lessonsData.sort((a: any, b: any) => {
+            const aModPos = modulePositionMap.get(a.module_id) ?? 999
+            const bModPos = modulePositionMap.get(b.module_id) ?? 999
+            if (aModPos !== bModPos) return aModPos - bModPos
+            return (a.position ?? 0) - (b.position ?? 0)
+        })
 
         // 4. Busca progresso do usuário
         const progressResult = await getUserCourseProgress(userId, courseId)
@@ -303,7 +318,7 @@ export async function processCertificateIssuance(courseId: string, userId: strin
                 instructorName = teacherDoc.data()?.full_name || teacherDoc.data()?.displayName
             }
         }
-        if (!instructorName) instructorName = 'Fred'
+        if (!instructorName) instructorName = 'Instrutor da Plataforma'
 
         // 7. Gerar código de verificação
         const verificationCode = generateVerificationCode()
@@ -320,21 +335,19 @@ export async function processCertificateIssuance(courseId: string, userId: strin
             verificationCode,
             credentialId: verificationCode,
             percentage: 100,
-            status: 'pending_rules'
+            status: 'issued'
         }
 
-        // 9. Tentativa de gravação no Firestore (comentada aguardando liberação das Security Rules)
-        /*
+        // 9. Gravar certificado no Firestore
         try {
             await adminDb.collection('certificates').add({
                 ...certificate,
                 createdAt: new Date()
             })
-            certificate.status = 'issued'
         } catch (firestoreError) {
-            console.error('Certificado preparado mas gravação no Firestore aguardando liberação das Security Rules:', firestoreError)
+            console.error('Erro ao gravar certificado no Firestore:', firestoreError)
+            return { success: false, data: null, error: 'Erro ao salvar certificado' }
         }
-        */
 
         return { success: true, data: certificate }
 

@@ -12,6 +12,7 @@ export interface BannersData {
     hero_home: BannerItem[]
     hero_dashboard: BannerItem[]
     hero_course: BannerItem[]
+    hero_wishlist: BannerItem[]
 }
 
 export interface BrandingData {
@@ -31,6 +32,7 @@ const DEFAULT_SETTINGS: GlobalSettings = {
         hero_home: [{ url: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=2671&auto=format&fit=crop', order: 1 }],
         hero_dashboard: [{ url: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=2070&auto=format&fit=crop', order: 1 }],
         hero_course: [{ url: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop', order: 1 }],
+        hero_wishlist: [{ url: 'https://images.unsplash.com/photo-1515378960530-7c0da6231fb1?q=80&w=870&auto=format&fit=crop', order: 1 }],
     },
     branding: {
         logoUrl: '',
@@ -67,6 +69,7 @@ export async function getSettings(): Promise<GlobalSettings> {
                     hero_home: migrateBanners(b?.hero_home, DEFAULT_SETTINGS.banners.hero_home),
                     hero_dashboard: migrateBanners(b?.hero_dashboard, DEFAULT_SETTINGS.banners.hero_dashboard),
                     hero_course: migrateBanners(b?.hero_course, DEFAULT_SETTINGS.banners.hero_course),
+                    hero_wishlist: migrateBanners(b?.hero_wishlist, DEFAULT_SETTINGS.banners.hero_wishlist),
                 },
                 branding: {
                     logoUrl: br?.logoUrl || DEFAULT_SETTINGS.branding.logoUrl,
@@ -117,21 +120,25 @@ export interface SearchedCourse {
 
 export async function searchCourses(term: string): Promise<SearchedCourse[]> {
     try {
+        const normalizedTerm = term.toLowerCase()
         const coursesRef = adminDb.collection('courses')
         const snapshot = await coursesRef
             .where('status', '==', 'APROVADO')
-            .where('title', '>=', term)
-            .where('title', '<=', term + '\uf8ff')
-            .limit(10)
+            .limit(50)
             .get()
 
-        return snapshot.docs.map((d: any) => ({
-            id: d.id,
-            title: d.data().title || '',
-            image_url: d.data().image_url || '',
-            price: Number(d.data().price) || 0,
-            tag: d.data().tag || ''
-        }))
+        const results = snapshot.docs
+            .map((d: any) => ({
+                id: d.id,
+                title: d.data().title || '',
+                image_url: d.data().image_url || '',
+                price: Number(d.data().price) || 0,
+                tag: d.data().tag || ''
+            }))
+            .filter(c => c.title.toLowerCase().includes(normalizedTerm))
+            .slice(0, 8)
+
+        return results
     } catch (error) {
         console.error('Error searching courses:', error)
         return []

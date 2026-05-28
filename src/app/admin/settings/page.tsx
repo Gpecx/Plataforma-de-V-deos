@@ -1,14 +1,14 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { getSettings, saveSettings, GlobalSettings, BannersData, BannerItem, searchCourses, SearchedCourse, getCoursesByIds } from './actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Image as ImageIcon, Settings, Palette, Globe, UploadCloud, Loader2, ArrowUp, ArrowDown, Search, X, BookOpen, Plus } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Image as ImageIcon, Settings, Palette, Globe, UploadCloud, Loader2, ArrowUp, ArrowDown, Search, X, BookOpen, Plus, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
-import { uploadCourseImage } from '@/lib/storage-helpers'
+import { uploadCourseImage, uploadBannerImage } from '@/lib/storage-helpers'
 import Logo from '@/components/Logo'
 
 function CourseCard({ course, index, onAdd, onRemove, variant = 'search' }: {
@@ -20,46 +20,73 @@ function CourseCard({ course, index, onAdd, onRemove, variant = 'search' }: {
 }) {
     return (
         <div className={`
-            relative group overflow-hidden rounded-xl border border-black/10 bg-white
-            transition-all duration-300 hover:border-black/40 hover:shadow-lg hover:-translate-y-1
-            ${variant === 'selected' ? 'p-4' : 'p-3'}
+            relative group overflow-hidden
+            ${variant === 'selected'
+                ? 'rounded-lg border border-black/10 bg-white transition-all duration-300 hover:border-black/40 hover:shadow-lg hover:-translate-y-1'
+                : 'border-b border-black/5 last:border-b-0 bg-white hover:bg-slate-50 transition-all'
+            }
         `}>
-            <div className="flex items-start gap-3">
-                {variant === 'selected' && index !== undefined && (
-                    <span className="text-xs font-bold text-white bg-[#1D5F31] w-6 h-6 rounded-full flex items-center justify-center shrink-0">
-                        {index + 1}
-                    </span>
-                )}
-                {course.image_url && (
-                    <img 
-                        src={course.image_url} 
-                        alt={course.title} 
-                        className={`object-cover rounded-lg ${variant === 'selected' ? 'w-12 h-12' : 'w-14 h-14'}`}
-                    />
-                )}
-                <div className="flex-1 min-w-0">
-                    <p className="font-bold text-slate-900 text-sm truncate leading-tight">{course.title}</p>
-                    <p className="text-[10px] text-slate-500 mt-1">{course.tag}</p>
-                    <p className="text-xs font-bold text-[#1D5F31] mt-2">R$ {course.price.toFixed(2)}</p>
+            {variant === 'selected' ? (
+                <div className="p-4 flex flex-col gap-3">
+                    <div className="relative aspect-[16/9] rounded-lg overflow-hidden bg-slate-100">
+                        {course.image_url ? (
+                            <img
+                                src={course.image_url}
+                                alt={course.title}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                                <ImageIcon size={32} className="text-slate-300" strokeWidth={1} />
+                            </div>
+                        )}
+                        {index !== undefined && (
+                            <span className="absolute top-2 left-2 text-[10px] font-bold text-white bg-[#1D5F31] w-6 h-6 rounded-full flex items-center justify-center shadow-md">
+                                {index + 1}
+                            </span>
+                        )}
+                        {onRemove && (
+                            <button
+                                onClick={onRemove}
+                                className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/40 backdrop-blur-sm hover:bg-rose-500 flex items-center justify-center transition-all hover:scale-110"
+                            >
+                                <X size={12} className="text-white" />
+                            </button>
+                        )}
+                    </div>
+                    <div className="space-y-1 px-0.5">
+                        <p className="font-bold text-slate-900 text-xs leading-tight line-clamp-2">{course.title}</p>
+                        <div className="flex items-center justify-between">
+                            <span className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">{course.tag || 'CURSO'}</span>
+                            <span className="text-[11px] font-bold text-[#1D5F31]">R$ {course.price.toFixed(2)}</span>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            
-            {variant === 'search' && onAdd && (
-                <button
-                    onClick={onAdd}
-                    className="absolute top-2 right-2 w-7 h-7 rounded-lg bg-[#1D5F31] text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-[#1a5230] hover:scale-110 shadow-md"
-                >
-                    <Plus size={14} />
-                </button>
-            )}
-            
-            {variant === 'selected' && onRemove && (
-                <button
-                    onClick={onRemove}
-                    className="absolute top-2 right-2 w-6 h-6 rounded-full bg-slate-200 hover:bg-rose-100 flex items-center justify-center transition-all hover:scale-110"
-                >
-                    <X size={14} className="text-rose-600" />
-                </button>
+            ) : (
+                <div className="flex items-center gap-3 px-4 py-3 cursor-default">
+                    <div className="w-12 h-9 rounded-md overflow-hidden bg-slate-100 shrink-0">
+                        {course.image_url ? (
+                            <img src={course.image_url} alt={course.title} className="w-full h-full object-cover" />
+                        ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                                <ImageIcon size={14} className="text-slate-300" strokeWidth={1} />
+                            </div>
+                        )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <p className="font-bold text-slate-900 text-[11px] truncate leading-tight">{course.title}</p>
+                        <p className="text-[9px] text-slate-500 mt-0.5">{course.tag || 'Curso'}</p>
+                    </div>
+                    <span className="text-[10px] font-bold text-[#1D5F31] shrink-0">R$ {course.price.toFixed(2)}</span>
+                    {onAdd && (
+                        <button
+                            onClick={onAdd}
+                            className="w-7 h-7 rounded-md bg-[#1D5F31] text-white flex items-center justify-center hover:bg-[#1a5230] hover:scale-110 transition-all shadow-sm shrink-0"
+                        >
+                            <Plus size={14} />
+                        </button>
+                    )}
+                </div>
             )}
         </div>
     )
@@ -67,7 +94,7 @@ function CourseCard({ course, index, onAdd, onRemove, variant = 'search' }: {
 
 export default function AdminSettingsPage() {
     const [settings, setSettings] = useState<GlobalSettings>({
-        banners: { hero_home: [], hero_dashboard: [], hero_course: [] },
+        banners: { hero_home: [], hero_dashboard: [], hero_course: [], hero_wishlist: [] },
         branding: { logoUrl: '', siteName: 'PowerPlay', primaryColor: '#1D5F31' },
         featuredCourseIds: []
     })
@@ -81,6 +108,14 @@ export default function AdminSettingsPage() {
     const [searching, setSearching] = useState(false)
     const [selectedCourses, setSelectedCourses] = useState<SearchedCourse[]>([])
     const [searchTimeout, setSearchTimeout] = useState<ReturnType<typeof setTimeout> | null>(null)
+    const [activeSlides, setActiveSlides] = useState<Record<string, number>>({})
+    const [uploadingBannerCategory, setUploadingBannerCategory] = useState<keyof BannersData | null>(null)
+
+    const setActiveSlide = useCallback((id: keyof BannersData, index: number) => {
+        setActiveSlides(prev => ({ ...prev, [id]: index }))
+    }, [])
+
+    const [selectedCategory, setSelectedCategory] = useState<keyof BannersData>('hero_home')
 
     useEffect(() => {
         getSettings()
@@ -101,7 +136,7 @@ export default function AdminSettingsPage() {
     }, [])
 
     const handleSearch = useCallback(async (term: string) => {
-        if (term.length < 2) {
+        if (term.length < 1) {
             setSearchResults([])
             return
         }
@@ -120,7 +155,7 @@ export default function AdminSettingsPage() {
 
     useEffect(() => {
         if (searchTimeout) clearTimeout(searchTimeout)
-        if (searchTerm.length >= 2) {
+        if (searchTerm.length >= 1) {
             const timeout = setTimeout(() => handleSearch(searchTerm), 300)
             setSearchTimeout(timeout)
         } else {
@@ -143,41 +178,53 @@ export default function AdminSettingsPage() {
         }
     }
 
-    const setBanners = (banners: BannersData) => setSettings(s => ({ ...s, banners }))
     const setBranding = (key: keyof GlobalSettings['branding'], value: string) =>
         setSettings(s => ({ ...s, branding: { ...s.branding, [key]: value } }))
 
     const addBanner = (id: keyof BannersData) => {
-        const newList = [...settings.banners[id], { url: '', order: settings.banners[id].length + 1 }]
-        setBanners({ ...settings.banners, [id]: newList })
+        setSettings(prev => {
+            const newList = [...prev.banners[id], { url: '', order: prev.banners[id].length + 1 }]
+            return { ...prev, banners: { ...prev.banners, [id]: newList } }
+        })
     }
 
     const removeBanner = (id: keyof BannersData, index: number) => {
-        const list = [...settings.banners[id]]; list.splice(index, 1)
-        // Adjust orders
-        const adjusted = list.map((item, i) => ({ ...item, order: i + 1 }))
-        setBanners({ ...settings.banners, [id]: adjusted })
+        setSettings(prev => {
+            const list = [...prev.banners[id]]
+            list.splice(index, 1)
+            const adjusted = list.map((item, i) => ({ ...item, order: i + 1 }))
+            return { ...prev, banners: { ...prev.banners, [id]: adjusted } }
+        })
+        setActiveSlides(prev => {
+            const current = prev[id] ?? 0
+            const totalBefore = settings.banners[id].length - 1
+            if (current >= totalBefore && totalBefore > 0) return { ...prev, [id]: totalBefore - 1 }
+            if (totalBefore <= 0) return { ...prev, [id]: 0 }
+            return prev
+        })
     }
 
     const updateBanner = (id: keyof BannersData, index: number, field: keyof BannerItem, value: any) => {
-        const list = [...settings.banners[id]]
-        list[index] = { ...list[index], [field]: field === 'order' ? Number(value) : value }
-        setBanners({ ...settings.banners, [id]: list })
+        setSettings(prev => {
+            const list = [...prev.banners[id]]
+            list[index] = { ...list[index], [field]: field === 'order' ? Number(value) : value }
+            return { ...prev, banners: { ...prev.banners, [id]: list } }
+        })
     }
 
     const moveBanner = (id: keyof BannersData, index: number, direction: 'up' | 'down') => {
-        const list = [...settings.banners[id]]
-        const targetIndex = direction === 'up' ? index - 1 : index + 1
-        if (targetIndex < 0 || targetIndex >= list.length) return
+        setSettings(prev => {
+            const list = [...prev.banners[id]]
+            const targetIndex = direction === 'up' ? index - 1 : index + 1
+            if (targetIndex < 0 || targetIndex >= list.length) return prev
 
-        // Swap
-        const temp = list[index]
-        list[index] = list[targetIndex]
-        list[targetIndex] = temp
+            const temp = list[index]
+            list[index] = list[targetIndex]
+            list[targetIndex] = temp
 
-        // Re-calculate orders based on new positions
-        const adjusted = list.map((item, i) => ({ ...item, order: i + 1 }))
-        setBanners({ ...settings.banners, [id]: adjusted })
+            const adjusted = list.map((item, i) => ({ ...item, order: i + 1 }))
+            return { ...prev, banners: { ...prev.banners, [id]: adjusted } }
+        })
     }
 
     const onDropLogo = async (acceptedFiles: File[]) => {
@@ -190,6 +237,28 @@ export default function AdminSettingsPage() {
             alert("Erro no upload: " + error.message)
         } finally {
             setUploadingLogo(false)
+        }
+    }
+
+    const fileInputRef = useRef<HTMLInputElement>(null)
+
+    const handleBannerUpload = async (file: File) => {
+        const category = selectedCategory
+        if (!file || !category) return
+        const items = settings.banners[category]
+        const sortedItems = [...items].sort((a, b) => a.order - b.order)
+        const totalSlides = sortedItems.length
+        const rawIndex = activeSlides[category] ?? 0
+        const index = Math.min(rawIndex, Math.max(0, totalSlides - 1))
+
+        setUploadingBannerCategory(category)
+        try {
+            const url = await uploadBannerImage(file, category)
+            updateBanner(category, index, 'url', url)
+        } catch (error: any) {
+            alert("Erro no upload do banner: " + error.message)
+        } finally {
+            setUploadingBannerCategory(null)
         }
     }
 
@@ -243,90 +312,12 @@ export default function AdminSettingsPage() {
         </div>
     )
 
-    const BannerField = ({ id, label, description, items }: { id: keyof BannersData; label: string; description: string; items: BannerItem[] }) => (
-        <Card className="mb-8 rounded-md border border-black shadow-sm bg-white overflow-hidden group/card hover:border-black/50 transition-all duration-700">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between p-8 gap-6">
-                <div>
-                    <CardTitle className="text-xl font-bold uppercase tracking-tighter !text-[#000000]">{label}</CardTitle>
-                    <CardDescription className="uppercase tracking-widest text-xs font-medium !text-[#000000] mt-2">{description}</CardDescription>
-                </div>
-                <Button onClick={() => addBanner(id)} className="bg-[#1D5F31] text-white hover:bg-slate-900 text-xs font-bold uppercase h-12 px-8 rounded-md transition-all shadow-sm active:scale-95 ml-auto">
-                    + Adicionar Slide
-                </Button>
-            </CardHeader>
-            <CardContent className="p-8 space-y-8">
-                {items.length === 0 && (
-                    <div className="text-center py-16 border-2 border-dashed border-black/10 rounded-xl bg-slate-50/50">
-                        <ImageIcon className="mx-auto text-black/30 mb-6" size={48} strokeWidth={1} />
-                        <p className="!text-[#000000] font-bold uppercase tracking-wider text-[10px]">Galeria de Banners Vazia</p>
-                    </div>
-                )}
-                <div className="grid grid-cols-1 gap-8">
-                    {items.sort((a, b) => a.order - b.order).map((item, index) => (
-                        <div key={index} className="group/item relative p-6 border border-black/10 rounded-xl bg-slate-50/30 transition-all hover:bg-white hover:border-black/40 hover:shadow-lg">
-                            <div className="flex flex-col lg:flex-row gap-8 items-start">
-                                <div className="flex flex-col gap-4">
-                                    <Label className="text-[10px] font-bold uppercase tracking-wider !text-[#000000]">Ordenação</Label>
-                                    <div className="flex flex-col gap-3">
-                                        <Input
-                                            type="number"
-                                            value={item.order}
-                                            onChange={(e) => updateBanner(id, index, 'order', e.target.value)}
-                                            className="w-20 bg-white border border-black rounded-lg h-12 text-base font-bold text-center text-slate-900 focus:border-black shadow-inner"
-                                        />
-                                        <div className="flex gap-2">
-                                            <Button
-                                                variant="outline"
-                                                size="icon"
-                                                onClick={() => moveBanner(id, index, 'up')}
-                                                disabled={index === 0}
-                                                className="w-10 h-10 rounded-lg border-slate-100 text-slate-700 hover:text-[#1D5F31] hover:bg-[#1D5F31]/10 disabled:opacity-20 transition-all"
-                                            >
-                                                <ArrowUp size={16} strokeWidth={3} />
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                size="icon"
-                                                onClick={() => moveBanner(id, index, 'down')}
-                                                disabled={index === items.length - 1}
-                                                className="w-10 h-10 rounded-lg border-slate-100 text-slate-700 hover:text-[#1D5F31] hover:bg-[#1D5F31]/10 disabled:opacity-20 transition-all"
-                                            >
-                                                <ArrowDown size={16} strokeWidth={3} />
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex-1 space-y-6 w-full">
-                                    <div className="space-y-4">
-                                        <div className="flex justify-between items-end">
-                                            <Label className="text-[10px] font-bold uppercase tracking-wider !text-[#000000]">Endpoint da Imagem (CDN URL)</Label>
-                                            <button onClick={() => removeBanner(id, index)} className="!text-[#000000] hover:text-rose-500 text-[9px] font-bold uppercase tracking-wider transition-all mb-1 active:scale-90">
-                                                REMOVER ITEM ✕
-                                            </button>
-                                        </div>
-                                        <Input
-                                            value={item.url}
-                                            onChange={(e) => updateBanner(id, index, 'url', e.target.value)}
-                                            placeholder="https://images.unsplash.com/photo-..."
-                                            className="bg-white border border-black rounded-xl h-12 text-[11px] text-slate-900 font-bold placeholder:text-slate-500 w-full focus:border-black shadow-inner"
-                                        />
-                                    </div>
-
-                                    {item.url && (
-                                        <div className="relative rounded-xl overflow-hidden bg-slate-50 aspect-[21/9] w-full border border-black shadow-sm group-hover/item:border-black/40 transition-all group/preview">
-                                            <img src={item.url} alt={label} className="object-cover w-full h-full opacity-90 group-hover/preview:scale-105 transition-transform duration-1000" />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/10 to-transparent pointer-events-none" />
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </CardContent>
-        </Card>
-    )
+    const BANNER_CATEGORIES: { id: keyof BannersData; label: string; description: string }[] = [
+        { id: 'hero_home', label: 'Landing Hero', description: 'Primeira impressão na home pública' },
+        { id: 'hero_dashboard', label: 'User Welcome', description: 'Cabeçalho do painel do aluno' },
+        { id: 'hero_course', label: 'Catalog Header', description: 'Topo da listagem de cursos' },
+        { id: 'hero_wishlist', label: 'Wishlist Banner', description: 'Banner da página Minha Lista' },
+    ]
 
     return (
         <div className="min-h-screen bg-transparent text-slate-900 font-montserrat">
@@ -469,7 +460,7 @@ export default function AdminSettingsPage() {
 
                     <Card className="rounded-md border border-black shadow-sm bg-white overflow-hidden">
                         <CardContent className="p-12 space-y-8">
-                            <div className="space-y-4">
+                            <div className="relative space-y-4">
                                 <Label className="text-[10px] font-bold uppercase tracking-wider !text-[#000000] flex items-center gap-2">
                                     <Search size={14} className="text-[#1D5F31]" /> Buscar Curso
                                 </Label>
@@ -477,9 +468,9 @@ export default function AdminSettingsPage() {
                                     <Input
                                         value={searchTerm}
                                         onChange={(e) => setSearchTerm(e.target.value)}
-                                        placeholder="Digite o nome do curso (mínimo 2 caracteres)"
+                                        placeholder="Digite o nome do curso (mínimo 3 caracteres)"
                                         disabled={selectedCourses.length >= 5}
-                                        className="rounded-xl h-14 font-bold text-slate-900 text-base bg-slate-50 border border-black focus:border-black focus:bg-white transition-all shadow-inner px-6 placeholder:text-slate-500 pr-12"
+                                        className="rounded-lg h-14 font-bold text-slate-900 text-base bg-slate-50 border border-black focus:border-black focus:bg-white transition-all shadow-inner px-6 placeholder:text-slate-500 pr-12"
                                     />
                                     <div className="absolute right-4 top-1/2 -translate-y-1/2">
                                         {searching ? (
@@ -494,8 +485,8 @@ export default function AdminSettingsPage() {
                                     </div>
                                 </div>
                                 {searchResults.length > 0 && (
-                                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-white border border-black rounded-xl shadow-xl animate-in fade-in slide-in-from-top-2 duration-300">
-                                        {searchResults.slice(0, 5).map(course => (
+                                    <div className="absolute z-50 top-full mt-2 left-0 w-full bg-white border border-black/20 rounded-lg shadow-xl animate-in fade-in slide-in-from-top-2 duration-200 overflow-hidden">
+                                        {searchResults.map(course => (
                                             <CourseCard 
                                                 key={course.id} 
                                                 course={course} 
@@ -503,6 +494,11 @@ export default function AdminSettingsPage() {
                                                 onAdd={() => addFeaturedCourse(course)}
                                             />
                                         ))}
+                                    </div>
+                                )}
+                                {!searching && searchTerm.length >= 1 && searchResults.length === 0 && selectedCourses.length < 5 && (
+                                    <div className="absolute z-50 top-full mt-2 left-0 w-full bg-white border border-black/20 rounded-lg shadow-xl px-5 py-4 text-center">
+                                        <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Nenhum curso encontrado</p>
                                     </div>
                                 )}
                                 {selectedCourses.length >= 5 && (
@@ -556,10 +552,201 @@ export default function AdminSettingsPage() {
                         <div className="flex-1 h-px bg-slate-50 ml-6" />
                     </div>
 
-                    <BannerField id="hero_home" label="Landing Hero" description="Primeira impressão na home pública" items={settings.banners.hero_home} />
-                    <BannerField id="hero_dashboard" label="User Welcome" description="Cabeçalho do painel do aluno" items={settings.banners.hero_dashboard} />
-                    <BannerField id="hero_course" label="Catalog Header" description="Topo da listagem de cursos" items={settings.banners.hero_course} />
-                </div>
+                    {(() => {
+                        const currentId = selectedCategory
+                        const items = settings.banners[currentId]
+                        const sortedItems = [...items].sort((a, b) => a.order - b.order)
+                        const totalSlides = sortedItems.length
+                        const rawIndex = activeSlides[currentId] ?? 0
+                        const activeIndex = Math.min(rawIndex, Math.max(0, totalSlides - 1))
+                        const activeItem = sortedItems[activeIndex]
+
+                        return (
+                            <Card className="mb-8 rounded-lg border border-black shadow-sm bg-white overflow-hidden">
+                                <CardContent className="p-8 space-y-8">
+                                    {totalSlides === 0 ? (
+                                        <div className="text-center py-16 border-2 border-dashed border-black/10 rounded-lg bg-slate-50/50">
+                                            <ImageIcon className="mx-auto text-black/30 mb-6" size={48} strokeWidth={1} />
+                                            <p className="!text-[#000000] font-bold uppercase tracking-wider text-[10px]">{BANNER_CATEGORIES.find(c => c.id === currentId)?.label} — Galeria de Banners Vazia</p>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {/* Unified Carousel Preview */}
+                                            <div className="relative rounded-lg border border-black/10 bg-slate-50/30 overflow-hidden">
+                                                {activeItem.url ? (
+                                                    <div className="relative aspect-[21/9] w-full bg-slate-100">
+                                                        <img
+                                                            src={activeItem.url}
+                                                            alt={BANNER_CATEGORIES.find(c => c.id === currentId)?.label}
+                                                            className="object-cover w-full h-full opacity-90"
+                                                        />
+                                                        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/10 to-transparent pointer-events-none" />
+                                                    </div>
+                                                ) : (
+                                                    <div className="aspect-[21/9] w-full flex items-center justify-center bg-slate-100 border-b border-black/5">
+                                                        <div className="text-center">
+                                                            <ImageIcon className="mx-auto text-black/20 mb-3" size={40} strokeWidth={1} />
+                                                            <p className="text-[10px] font-bold uppercase tracking-wider text-black/30">Preview Indisponível</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Carousel Index Badge */}
+                                                <div className="absolute top-3 right-3 bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-md">
+                                                    <span className="text-white text-[10px] font-bold uppercase tracking-wider">
+                                                        CAROUSEL INDEX: {activeIndex + 1} / {totalSlides}
+                                                    </span>
+                                                </div>
+
+                                                {/* Navigation Arrows */}
+                                                <div className="absolute inset-y-0 left-0 right-0 flex items-center justify-between pointer-events-none px-2">
+                                                    <button
+                                                        onClick={() => setActiveSlide(currentId, activeIndex - 1)}
+                                                        disabled={activeIndex === 0}
+                                                        className="pointer-events-auto w-10 h-10 flex items-center justify-center bg-black/40 backdrop-blur-sm text-white font-bold text-lg hover:bg-black/60 disabled:opacity-10 disabled:cursor-not-allowed transition-all rounded-md"
+                                                    >
+                                                        <ChevronLeft size={20} strokeWidth={3} />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setActiveSlide(currentId, activeIndex + 1)}
+                                                        disabled={activeIndex === totalSlides - 1}
+                                                        className="pointer-events-auto w-10 h-10 flex items-center justify-center bg-black/40 backdrop-blur-sm text-white font-bold text-lg hover:bg-black/60 disabled:opacity-10 disabled:cursor-not-allowed transition-all rounded-md"
+                                                    >
+                                                        <ChevronRight size={20} strokeWidth={3} />
+                                                    </button>
+                                                </div>
+
+                                                {/* Pagination Bullets */}
+                                                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-2">
+                                                    {sortedItems.map((_, idx) => (
+                                                        <button
+                                                            key={idx}
+                                                            onClick={() => setActiveSlide(currentId, idx)}
+                                                            className={`rounded-full transition-all duration-300 ${
+                                                                idx === activeIndex
+                                                                    ? 'w-6 h-1.5 bg-[#1D5F31]'
+                                                                    : 'w-2 h-1.5 bg-white/60 hover:bg-white/90'
+                                                            }`}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            {/* Category Tabs */}
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                {BANNER_CATEGORIES.map(cat => {
+                                                    const count = settings.banners[cat.id].length
+                                                    const isActive = cat.id === currentId
+                                                    return (
+                                                        <button
+                                                            key={cat.id}
+                                                            onClick={() => setSelectedCategory(cat.id)}
+                                                            className={`px-5 py-3 text-[10px] font-bold uppercase tracking-widest transition-all rounded-lg border ${
+                                                                isActive
+                                                                    ? 'bg-[#1D5F31] text-white border-[#1D5F31] shadow-sm'
+                                                                    : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400 hover:bg-slate-50'
+                                                            }`}
+                                                        >
+                                                            {cat.label} <span className="opacity-70">({count})</span>
+                                                        </button>
+                                                    )
+                                                })}
+                                                <div className="flex-1" />
+                                                <Button
+                                                    onClick={() => { addBanner(currentId); setActiveSlide(currentId, totalSlides) }}
+                                                    className="bg-[#1D5F31] text-white hover:bg-slate-900 text-xs font-bold uppercase h-12 px-8 rounded-lg transition-all shadow-sm active:scale-95"
+                                                >
+                                                    + Adicionar Slide
+                                                </Button>
+                                            </div>
+
+                                            {/* Edit Controls for Active Slide */}
+                                            <div className="border border-black/10 rounded-lg p-6 bg-slate-50/30">
+                                                <div className="flex flex-col lg:flex-row gap-8 items-start">
+                                                    <div className="flex flex-col gap-4">
+                                                        <Label className="text-[10px] font-bold uppercase tracking-wider !text-[#000000]">Ordenação</Label>
+                                                        <div className="flex flex-col gap-3">
+                                                            <Input
+                                                                type="number"
+                                                                value={activeItem.order}
+                                                                onChange={(e) => updateBanner(currentId, activeIndex, 'order', e.target.value)}
+                                                                className="w-20 bg-white border border-black rounded-md h-12 text-base font-bold text-center text-slate-900 focus:border-black shadow-inner"
+                                                            />
+                                                            <div className="flex gap-2">
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="icon"
+                                                                    onClick={() => { moveBanner(currentId, activeIndex, 'up'); setActiveSlide(currentId, activeIndex - 1) }}
+                                                                    disabled={activeIndex === 0}
+                                                                    className="w-10 h-10 rounded-md border-slate-100 text-slate-700 hover:text-[#1D5F31] hover:bg-[#1D5F31]/10 disabled:opacity-20 transition-all"
+                                                                >
+                                                                    <ArrowUp size={16} strokeWidth={3} />
+                                                                </Button>
+                                                                <Button
+                                                                    variant="outline"
+                                                                    size="icon"
+                                                                    onClick={() => { moveBanner(currentId, activeIndex, 'down'); setActiveSlide(currentId, activeIndex + 1) }}
+                                                                    disabled={activeIndex === totalSlides - 1}
+                                                                    className="w-10 h-10 rounded-md border-slate-100 text-slate-700 hover:text-[#1D5F31] hover:bg-[#1D5F31]/10 disabled:opacity-20 transition-all"
+                                                                >
+                                                                    <ArrowDown size={16} strokeWidth={3} />
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex-1 space-y-6 w-full">
+                                                        <div className="space-y-4">
+                                                            <div className="flex justify-between items-end">
+                                                                <Label className="text-[10px] font-bold uppercase tracking-wider !text-[#000000]">Endpoint da Imagem (CDN URL)</Label>
+                                                                <button onClick={() => removeBanner(currentId, activeIndex)} className="!text-[#000000] hover:text-rose-500 text-[9px] font-bold uppercase tracking-wider transition-all mb-1 active:scale-90">
+                                                                    REMOVER ITEM ✕
+                                                                </button>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <Input
+                                                                    value={activeItem.url}
+                                                                    onChange={(e) => updateBanner(currentId, activeIndex, 'url', e.target.value)}
+                                                                    placeholder="https://images.unsplash.com/photo-..."
+                                                                    className="bg-white border border-black rounded-md h-12 text-[11px] text-slate-900 font-bold placeholder:text-slate-500 w-full focus:border-black shadow-inner"
+                                                                />
+                                                                <input
+                                                                    ref={fileInputRef}
+                                                                    type="file"
+                                                                    accept="image/jpeg,image/png,image/webp"
+                                                                    className="hidden"
+                                                                    onChange={(e) => {
+                                                                        const file = e.target.files?.[0]
+                                                                        if (file) {
+                                                                            handleBannerUpload(file)
+                                                                            e.target.value = ''
+                                                                        }
+                                                                    }}
+                                                                />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => fileInputRef.current?.click()}
+                                                                    disabled={uploadingBannerCategory === currentId}
+                                                                    className="w-12 h-12 rounded-md border border-black/20 bg-white flex items-center justify-center hover:bg-slate-50 hover:border-black/40 disabled:opacity-40 disabled:cursor-not-allowed transition-all shrink-0"
+                                                                >
+                                                                    {uploadingBannerCategory === currentId ? (
+                                                                        <Loader2 size={18} className="animate-spin text-[#1D5F31]" />
+                                                                    ) : (
+                                                                        <UploadCloud size={18} className="text-slate-600" />
+                                                                    )}
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        )
+                    })()}
+            </div>
             </div>
 
             {/* Sticky Save Bar */}

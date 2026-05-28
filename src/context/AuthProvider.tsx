@@ -61,7 +61,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     useEffect(() => {
+        let mounted = true;
+        setLoading(true);
+
+        let unsubscribeProfile: (() => void) | undefined;
+
         const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
+            if (!mounted) return;
             setUser(currentUser)
             
             if (currentUser && !isMfaPending) {
@@ -71,19 +77,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 }).catch(err => console.error("Erro na limpeza proativa:", err))
 
                 const profileRef = doc(db, 'profiles', currentUser.uid)
-                const unsubscribeProfile = onSnapshot(profileRef, async (docSnap) => {
+                unsubscribeProfile = onSnapshot(profileRef, async (docSnap) => {
+                    if (!mounted) return;
                     if (docSnap.exists()) {
                         const data = docSnap.data()
 
                         // INC-009: Ban enforcement em tempo real
-                        if (data.status === 'banido') {
+                        if (data.ativo === false || data.teacher_status === 'banned') {
                             await signOut(auth)
                             setUser(null)
                             setProfile(null)
                             setRole(null)
                             // Limpa cookies de sessao via API existente
                             await fetch('/api/auth/signout').catch(() => {})
-                            router.push('/login?error=account_suspended')
+                            router.push('/login?error=account_suspended' as any)
                             return
                         }
 
@@ -96,21 +103,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     setLoading(false)
                 }, (error) => {
                     console.error("Error fetching profile snapshots:", error)
-                    setLoading(false)
+                    if (mounted) setLoading(false)
                 })
-
-                return () => {
-                    unsubscribeProfile()
-                }
             } else {
+                if (unsubscribeProfile) {
+                    unsubscribeProfile();
+                    unsubscribeProfile = undefined;
+                }
                 setProfile(null)
                 setRole(null)
                 setLoading(false)
             }
         })
 
-        return () => unsubscribeAuth()
-    }, [isMfaPending, router])
+        return () => {
+            mounted = false;
+            unsubscribeAuth();
+            if (unsubscribeProfile) {
+                unsubscribeProfile();
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isMfaPending])
 
     return (
         <AuthContext.Provider value={{ user, profile, role, loading, isMfaPending, setMfaPending }}>

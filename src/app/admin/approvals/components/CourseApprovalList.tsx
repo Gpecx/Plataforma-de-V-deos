@@ -223,23 +223,72 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
                             </div>
 
                             {/* Moderation Column */}
-                            <div className="w-full lg:w-[450px] p-10 lg:p-12 flex flex-col bg-white overflow-y-auto custom-scrollbar">
-                            <div className="mb-10">
-                                <div className="flex items-center gap-2 mb-4">
-                                    <div className="w-1 h-1 rounded-full bg-[#1D5F31]"></div>
-                                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#1D5F31]">
-                                        {reviewingCourse.trailer_review_status === 'trailer_pending_review' ? 'REVISÃO DE TRAILER' : 'DETALHES DA AUDITORIA'}
-                                    </span>
-                                </div>
-                                <h3 className="text-3xl font-bold uppercase tracking-tighter leading-tight !text-[#000000]">{reviewingCourse.title}</h3>
-                                    <p className="text-[12px] !text-[#000000] mt-6 leading-tight font-bold uppercase tracking-wider">
-                                        {reviewingCourse.subtitle || 'Nenhum subtítulo fornecido pelo instrutor.'}
-                                    </p>
-                                </div>
+                            <div className="w-full lg:w-[450px] flex flex-col bg-white">
+                                <div className="flex-1 overflow-y-auto custom-scrollbar p-10 lg:p-12 pb-0">
+                                    <div className="mb-8">
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <div className="w-1 h-1 rounded-full bg-[#1D5F31]"></div>
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#1D5F31]">
+                                                {reviewingCourse.trailer_review_status === 'trailer_pending_review' ? 'REVISÃO DE TRAILER' : 'DETALHES DA AUDITORIA'}
+                                            </span>
+                                        </div>
+                                        <h3 className="text-3xl font-bold uppercase tracking-tighter leading-tight !text-[#000000]">{reviewingCourse.title}</h3>
+                                        {reviewingCourse.subtitle && (
+                                            <p className="text-[12px] !text-[#000000] mt-4 leading-tight font-bold uppercase tracking-wider">
+                                                {reviewingCourse.subtitle}
+                                            </p>
+                                        )}
+                                    </div>
 
-                                <div className="space-y-8">
-                                    <div className="space-y-4">
-                                        <label className="text-[10px] font-bold uppercase tracking-wider !text-[#000000] flex items-center gap-2">
+                                    {/* Price + Duration */}
+                                    <div className="flex items-center gap-3 mb-8">
+                                        <div className="flex items-center gap-2 px-4 py-2 bg-black/5 border border-black/10 rounded-lg">
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-black/50">Valor</span>
+                                            <span className="text-sm font-bold !text-[#000000]">
+                                                {reviewingCourse.pricing_type === 'free'
+                                                    ? 'GRATUITO'
+                                                    : `R$ ${Number(reviewingCourse.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                                }
+                                            </span>
+                                        </div>
+                                        {reviewingCourse.duration > 0 && (
+                                            <div className="flex items-center gap-2 px-4 py-2 bg-black/5 border border-black/10 rounded-lg">
+                                                <span className="text-[10px] font-bold uppercase tracking-wider text-black/50">Carga</span>
+                                                <span className="text-sm font-bold !text-[#000000]">{reviewingCourse.duration}h</span>
+                                            </div>
+                                        )}
+                                        <div className="flex items-center gap-2 px-4 py-2 bg-black/5 border border-black/10 rounded-lg">
+                                            <span className="text-[10px] font-bold uppercase tracking-wider text-black/50">{reviewingCourse.category}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Description */}
+                                    {reviewingCourse.description && (
+                                        <div className="mb-8">
+                                            <label className="text-[10px] font-bold uppercase tracking-wider !text-[#000000] block mb-3">Descrição Completa</label>
+                                            <p className="text-sm !text-slate-600 leading-relaxed">
+                                                {reviewingCourse.description}
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {/* Tags */}
+                                    {reviewingCourse.tags && reviewingCourse.tags.length > 0 && (
+                                        <div className="mb-8">
+                                            <label className="text-[10px] font-bold uppercase tracking-wider !text-[#000000] block mb-3">Tags de Busca</label>
+                                            <div className="flex flex-wrap gap-2">
+                                                {reviewingCourse.tags.map((tag: string, i: number) => (
+                                                    <span key={i} className="px-3 py-1 bg-slate-100 border border-slate-200 text-slate-600 text-[9px] font-bold uppercase tracking-wider rounded-md">
+                                                        {tag}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Feedback */}
+                                    <div className="mb-6">
+                                        <label className="text-[10px] font-bold uppercase tracking-wider !text-[#000000] flex items-center gap-2 mb-3">
                                             <div className="w-1 h-1 bg-rose-500 rounded-full"></div>
                                             Feedback para o Criador
                                         </label>
@@ -247,22 +296,25 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
                                             value={rejectionReason}
                                             onChange={(e) => setRejectionReason(e.target.value)}
                                             placeholder="Detalhamento técnico ou pedagógico para correções..."
-                                            className="w-full h-44 bg-black/5 border border-black/10 rounded-xl p-6 text-sm text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all resize-none placeholder:text-black/30 font-bold shadow-inner"
+                                            className="w-full h-32 bg-black/5 border border-black/10 rounded-xl p-5 text-sm text-slate-900 focus:border-[#1D5F31]/30 focus:bg-white outline-none transition-all resize-none placeholder:text-black/30 font-bold shadow-inner"
                                         />
                                     </div>
+                                </div>
 
-                                    <div className="grid grid-cols-1 gap-4 pt-4">
+                                {/* Fixed Buttons */}
+                                <div className="p-10 lg:p-12 pt-6 border-t border-black/5 flex-shrink-0">
+                                    <div className="grid grid-cols-1 gap-3">
                                         <button
                                             onClick={() => handleApprove(reviewingCourse)}
                                             disabled={loadingId === reviewingCourse.id}
-                                            className="h-16 bg-[#1D5F31] text-white text-[11px] font-bold uppercase tracking-wider hover:bg-slate-900 transition-all disabled:opacity-50 flex items-center justify-center rounded-xl active:scale-95 shadow-sm"
+                                            className="h-14 bg-[#1D5F31] text-white text-[11px] font-bold uppercase tracking-wider hover:bg-slate-900 transition-all disabled:opacity-50 flex items-center justify-center rounded-xl active:scale-95 shadow-sm"
                                         >
                                             {loadingId === reviewingCourse.id ? <Loader2 size={24} className="animate-spin" /> : (reviewingCourse.trailer_review_status === 'trailer_pending_review' ? "APROVAR TRAILER" : "APROVAR CONTEÚDO")}
                                         </button>
                                         <button
                                             onClick={() => handleReject(reviewingCourse)}
                                             disabled={loadingId === reviewingCourse.id}
-                                            className="h-14 border border-black/10 text-rose-500 text-[10px] font-bold uppercase tracking-wider hover:bg-rose-500 hover:text-white transition-all disabled:opacity-50 rounded-xl active:scale-95"
+                                            className="h-12 border border-black/10 text-rose-500 text-[10px] font-bold uppercase tracking-wider hover:bg-rose-500 hover:text-white transition-all disabled:opacity-50 rounded-xl active:scale-95"
                                         >
                                             {reviewingCourse.trailer_review_status === 'trailer_pending_review' ? 'Rejeitar Trailer' : 'Reprovar Acesso'}
                                         </button>

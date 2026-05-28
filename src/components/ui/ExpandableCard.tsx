@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, ArrowRight, Heart, Clock, Globe, CheckCircle2, ShieldCheck } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { isNewCourse } from '@/lib/date-utils'
 import { toggleWishlist, getWishlistCourseIds } from '@/app/actions/wishlist'
 import { auth } from '@/lib/firebase'
@@ -39,6 +40,7 @@ export function ExpandableCard({
     pricing_type = 'standard',
     created_at
 }: ExpandableCardProps) {
+    const router = useRouter()
     const [isOpen, setIsOpen] = useState(false)
     const [isInWishlist, setIsInWishlist] = useState(initialIsInWishlist)
     const [isLoggedIn, setIsLoggedIn] = useState(false)
@@ -58,7 +60,8 @@ export function ExpandableCard({
     const handleToggleWishlist = async (e: React.MouseEvent) => {
         e.stopPropagation()
         if (!isLoggedIn) {
-            window.location.href = '/login'
+            const currentPath = encodeURIComponent(window.location.pathname)
+            router.push(`/login?redirectTo=${currentPath}`)
             return
         }
         
@@ -188,7 +191,7 @@ export function ExpandableCard({
                     <h3 className="text-white font-bold text-[11px] line-clamp-2 uppercase leading-tight tracking-wider drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]">{title}</h3>
                 </div>
 
-                <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-[12]">
+                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-[12]">
                     <div className="flex flex-col items-center gap-2">
                         <span className="text-white font-bold uppercase tracking-[3px] text-[10px]">Ver Detalhes</span>
                         <div className="w-8 h-px bg-[#1D5F31]" />

@@ -39,6 +39,10 @@ export async function getPlatformSettings() {
  * Atualiza a porcentagem de taxa da plataforma.
  */
 export async function updatePlatformTax(tax: number) {
+    const session = await getSessionUser()
+    if (!session || session.role !== 'admin') {
+        return { success: false, error: 'Não autorizado' }
+    }
     try {
         await adminDb.collection('config').doc('platform_settings').set({
             platform_tax: tax,
@@ -102,7 +106,11 @@ export async function getFinancialData() {
 
         // Buscamos todos os enrollments
         const enrollmentsSnap = await adminDb.collection('enrollments').get()
-        const enrollments = enrollmentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[]
+        const allEnrollments = enrollmentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[]
+        const enrollments = allEnrollments.filter((e: any) =>
+            e.payment_confirmed === true &&
+            e.status !== 'pending'
+        )
 
         // Buscamos todos os cursos para saber os preços e professores
         const coursesSnap = await adminDb.collection('courses').get()
@@ -180,25 +188,42 @@ export async function getTeacherStudents(teacherId: string) {
         const courseIds = coursesSnap.docs.map(doc => doc.id)
         if (courseIds.length === 0) return []
 
-        // 2. Pegar enrollments para esses cursos
-        // Nota: se tiver > 10 cursos, precisa bater em chunks
-        const enrollmentsSnap = await adminDb.collection('enrollments')
-            .where('course_id', 'in', courseIds)
-            .get()
-            
-        const userIds = enrollmentsSnap.docs.map(doc => doc.data().user_id)
+        // 2. Pegar enrollments para esses cursos (em chunks de 30)
+        const courseChunks: string[][] = []
+        for (let i = 0; i < courseIds.length; i += 30) {
+            courseChunks.push(courseIds.slice(i, i + 30))
+        }
+        const enrollmentSnapshots = await Promise.all(
+            courseChunks.map(chunk =>
+                adminDb.collection('enrollments')
+                    .where('course_id', 'in', chunk)
+                    .get()
+            )
+        )
+        const userIds = enrollmentSnapshots.flatMap(snap =>
+            snap.docs.map(doc => doc.data().user_id)
+        )
         if (userIds.length === 0) return []
 
-        // 3. Pegar perfis desses usuários
+        // 3. Pegar perfis desses usuários (em chunks de 30)
         const uniqueUserIds = Array.from(new Set(userIds))
-        const profilesSnap = await adminDb.collection('profiles')
-            .where('__name__', 'in', uniqueUserIds)
-            .get()
-            
-        const students = profilesSnap.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }))
+        const userChunks: string[][] = []
+        for (let i = 0; i < uniqueUserIds.length; i += 30) {
+            userChunks.push(uniqueUserIds.slice(i, i + 30))
+        }
+        const profileSnapshots = await Promise.all(
+            userChunks.map(chunk =>
+                adminDb.collection('profiles')
+                    .where('__name__', 'in', chunk)
+                    .get()
+            )
+        )
+        const students = profileSnapshots.flatMap(snap =>
+            snap.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }))
+        )
 
         return JSON.parse(JSON.stringify(students))
     } catch (error) {
@@ -1471,5 +1496,93 @@ export async function markTeacherSalesAsPaid(enrollmentIds: string[]) {
     } catch (error) {
         console.error("Error marking sales as paid:", error)
         return { success: false, error: "Falha ao marcar como pago." }
+    }
+}
+
+/**
+ * Busca detalhes completos de um curso para o modal de visualização do admin.
+ * Suporta paginação incremental: retorna apenas `page * pageSize` lessons
+ * no total, corretamente agrupadas por módulo.
+ */
+export async function getCourseFullDetailsAdmin(courseId: string, page: number = 1, pageSize: number = 10) {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        return { success: false, error: 'Não autorizado' };
+    }
+    try {
+        const courseDoc = await adminDb.collection('courses').doc(courseId).get()
+        if (!courseDoc.exists) {
+            return { success: false, error: 'Curso não encontrado.' }
+        }
+        const courseData = courseDoc.data()!
+
+        const lessonsSnap = await adminDb.collection('lessons')
+            .where('course_id', '==', courseId)
+            .orderBy('position', 'asc')
+            .get()
+
+        const allLessons = lessonsSnap.docs.map(doc => {
+            const d = doc.data()
+            return {
+                id: doc.id,
+                title: d.title,
+                type: d.type || 'video',
+                status: d.status,
+                duration: d.duration,
+                position: d.position,
+                module_id: d.module_id || 'sem-modulo',
+                module_title: d.module_title || 'Sem módulo',
+                is_quiz: d.is_quiz || false,
+            }
+        }) as any[]
+
+        const totalCount = allLessons.length
+
+        // Aplica paginação: page * pageSize define quantas lessons incluir
+        const limit = page * pageSize
+        const paginatedLessons = allLessons.slice(0, limit)
+
+        // Agrupa as lessons paginadas por módulo
+        const moduleMap = new Map<string, { id: string; title: string; lessons: any[] }>()
+        for (const lesson of paginatedLessons) {
+            const moduleId = lesson.module_id
+            const moduleTitle = lesson.module_title
+            if (!moduleMap.has(moduleId)) {
+                moduleMap.set(moduleId, { id: moduleId, title: moduleTitle, lessons: [] })
+            }
+            moduleMap.get(moduleId)!.lessons.push({
+                id: lesson.id,
+                title: lesson.title,
+                type: lesson.type,
+                status: lesson.status,
+                duration: lesson.duration,
+                position: lesson.position,
+                is_quiz: lesson.is_quiz,
+            })
+        }
+
+        // Se o curso tiver campo modules (da criação), respeita a ordem original
+        const courseModules = (courseData as any).modules
+        const modules = courseModules?.length > 0
+            ? courseModules.map((m: any) => ({
+                id: m.id,
+                title: m.title,
+                lessons: moduleMap.get(m.id)?.lessons || []
+            })).filter((m: any) => m.lessons.length > 0)
+            : Array.from(moduleMap.values())
+
+        return JSON.parse(JSON.stringify({
+            success: true,
+            course: { id: courseDoc.id, ...courseData },
+            modules,
+            totalCount,
+            currentPage: page,
+            totalPages: Math.ceil(totalCount / pageSize),
+            hasMore: limit < totalCount,
+            pageSize,
+        }))
+    } catch (error) {
+        console.error("Error getting course full details:", error)
+        return { success: false, error: "Falha ao buscar detalhes do curso." }
     }
 }

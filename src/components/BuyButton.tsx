@@ -6,6 +6,7 @@ import { ShoppingCart, Loader2, PlayCircle } from "lucide-react"
 import { auth } from "@/lib/firebase"
 import { useCartStore } from "@/store/useCartStore"
 import Link from 'next/link'
+import { useAuth } from "@/context/AuthProvider"
 
 interface BuyButtonProps {
     course: {
@@ -24,6 +25,7 @@ interface BuyButtonProps {
 export function BuyButton({ course, size = "default", label = "Comprar Agora", className = "", purchasedCourseIds = [] }: BuyButtonProps) {
     const router = useRouter()
     const { addItem } = useCartStore()
+    const { user, loading: authLoading } = useAuth()
     const [loading, setLoading] = useState(false)
 
     const isPurchased = purchasedCourseIds.includes(String(course.id))
@@ -43,8 +45,6 @@ export function BuyButton({ course, size = "default", label = "Comprar Agora", c
                 price: course.price,
                 image_url: course.image_url || course.image,
             })
-
-            const user = auth.currentUser
 
             if (!user) {
                 // Redireciona para o login e salva a intenção de ir para o cart
@@ -88,7 +88,7 @@ export function BuyButton({ course, size = "default", label = "Comprar Agora", c
     return (
         <button
             onClick={handleBuy}
-            disabled={loading}
+            disabled={loading || authLoading}
             className={`${baseClass} ${sizeClass} ${className}`}
         >
             {loading ? (

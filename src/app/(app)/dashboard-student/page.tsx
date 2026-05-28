@@ -1,7 +1,7 @@
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { PlayCircle, BookOpen, Sparkles, Trophy, Users, Clock } from 'lucide-react'
+import { PlayCircle, BookOpen, Sparkles, Trophy, Users, Clock, Lock } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
 import { AddToCartButton } from '@/components/AddToCartButton'
@@ -59,6 +59,13 @@ export default async function StudentDashboard() {
     }) as any[]
     const allLessons = lessonsSnapshot.docs.map(doc => doc.data()) as any[]
     const purchasedCourseIds = enrollmentsSnapshot.docs.map(doc => doc.data().course_id)
+    const enrollmentStatusMap: Record<string, string> = {}
+    enrollmentsSnapshot.docs.forEach(doc => {
+        const data = doc.data()
+        if (data.course_id) {
+            enrollmentStatusMap[data.course_id] = data.status || 'active'
+        }
+    })
     
     const userProgressMap: Record<string, { completedLessons: string[], totalLessons: number }> = {}
     enrollmentsSnapshot.docs.forEach(doc => {
@@ -126,27 +133,55 @@ export default async function StudentDashboard() {
                                 const nextLesson = courseLessons.find((lesson: any) => !progress.completedLessons.includes(lesson.id))
                                 const nextLessonId = nextLesson?.id || courseLessons[courseLessons.length - 1]?.id
                                 
+                                const isPending = enrollmentStatusMap[curso.id] === 'pending'
+                                
                                 return (
-                                <div key={curso.id} className="group bg-white rounded-[24px] overflow-hidden border border-black transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 flex flex-col">
+                                <div key={curso.id} className={`group bg-white rounded-[24px] overflow-hidden border border-black transition-all duration-300 shadow-sm flex flex-col ${isPending ? 'opacity-85 saturate-50' : 'hover:shadow-xl hover:-translate-y-1'}`}>
                                     <div className="relative h-48 bg-slate-100 overflow-hidden">
                                         <img
                                             src={curso.image_url || "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400"}
-                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                            className="w-full h-full object-cover transition-transform duration-700"
                                             alt={curso.title}
                                         />
-                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
-                                            <PlayCircle size={48} className="text-white" />
-                                        </div>
+                                        {isPending ? (
+                                            <>
+                                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center backdrop-blur-[2px]">
+                                                    <div className="flex flex-col items-center gap-2">
+                                                        <Lock size={32} className="text-white/90" />
+                                                        <span className="text-white text-[10px] font-bold uppercase tracking-widest">Aguardando Pagamento</span>
+                                                    </div>
+                                                </div>
+                                                <div className="absolute top-3 left-3 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-md shadow-md">
+                                                    Aguardando Compensação
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[2px]">
+                                                <PlayCircle size={48} className="text-white" />
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="p-8 flex-1 flex flex-col">
-                                        {/* TÍTULO DO CURSO - Garanti que está PRETO e VISÍVEL */}
-                                        <h3 className="font-bold text-lg mb-4 !text-black line-clamp-2 leading-tight uppercase group-hover:text-[#1D5F31] transition-colors">{curso.title}</h3>
+                                        <h3 className={`font-bold text-lg mb-4 !text-black line-clamp-2 leading-tight uppercase transition-colors ${isPending ? '' : 'group-hover:text-[#1D5F31]'}`}>{curso.title}</h3>
                                         <div className="mt-auto space-y-4">
-                                            <CourseProgressBar 
-                                                completedLessons={completedLessons} 
-                                                totalLessons={totalLessons} 
-                                            />
-                                            <ContinueLessonButton courseId={curso.id} lessonId={nextLessonId} />
+                                            {isPending ? (
+                                                <>
+                                                    <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                                        <div className="h-full bg-slate-300 rounded-full" style={{ width: '0%' }}></div>
+                                                    </div>
+                                                    <button disabled className="w-full bg-slate-200 text-slate-400 font-bold uppercase text-[11px] tracking-widest py-4 rounded-xl cursor-not-allowed shadow-none">
+                                                        Aguardando Pagamento
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <CourseProgressBar 
+                                                        completedLessons={completedLessons} 
+                                                        totalLessons={totalLessons} 
+                                                    />
+                                                    <ContinueLessonButton courseId={curso.id} lessonId={nextLessonId} />
+                                                </>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

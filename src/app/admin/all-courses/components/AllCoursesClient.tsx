@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { Search, User, Tag, BookOpen, X, AlertTriangle, ShieldCheck, Trash2, Loader2, CheckCircle2, XCircle } from 'lucide-react'
+import { Search, User, Tag, BookOpen, X, AlertTriangle, ShieldCheck, Trash2, Loader2, CheckCircle2, XCircle, FileText, Clock, DollarSign, Layers, ChevronDown, ChevronRight, Play, HelpCircle } from 'lucide-react'
 import CourseDeleteButton from '@/components/CourseDeleteButton'
 import SecureMuxPlayer from '@/components/SecureMuxPlayer'
 import { toast } from 'sonner'
@@ -88,6 +88,64 @@ export default function AllCoursesClient({ courses, teachers }: AllCoursesClient
     const [auditCourse, setAuditCourse] = useState<Course | null>(null)
     const [rejectReason, setRejectReason] = useState('')
     const [isProcessing, setIsProcessing] = useState(false)
+    const [detailCourseId, setDetailCourseId] = useState<string | null>(null)
+    const [detailData, setDetailData] = useState<any>(null)
+    const [isLoadingDetail, setIsLoadingDetail] = useState(false)
+    const [isLoadingMore, setIsLoadingMore] = useState(false)
+    const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({})
+    const [detailPage, setDetailPage] = useState(1)
+    const detailPageSize = 10
+
+    const handleOpenDetail = async (courseId: string) => {
+        setDetailCourseId(courseId)
+        setIsLoadingDetail(true)
+        setDetailData(null)
+        setDetailPage(1)
+        try {
+            const { getCourseFullDetailsAdmin } = await import('@/app/actions/admin')
+            const result = await getCourseFullDetailsAdmin(courseId, 1, detailPageSize)
+            if (result.success) {
+                setDetailData(result)
+                const expanded: Record<string, boolean> = {}
+                result.modules?.forEach((m: any) => { expanded[m.id] = true })
+                setExpandedModules(expanded)
+            } else {
+                toast.error(result.error || 'Erro ao carregar detalhes.')
+                setDetailCourseId(null)
+            }
+        } catch (err: any) {
+            toast.error(err.message || 'Erro ao carregar detalhes.')
+            setDetailCourseId(null)
+        } finally {
+            setIsLoadingDetail(false)
+        }
+    }
+
+    const handleLoadMoreLessons = async () => {
+        if (!detailCourseId || isLoadingMore) return
+        const nextPage = detailPage + 1
+        setIsLoadingMore(true)
+        try {
+            const { getCourseFullDetailsAdmin } = await import('@/app/actions/admin')
+            const result = await getCourseFullDetailsAdmin(detailCourseId, nextPage, detailPageSize)
+            if (result.success) {
+                setDetailData(result)
+                setDetailPage(nextPage)
+                // Expande novos módulos que possam ter surgido
+                setExpandedModules(prev => {
+                    const next = { ...prev }
+                    result.modules?.forEach((m: any) => { next[m.id] = true })
+                    return next
+                })
+            } else {
+                toast.error(result.error || 'Erro ao carregar mais aulas.')
+            }
+        } catch (err: any) {
+            toast.error(err.message || 'Erro ao carregar mais aulas.')
+        } finally {
+            setIsLoadingMore(false)
+        }
+    }
 
     const handleApproveTrailer = async (courseId: string) => {
         setIsProcessing(true)
@@ -306,7 +364,7 @@ export default function AllCoursesClient({ courses, teachers }: AllCoursesClient
                                 filteredCourses.map((course) => (
                                     <tr key={course.id} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                                         <td className="p-6">
-                                            <div className="flex items-center gap-4">
+                                            <button onClick={() => handleOpenDetail(course.id)} className="flex items-center gap-4 text-left">
                                                 <div className="w-16 h-16 bg-slate-100 rounded-none overflow-hidden flex-shrink-0 border border-slate-200">
                                                     {course.image_url ? (
                                                         <img src={course.image_url} alt={course.title} className="w-full h-full object-cover" />
@@ -317,14 +375,14 @@ export default function AllCoursesClient({ courses, teachers }: AllCoursesClient
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <h3 className="font-bold uppercase text-sm text-slate-900 leading-tight max-w-[300px] truncate">
+                                                    <h3 className="font-bold uppercase text-sm text-slate-900 leading-tight max-w-[300px] truncate hover:text-[#1D5F31] transition-colors">
                                                         {course.title}
                                                     </h3>
                                                     <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wider mt-1 truncate max-w-[300px]">
                                                         {course.subtitle || 'Sem subtítulo'}
                                                     </p>
                                                 </div>
-                                            </div>
+                                            </button>
                                         </td>
                                         <td className="p-6">
                                             <div className="flex items-center gap-2">
@@ -383,6 +441,221 @@ export default function AllCoursesClient({ courses, teachers }: AllCoursesClient
                     </table>
                 </div>
             </div>
+
+            {/* Product Details Modal */}
+            {detailCourseId && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 sm:p-6" onClick={() => !isLoadingDetail && setDetailCourseId(null)}>
+                    <div className="bg-white rounded-xl shadow-2xl max-w-7xl w-full max-h-[95vh] flex flex-col border border-slate-200" onClick={e => e.stopPropagation()}>
+                        {/* Header */}
+                        <div className="flex items-center justify-between px-8 py-6 border-b border-slate-200">
+                            <div className="min-w-0">
+                                <h2 className="text-xl font-bold uppercase tracking-tighter">Detalhes do Curso</h2>
+                                <p className="text-[10px] font-bold uppercase tracking-[4px] text-slate-500 mt-1 truncate max-w-[600px]">
+                                    {detailData?.course?.title || 'Carregando...'}
+                                </p>
+                            </div>
+                            <button onClick={() => setDetailCourseId(null)} className="p-2 text-slate-400 hover:text-slate-600 transition-colors flex-shrink-0">
+                                <X size={24} />
+                            </button>
+                        </div>
+
+                        {/* Loading State */}
+                        {isLoadingDetail && (
+                            <div className="flex-1 flex items-center justify-center p-16">
+                                <Loader2 className="animate-spin text-[#1D5F31]" size={40} />
+                            </div>
+                        )}
+
+                        {/* Content */}
+                        {detailData && !isLoadingDetail && (
+                            <div className="flex-1 flex flex-col lg:flex-row min-h-0">
+                                {/* Left Column (Metadata) — 35% */}
+                                <div className="lg:w-[35%] overflow-y-auto px-8 py-8 border-b lg:border-b-0 lg:border-r border-slate-200 space-y-6">
+                                    {/* Image */}
+                                    {detailData.course.image_url && (
+                                        <div className="aspect-video bg-slate-100 rounded-lg overflow-hidden border border-slate-200">
+                                            <img src={detailData.course.image_url} alt={detailData.course.title} className="w-full h-full object-cover" />
+                                        </div>
+                                    )}
+
+                                    {/* Badges */}
+                                    <div className="flex flex-wrap gap-2">
+                                        {detailData.course.price !== undefined && (
+                                            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-green-700 bg-green-50 px-3 py-1.5 rounded-lg border border-green-200">
+                                                <DollarSign size={12} />
+                                                R$ {Number(detailData.course.price).toFixed(2)}
+                                            </span>
+                                        )}
+                                        {detailData.course.duration && (
+                                            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-blue-700 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200">
+                                                <Clock size={12} />
+                                                {detailData.course.duration}h
+                                            </span>
+                                        )}
+                                        {detailData.course.category && (
+                                            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-700 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+                                                <FileText size={12} />
+                                                {detailData.course.category}
+                                            </span>
+                                        )}
+                                        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-purple-700 bg-purple-50 px-3 py-1.5 rounded-lg border border-purple-200">
+                                            <Layers size={12} />
+                                            {detailData.modules?.length || 0} módulo(s)
+                                        </span>
+                                        <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-700 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+                                            <Play size={12} />
+                                            {detailData.totalCount || 0} aula(s)
+                                        </span>
+                                    </div>
+
+                                    {/* Pricing Type */}
+                                    {detailData.course.pricing_type && (
+                                        <div>
+                                            <h4 className="text-[9px] font-bold uppercase tracking-[3px] text-slate-500 mb-1.5">Tipo de Precificação</h4>
+                                            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-700 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+                                                {detailData.course.pricing_type === 'free' ? 'Gratuito' : detailData.course.pricing_type === 'paid' ? 'Pago' : detailData.course.pricing_type}
+                                            </span>
+                                        </div>
+                                    )}
+
+                                    {/* Subtitle */}
+                                    {detailData.course.subtitle && (
+                                        <div>
+                                            <h4 className="text-[9px] font-bold uppercase tracking-[3px] text-slate-500 mb-1.5">Subtítulo</h4>
+                                            <p className="text-sm text-slate-700 leading-relaxed">{detailData.course.subtitle}</p>
+                                        </div>
+                                    )}
+
+                                    {/* Description */}
+                                    {detailData.course.description && (
+                                        <div>
+                                            <h4 className="text-[9px] font-bold uppercase tracking-[3px] text-slate-500 mb-1.5">Descrição</h4>
+                                            <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{detailData.course.description}</p>
+                                        </div>
+                                    )}
+
+                                    {/* Tags */}
+                                    {detailData.course.tags?.length > 0 && (
+                                        <div>
+                                            <h4 className="text-[9px] font-bold uppercase tracking-[3px] text-slate-500 mb-2">Tags</h4>
+                                            <div className="flex flex-wrap gap-1.5">
+                                                {(detailData.course.tags as string[]).map((tag: string, i: number) => (
+                                                    <span key={i} className="text-[10px] font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200">
+                                                        {tag}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Right Column (Curriculum) — 65% */}
+                                <div className="lg:w-[65%] flex flex-col min-h-0">
+                                    <div className="flex-1 overflow-y-auto px-8 py-8">
+                                        <h4 className="text-[9px] font-bold uppercase tracking-[3px] text-slate-500 mb-4">Grade Curricular</h4>
+                                        {detailData.modules?.length === 0 ? (
+                                            <div className="flex flex-col items-center gap-3 py-12 text-slate-400">
+                                                <BookOpen size={40} />
+                                                <p className="text-[10px] font-bold uppercase tracking-widest">Nenhum módulo encontrado</p>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-3">
+                                                {detailData.modules.map((mod: any, modIdx: number) => (
+                                                    <div key={mod.id} className="border border-slate-200 rounded-lg overflow-hidden">
+                                                        <button
+                                                            onClick={() => setExpandedModules(prev => ({ ...prev, [mod.id]: !prev[mod.id] }))}
+                                                            className="w-full flex items-center justify-between gap-3 px-5 py-4 bg-slate-50 hover:bg-slate-100 transition-colors text-left"
+                                                        >
+                                                            <div className="flex items-center gap-3 min-w-0">
+                                                                {expandedModules[mod.id] ? <ChevronDown size={16} className="text-slate-500 flex-shrink-0" /> : <ChevronRight size={16} className="text-slate-500 flex-shrink-0" />}
+                                                                <span className="font-bold text-sm text-slate-800 uppercase tracking-wide truncate">{mod.title}</span>
+                                                                <span className="text-[10px] font-medium text-slate-500 bg-slate-200 px-2 py-0.5 rounded-md flex-shrink-0">{mod.lessons.length} aula(s)</span>
+                                                            </div>
+                                                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider flex-shrink-0">{modIdx + 1}</span>
+                                                        </button>
+                                                        {expandedModules[mod.id] && (
+                                                            <div className="divide-y divide-slate-100">
+                                                                {mod.lessons.map((lesson: any, idx: number) => (
+                                                                    <div key={lesson.id} className="flex items-center justify-between gap-4 px-5 py-3.5 hover:bg-slate-50 transition-colors">
+                                                                        <div className="flex items-center gap-3 min-w-0">
+                                                                            {lesson.is_quiz ? (
+                                                                                <HelpCircle size={16} className="text-amber-500 flex-shrink-0" />
+                                                                            ) : (
+                                                                                <Play size={16} className="text-[#1D5F31] flex-shrink-0" />
+                                                                            )}
+                                                                            <span className="text-sm text-slate-700 truncate">{lesson.title}</span>
+                                                                        </div>
+                                                                        <div className="flex items-center gap-3 flex-shrink-0">
+                                                                            {lesson.duration && (
+                                                                                <span className="text-[10px] font-medium text-slate-500">{lesson.duration}min</span>
+                                                                            )}
+                                                                            {lesson.status && (
+                                                                                <span className={`text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                                                                                    lesson.status === 'APROVADO' ? 'text-green-700 bg-green-50 border border-green-200' :
+                                                                                    lesson.status === 'REJEITADO' ? 'text-red-700 bg-red-50 border border-red-200' :
+                                                                                    lesson.status === 'PENDENTE' ? 'text-amber-700 bg-amber-50 border border-amber-200' :
+                                                                                    'text-slate-500 bg-slate-100 border border-slate-200'
+                                                                                }`}>
+                                                                                    {lesson.status === 'APROVADO' ? 'OK' :
+                                                                                     lesson.status === 'REJEITADO' ? 'REJ' :
+                                                                                     lesson.status === 'PENDENTE' ? 'PEN' :
+                                                                                     lesson.status || '—'}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+
+                                        {/* Pagination Footer */}
+                                        {detailData.totalCount > 0 && (
+                                            <div className="flex items-center justify-between mt-6 pt-4 border-t border-slate-100">
+                                                <p className="text-[10px] font-medium text-slate-500">
+                                                    Exibindo <span className="font-bold text-slate-700">{Math.min(detailData.currentPage * detailPageSize, detailData.totalCount)}</span> de <span className="font-bold text-slate-700">{detailData.totalCount}</span> aulas
+                                                </p>
+                                                {detailData.hasMore && (
+                                                    <button
+                                                        onClick={handleLoadMoreLessons}
+                                                        disabled={isLoadingMore}
+                                                        className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-[#1D5F31] hover:text-[#1D5F31]/80 transition-colors disabled:opacity-50"
+                                                    >
+                                                        {isLoadingMore ? (
+                                                            <Loader2 size={12} className="animate-spin" />
+                                                        ) : (
+                                                            <ChevronDown size={14} />
+                                                        )}
+                                                        {isLoadingMore ? 'Carregando...' : 'Carregar Mais Aulas'}
+                                                    </button>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Footer */}
+                        <div className="flex items-center justify-between px-8 py-4 border-t border-slate-200">
+                            {detailData && (
+                                <div className="flex items-center gap-2 text-[10px] text-slate-400 font-medium">
+                                    <span className="bg-slate-100 px-2 py-0.5 rounded-md">{detailData?.course?.id ? `ID: ${detailData.course.id.substring(0, 8)}...` : ''}</span>
+                                </div>
+                            )}
+                            <button
+                                onClick={() => setDetailCourseId(null)}
+                                className="px-8 py-3 bg-slate-100 text-slate-700 rounded-lg text-[10px] font-bold uppercase tracking-[4px] hover:bg-slate-200 transition-all"
+                            >
+                                Fechar Visualização
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Audit Trailer Modal */}
             {auditCourse && (

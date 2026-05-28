@@ -100,6 +100,7 @@ interface Lesson {
     mux_upload_id?: string
     mux_playback_id?: string
     mux_asset_id?: string
+    module_id?: string
     position: number
     description?: string
     notas?: string
@@ -247,7 +248,7 @@ function SortableLesson({ lesson, onDelete, onSelect, isSelected, onTitleChange,
 }
 
 // --- Sortable Module Component ---
-function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons, onSelectLesson, selectedLessonId, onLessonTitleChange, onDeleteModule, canDeleteModule, onResubmitLesson, onCancelLesson, onAddQuiz }: {
+function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons, onSelectLesson, selectedLessonId, onLessonTitleChange, onDeleteModule, canDeleteModule, onResubmitLesson, onCancelLesson, onAddQuiz, onModuleTitleChange }: {
     module: Module,
     onAddLesson: () => void,
     onDeleteLesson: (lessonId: string) => void,
@@ -259,7 +260,8 @@ function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons,
     canDeleteModule: boolean,
     onResubmitLesson?: (lessonId: string) => void,
     onCancelLesson?: (lessonId: string) => void,
-    onAddQuiz?: () => void
+    onAddQuiz?: () => void,
+    onModuleTitleChange?: (moduleId: string, newTitle: string) => void
 }) {
     const {
         attributes,
@@ -289,7 +291,7 @@ function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons,
                         <input
                             className="bg-transparent border-none focus:outline-none text-xl font-bold uppercase tracking-tighter w-full text-black"
                             value={module.title}
-                            onChange={() => { }} // TODO: Implementar edição de título do módulo se necessário
+                            onChange={(e) => onModuleTitleChange?.(module.id, e.target.value)}
                         />
                         <p className="text-[9px] font-bold uppercase tracking-[3px] text-[#1D5F31] mt-1">ESTRUTURA DE MÓDULO</p>
                     </div>
@@ -618,7 +620,7 @@ export default function CourseBuilder() {
         const allLessons = modules.flatMap(m => m.lessons)
         if (allLessons.length === 0) return
         setAutosaveStatus('saving')
-        const result = await autosaveCourseAction(params.id as string, { lessons: allLessons })
+        const result = await autosaveCourseAction(params.id as string, { modules })
         if (result.success) {
             setAutosaveStatus('saved')
             const idMap = 'idMap' in result ? result.idMap : undefined
@@ -761,20 +763,53 @@ export default function CourseBuilder() {
                                 }
                             }
                             return serialized
-                        })
+                        }) as Lesson[]
 
-                        const modulesData = [
-                            {
-                                id: 'main-structure',
-                                title: 'ESTRUTURA DO CURSO',
-                                lessons: lData as Lesson[]
-                            }
-                        ]
+                        // Reconstrói a estrutura hierárquica de módulos
+                        const courseModules: { id: string; title: string; position: number }[] = cData.modules || []
+                        let modulesData: Module[]
+
+                        if (courseModules.length > 0) {
+                            // Agrupa lições por module_id
+                            const lessonsByModuleId: Record<string, Lesson[]> = {}
+                            lData.forEach(lesson => {
+                                const mid = lesson.module_id || 'default'
+                                if (!lessonsByModuleId[mid]) lessonsByModuleId[mid] = []
+                                lessonsByModuleId[mid].push(lesson)
+                            })
+
+                            modulesData = courseModules.map(m => ({
+                                id: m.id,
+                                title: m.title,
+                                lessons: lessonsByModuleId[m.id] || [],
+                            }))
+
+                            // Inclui módulos que existem no Firestore mas não no course.modules (fallback)
+                            Object.entries(lessonsByModuleId).forEach(([mid, lessons]) => {
+                                if (!courseModules.some((cm: any) => cm.id === mid)) {
+                                    modulesData.push({
+                                        id: mid,
+                                        title: 'MÓDULO ADICIONAL',
+                                        lessons,
+                                    })
+                                }
+                            })
+                        } else {
+                            // Fallback: dados legados sem module_id — coloca tudo em um módulo único
+                            modulesData = [
+                                {
+                                    id: 'main-structure',
+                                    title: 'ESTRUTURA DO CURSO',
+                                    lessons: lData,
+                                },
+                            ]
+                        }
+
                         setModules(modulesData)
 
                         // Seleciona a primeira aula por padrão se existir
                         if (lData.length > 0) {
-                            setSelectedLesson(lData[0] as Lesson)
+                            setSelectedLesson(lData[0])
                         }
                     }
                 } catch (error) {
@@ -856,8 +891,14 @@ export default function CourseBuilder() {
                 pricing_type: coursePricingType,
                 duration: courseDuration,
                 image_url: courseImage,
+                modules: modules.map((m, i) => ({
+                    id: m.id,
+                    title: m.title,
+                    position: i,
+                })),
                 lessons: allLessons.map((l: any) => ({
                     id: l.id,
+                    module_id: l.module_id,
                     title: l.title,
                     description: l.description,
                     video_url: l.video_url || '',
@@ -993,7 +1034,14 @@ export default function CourseBuilder() {
                         sensors={sensors}
                         collisionDetection={closestCenter}
                         onDragEnd={(e) => {
-                            // No momento só temos um módulo, mas o handleLessonReorder cuida das aulas.
+                            const { active, over } = e
+                            if (over && active.id !== over.id) {
+                                const oldIndex = modules.findIndex((m) => m.id === active.id)
+                                const newIndex = modules.findIndex((m) => m.id === over.id)
+                                if (oldIndex !== -1 && newIndex !== -1) {
+                                    setModules(arrayMove(modules, oldIndex, newIndex))
+                                }
+                            }
                         }}
                     >
                         <SortableContext
@@ -1006,8 +1054,13 @@ export default function CourseBuilder() {
                                     module={module}
                                     selectedLessonId={selectedLesson?.id}
                                     onSelectLesson={setSelectedLesson}
+                                    onModuleTitleChange={(moduleId, newTitle) => {
+                                        setModules(prev => prev.map(m =>
+                                            m.id === moduleId ? { ...m, title: newTitle } : m
+                                        ))
+                                    }}
                                     onAddLesson={() => {
-                                        const newLesson: Lesson = { id: `new-${Date.now()}`, title: 'Nova Aula Digital', video_url: '', position: 0, description: '' }
+                                        const newLesson: Lesson = { id: `new-${Date.now()}`, title: 'Nova Aula Digital', video_url: '', module_id: module.id, position: 0, description: '' }
                                         forceImmediateAutosaveRef.current = true
                                         setModules(prev => prev.map(m => m.id === module.id ? { ...m, lessons: [newLesson, ...m.lessons] } : m))
                                     }}
@@ -1096,6 +1149,7 @@ export default function CourseBuilder() {
                                             id: `quiz-${Date.now()}`,
                                             title: 'Novo Questionário',
                                             video_url: '',
+                                            module_id: module.id,
                                             position: 0,
                                             description: '',
                                             type: 'quiz',

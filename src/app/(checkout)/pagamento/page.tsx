@@ -7,67 +7,236 @@ import {
     ReceiptText,
     ShieldCheck,
     Lock,
-    ChevronRight,
-    ArrowLeft
+    ArrowLeft,
+    CheckCircle2,
+    XCircle,
+    AlertCircle
 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { processCheckoutAction, getProfile, getLatestCoursePrices } from '@/app/(app)/dashboard-student/actions'
 import { cn } from '@/lib/utils'
 
 type PaymentMethod = 'credit_card' | 'pix' | 'boleto'
+
+function maskCardNumber(value: string): string {
+    const digits = value.replace(/\D/g, '').slice(0, 16)
+    return digits.replace(/(\d{4})(?=\d)/g, '$1 ')
+}
+
+function maskExpiry(value: string): string {
+    const digits = value.replace(/\D/g, '').slice(0, 4)
+    if (digits.length > 2) return digits.slice(0, 2) + '/' + digits.slice(2)
+    return digits
+}
+
+function maskCvc(value: string): string {
+    return value.replace(/\D/g, '').slice(0, 4)
+}
+
+function maskCpf(value: string): string {
+    const digits = value.replace(/\D/g, '').slice(0, 11)
+    return digits
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d{1,2})$/, '$1-$2')
+}
+
+function maskPhone(value: string): string {
+    const digits = value.replace(/\D/g, '').slice(0, 11)
+    if (digits.length <= 10) {
+        return digits.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3')
+    }
+    return digits.replace(/(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3')
+}
+
+function maskCep(value: string): string {
+    const digits = value.replace(/\D/g, '').slice(0, 8)
+    if (digits.length > 5) return digits.slice(0, 5) + '-' + digits.slice(5)
+    return digits
+}
+
+function detectCardBrand(number: string): string {
+    const cleaned = number.replace(/\D/g, '')
+    if (/^4/.test(cleaned)) return 'Visa'
+    if (/^5[1-5]/.test(cleaned)) return 'Mastercard'
+    if (/^3[47]/.test(cleaned)) return 'Amex'
+    if (/^6(?:011|5)/.test(cleaned)) return 'Discover'
+    if (/^3(?:0[0-5]|[68])/.test(cleaned)) return 'Diners'
+    if (/^2(?:014|149)/.test(cleaned)) return 'Elo'
+    return ''
+}
 
 export default function PagamentoPage() {
     const { items, getTotal, clearCart, showNotification, syncPrices } = useCartStore()
     const router = useRouter()
     const [mounted, setMounted] = useState(false)
     const [isProcessing, setIsProcessing] = useState(false)
+    const hasTriggeredRedirect = useRef(false)
+    const [checkoutTotal, setCheckoutTotal] = useState(0)
     const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('credit_card')
     const [userProfile, setUserProfile] = useState<any>(null)
     const [isLoadingProfile, setIsLoadingProfile] = useState(true)
     const [termsAccepted, setTermsAccepted] = useState(false)
     const [isLoadingPrices, setIsLoadingPrices] = useState(true)
+    const [paymentError, setPaymentError] = useState<string | null>(null)
+    const [isFreeLocked, setIsFreeLocked] = useState<boolean | null>(null)
+    const fetchIdRef = useRef(0)
+
+    // Credit card form state
+    const [cardNumber, setCardNumber] = useState('')
+    const [cardHolder, setCardHolder] = useState('')
+    const [cardExpiry, setCardExpiry] = useState('')
+    const [cardCvc, setCardCvc] = useState('')
+    const [holderCpf, setHolderCpf] = useState('')
+    const [holderEmail, setHolderEmail] = useState('')
+    const [holderPhone, setHolderPhone] = useState('')
+    const [holderCep, setHolderCep] = useState('')
+    const [holderAddressNumber, setHolderAddressNumber] = useState('')
+
+    // Pre-fill from profile when loaded
+    useEffect(() => {
+        if (userProfile) {
+            if (userProfile.cpf_cnpj || userProfile.cpf) {
+                setHolderCpf(userProfile.cpf_cnpj || userProfile.cpf || '')
+            }
+            if (userProfile.email) {
+                setHolderEmail(userProfile.email || '')
+            }
+            if (userProfile.phone) {
+                setHolderPhone(userProfile.phone || '')
+            }
+            if (userProfile.cep) {
+                setHolderCep(userProfile.cep || '')
+            }
+            if (userProfile.numero || userProfile.numero_endereco) {
+                setHolderAddressNumber(userProfile.numero || userProfile.numero_endereco || '')
+            }
+        }
+    }, [userProfile])
 
     useEffect(() => {
         setMounted(true)
     }, [])
 
     useEffect(() => {
-        if (mounted && items.length === 0 && !isProcessing) {
-            router.push('/course')
-        }
-        
-        const fetchData = async () => {
-            if (mounted) {
-                // Fetch Profile
-                const profileResult = await getProfile()
-                if (profileResult.success) {
-                    setUserProfile(profileResult.data)
-                }
-                setIsLoadingProfile(false)
+        if (!mounted) return
 
-                // Sync Cart Prices with Firestore
-                if (items.length > 0) {
-                    setIsLoadingPrices(true)
-                    const priceResult = await getLatestCoursePrices(items.map(i => i.id))
-                    if (priceResult.success && priceResult.data) {
-                        syncPrices(priceResult.data)
-                    }
-                    setIsLoadingPrices(false)
-                } else {
-                    setIsLoadingPrices(false)
+        const currentFetchId = ++fetchIdRef.current
+
+        // Só redireciona se o carrinho estiver vazio no mount inicial
+        if (items.length === 0 && !hasTriggeredRedirect.current) {
+            hasTriggeredRedirect.current = true
+            router.push('/course')
+            return
+        }
+
+        // Bloqueia redirects futuros causados por clearCart durante checkout
+        hasTriggeredRedirect.current = true
+
+        const fetchData = async () => {
+            const profileResult = await getProfile()
+            if (fetchIdRef.current !== currentFetchId) return
+
+            if (profileResult.success) {
+                setUserProfile(profileResult.data)
+            }
+            setIsLoadingProfile(false)
+
+            if (items.length > 0) {
+                setIsLoadingPrices(true)
+                const priceResult = await getLatestCoursePrices(items.map(i => i.id))
+                if (fetchIdRef.current !== currentFetchId) return
+
+                if (priceResult.success && priceResult.data) {
+                    syncPrices(priceResult.data)
                 }
+                const total = getTotal()
+                setCheckoutTotal(total)
+                setIsFreeLocked(total === 0)
+                setIsLoadingPrices(false)
+            } else {
+                setIsLoadingPrices(false)
             }
         }
         fetchData()
-    }, [mounted, items.length, router, syncPrices, isProcessing])
+    }, [mounted, items.length, router, syncPrices, getTotal])
+
+    const resetCardForm = useCallback(() => {
+        setCardNumber('')
+        setCardHolder('')
+        setCardExpiry('')
+        setCardCvc('')
+        setPaymentError(null)
+    }, [])
+
+    // Reset card form when switching methods away from credit_card
+    useEffect(() => {
+        if (selectedMethod !== 'credit_card') {
+            setPaymentError(null)
+        }
+    }, [selectedMethod])
 
     if (!mounted) return null
 
-    const total = getTotal()
+    const isFree = isFreeLocked ?? (checkoutTotal > 0 ? false : getTotal() === 0)
+    const cardBrand = detectCardBrand(cardNumber)
+
+    const validateCardForm = (): string | null => {
+        const cleanedNumber = cardNumber.replace(/\s/g, '')
+        if (cleanedNumber.length < 13) return 'Número do cartão inválido.'
+        
+        const nameParts = cardHolder.trim().split(' ')
+        if (nameParts.length < 2 || !cardHolder.trim()) return 'Informe o nome completo do titular como está no cartão.'
+        
+        const expiryDigits = cardExpiry.replace(/\D/g, '')
+        if (expiryDigits.length !== 4) return 'Data de expiração inválida.'
+        const expMonth = parseInt(expiryDigits.slice(0, 2))
+        const expYear = parseInt('20' + expiryDigits.slice(2))
+        if (expMonth < 1 || expMonth > 12) return 'Mês de expiração inválido.'
+        const now = new Date()
+        const expDate = new Date(expYear, expMonth)
+        if (expDate <= now) return 'Cartão expirado.'
+        
+        if (cardCvc.replace(/\D/g, '').length < 3) return 'CVC inválido.'
+
+        const cpfDigits = holderCpf.replace(/\D/g, '')
+        if (cpfDigits.length < 11) return 'CPF/CNPJ do titular inválido.'
+
+        if (!holderEmail.includes('@')) return 'E-mail do titular inválido.'
+
+        const cepDigits = holderCep.replace(/\D/g, '')
+        if (cepDigits.length < 8) return 'CEP inválido.'
+
+        if (!holderAddressNumber.trim()) return 'Número do endereço é obrigatório.'
+
+        return null
+    }
 
     const handlePayment = async () => {
+        setPaymentError(null)
+
+        if (isFree) {
+            setIsProcessing(true)
+            try {
+                const courseIds = items.map(item => item.id)
+                const result = await processCheckoutAction(courseIds, 'PIX', true, undefined)
+                if (!result.success) {
+                    setPaymentError(result.error || "Erro ao liberar acesso gratuito")
+                    setIsProcessing(false)
+                    return
+                }
+                clearCart()
+                window.location.href = '/dashboard-student'
+            } catch (error: any) {
+                console.error(error)
+                setPaymentError(error.message || "Erro ao liberar acesso gratuito")
+                setIsProcessing(false)
+            }
+            return
+        }
+
         if (!termsAccepted) {
             showNotification('Você precisa aceitar os Termos de Uso e Política de Privacidade para continuar.', 'error')
             return
@@ -79,48 +248,66 @@ export default function PagamentoPage() {
             return
         }
 
-        const courseIds = items.map(item => item.id)
-        const calculatedTotal = getTotal()
-        
+        if (selectedMethod === 'credit_card') {
+            const validationError = validateCardForm()
+            if (validationError) {
+                setPaymentError(validationError)
+                return
+            }
+        }
+
         setIsProcessing(true)
 
         try {
             const courseIds = items.map(item => item.id)
             
-            // Mapeamento de métodos internos para Asaas BillingType
             const methodMap: Record<PaymentMethod, any> = {
                 credit_card: 'CREDIT_CARD',
                 pix: 'PIX',
                 boleto: 'BOLETO'
             }
 
-            const result = await processCheckoutAction(courseIds, methodMap[selectedMethod], termsAccepted)
+            const billingType = methodMap[selectedMethod]
+
+            const cardData = selectedMethod === 'credit_card' ? {
+                creditCard: {
+                    holderName: cardHolder.trim(),
+                    number: cardNumber.replace(/\s/g, ''),
+                    expiryMonth: cardExpiry.replace(/\D/g, '').slice(0, 2),
+                    expiryYear: '20' + cardExpiry.replace(/\D/g, '').slice(2, 4),
+                    ccv: cardCvc.replace(/\D/g, ''),
+                },
+                creditCardHolderInfo: {
+                    name: cardHolder.trim(),
+                    email: holderEmail.trim(),
+                    cpfCnpj: holderCpf.replace(/\D/g, ''),
+                    postalCode: holderCep.replace(/\D/g, ''),
+                    addressNumber: holderAddressNumber.trim(),
+                    phone: holderPhone.replace(/\D/g, '') || undefined,
+                }
+            } : undefined
+
+            const result = await processCheckoutAction(courseIds, billingType, termsAccepted, cardData)
 
             if (!result.success) {
-                showNotification(result.error || "Erro ao processar pagamento", 'error')
+                setPaymentError(result.error || "Erro ao processar pagamento")
                 setIsProcessing(false)
                 return
             }
 
-            clearCart()
-            
+            // Navegação HARD via window.location: descarrega o componente React imediatamente,
+            // evitando que startTransition (router.push) fique travado por estados pendentes.
             if (result.data) {
-                const { setCheckoutResult } = useCartStore.getState()
-                setCheckoutResult(result.data)
-            }
+                const { paymentId, billingType: respBillingType, invoiceUrl } = result.data
+                clearCart()
 
+                if (respBillingType === 'CREDIT_CARD') {
+                    window.location.href = `/pagamento/sucesso?id=${paymentId}&type=${respBillingType}`
+                    return
+                }
 
-            if (result.isFree) {
-                router.push('/dashboard-student')
-                return
-            }
-
-            if (result.data) {
-                const { paymentId, billingType, invoiceUrl } = result.data
-
-
-                if (billingType === 'PIX' || billingType === 'BOLETO') {
-                    router.push(`/pagamento/sucesso?id=${paymentId}&type=${billingType}`)
+                if (respBillingType === 'PIX' || respBillingType === 'BOLETO') {
+                    window.location.href = `/pagamento/sucesso?id=${paymentId}&type=${respBillingType}`
                     return
                 }
 
@@ -130,10 +317,11 @@ export default function PagamentoPage() {
                 }
             }
 
-            router.push('/dashboard-student')
+            clearCart()
+            window.location.href = '/dashboard-student'
         } catch (error: any) {
             console.error(error)
-            showNotification(error.message || "Erro fatal no pagamento. Tente novamente.", 'error')
+            setPaymentError(error.message || "Erro fatal no pagamento. Tente novamente.")
             setIsProcessing(false)
         }
     }
@@ -145,7 +333,7 @@ export default function PagamentoPage() {
                 {/* Header Back Button */}
                 <div className="mb-10">
                     <Link href="/cart" className="inline-flex items-center gap-2 text-sm font-bold uppercase tracking-widest text-slate-400 hover:text-[#1D5F31] transition-colors group">
-                        <div className="p-2 border border-slate-200 rounded-none group-hover:border-[#1D5F31] transition-colors">
+                        <div className="p-2 border border-slate-200 rounded-md group-hover:border-[#1D5F31] transition-colors">
                             <ArrowLeft size={18} />
                         </div>
                         Voltar ao Carrinho
@@ -157,11 +345,17 @@ export default function PagamentoPage() {
                     {/* Coluna Esquerda (7/12): Formas de Pagamento */}
                     <div className="lg:col-span-7 space-y-10">
                         <div>
-                            <h1 className="text-2xl font-bold tracking-tighter text-[#1a1a1a] mb-2 max-w-xl">Escolha sua forma de pagamento</h1>
-                            <p className="text-slate-500 font-medium">Selecione o método de sua preferência para concluir a inscrição.</p>
+                            <h1 className="text-2xl font-bold tracking-tighter text-[#1a1a1a] mb-2 max-w-xl">
+                                {isFree ? 'Confirme sua inscrição gratuita' : 'Escolha sua forma de pagamento'}
+                            </h1>
+                            <p className="text-slate-500 font-medium">
+                                {isFree
+                                    ? 'Você está adquirindo um treinamento gratuito. Clique no botão ao lado para liberar seu acesso imediatamente.'
+                                    : 'Selecione o método de sua preferência para concluir a inscrição.'}
+                            </p>
                         </div>
 
-                        {mounted && !isLoadingProfile && (!userProfile?.cpf_cnpj && !userProfile?.cpf) && (
+                        {!isFree && mounted && !isLoadingProfile && (!userProfile?.cpf_cnpj && !userProfile?.cpf) && (
                             <div className="bg-amber-50 border-l-4 border-amber-500 p-6 rounded-r-xl shadow-sm animate-in fade-in slide-in-from-left-4 duration-500">
                                 <div className="flex gap-4">
                                     <div className="bg-amber-100 p-2 rounded-lg h-fit text-amber-600">
@@ -180,7 +374,7 @@ export default function PagamentoPage() {
                             </div>
                         )}
 
-                        {mounted && !isLoadingProfile && (!userProfile?.cep || !userProfile?.numero) && (
+                        {!isFree && mounted && !isLoadingProfile && (!userProfile?.cep || !userProfile?.numero) && (
                             <div className="bg-amber-50 border-l-4 border-amber-500 p-6 rounded-r-xl shadow-sm animate-in fade-in slide-in-from-left-4 duration-500">
                                 <div className="flex gap-4">
                                     <div className="bg-amber-100 p-2 rounded-lg h-fit text-amber-600">
@@ -199,21 +393,22 @@ export default function PagamentoPage() {
                             </div>
                         )}
 
+                        {!isFree && (
                         <div className="space-y-4">
                             {/* Cartão de Crédito */}
                             <div 
                                 onClick={() => setSelectedMethod('credit_card')}
                                 className={cn(
-                                    "p-5 border cursor-pointer transition-all duration-200 bg-white flex items-center justify-between group",
+                                    "p-5 border cursor-pointer transition-all duration-200 flex items-center justify-between group rounded-md",
                                     selectedMethod === 'credit_card' 
-                                        ? "border-[2px] border-[#1D5F31] ring-0" 
-                                        : "border-gray-200 hover:border-gray-400"
+                                        ? "border-2 border-[#1D5F31] shadow-sm bg-white" 
+                                        : "border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300"
                                 )}
                             >
                                 <div className="flex items-center gap-4">
                                     <div className={cn(
-                                        "p-3 rounded-none transition-colors",
-                                        selectedMethod === 'credit_card' ? "bg-[#1D5F31]/10 text-[#1D5F31]" : "bg-slate-50 text-slate-400"
+                                        "p-3 rounded-md transition-colors",
+                                        selectedMethod === 'credit_card' ? "bg-[#1D5F31]/10 text-[#1D5F31]" : "bg-white border border-slate-200 text-slate-400"
                                     )}>
                                         <CreditCard size={24} />
                                     </div>
@@ -242,16 +437,16 @@ export default function PagamentoPage() {
                             <div 
                                 onClick={() => setSelectedMethod('pix')}
                                 className={cn(
-                                    "p-5 border cursor-pointer transition-all duration-200 bg-white flex items-center justify-between group",
+                                    "p-5 border cursor-pointer transition-all duration-200 flex items-center justify-between group rounded-md",
                                     selectedMethod === 'pix' 
-                                        ? "border-[2px] border-[#1D5F31] ring-0" 
-                                        : "border-gray-200 hover:border-gray-400"
+                                        ? "border-2 border-[#1D5F31] shadow-sm bg-white" 
+                                        : "border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300"
                                 )}
                             >
                                 <div className="flex items-center gap-4">
                                     <div className={cn(
-                                        "p-3 rounded-none transition-colors",
-                                        selectedMethod === 'pix' ? "bg-[#1D5F31]/10 text-[#1D5F31]" : "bg-slate-50 text-slate-400"
+                                        "p-3 rounded-md transition-colors",
+                                        selectedMethod === 'pix' ? "bg-[#1D5F31]/10 text-[#1D5F31]" : "bg-white border border-slate-200 text-slate-400"
                                     )}>
                                         <QrCode size={24} />
                                     </div>
@@ -267,16 +462,16 @@ export default function PagamentoPage() {
                             <div 
                                 onClick={() => setSelectedMethod('boleto')}
                                 className={cn(
-                                    "p-5 border cursor-pointer transition-all duration-200 bg-white flex items-center justify-between group",
+                                    "p-5 border cursor-pointer transition-all duration-200 flex items-center justify-between group rounded-md",
                                     selectedMethod === 'boleto' 
-                                        ? "border-[2px] border-[#1D5F31] ring-0" 
-                                        : "border-gray-200 hover:border-gray-400"
+                                        ? "border-2 border-[#1D5F31] shadow-sm bg-white" 
+                                        : "border-slate-200 bg-slate-50 hover:bg-slate-100 hover:border-slate-300"
                                 )}
                             >
                                 <div className="flex items-center gap-4">
                                     <div className={cn(
-                                        "p-3 rounded-none transition-colors",
-                                        selectedMethod === 'boleto' ? "bg-[#1D5F31]/10 text-[#1D5F31]" : "bg-slate-50 text-slate-400"
+                                        "p-3 rounded-md transition-colors",
+                                        selectedMethod === 'boleto' ? "bg-[#1D5F31]/10 text-[#1D5F31]" : "bg-white border border-slate-200 text-slate-400"
                                     )}>
                                         <ReceiptText size={24} />
                                     </div>
@@ -287,25 +482,206 @@ export default function PagamentoPage() {
                                 </div>
                             </div>
                         </div>
+                        )}
+                        
+                        {/* Formulário Cartão de Crédito */}
+                        {!isFree && selectedMethod === 'credit_card' && (
+                            <div className="border border-slate-200 p-6 md:p-8 space-y-6 rounded-md bg-white">
+                                <h3 className="text-sm font-bold uppercase tracking-[5px] text-[#1D5F31]">
+                                    Dados do Cartão
+                                </h3>
 
-                        {/* Informação Asaas */}
+                                {/* Card Number */}
+                                <div>
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">
+                                        Número do Cartão
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            placeholder="0000 0000 0000 0000"
+                                            value={cardNumber}
+                                            onChange={e => setCardNumber(maskCardNumber(e.target.value))}
+                                            maxLength={19}
+                                            className="w-full border border-slate-300 px-4 py-3.5 text-sm font-mono bg-white text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31] transition-all rounded-md"
+                                        />
+                                        {cardBrand && (
+                                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-bold uppercase tracking-wider text-[#1D5F31]">
+                                                {cardBrand}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Holder Name */}
+                                <div>
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">
+                                        Nome do Titular (como está no cartão)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        placeholder="Nome impresso no cartão"
+                                        value={cardHolder}
+                                        onChange={e => setCardHolder(e.target.value.toUpperCase())}
+                                        className="w-full border border-slate-300 px-4 py-3.5 text-sm bg-white text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31] transition-all rounded-md uppercase"
+                                    />
+                                </div>
+
+                                {/* Expiry + CVC */}
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">
+                                            Data de Expiração
+                                        </label>
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            placeholder="MM/AA"
+                                            value={cardExpiry}
+                                            onChange={e => setCardExpiry(maskExpiry(e.target.value))}
+                                            maxLength={5}
+                                            className="w-full border border-slate-300 px-4 py-3.5 text-sm font-mono bg-white text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31] transition-all rounded-md"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">
+                                            CVC
+                                        </label>
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            placeholder="123"
+                                            value={cardCvc}
+                                            onChange={e => setCardCvc(maskCvc(e.target.value))}
+                                            maxLength={4}
+                                            className="w-full border border-slate-300 px-4 py-3.5 text-sm font-mono bg-white text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31] transition-all rounded-md"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Divider */}
+                                <div className="h-px bg-gray-200" />
+
+                                <h3 className="text-sm font-bold uppercase tracking-[5px] text-[#1D5F31]">
+                                    Dados do Titular
+                                </h3>
+                                <p className="text-xs text-slate-500 font-medium -mt-4">
+                                    Preencha os dados do dono do cartão. CPF/CNPJ, CEP e número são preenchidos automaticamente do seu perfil.
+                                </p>
+
+                                {/* CPF + Email */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">
+                                            CPF / CNPJ
+                                        </label>
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            placeholder="000.000.000-00"
+                                            value={maskCpf(holderCpf)}
+                                            onChange={e => setHolderCpf(e.target.value.replace(/\D/g, '').slice(0, 11))}
+                                            maxLength={14}
+                                            className="w-full border border-slate-300 px-4 py-3.5 text-sm font-mono bg-white text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31] transition-all rounded-md"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">
+                                            E-mail
+                                        </label>
+                                        <input
+                                            type="email"
+                                            placeholder="seu@email.com"
+                                            value={holderEmail}
+                                            onChange={e => setHolderEmail(e.target.value)}
+                                            className="w-full border border-slate-300 px-4 py-3.5 text-sm bg-white text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31] transition-all rounded-md"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Phone */}
+                                <div>
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">
+                                        Telefone
+                                    </label>
+                                    <input
+                                        type="text"
+                                        inputMode="numeric"
+                                        placeholder="(11) 99999-9999"
+                                        value={maskPhone(holderPhone)}
+                                        onChange={e => setHolderPhone(e.target.value.replace(/\D/g, '').slice(0, 11))}
+                                        maxLength={15}
+                                        className="w-full border border-slate-300 px-4 py-3.5 text-sm font-mono bg-white text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31] transition-all rounded-md"
+                                    />
+                                </div>
+
+                                {/* CEP + Address Number */}
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">
+                                            CEP
+                                        </label>
+                                        <input
+                                            type="text"
+                                            inputMode="numeric"
+                                            placeholder="00000-000"
+                                            value={maskCep(holderCep)}
+                                            onChange={e => setHolderCep(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                                            maxLength={9}
+                                            className="w-full border border-slate-300 px-4 py-3.5 text-sm font-mono bg-white text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31] transition-all rounded-md"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 block">
+                                            Número
+                                        </label>
+                                        <input
+                                            type="text"
+                                            placeholder="123"
+                                            value={holderAddressNumber}
+                                            onChange={e => setHolderAddressNumber(e.target.value)}
+                                            className="w-full border border-slate-300 px-4 py-3.5 text-sm bg-white text-[#1a1a1a] outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31] transition-all rounded-md"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Payment Error */}
+                                {paymentError && (
+                                    <div className="bg-red-50 border-l-4 border-red-500 p-4 flex items-start gap-3 rounded-r-md">
+                                        <XCircle size={20} className="text-red-500 shrink-0 mt-0.5" />
+                                        <div>
+                                            <h4 className="text-xs font-bold uppercase tracking-wider text-red-800">
+                                                Erro no Pagamento
+                                            </h4>
+                                            <p className="text-xs text-red-700 mt-1 leading-relaxed">
+                                                {paymentError}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {!isFree && (
                         <div className="pt-6 border-t border-slate-100 ">
                             <div className="flex items-center gap-3 text-slate-400">
                                 <ShieldCheck size={20} />
                                 <p className="text-sm font-medium">Pague com segurança através do Asaas. Seus dados estão protegidos.</p>
                             </div>
                         </div>
+                        )}
                     </div>
 
                     {/* Coluna Direita (5/12): Resumo do Pedido */}
                     <aside className="lg:col-span-5">
-                        <div className="bg-white border border-gray-200 p-8 sticky top-32">
+                        <div className="bg-white border border-slate-200 p-6 rounded-lg sticky top-32 shadow-sm">
                             <h2 className="text-sm font-bold uppercase tracking-[5px] text-[#1D5F31] mb-8 ">Resumo Profissional</h2>
 
                             <div className="space-y-6 mb-8 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                                 {items.map(item => (
                                     <div key={item.id} className="flex gap-4 items-center">
-                                        <div className="w-16 h-16 bg-slate-100 rounded-none overflow-hidden border border-slate-100 shrink-0">
+                                        <div className="w-16 h-16 bg-slate-100 rounded-sm overflow-hidden border border-slate-200 shrink-0">
                                             <img
                                                 src={item.image_url || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=200"}
                                                 className="w-full h-full object-cover"
@@ -328,71 +704,76 @@ export default function PagamentoPage() {
 
                             <div className="h-px bg-slate-100 my-8" />
 
-                            {/* Terms Acceptance Checkbox */}
-                            <div className="mb-8">
-                                <label className="flex items-start gap-3 cursor-pointer group">
-                                    <div className="relative mt-0.5">
-                                        <input
-                                            type="checkbox"
-                                            checked={termsAccepted}
-                                            onChange={(e) => setTermsAccepted(e.target.checked)}
-                                            className="sr-only"
-                                        />
-                                        <div className={`w-5 h-5 border transition-all rounded-none flex items-center justify-center ${
-                                            termsAccepted
-                                                ? 'bg-[#1D5F31] border-[#1D5F31]'
-                                                : 'bg-transparent border-slate-300 group-hover:border-slate-400'
-                                        }`}>
-                                            {termsAccepted && (
-                                                <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                                </svg>
-                                            )}
-                                        </div>
+                        {/* Terms Acceptance Checkbox */}
+                        {!isFree && (
+                        <div className="mb-8">
+                            <label className="flex items-start gap-3 cursor-pointer group">
+                                <div className="relative mt-0.5">
+                                    <input
+                                        type="checkbox"
+                                        checked={termsAccepted}
+                                        onChange={(e) => setTermsAccepted(e.target.checked)}
+                                        className="sr-only"
+                                    />
+                                    <div className={`w-5 h-5 border transition-all rounded-md flex items-center justify-center ${
+                                        termsAccepted
+                                            ? 'bg-[#1D5F31] border-[#1D5F31]'
+                                            : 'bg-transparent border-slate-300 group-hover:border-slate-400'
+                                    }`}>
+                                        {termsAccepted && (
+                                            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="4">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        )}
                                     </div>
-                                    <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wide leading-relaxed">
-                                        Li e aceito os{' '}
-                                        <a href="/termos" target="_blank" className="text-[#1D5F31] hover:underline">Termos de Uso</a>,{' '}
-                                        <a href="/privacidade" target="_blank" className="text-[#1D5F31] hover:underline">Privacidade</a>{' '}
-                                        e a{' '}
-                                        <a href="/dashboard-student/refund-policy" target="_blank" className="text-[#1D5F31] hover:underline">Política de Reembolso</a>.
-                                    </span>
-                                </label>
-                            </div>
+                                </div>
+                                <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wide leading-relaxed">
+                                    Li e aceito os{' '}
+                                    <a href="/termos" target="_blank" className="text-[#1D5F31] hover:underline">Termos de Uso</a>,{' '}
+                                    <a href="/privacidade" target="_blank" className="text-[#1D5F31] hover:underline">Privacidade</a>{' '}
+                                    e a{' '}
+                                    <a href="/dashboard-student/refund-policy" target="_blank" className="text-[#1D5F31] hover:underline">Política de Reembolso</a>.
+                                </span>
+                            </label>
+                        </div>
+                        )}
 
-                            <div className="space-y-4 mb-10">
+                                <div className="space-y-4 mb-10">
                                 <div className="flex justify-between font-bold uppercase text-[10px] tracking-widest text-slate-400">
                                     <span>Subtotal</span>
-                                    <span>R$ {total.toFixed(2)}</span>
+                                    <span>{isFree ? 'Grátis' : `R$ ${(checkoutTotal > 0 ? checkoutTotal : getTotal()).toFixed(2)}`}</span>
                                 </div>
                                 <div className="flex flex-col gap-1">
                                     <span className="text-[10px] font-bold uppercase tracking-[4px] text-slate-400">Total Final</span>
                                     <div className="text-4xl font-bold tracking-tighter text-[#1D5F31]">
-                                        {(isLoadingPrices || isProcessing) ? (
-                                            <div className="h-10 w-32 bg-slate-100 animate-pulse" />
-                                        ) : (
-                                            total === 0 ? 'Gratuito' : `R$ ${total.toFixed(2)}`
-                                        )}
+                                        {isFree
+                                            ? 'Gratuito'
+                                            : checkoutTotal > 0
+                                                ? `R$ ${checkoutTotal.toFixed(2)}`
+                                                : isLoadingPrices
+                                                    ? <div className="h-10 w-32 bg-slate-100 animate-pulse" />
+                                                    : `R$ ${getTotal().toFixed(2)}`
+                                        }
                                     </div>
                                 </div>
                             </div>
 
-                            {(!isLoadingProfile && !userProfile?.cpf_cnpj && !userProfile?.cpf) ? (
+                            {!isFree && !isLoadingProfile && !userProfile?.cpf_cnpj && !userProfile?.cpf ? (
                                 <button
                                     onClick={() => router.push('/dashboard-student/profile')}
-                                    className="w-full py-6 bg-[#1D5F31] text-white hover:brightness-110 active:scale-[0.98] rounded-none font-bold uppercase  tracking-[3px] transition-all flex items-center justify-center gap-3 shadow-lg shadow-[#1D5F31]/20"
+                                    className="w-full py-5 bg-[#1D5F31] text-white hover:bg-[#154624] active:scale-[0.98] rounded-md font-bold uppercase tracking-wide transition-all flex items-center justify-center gap-3 shadow-sm"
                                 >
                                     CADASTRAR CPF PARA PAGAR →
                                 </button>
                             ) : (
                                 <button
                                     onClick={handlePayment}
-                                    disabled={isProcessing || isLoadingProfile || !termsAccepted}
+                                    disabled={isProcessing || isLoadingProfile || (!isFree && !termsAccepted)}
                                     className={cn(
-                                        "w-full py-6 rounded-none font-bold uppercase  tracking-[3px] transition-all flex items-center justify-center gap-3",
-                                        (isProcessing || isLoadingProfile || !termsAccepted)
-                                            ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                                            : 'bg-[#1D5F31] text-white hover:brightness-110 active:scale-[0.98]'
+                                        "w-full py-5 rounded-md font-bold uppercase tracking-wide transition-all flex items-center justify-center gap-3 shadow-sm",
+                                        (isProcessing || isLoadingProfile || (!isFree && !termsAccepted))
+                                            ? 'bg-slate-200 text-slate-400 cursor-not-allowed shadow-none'
+                                            : 'bg-[#1D5F31] text-white hover:bg-[#154624] active:scale-[0.98]'
                                     )}
                                 >
                                     {isProcessing ? (
@@ -402,12 +783,13 @@ export default function PagamentoPage() {
                                         </>
                                     ) : (
                                         <>
-                                            CONFIRMAR PAGAMENTO →
+                                            {isFree ? 'CONCLUIR INSCRIÇÃO GRATUITA →' : 'CONFIRMAR PAGAMENTO →'}
                                         </>
                                     )}
                                 </button>
                             )}
 
+                            {!isFree && (
                             <div className="mt-8 pt-8 border-t border-slate-100 grid grid-cols-2 gap-4">
                                 <div className="flex items-center gap-3">
                                     <Lock size={16} className="text-slate-300" />
@@ -418,6 +800,7 @@ export default function PagamentoPage() {
                                     <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 leading-tight">Proteção<br/>de Dados</span>
                                 </div>
                             </div>
+                            )}
                         </div>
                     </aside>
                 </div>

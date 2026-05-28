@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthProvider";
 import { ArrowRight, Clock, Infinity, Award, Headphones, TrendingUp, Handshake, BarChart3, Loader2 } from "lucide-react";
 import { db, auth } from "@/lib/firebase";
@@ -11,6 +12,7 @@ import { collection, query, where, limit, getDocs, doc, getDoc } from "firebase/
 import { getBanners, getGlobalSettings, BannersData, GlobalSettings } from "@/app/admin/settings/actions";
 import { ExpandableCard } from "@/components/ui/ExpandableCard";
 import { useCartStore } from "@/store/useCartStore";
+import SpaceParticles from "@/components/SpaceParticles";
 
 interface CourseData {
     id: string;
@@ -96,7 +98,9 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
     }
 
     return (
-        <div style={{ minHeight: "100vh", color: "#e2e8f0", background: "transparent" }}>
+        <>
+            <SpaceParticles />
+            <div style={{ position: "relative", zIndex: 1, minHeight: "100vh", color: "#e2e8f0", background: "transparent" }}>
             {/* ───────────────── HERO SECTION ───────────────── */}
             <section
                 className="hero-section"
@@ -116,6 +120,7 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                 >
                     {/* Badge */}
                     <span
+                        className="hero-badge"
                         style={{
                             background: "rgba(29, 95, 49, 0.8)",
                             border: "1px solid rgba(255, 255, 255, 0.2)",
@@ -155,25 +160,27 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                     </h1>
 
                     {/* Subtítulo */}
-                    <p
+                    <span
+                        className="hero-badge"
                         style={{
+                            background: "rgba(29, 95, 49, 0.8)",
+                            border: "1px solid rgba(255, 255, 255, 0.2)",
                             color: "#ffffff",
-                            fontSize: "clamp(1rem, 2vw, 1.2rem)",
-                            fontWeight: 600,
+                            fontSize: "0.75rem",
+                            fontWeight: 800,
+                            letterSpacing: "0.15em",
+                            textTransform: "uppercase",
+                            padding: "0.6rem 1.5rem",
                             marginBottom: "2.5rem",
-                            maxWidth: "560px",
-                            lineHeight: 1.6,
-                            background: "rgba(29, 95, 49, 0.6)",
-                            border: "1px solid rgba(255, 255, 255, 0.15)",
+                            display: "inline-block",
                             borderRadius: "100px",
-                            padding: "0.5rem 1.5rem",
                             backdropFilter: "blur(10px)",
-                            boxShadow: "0 4px 15px rgba(0, 0, 0, 0.2)",
+                            boxShadow: "0 4px 15px rgba(0, 0, 0, 0.2), 0 0 15px rgba(29, 95, 49, 0.4)",
                             textShadow: "0 1px 2px rgba(0,0,0,0.5)"
                         }}
                     >
                         Cursos ilimitados em Engenharia Elétrica &amp; Computação
-                    </p>
+                    </span>
 
                     {/* Email + CTA */}
                     <div
@@ -206,7 +213,7 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                         </div>
                         {user || initialUser ? (
                             <button
-                                className="btn-cta"
+                                className="btn-cta glow-ring"
                                 style={{ whiteSpace: "nowrap", padding: "0.9rem 2rem" }}
                                 onClick={() => useCartStore.getState().showNotification("Você já está logado no sistema.", "info")}
                             >
@@ -214,7 +221,7 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                             </button>
                         ) : (
                             <button
-                                className="btn-cta"
+                                className="btn-cta glow-ring"
                                 style={{ whiteSpace: "nowrap", padding: "0.9rem 2rem" }}
                                 onClick={() => router.push(`/register?email=${encodeURIComponent(email)}`)}
                             >
@@ -251,7 +258,11 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
             </div>
 
             {/* ───────────────── TREINAMENTOS EM DESTAQUE ───────────────── */}
-            <section
+            <motion.section
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
                 style={{
                     padding: "2rem 1rem",
                     maxWidth: "1280px",
@@ -335,10 +346,15 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                         </button>
                     </Link>
                 </div>
-            </section>
+                </motion.section>
 
             {/* ───────────────── BENEFITS SECTION ───────────────── */}
-            <section style={{ padding: "2.5rem 1rem", maxWidth: "1280px", margin: "0 auto" }}>
+            <motion.section
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
+                style={{ padding: "2.5rem 1rem", maxWidth: "1280px", margin: "0 auto" }}>
                 <div style={{ textAlign: "center", marginBottom: "3rem" }}>
                     <h2
                         style={{
@@ -367,7 +383,7 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                     {benefits.map((b, i) => {
                         const Icon = b.icon;
                         return (
-                            <div key={i} className="benefit-card">
+                            <div key={i} className="benefit-card glow-card">
                                 <div
                                     style={{
                                         width: "56px",
@@ -403,10 +419,16 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                         );
                     })}
                 </div>
-            </section>
+                </motion.section>
 
             {/* ───────────────── SEÇÃO DE BANNERS DINÂMICOS ───────────────── */}
-            <section style={{ position: "relative" }}>
+            <motion.section
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.6, ease: "easeOut" }}
+                style={{ position: "relative" }}
+            >
                 {banners?.hero_home && banners.hero_home.length > 0 ? (
                     banners.hero_home
                         .sort((a, b) => a.order - b.order)
@@ -483,7 +505,7 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                                                 </p>
                                                 {user || initialUser ? (
                                                     <button
-                                                        className="btn-cta"
+                                                        className="btn-cta glow-ring"
                                                         onClick={() => useCartStore.getState().showNotification("Você já está logado no sistema.", "info")}
                                                     >
                                                         {idx >= 2 ? 'Explorar Cursos' : 'Começar agora'}
@@ -518,7 +540,7 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                                     </p>
                                     {user || initialUser ? (
                                         <button
-                                            className="btn-cta"
+                                            className="btn-cta glow-ring"
                                             onClick={() => useCartStore.getState().showNotification("Você já está logado no sistema.", "info")}
                                         >
                                             Registrar Conta
@@ -533,11 +555,15 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                         </div>
                     </div>
                 )}
-            </section>
+            </motion.section>
 
 
             {/* ───────────────── GRID DE DIFERENCIAIS ───────────────── */}
-            <section
+            <motion.section
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-80px" }}
+                transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
                 style={{
                     padding: "2.5rem 1rem",
                     borderTop: "1px solid rgba(255,255,255,0.05)",
@@ -570,37 +596,44 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                             { Icon: Handshake, title: "Soluções", text: "Metodologias exclusivas que transformam desafios em oportunidades." },
                             { Icon: BarChart3, title: "Resultados", text: "Métricas claras e acompanhamento em tempo real do seu progresso." },
                         ].map(({ Icon, title, text }, i) => (
-                            <div
-                                key={i}
-                                style={{ textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem" }}
-                            >
+                            <div key={i} className="benefit-card glow-card">
                                 <div
                                     style={{
-                                        width: "72px",
-                                        height: "72px",
+                                        width: "56px",
+                                        height: "56px",
                                         background: "rgba(255, 255, 255, 0.1)",
                                         border: "1px solid rgba(255, 255, 255, 0.3)",
                                         display: "flex",
                                         alignItems: "center",
                                         justifyContent: "center",
+                                        marginBottom: "1.25rem",
                                         color: "#ffffff",
-                                        borderRadius: "16px",
+                                        borderRadius: "12px",
                                     }}
                                 >
-                                    <Icon size={32} />
+                                    <Icon size={26} />
                                 </div>
-                                <h3 style={{ color: "#f1f5f9", fontWeight: 800, fontSize: "1.1rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                                <h3
+                                    style={{
+                                        color: "#f1f5f9",
+                                        fontWeight: 800,
+                                        fontSize: "1.05rem",
+                                        marginBottom: "0.6rem",
+                                        textTransform: "uppercase",
+                                        letterSpacing: "0.03em",
+                                    }}
+                                >
                                     {title}
                                 </h3>
-                                <p style={{ color: "#ffffff", fontSize: "0.9rem", lineHeight: 1.7, maxWidth: "260px" }}>
+                                <p style={{ color: "#ffffff", fontSize: "0.9rem", lineHeight: 1.65 }}>
                                     {text}
                                 </p>
                             </div>
                         ))}
                     </div>
                 </div>
-            </section>
+            </motion.section>
 
         </div>
-    );
+        </>);
 }

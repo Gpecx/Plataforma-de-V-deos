@@ -25,6 +25,25 @@ export interface SplitConfig {
     }
 }
 
+export interface CreditCardInfo {
+    holderName: string
+    number: string
+    expiryMonth: string
+    expiryYear: string
+    ccv: string
+}
+
+export interface CreditCardHolderInfo {
+    name: string
+    email: string
+    cpfCnpj: string
+    postalCode: string
+    addressNumber: string
+    addressComplement?: string
+    phone?: string
+    mobilePhone?: string
+}
+
 export interface PaymentRequest {
     customer: string
     billingType: BillingType
@@ -33,6 +52,8 @@ export interface PaymentRequest {
     description?: string
     externalReference?: string
     split?: SplitConfig
+    creditCard?: CreditCardInfo
+    creditCardHolderInfo?: CreditCardHolderInfo
 }
 
 export interface PaymentResponse {
@@ -53,6 +74,7 @@ export interface PaymentResponse {
     encryptedCard: string | null
     installmentNumber: number | null
     invoiceUrl: string
+    bankSlipUrl?: string
     invoiceId: string
     creditCardBrand: string | null
     creditCardNumber: string | null
@@ -181,6 +203,21 @@ export async function createPayment(paymentData: PaymentRequest): Promise<Paymen
     })
 }
 
+export interface CreditCardPaymentRequest {
+    creditCard: CreditCardInfo
+    creditCardHolderInfo: CreditCardHolderInfo
+}
+
+export async function payWithCreditCard(
+    paymentId: string,
+    creditCardData: CreditCardPaymentRequest
+): Promise<PaymentResponse> {
+    return makeRequest<PaymentResponse>(`/payments/${paymentId}/payWithCreditCard`, {
+        method: 'POST',
+        body: JSON.stringify(creditCardData),
+    })
+}
+
 export interface PixQrCodeResponse {
     success: boolean
     encodedImage: string
@@ -267,7 +304,7 @@ export async function getCourseInfo(cursoId: string): Promise<CourseInfo | null>
         id: courseDoc.id,
         title: data?.title || data?.shortTitle || 'Curso',
         price: data?.price || 0,
-        professorId: data?.professorId || data?.instructorId || ''
+        professorId: data?.teacher_id || data?.professorId || data?.instructorId || ''
     }
 }
 

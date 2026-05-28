@@ -112,121 +112,149 @@ function SucessoContent() {
                     Sua inscrição foi reservada.
                     {billingType === 'PIX' && ' Conclua o pagamento via PIX para liberação imediata.'}
                     {billingType === 'BOLETO' && ' O boleto pode levar até 48h para ser compensado.'}
-                    {billingType === 'CREDIT_CARD' && ' Estamos processando seu cartão.'}
+                    {billingType === 'CREDIT_CARD' && (payment?.status === 'CONFIRMED' || payment?.status === 'RECEIVED'
+                        ? ' Pagamento aprovado! Você já tem acesso aos cursos.'
+                        : ' Estamos processando seu cartão.')}
                 </p>
 
+                {/* Comprovante / Recibo */}
                 <div className="bg-white border-[3px] border-black p-8 md:p-12 mb-10 text-left relative overflow-hidden">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                        <div className="space-y-6">
-                            <div>
-                                <span className="text-[10px] font-bold uppercase tracking-[3px] text-black not-italic">Total a Pagar</span>
-                                {loading ? (
-                                    <SkeletonBox className="h-12 w-32 mt-1" />
-                                ) : (
-                                    <div className="text-4xl font-bold text-[#1D5F31] not-italic">R$ {payment?.value?.toFixed(2) || '0.00'}</div>
-                                )}
+                    <div className="mb-8 pb-6 border-b border-black">
+                        <span className="text-[10px] font-bold uppercase tracking-[4px] text-[#1D5F31] block mb-2">Comprovante de Transação</span>
+                        <h2 className="text-xl font-bold uppercase tracking-tighter text-[#1a1a1a]">Recibo PowerPlay</h2>
+                    </div>
+
+                    {loading ? (
+                        <div className="space-y-4">
+                            <SkeletonBox className="h-8 w-48" />
+                            <SkeletonBox className="h-8 w-full" />
+                            <SkeletonBox className="h-8 w-full" />
+                            <SkeletonBox className="h-8 w-64" />
+                            <SkeletonBox className="h-8 w-full" />
+                            <SkeletonBox className="h-12 w-40" />
+                        </div>
+                    ) : (
+                        <div className="space-y-5">
+                            {/* Valor */}
+                            <div className="flex justify-between items-center pb-4 border-b border-slate-200">
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Valor</span>
+                                <span className="text-3xl font-bold text-[#1D5F31]">R$ {payment?.value?.toFixed(2) || '0.00'}</span>
                             </div>
-
-                            {billingType === 'PIX' && (
-                                <div className="space-y-4">
-                                    {loading ? (
-                                        <SkeletonBox className="h-20 w-full" />
-                                    ) : pixData ? (
-                                        <div className="p-4 bg-white border-2 border-black rounded-none">
-                                            <p className="text-[10px] font-bold uppercase mb-2 text-black not-italic">Copia e Cola PIX</p>
-                                            <div className="flex gap-2">
-                                                <input
-                                                    readOnly
-                                                    value={pixData.payload || ''}
-                                                    className="w-full bg-transparent text-xs font-mono truncate border-none outline-none not-italic"
-                                                />
-                                                <CopyButton text={pixData.payload || ''} />
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <SkeletonBox className="h-20 w-full" />
-                                    )}
-                                </div>
-                            )}
-
-                            {billingType === 'BOLETO' && (
-                                <div className="space-y-4">
-                                    {loading ? (
-                                        <SkeletonBox className="h-20 w-full" />
-                                    ) : boletoData ? (
-                                        <div className="p-4 bg-slate-50 border border-slate-200 rounded-none">
-                                            <p className="text-[10px] font-bold uppercase mb-2 text-slate-500">Linha Digitável</p>
-                                            <div className="flex gap-2">
-                                                <input
-                                                    readOnly
-                                                    value={boletoData.identificationField || ''}
-                                                    className="w-full bg-transparent text-xs font-mono truncate border-none outline-none"
-                                                />
-                                                <CopyButton text={boletoData.identificationField || ''} />
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <SkeletonBox className="h-20 w-full" />
-                                    )}
-                                </div>
-                            )}
-
-                            <div className="pt-4 border-t border-black flex flex-wrap gap-4">
+                            {/* Status */}
+                            <div className="flex justify-between items-center pb-4 border-b border-slate-200">
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Status</span>
+                                <span className={`text-sm font-bold uppercase ${payment?.status === 'CONFIRMED' || payment?.status === 'RECEIVED' ? 'text-[#1D5F31]' : 'text-amber-600'}`}>
+                                    {payment?.status === 'CONFIRMED' || payment?.status === 'RECEIVED' ? 'Pago' : payment?.status || 'Pendente'}
+                                </span>
+                            </div>
+                            {/* Data */}
+                            <div className="flex justify-between items-center pb-4 border-b border-slate-200">
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Data</span>
+                                <span className="text-sm font-bold text-[#1a1a1a]">
+                                    {payment?.paymentDate
+                                        ? new Date(payment.paymentDate).toLocaleString('pt-BR')
+                                        : payment?.dateCreated
+                                        ? new Date(payment.dateCreated).toLocaleDateString('pt-BR')
+                                        : '-'}
+                                </span>
+                            </div>
+                            {/* Método */}
+                            <div className="flex justify-between items-center pb-4 border-b border-slate-200">
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Método</span>
+                                <span className="text-sm font-bold text-[#1a1a1a]">
+                                    {billingType === 'CREDIT_CARD' ? 'Cartão de Crédito' : billingType === 'PIX' ? 'PIX' : billingType === 'BOLETO' ? 'Boleto Bancário' : '-'}
+                                </span>
+                            </div>
+                            {/* Código de Autenticação Asaas */}
+                            <div className="flex justify-between items-center pb-4 border-b border-slate-200">
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Cód. Autenticação</span>
+                                <span className="text-xs font-mono font-bold text-[#1a1a1a] break-all text-right max-w-[250px]">
+                                    {payment?.id || checkoutResult?.paymentId || '-'}
+                                </span>
+                            </div>
+                            {/* Links */}
+                            <div className="flex flex-wrap gap-4 pt-2">
                                 {payment?.invoiceUrl && (
                                     <a
                                         href={payment.invoiceUrl}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-black hover:text-black transition-colors not-italic underline underline-offset-4"
+                                        className="inline-flex items-center gap-2 px-6 py-3 bg-[#1D5F31] text-white text-[10px] font-bold uppercase tracking-widest hover:brightness-110 transition-all rounded-md"
                                     >
-                                        Ver Fatura Original <ExternalLink size={14} />
+                                        <ExternalLink size={14} /> Ver Fatura Original
                                     </a>
                                 )}
                                 {billingType === 'BOLETO' && payment?.bankSlipUrl && (
                                     <a
                                         href={payment.bankSlipUrl}
                                         target="_blank"
-                                        className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-[#1D5F31] hover:underline not-italic"
+                                        className="inline-flex items-center gap-2 px-6 py-3 border border-black text-black text-[10px] font-bold uppercase tracking-widest hover:bg-slate-50 transition-all rounded-md"
                                     >
-                                        Baixar Boleto PDF <Download size={14} />
+                                        <Download size={14} /> Baixar Boleto PDF
                                     </a>
                                 )}
                             </div>
-                        </div>
 
-                        {billingType === 'PIX' && (
-                            <div className="flex flex-col items-center justify-center p-6 bg-white border-2 border-black rounded-none">
-                                {loading ? (
-                                    <SkeletonBox className="w-48 h-48" />
-                                ) : pixData ? (
-                                    <div className="w-48 h-48 bg-white p-2 shadow-sm mb-4 border-2 border-black rounded-none">
-                                        <img
-                                            src={`data:image/png;base64,${pixData.encodedImage || pixData.data?.encodedImage || ''}`}
-                                            alt="QR Code PIX"
-                                            className="w-full h-full object-contain not-italic"
-                                        />
+                            {/* PIX: Copia e Cola */}
+                            {billingType === 'PIX' && pixData && (
+                                <div className="pt-4 border-t border-black">
+                                    <div className="p-4 bg-slate-50 border border-slate-200 rounded-md">
+                                        <p className="text-[10px] font-bold uppercase mb-2 text-slate-500 not-italic">Copia e Cola PIX</p>
+                                        <div className="flex gap-2">
+                                            <input
+                                                readOnly
+                                                value={pixData.payload || ''}
+                                                className="w-full bg-transparent text-xs font-mono truncate border-none outline-none not-italic"
+                                            />
+                                            <CopyButton text={pixData.payload || ''} />
+                                        </div>
                                     </div>
-                                ) : (
-                                    <SkeletonBox className="w-48 h-48" />
-                                )}
-                                <span className="text-[10px] font-bold text-black uppercase tracking-widest not-italic">Escaneie para pagar</span>
-                            </div>
-                        )}
+                                </div>
+                            )}
 
-                        {billingType === 'BOLETO' && (
-                            <div className="flex flex-col items-center justify-center p-6 bg-white border-2 border-black rounded-none">
-                                {loading ? (
-                                    <SkeletonBox className="w-20 h-20" />
-                                ) : (
-                                    <ReceiptText size={80} className="text-black mb-4" />
-                                )}
-                                <span className="text-[10px] font-bold text-black uppercase tracking-widest text-center not-italic">Boleto gerado com sucesso</span>
-                            </div>
-                        )}
-                    </div>
+                            {/* BOLETO: Linha Digitável */}
+                            {billingType === 'BOLETO' && boletoData && (
+                                <div className="pt-4 border-t border-black">
+                                    <div className="p-4 bg-slate-50 border border-slate-200 rounded-md">
+                                        <p className="text-[10px] font-bold uppercase mb-2 text-slate-500">Linha Digitável</p>
+                                        <div className="flex gap-2">
+                                            <input
+                                                readOnly
+                                                value={boletoData.identificationField || ''}
+                                                className="w-full bg-transparent text-xs font-mono truncate border-none outline-none"
+                                            />
+                                            <CopyButton text={boletoData.identificationField || ''} />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
-                {(payment?.status === 'RECEIVED' || payment?.status === 'CONFIRMED' || !loading) && (
+                {/* PIX QR Code em bloco separado */}
+                {billingType === 'PIX' && (
+                    <div className="flex justify-center mb-10">
+                        <div className="flex flex-col items-center justify-center p-8 bg-white border-[3px] border-black">
+                            {loading ? (
+                                <SkeletonBox className="w-48 h-48" />
+                            ) : pixData ? (
+                                <div className="w-48 h-48 bg-white p-2 shadow-sm mb-4 border-2 border-black">
+                                    <img
+                                        src={`data:image/png;base64,${pixData.encodedImage || pixData.data?.encodedImage || ''}`}
+                                        alt="QR Code PIX"
+                                        className="w-full h-full object-contain not-italic"
+                                    />
+                                </div>
+                            ) : (
+                                <SkeletonBox className="w-48 h-48" />
+                            )}
+                            <span className="text-[10px] font-bold text-black uppercase tracking-widest not-italic">Escaneie para pagar</span>
+                        </div>
+                    </div>
+                )}
+
+                {payment?.status === 'RECEIVED' || payment?.status === 'CONFIRMED' ? (
                     <div className="flex flex-col md:flex-row gap-4 justify-center">
                         <Link
                             href="/dashboard-student"
@@ -235,9 +263,16 @@ function SucessoContent() {
                             IR PARA MEUS CURSOS →
                         </Link>
                     </div>
-                )}
-
-                {loading && (
+                ) : !loading ? (
+                    <div className="flex flex-col md:flex-row gap-4 justify-center">
+                        <Link
+                            href="/dashboard-student/payments"
+                            className="px-10 py-5 bg-[#061629] !text-white font-bold uppercase tracking-[3px] hover:bg-[#061629]/90 transition-all text-sm rounded-none"
+                        >
+                            ACOMPANHAR PAGAMENTO →
+                        </Link>
+                    </div>
+                ) : (
                     <div className="flex flex-col md:flex-row gap-4 justify-center">
                         <Link
                             href="/dashboard-student"

@@ -22,7 +22,7 @@ export async function submitEvaluation(courseId: string, rating: number, comment
             .where('course_id', '==', courseId)
             .get()
 
-        if (enrollmentSnapshot.empty) {
+        if (enrollmentSnapshot.empty || enrollmentSnapshot.docs[0].data().status === 'pending') {
             return { success: false, error: 'Você precisa ter adquirido este curso para avaliá-lo.' }
         }
 

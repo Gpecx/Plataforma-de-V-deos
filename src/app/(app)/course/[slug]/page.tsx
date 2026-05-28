@@ -63,7 +63,7 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
             .where('user_id', '==', sessionUser.uid)
             .where('course_id', '==', course.id)
             .get()
-        hasEnrollment = !enrollSnap.empty
+        hasEnrollment = !enrollSnap.empty && enrollSnap.docs[0].data().status !== 'pending'
     }
 
     const hasAccess = isAdmin || hasEnrollment || (profile?.cursos_comprados && profile.cursos_comprados.includes(course.id))

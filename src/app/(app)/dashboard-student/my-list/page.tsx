@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { AddToCartButton } from '@/components/AddToCartButton'
 import { parseFirebaseDate } from '@/lib/date-utils'
 import RemoveFromWishlistButton from '@/components/RemoveFromWishlistButton'
+import { getBanners } from '@/app/admin/settings/actions'
 
 export default async function MyListPage() {
     const cookieStore = await cookies()
@@ -22,11 +23,21 @@ export default async function MyListPage() {
         redirect('/login')
     }
 
-    const [profileDoc, wishlistSnapshot, coursesSnapshot] = await Promise.all([
+    const [profileDoc, wishlistSnapshot, coursesSnapshot, bannersData] = await Promise.all([
         adminDb.collection('profiles').doc(user.uid).get(),
         adminDb.collection('profiles').doc(user.uid).collection('wishlist').orderBy('addedAt', 'desc').get(),
-        adminDb.collection('courses').get()
+        adminDb.collection('courses').get(),
+        getBanners()
     ])
+
+    const wishlistBanners = bannersData.hero_wishlist
+        .sort((a, b) => a.order - b.order)
+        .map(b => b.url)
+        .filter(url => !!url)
+
+    const wishlistBannerUrl = wishlistBanners.length > 0
+        ? wishlistBanners[0]
+        : 'https://images.unsplash.com/photo-1515378960530-7c0da6231fb1?q=80&w=870&auto=format&fit=crop'
 
     const profile = profileDoc.data()
     const wishlistCourseIds = wishlistSnapshot.docs.map(doc => doc.id)
@@ -49,7 +60,7 @@ export default async function MyListPage() {
             <div className="px-6 md:px-12 pt-6 w-full">
                 <div className="relative max-w-[1600px] mx-auto rounded-3xl overflow-hidden shadow-xl min-h-[300px] md:min-h-[350px] flex items-center">
                     <img
-                        src="https://images.unsplash.com/photo-1515378960530-7c0da6231fb1?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+                        src={wishlistBannerUrl}
                         alt="Minha Lista Banner"
                         className="absolute inset-0 w-full h-full object-cover"
                     />
