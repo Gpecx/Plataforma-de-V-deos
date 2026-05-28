@@ -180,25 +180,42 @@ export async function getTeacherStudents(teacherId: string) {
         const courseIds = coursesSnap.docs.map(doc => doc.id)
         if (courseIds.length === 0) return []
 
-        // 2. Pegar enrollments para esses cursos
-        // Nota: se tiver > 10 cursos, precisa bater em chunks
-        const enrollmentsSnap = await adminDb.collection('enrollments')
-            .where('course_id', 'in', courseIds)
-            .get()
-            
-        const userIds = enrollmentsSnap.docs.map(doc => doc.data().user_id)
+        // 2. Pegar enrollments para esses cursos (em chunks de 30)
+        const courseChunks: string[][] = []
+        for (let i = 0; i < courseIds.length; i += 30) {
+            courseChunks.push(courseIds.slice(i, i + 30))
+        }
+        const enrollmentSnapshots = await Promise.all(
+            courseChunks.map(chunk =>
+                adminDb.collection('enrollments')
+                    .where('course_id', 'in', chunk)
+                    .get()
+            )
+        )
+        const userIds = enrollmentSnapshots.flatMap(snap =>
+            snap.docs.map(doc => doc.data().user_id)
+        )
         if (userIds.length === 0) return []
 
-        // 3. Pegar perfis desses usuários
+        // 3. Pegar perfis desses usuários (em chunks de 30)
         const uniqueUserIds = Array.from(new Set(userIds))
-        const profilesSnap = await adminDb.collection('profiles')
-            .where('__name__', 'in', uniqueUserIds)
-            .get()
-            
-        const students = profilesSnap.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }))
+        const userChunks: string[][] = []
+        for (let i = 0; i < uniqueUserIds.length; i += 30) {
+            userChunks.push(uniqueUserIds.slice(i, i + 30))
+        }
+        const profileSnapshots = await Promise.all(
+            userChunks.map(chunk =>
+                adminDb.collection('profiles')
+                    .where('__name__', 'in', chunk)
+                    .get()
+            )
+        )
+        const students = profileSnapshots.flatMap(snap =>
+            snap.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }))
+        )
 
         return JSON.parse(JSON.stringify(students))
     } catch (error) {
