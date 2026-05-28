@@ -64,7 +64,7 @@ export async function validateAndGetCertificate(courseId: string, userId: string
   }
   
   if (!instructorName) {
-    instructorName = 'Fred' // Fallback final
+    instructorName = 'Instrutor da Plataforma'
   }
 
   const duration = courseData?.duration || courseData?.carga_horaria || 12

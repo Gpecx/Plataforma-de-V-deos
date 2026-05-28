@@ -314,7 +314,7 @@ export async function processCertificateIssuance(courseId: string, userId: strin
                 instructorName = teacherDoc.data()?.full_name || teacherDoc.data()?.displayName
             }
         }
-        if (!instructorName) instructorName = 'Fred'
+        if (!instructorName) instructorName = 'Instrutor da Plataforma'
 
         // 7. Gerar código de verificação
         const verificationCode = generateVerificationCode()
