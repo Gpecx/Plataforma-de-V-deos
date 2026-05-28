@@ -4,39 +4,59 @@ import * as nodemailer from "nodemailer";
 
 admin.initializeApp();
 
+interface VendaLog {
+    alunoId: string
+    cursoId: string
+    professorId: string
+    valorBruto: number
+    statusPagamento: string
+    billingType?: string
+    dataCriacao?: FirebaseFirestore.Timestamp
+}
+
 /**
- * Trigger que observa novas vendas e cria notificações em tempo real para o professor.
+ * Trigger que observa novas vendas em vendas_logs e cria notificações em tempo real para o professor.
  */
 export const onNewSaleNotification = functions
     .region("us-central1")
     .firestore
-    .document("sales/{saleId}")
-    .onWrite(async (change, context) => {
-        // Apenas para criações (confirmadas)
-        if (!change.after.exists || change.before.exists) return;
+    .document("vendas_logs/{saleId}")
+    .onCreate(async (snapshot, context) => {
+        const saleData = snapshot.data() as VendaLog | undefined;
+        if (!saleData) {
+            functions.logger.warn("Venda sem dados:", context.params.saleId);
+            return;
+        }
 
-        const saleData = change.after.data();
-        if (!saleData) return;
+        const { professorId, cursoId, valorBruto } = saleData;
 
-        const { teacherId, courseName, amount } = saleData;
-
-        if (!teacherId) {
-            console.error("Venda sem teacherId identificado:", context.params.saleId);
+        if (!professorId) {
+            functions.logger.warn("Venda sem professorId:", context.params.saleId);
             return;
         }
 
         try {
+            let courseName = "Curso";
+            try {
+                const courseDoc = await admin.firestore().collection("courses").doc(cursoId).get();
+                if (courseDoc.exists) {
+                    courseName = courseDoc.data()?.title || courseDoc.data()?.shortTitle || courseName;
+                }
+            } catch (err) {
+                functions.logger.warn("Erro ao buscar nome do curso:", err);
+            }
+
             await admin.firestore().collection("notifications").add({
-                teacherId,
+                teacherId: professorId,
                 type: 'sale',
-                message: `Nova venda: O curso "${courseName}" foi adquirido por R$ ${amount}.`,
+                message: `Nova venda: O curso "${courseName}" foi adquirido por R$ ${Number(valorBruto).toFixed(2)}.`,
                 read: false,
                 createdAt: admin.firestore.FieldValue.serverTimestamp()
             });
 
-            console.log(`[Success] Notificação de venda enviada para: ${teacherId}`);
+            functions.logger.info(`[Success] Notificação de venda enviada para: ${professorId}`);
         } catch (error) {
-            console.error("[Error] Falha ao criar notificação de venda:", error);
+            functions.logger.error("[Error] Falha ao criar notificação de venda:", error);
         }
     });
 
