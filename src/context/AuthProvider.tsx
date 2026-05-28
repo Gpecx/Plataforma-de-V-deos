@@ -83,7 +83,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                         const data = docSnap.data()
 
                         // INC-009: Ban enforcement em tempo real
-                        if (data.status === 'banido') {
+                        if (data.ativo === false || data.teacher_status === 'banned') {
                             await signOut(auth)
                             setUser(null)
                             setProfile(null)
