@@ -336,15 +336,22 @@ export async function processCheckoutAction(
 
             const asaasResponse = await createPayment(paymentPayload)
 
-            // 3. Atualiza enrollment com o paymentId
+            // 3. Atualiza enrollment com o paymentId e status se confirmado instantaneamente
+            const isInstantlyConfirmed = billingType === 'CREDIT_CARD' && (asaasResponse.status === 'CONFIRMED' || asaasResponse.status === 'RECEIVED')
+            
             for (const { ref } of enrollRefs) {
-                await ref.update({
+                const updateData: any = {
                     payment_id: asaasResponse.id
-                })
+                }
+                if (isInstantlyConfirmed) {
+                    updateData.payment_confirmed = true
+                    updateData.status = 'active'
+                    updateData.updated_at = new Date()
+                }
+                await ref.update(updateData)
             }
 
             // Cria vendas_logs
-            const isInstantlyConfirmed = billingType === 'CREDIT_CARD' && (asaasResponse.status === 'CONFIRMED' || asaasResponse.status === 'RECEIVED')
             for (const { courseData } of enrollRefs) {
                 const { platformAmount: platformShare, teacherAmount: teacherShare } = calculateSplitValues(Number(courseData.price) || 0, platformTaxPercent)
                 await adminDb.collection('vendas_logs').add({

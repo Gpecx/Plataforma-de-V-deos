@@ -88,6 +88,7 @@ export async function POST(request: NextRequest) {
                 // Confirma o enrollment (muda status para ativo)
                 let enrollmentQuery = await adminDb.collection('enrollments')
                     .where('payment_id', '==', payment.id)
+                    .where('course_id', '==', cursoId)
                     .limit(1)
                     .get()
 
