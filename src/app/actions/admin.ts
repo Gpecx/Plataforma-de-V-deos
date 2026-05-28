@@ -112,19 +112,49 @@ export async function getFinancialData() {
             e.status !== 'pending'
         )
 
-        // Buscamos todos os cursos para saber os preços e professores
-        const coursesSnap = await adminDb.collection('courses').get()
-        const coursesMap = new Map()
-        coursesSnap.docs.forEach(doc => {
-            coursesMap.set(doc.id, { id: doc.id, ...doc.data() })
-        })
+        if (enrollments.length === 0) {
+            return { totalGross: 0, totalPlatform: 0, totalTeacher: 0, payments: [], platformTaxPercent }
+        }
 
-        // Buscamos todos os perfis para saber nomes dos professores
-        const profilesSnap = await adminDb.collection('profiles').get()
+        // Extrai IDs únicos de cursos apenas das matrículas filtradas
+        const courseIds = [...new Set(enrollments.map((e: any) => e.course_id).filter(Boolean))] as string[]
+
+        const coursesMap = new Map()
         const profilesMap = new Map()
-        profilesSnap.docs.forEach(doc => {
-            profilesMap.set(doc.id, { id: doc.id, ...doc.data() })
-        })
+
+        // Busca cursos em chunks de 30
+        const courseChunks: string[][] = []
+        for (let i = 0; i < courseIds.length; i += 30) {
+            courseChunks.push(courseIds.slice(i, i + 30))
+        }
+        const courseSnapshots = await Promise.all(
+            courseChunks.map(chunk =>
+                adminDb.collection('courses').where('__name__', 'in', chunk).get()
+            )
+        )
+        courseSnapshots.forEach(snap =>
+            snap.docs.forEach(doc => coursesMap.set(doc.id, { id: doc.id, ...doc.data() }))
+        )
+
+        // Extrai teacher_ids dos cursos encontrados e busca perfis em chunks de 30
+        const foundTeacherIds = [...new Set(
+            [...coursesMap.values()].map((c: any) => c.teacher_id).filter(Boolean)
+        )] as string[]
+
+        if (foundTeacherIds.length > 0) {
+            const profileChunks: string[][] = []
+            for (let i = 0; i < foundTeacherIds.length; i += 30) {
+                profileChunks.push(foundTeacherIds.slice(i, i + 30))
+            }
+            const profileSnapshots = await Promise.all(
+                profileChunks.map(chunk =>
+                    adminDb.collection('profiles').where('__name__', 'in', chunk).get()
+                )
+            )
+            profileSnapshots.forEach(snap =>
+                snap.docs.forEach(doc => profilesMap.set(doc.id, { id: doc.id, ...doc.data() }))
+            )
+        }
 
         const detailedPayments = enrollments.map(e => {
             const course = coursesMap.get(e.course_id)
