@@ -290,9 +290,9 @@ export async function processCheckoutAction(
                 enrollRefs.push({ ref: enrollRef, courseData })
             }
 
-            // Split de Pagamentos — calcula repasse por professor
+            // 1. Mapeia as wallets dos professores necessários
             const uniqueTeacherIds = [...new Set(coursesData.map((c: any) => c.teacher_id).filter(Boolean))]
-            const teacherSplits: { walletId: string; fixedValue: number }[] = []
+            const teacherWalletMap = new Map<string, string>()
             let allWalletsFound = true
 
             for (const teacherId of uniqueTeacherIds) {
@@ -301,18 +301,10 @@ export async function processCheckoutAction(
                     allWalletsFound = false
                     break
                 }
-                const teacherCourses = coursesData.filter((c: any) => c.teacher_id === teacherId)
-                let totalTeacherShare = 0
-                for (const c of teacherCourses) {
-                    const platformShare = (Number(c.price) || 0) * (platformTaxPercent / 100)
-                    totalTeacherShare += (Number(c.price) || 0) - platformShare
-                }
-                teacherSplits.push({
-                    walletId: teacherWallet.walletId,
-                    fixedValue: Math.round(totalTeacherShare * 100) / 100,
-                })
+                teacherWalletMap.set(teacherId, teacherWallet.walletId)
             }
 
+            // 2. Define o Payload Base do Asaas
             const paymentPayload: any = {
                 customer: customerId,
                 billingType,
@@ -322,11 +314,16 @@ export async function processCheckoutAction(
                 externalReference: `checkout-${user.uid}-${Date.now()}`,
             }
 
-            if (allWalletsFound && teacherSplits.length > 0) {
-                paymentPayload.split = teacherSplits.map(t => ({
-                    walletId: t.walletId,
-                    fixedValue: t.fixedValue,
-                }))
+            // 3. Adiciona o Split no formato estrito exigido pela API do Asaas
+            if (allWalletsFound) {
+                paymentPayload.split = {
+                    container: {
+                        splits: coursesData.map((course: any) => ({
+                            walletId: teacherWalletMap.get(course.teacher_id),
+                            percent: 100 - platformTaxPercent,
+                        }))
+                    }
+                }
             }
 
             if (billingType === 'CREDIT_CARD' && cardData) {
