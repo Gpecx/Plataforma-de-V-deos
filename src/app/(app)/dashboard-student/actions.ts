@@ -258,6 +258,13 @@ export async function processCheckoutAction(
             const sanitizedCep = rawCep ? rawCep.replace(/\D/g, '') : undefined
             const addressNumber = profileData?.numero || profileData?.numero_endereco || undefined
 
+            if (!sanitizedCep || !addressNumber) {
+                return { 
+                    success: false, 
+                    error: "Você precisa cadastrar seu CEP e Número de Endereço em 'Perfil' antes de realizar o pagamento." 
+                }
+            }
+
             const newCustomer = await createCustomer({
                 name: profileData?.name || profileData?.displayName || profileData?.full_name || 'Aluno',
                 email: profileData?.email || user.email || '',
