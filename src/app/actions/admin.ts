@@ -102,7 +102,11 @@ export async function getFinancialData() {
 
         // Buscamos todos os enrollments
         const enrollmentsSnap = await adminDb.collection('enrollments').get()
-        const enrollments = enrollmentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[]
+        const allEnrollments = enrollmentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[]
+        const enrollments = allEnrollments.filter((e: any) =>
+            e.payment_confirmed === true &&
+            e.status !== 'pending'
+        )
 
         // Buscamos todos os cursos para saber os preços e professores
         const coursesSnap = await adminDb.collection('courses').get()
