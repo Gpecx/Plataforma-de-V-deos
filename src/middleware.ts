@@ -146,8 +146,11 @@ export async function middleware(request: NextRequest) {
     // ── 2. Session verification ────────────────────────────────────
     const sessionCookie = request.cookies.get('session')?.value
 
+    // Rotas públicas de autenticação: nunca redirecionar de volta para elas mesmas
+    const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/register')
+
     const isMfaPending = request.cookies.get('mfa_pending')?.value === 'true'
-    if (isMfaPending) {
+    if (isMfaPending && !isAuthRoute) {
         const loginUrl = new URL('/login', request.url)
         loginUrl.searchParams.set('redirectTo', pathname)
         return NextResponse.redirect(loginUrl)
@@ -156,7 +159,7 @@ export async function middleware(request: NextRequest) {
     let payload: FirebaseTokenPayload | null = null
     if (sessionCookie) {
         payload = await verifyFirebaseSessionCookie(sessionCookie)
-        if (!payload) {
+        if (!payload && !isAuthRoute) {
             const loginUrl = new URL('/login', request.url)
             loginUrl.searchParams.set('redirectTo', pathname)
             const response = NextResponse.redirect(loginUrl)
