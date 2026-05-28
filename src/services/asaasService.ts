@@ -304,7 +304,7 @@ export async function getCourseInfo(cursoId: string): Promise<CourseInfo | null>
         id: courseDoc.id,
         title: data?.title || data?.shortTitle || 'Curso',
         price: data?.price || 0,
-        professorId: data?.professorId || data?.instructorId || ''
+        professorId: data?.teacher_id || data?.professorId || data?.instructorId || ''
     }
 }
 
