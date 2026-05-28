@@ -523,10 +523,18 @@ export async function getStudentTransactions() {
     if (!user) return { success: false, error: 'Não autorizado' }
 
     try {
-        const vendasSnapshot = await adminDb
-            .collection('vendas_logs')
-            .where('alunoId', '==', user.uid)
-            .get()
+        // Busca por alunoId (legado) e userId (checkout novo) para cobrir todos os sistemas
+        const [alunoSnap, userSnap] = await Promise.all([
+            adminDb.collection('vendas_logs').where('alunoId', '==', user.uid).get(),
+            adminDb.collection('vendas_logs').where('userId', '==', user.uid).get(),
+        ])
+        const seen = new Set<string>()
+        const vendasDocs = [...alunoSnap.docs, ...userSnap.docs].filter(doc => {
+            if (seen.has(doc.id)) return false
+            seen.add(doc.id)
+            return true
+        })
+        const vendasSnapshot = { docs: vendasDocs, empty: vendasDocs.length === 0 } as any
 
         function serializeDoc(data: Record<string, any>): Record<string, any> {
             const plain: Record<string, any> = {}
