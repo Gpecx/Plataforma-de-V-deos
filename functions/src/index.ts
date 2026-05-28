@@ -217,8 +217,8 @@ export const cancelMfaRequest = functions
     const uid = context.auth.uid;
 
     try {
-        await admin.firestore().collection("temp_mfa_codes").doc(uid).delete().catch(() => {});
         await admin.firestore().collection("profiles").doc(uid).update({
+            mfa_auth_temp: admin.firestore.FieldValue.delete(),
             mfaCodeRequested: false
         }).catch(() => {});
 

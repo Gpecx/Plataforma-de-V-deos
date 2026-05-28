@@ -39,6 +39,10 @@ export async function getPlatformSettings() {
  * Atualiza a porcentagem de taxa da plataforma.
  */
 export async function updatePlatformTax(tax: number) {
+    const session = await getSessionUser()
+    if (!session || session.role !== 'admin') {
+        return { success: false, error: 'Não autorizado' }
+    }
     try {
         await adminDb.collection('config').doc('platform_settings').set({
             platform_tax: tax,

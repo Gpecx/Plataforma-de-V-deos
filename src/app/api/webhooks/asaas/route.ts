@@ -86,14 +86,26 @@ export async function POST(request: NextRequest) {
                 })
 
                 // Confirma o enrollment (muda status para ativo)
-                const enrollmentQuery = await adminDb.collection('enrollments')
+                let enrollmentQuery = await adminDb.collection('enrollments')
                     .where('payment_id', '==', payment.id)
                     .limit(1)
                     .get()
 
+                // Fallback: se o webhook chegou antes do payment_id ser atualizado,
+                // busca pelo par user_id + course_id (enrollment foi criado antes do Asaas)
+                if (enrollmentQuery.empty && userId && cursoId) {
+                    enrollmentQuery = await adminDb.collection('enrollments')
+                        .where('user_id', '==', userId)
+                        .where('course_id', '==', cursoId)
+                        .limit(1)
+                        .get()
+                }
+
                 if (!enrollmentQuery.empty) {
-                    batch.update(enrollmentQuery.docs[0].ref, {
+                    const enrollmentRef = enrollmentQuery.docs[0].ref
+                    batch.update(enrollmentRef, {
                         payment_confirmed: true,
+                        payment_id: payment.id,
                         updated_at: FieldValue.serverTimestamp(),
                         status: 'active'
                     })
@@ -102,8 +114,6 @@ export async function POST(request: NextRequest) {
                     const wishlistRef = adminDb.collection('profiles').doc(userId).collection('wishlist').doc(cursoId)
                     batch.delete(wishlistRef)
                 } else {
-                    // A-04: Removida a criação automática de enrollment (fallback inseguro).
-                    // As matrículas devem ser pré-criadas no fluxo de checkout legítimo.
                     console.warn(`Webhook Asaas: Tentativa de confirmar matrícula inexistente para user ${userId} e curso ${cursoId}`)
                 }
             }
