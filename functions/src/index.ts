@@ -148,16 +148,14 @@ export const sendMfaEmail = functions
                 await transporter.sendMail(mailOptions);
                 console.log(`[Success] MFA email sent to ${email}`);
 
-                // 3. Salvar no Perfil (Só após envio com sucesso) - Manobra Técnica para evitar erro de permissão
-                await admin.firestore().collection("profiles").doc(userId).update({
-                    mfa_auth_temp: {
-                        code: pin,
-                        expiresAt: Date.now() + 300000, // 5 minutos
-                        createdAt: admin.firestore.FieldValue.serverTimestamp()
-                    }
+                // 3. Salvar em coleção isolada temp_mfa_codes (não no perfil do usuário)
+                await admin.firestore().collection("temp_mfa_codes").doc(userId).set({
+                    code: pin,
+                    expiresAt: Date.now() + 300000, // 5 minutos
+                    createdAt: admin.firestore.FieldValue.serverTimestamp()
                 });
 
-                console.log(`[MFA] PIN salvo no documento de perfil para: ${userId}`);
+                console.log(`[MFA] PIN salvo em temp_mfa_codes para: ${userId}`);
             } catch (error) {
                 console.error("[MFA] Falha no processo de envio/salvamento:", error);
             }
@@ -184,38 +182,28 @@ export const verifyMfaCode = functions
     }
 
     try {
-        // 2. Buscar PIN no perfil do usuário
-        const profileDoc = await admin.firestore().collection("profiles").doc(uid).get();
+        // 2. Buscar PIN na coleção isolada temp_mfa_codes
+        const mfaDoc = await admin.firestore().collection("temp_mfa_codes").doc(uid).get();
 
-        if (!profileDoc.exists) {
-            return { success: false, error: "Perfil não encontrado." };
-        }
-
-        const profileData = profileDoc.data()!;
-        const mfaAuthTemp = profileData.mfa_auth_temp;
-
-        if (!mfaAuthTemp) {
+        if (!mfaDoc.exists) {
             return { success: false, error: "Código não encontrado ou já expirado." };
         }
 
+        const mfaData = mfaDoc.data()!;
+
         // 3. Validar expiração
-        if (Date.now() > mfaAuthTemp.expiresAt) {
-            await admin.firestore().collection("profiles").doc(uid).update({
-                mfa_auth_temp: admin.firestore.FieldValue.delete()
-            }).catch(() => {});
+        if (Date.now() > mfaData.expiresAt) {
+            await admin.firestore().collection("temp_mfa_codes").doc(uid).delete().catch(() => {});
             return { success: false, error: "Este código expirou." };
         }
 
         // 4. Validar valor do PIN
-        if (mfaAuthTemp.code !== code) {
+        if (mfaData.code !== code) {
             return { success: false, error: "Código de verificação incorreto." };
         }
 
-        // 5. Sucesso: Limpeza
-        await admin.firestore().collection("profiles").doc(uid).update({
-            mfa_auth_temp: admin.firestore.FieldValue.delete(),
-            mfaCodeRequested: false
-        });
+        // 5. Sucesso: deleta o código da coleção isolada
+        await admin.firestore().collection("temp_mfa_codes").doc(uid).delete();
 
         return { success: true };
     } catch (error) {
@@ -237,8 +225,8 @@ export const cancelMfaRequest = functions
     const uid = context.auth.uid;
 
     try {
+        await admin.firestore().collection("temp_mfa_codes").doc(uid).delete().catch(() => {});
         await admin.firestore().collection("profiles").doc(uid).update({
-            mfa_auth_temp: admin.firestore.FieldValue.delete(),
             mfaCodeRequested: false
         }).catch(() => {});
 
