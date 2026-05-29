@@ -14,6 +14,7 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from '@/components/ui/alert-dialog'
+import { normalizeString } from '@/lib/utils'
 
 interface Student {
     id: string
@@ -98,8 +99,8 @@ export default function StudentManagement({ initialStudents }: StudentManagement
     }
 
     const filteredStudents = students.filter(s => 
-        s.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.email?.toLowerCase().includes(searchTerm.toLowerCase())
+        s.full_name && normalizeString(s.full_name).includes(normalizeString(searchTerm)) ||
+        s.email && normalizeString(s.email).includes(normalizeString(searchTerm))
     )
 
     return (

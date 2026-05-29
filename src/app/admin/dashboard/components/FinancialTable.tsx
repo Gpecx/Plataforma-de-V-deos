@@ -6,6 +6,7 @@ import { TeacherSalesDrawer } from './TeacherSalesDrawer'
 import { AdminFinanceExportButton } from './AdminFinanceExportButton'
 
 import { Payment } from '@/types/financial'
+import { normalizeString } from '@/lib/utils'
 
 interface TeacherSummary {
     teacherId: string | null
@@ -57,8 +58,8 @@ export function FinancialTable({ payments }: FinancialTableProps) {
 
     const filteredSummaries = useMemo(() => {
         if (!searchTerm.trim()) return teacherSummaries
-        const q = searchTerm.trim().toLowerCase()
-        return teacherSummaries.filter(t => t.teacherName.toLowerCase().includes(q))
+        const q = normalizeString(searchTerm.trim())
+        return teacherSummaries.filter(t => normalizeString(t.teacherName).includes(q))
     }, [teacherSummaries, searchTerm])
 
     const handleTeacherClick = (teacherId: string | null, teacherName: string) => {

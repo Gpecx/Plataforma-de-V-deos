@@ -1,6 +1,7 @@
 'use server'
 
 import { adminDb } from '@/lib/firebase-admin'
+import { normalizeString } from '@/lib/utils'
 
 export interface SearchResult {
     id: string;
@@ -124,6 +125,55 @@ export async function searchGlobal(query: string): Promise<SearchResult[]> {
             ]);
             addResults(cSnap4, 'course');
             addResults(tSnap4, 'teacher');
+        }
+
+        // 5ª tentativa: fallback accent-insensitive (Firestore não suporta busca sem acento nativamente)
+        // Busca um lote maior e filtra no servidor com normalizeString
+        if (results.length === 0) {
+            const normQuery = normalizeString(query.trim());
+
+            const [cSnap5, tSnap5] = await Promise.all([
+                adminDb.collection('courses')
+                    .where('status', '==', 'APROVADO')
+                    .orderBy('title')
+                    .limit(100)
+                    .get(),
+                adminDb.collection('profiles')
+                    .orderBy('full_name')
+                    .limit(50)
+                    .get()
+            ]);
+
+            cSnap5.docs.forEach((doc: any) => {
+                const data = doc.data();
+                if (results.find(r => r.id === doc.id)) return;
+                if (normalizeString(data.title || '').includes(normQuery)) {
+                    results.push({
+                        id: doc.id,
+                        title: data.title || '',
+                        subtitle: data.category || '',
+                        image: data.image_url || null,
+                        type: 'course',
+                        slug: data.slug || doc.id
+                    });
+                }
+            });
+
+            tSnap5.docs.forEach((doc: any) => {
+                const data = doc.data();
+                if (data.role !== 'teacher') return;
+                if (results.find(r => r.id === doc.id)) return;
+                if (normalizeString(data.full_name || '').includes(normQuery)) {
+                    results.push({
+                        id: doc.id,
+                        title: data.full_name || '',
+                        subtitle: data.specialty || 'Instrutor',
+                        image: data.photoURL || data.avatar_url || data.image_url,
+                        type: 'teacher',
+                        slug: data.slug || doc.id
+                    });
+                }
+            });
         }
 
         return results.slice(0, 10);

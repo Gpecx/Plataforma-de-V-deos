@@ -14,6 +14,7 @@ import {
     Send
 } from 'lucide-react'
 import Link from 'next/link'
+import { normalizeString } from '@/lib/utils'
 
 interface Comment {
     id: string
@@ -70,8 +71,8 @@ export default function CommentInbox() {
 
     const filteredComments = MOCK_COMMENTS.filter(comment => {
         const matchesFilter = filter === 'all' || comment.status === filter
-        const matchesSearch = comment.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            comment.user.toLowerCase().includes(searchQuery.toLowerCase())
+        const matchesSearch = normalizeString(comment.content).includes(normalizeString(searchQuery)) ||
+            normalizeString(comment.user).includes(normalizeString(searchQuery))
         return matchesFilter && matchesSearch
     })
 

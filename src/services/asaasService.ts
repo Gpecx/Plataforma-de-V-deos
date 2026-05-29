@@ -289,7 +289,9 @@ export interface CourseInfo {
     id: string
     title: string
     price: number
-    professorId: string
+    // BUG-13 FIX: Campo renomeado de `professorId` para `teacherId` para alinhar
+    // com o campo real do Firestore (`teacher_id`) e evitar inconsistência semântica.
+    teacherId: string
 }
 
 export async function getCourseInfo(cursoId: string): Promise<CourseInfo | null> {
@@ -304,9 +306,11 @@ export async function getCourseInfo(cursoId: string): Promise<CourseInfo | null>
         id: courseDoc.id,
         title: data?.title || data?.shortTitle || 'Curso',
         price: data?.price || 0,
-        professorId: data?.teacher_id || data?.professorId || data?.instructorId || ''
+        // teacher_id é o campo primário; fallbacks mantidos para compatibilidade com dados legados.
+        teacherId: data?.teacher_id || data?.professorId || data?.instructorId || ''
     }
 }
+
 
 export interface StudentInfo {
     studentId: string

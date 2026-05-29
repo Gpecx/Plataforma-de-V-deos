@@ -104,13 +104,12 @@ export async function getFinancialData() {
         const settings = await getPlatformSettings() as any
         const platformTaxPercent = settings.platform_tax || 20
 
-        // Buscamos todos os enrollments
-        const enrollmentsSnap = await adminDb.collection('enrollments').get()
-        const allEnrollments = enrollmentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[]
-        const enrollments = allEnrollments.filter((e: any) =>
-            e.payment_confirmed === true &&
-            e.status !== 'pending'
-        )
+        // BUG-27 FIX: Filtra diretamente no Firestore, evitando carregar todos os enrollments em memória.
+        // A query anterior carregava a coleção inteira e filtrava em JS — insustentável em escala.
+        const enrollmentsSnap = await adminDb.collection('enrollments')
+            .where('payment_confirmed', '==', true)
+            .get()
+        const enrollments = enrollmentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[]
 
         if (enrollments.length === 0) {
             return { totalGross: 0, totalPlatform: 0, totalTeacher: 0, payments: [], platformTaxPercent }
@@ -665,11 +664,24 @@ export async function toggleUserStatus(uid: string, currentStatus: boolean) {
         return { success: false, error: 'Não autorizado' };
     }
     try {
+        const newStatus = !currentStatus
         await adminDb.collection('profiles').doc(uid).update({
-            ativo: !currentStatus,
+            ativo: newStatus,
             updated_at: new Date()
         })
-        
+
+        // BUG-11 FIX: Revoga o refresh token server-side imediatamente ao banir.
+        // Sem isso, o cookie de sessão Firebase permanece válido por até 1h.
+        // O getSessionUser usa verifySessionCookie(token, true) que checa revogação.
+        if (!newStatus) {
+            try {
+                await adminAuth.revokeRefreshTokens(uid)
+            } catch (revokeErr) {
+                // Não deve bloquear o ban — apenas loga o erro de revogação.
+                console.error('[toggleUserStatus] Falha ao revogar tokens:', revokeErr)
+            }
+        }
+
         revalidatePath('/admin/users')
         revalidatePath('/admin/teachers')
         return { success: true }
@@ -1082,6 +1094,14 @@ export async function banTeacher(teacherId: string): Promise<{ success: boolean;
             teacher_status: 'banned',
             updated_at: new Date()
         })
+
+        // BUG-11 FIX: Revoga sessão Firebase imediatamente — sem isso o cookie
+        // permanece válido por até 1h mesmo após o ban.
+        try {
+            await adminAuth.revokeRefreshTokens(teacherId)
+        } catch (revokeErr) {
+            console.error('[banTeacher] Falha ao revogar tokens:', revokeErr)
+        }
 
         await adminDb.collection('notifications').add({
             user_id: teacherId,

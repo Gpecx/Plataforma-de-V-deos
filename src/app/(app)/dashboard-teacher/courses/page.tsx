@@ -24,6 +24,7 @@ import { XCircle } from 'lucide-react'
 import { toast } from 'sonner'
 // Importamos a action que você acabou de criar no actions.ts
 import { deleteCourseAction, cancelCourseDeletionRequest } from './actions'
+import { normalizeString } from '@/lib/utils'
 
 function CoursesContent() {
     const [courses, setCourses] = useState<any[]>([])
@@ -63,8 +64,6 @@ function CoursesContent() {
         return () => unsubscribe()
     }, [])
 
-    // --- AQUI ENTRA O CÓDIGO QUE VOCÊ ESTAVA NA DÚVIDA ---
-    // --- AQUI ENTRA O CÓDIGO QUE VOCÊ ESTAVA NA DÚVIDA ---
     const handleDelete = (courseId: string, currentStatus: string) => {
         const isAprovado = currentStatus === 'APROVADO';
         const confirmMessage = isAprovado
@@ -205,7 +204,7 @@ function CoursesContent() {
     // ---------------------------------------------------
 
     const filteredCourses = courses.filter(curso =>
-        curso.title?.toLowerCase().includes(searchTerm.toLowerCase())
+        curso.title ? normalizeString(curso.title).includes(normalizeString(searchTerm)) : false
     )
 
     if (loading) {

@@ -5,6 +5,7 @@ import { auth, db } from '@/lib/firebase'
 import { onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth'
 import { collection, query, where, getDocs } from 'firebase/firestore'
 import { getPublicProfile } from '@/app/actions/profile'
+import { normalizeString } from '@/lib/utils'
 import { removeSessionCookie } from '@/app/actions/auth'
 import Link from 'next/link'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
@@ -106,7 +107,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
             if (searchQuery.length >= 2 && isSearchOpen) {
                 if (isTeacherMode) {
                     const filtered = teacherCourses.filter(course =>
-                        course.title.toLowerCase().includes(searchQuery.toLowerCase())
+                        normalizeString(course.title).includes(normalizeString(searchQuery))
                     )
                     if (!cancelled) {
                         setSearchResults(filtered.map(c => ({

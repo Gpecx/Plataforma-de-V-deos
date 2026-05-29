@@ -3,10 +3,20 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "standalone",
   reactCompiler: true,
-  typedRoutes: true,
-  // Evita que o bundler do Next.js tente empacotar o firebase-admin,
-  // que usa módulos nativos (gRPC, protobuf) incompatíveis com o bundle do Edge/Node.
+  typedRoutes: true,        // ← nível raiz, fora do experimental
+
+  experimental: {
+    serverActions: {        // ← só isso dentro do experimental
+      allowedOrigins: [
+        'site-895835261078.us-central1.run.app',
+      ],
+    },
+  },
+
+
+
   serverExternalPackages: ['firebase-admin'],
+
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'sandbox.asaas.com' },
@@ -17,6 +27,7 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'images.unsplash.com' },
     ],
   },
+
   async headers() {
     return [
       {
@@ -24,7 +35,19 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.gstatic.com; connect-src 'self' *.googleapis.com *.firebaseapp.com *.mux.com *.asaas.com https://inferred.litix.io; frame-src 'self' *.mux.com *.asaas.com; img-src 'self' data: blob: *.mux.com *.googleusercontent.com *.asaas.com *.googleapis.com images.unsplash.com; style-src 'self' 'unsafe-inline'; font-src 'self' data:; media-src 'self' blob: *.mux.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self';",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.gstatic.com https://apis.google.com",
+              "connect-src 'self' *.googleapis.com *.firebaseapp.com *.mux.com *.asaas.com https://inferred.litix.io https://identitytoolkit.googleapis.com https://securetoken.googleapis.com site-895835261078.us-central1.run.app",
+              "frame-src 'self' *.mux.com *.asaas.com *.firebaseapp.com site-895835261078.us-central1.run.app",
+              "img-src 'self' data: blob: *.mux.com *.googleusercontent.com *.asaas.com *.googleapis.com images.unsplash.com",
+              "style-src 'self' 'unsafe-inline'",
+              "font-src 'self' data:",
+              "media-src 'self' blob: *.mux.com",
+              "worker-src 'self' blob:",
+              "object-src 'none'",
+              "base-uri 'self'",
+            ].join('; '),
           },
           {
             key: 'X-Content-Type-Options',
