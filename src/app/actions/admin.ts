@@ -1244,12 +1244,12 @@ export async function getStudentDetails(uid: string) {
                 createdAt: profileData.created_at ? parseFirebaseDate(profileData.created_at)?.toISOString() : null,
                 address: {
                     cep: profileData.cep || profileData.postalCode || null,
-                    logradouro: profileData.logradouro || profileData.address || null,
+                    logradouro: profileData.logradouro || profileData.address || profileData.rua || null,
                     numero: profileData.numero || profileData.addressNumber || null,
                     complemento: profileData.complemento || profileData.complement || null,
                     bairro: profileData.bairro || profileData.province || null,
                     cidade: profileData.cidade || profileData.city || null,
-                    uf: profileData.uf || profileData.state || null,
+                    uf: profileData.uf || profileData.state || profileData.estado || null,
                 },
                 security: {
                     mfaEnabled: mfaStatus,
@@ -1322,12 +1322,12 @@ export async function getTeacherDetails(uid: string) {
                 createdAt: profileData.created_at ? parseFirebaseDate(profileData.created_at)?.toISOString() : null,
                 address: {
                     cep: profileData.cep || profileData.postalCode || null,
-                    logradouro: profileData.logradouro || profileData.address || null,
+                    logradouro: profileData.logradouro || profileData.address || profileData.rua || null,
                     numero: profileData.numero || profileData.addressNumber || null,
                     complemento: profileData.complemento || profileData.complement || null,
                     bairro: profileData.bairro || profileData.province || null,
                     cidade: profileData.cidade || profileData.city || null,
-                    uf: profileData.uf || profileData.state || null,
+                    uf: profileData.uf || profileData.state || profileData.estado || null,
                 },
                 pix_key: maskSensitiveData(profileData.pix_key),
                 bank: {
