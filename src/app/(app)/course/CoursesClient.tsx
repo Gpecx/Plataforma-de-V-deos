@@ -10,6 +10,7 @@ import Navbar from "@/components/Navbar";
 import CourseModal from "@/components/CourseModal";
 import { BannerWrapper } from "@/components/ui/BannerWrapper";
 import { useAuth } from "@/context/AuthProvider";
+import { normalizeString } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import WishlistButton from "@/components/WishlistButton";
 import NextImage from "next/image";
@@ -100,15 +101,15 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: Cou
     }, [displaySlides.length]);
 
     const filteredResults = (() => {
-        const query = (localSearch || searchQuery).toLowerCase().trim();
+        const query = normalizeString((localSearch || searchQuery).toLowerCase().trim());
         
         const courses = initialCourses.filter(c => {
             if (c.status !== 'APROVADO') return false;
             const matchesSearch = query ? (
-                c.title?.toLowerCase().includes(query) ||
-                c.category?.toLowerCase().includes(query) ||
-                c.teacher_name?.toLowerCase().includes(query) ||
-                (c.tags && c.tags.some((tag: string) => tag.toLowerCase().includes(query)))
+                c.title && normalizeString(c.title).includes(query) ||
+                c.category && normalizeString(c.category).includes(query) ||
+                c.teacher_name && normalizeString(c.teacher_name).includes(query) ||
+                (c.tags && c.tags.some((tag: string) => normalizeString(tag).includes(query)))
             ) : true;
             if (!matchesSearch) return false;
             if (activeFilter === 'premium') return c.pricing_type === 'premium';
@@ -120,8 +121,8 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: Cou
         const teachers = initialTeachers.filter(t => {
             // Professores só aparecem se houver uma busca ativa ou se não houver filtros de preço/novidade
             if (!query) return false;
-            return t.full_name?.toLowerCase().includes(query) || 
-                   t.specialty?.toLowerCase().includes(query);
+            return t.full_name && normalizeString(t.full_name).includes(query) || 
+                   t.specialty && normalizeString(t.specialty).includes(query);
         }).map(t => ({ data: t, type: 'teacher' as const }));
 
         return [...courses, ...teachers];

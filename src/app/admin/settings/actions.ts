@@ -2,6 +2,7 @@
 
 import { adminDb } from '@/lib/firebase-admin'
 import { getSessionUser } from '@/app/actions/auth'
+import { normalizeString } from '@/lib/utils'
 
 export interface BannerItem {
     url: string
@@ -120,7 +121,7 @@ export interface SearchedCourse {
 
 export async function searchCourses(term: string): Promise<SearchedCourse[]> {
     try {
-        const normalizedTerm = term.toLowerCase()
+        const normalizedTerm = normalizeString(term)
         const coursesRef = adminDb.collection('courses')
         const snapshot = await coursesRef
             .where('status', '==', 'APROVADO')
@@ -135,7 +136,7 @@ export async function searchCourses(term: string): Promise<SearchedCourse[]> {
                 price: Number(d.data().price) || 0,
                 tag: d.data().tag || ''
             }))
-            .filter(c => c.title.toLowerCase().includes(normalizedTerm))
+            .filter(c => normalizeString(c.title).includes(normalizedTerm))
             .slice(0, 8)
 
         return results

@@ -462,8 +462,7 @@ export default function PaymentsPage() {
                                         return (
                                             <tr 
                                                 key={t.id} 
-                                                className={`group hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0 ${isPending ? 'cursor-pointer' : ''}`}
-                                                onClick={() => isPending && handleFetchPaymentData(t)}
+                                                className="group hover:bg-slate-50 transition-colors border-b border-slate-100 last:border-b-0"
                                             >
                                                 <td className="py-6 pl-4 pr-4">
                                                     <div className="flex items-center gap-4">
@@ -513,15 +512,9 @@ export default function PaymentsPage() {
                                                 <td className="py-6 pr-4 text-right">
                                                     <div className="flex items-center justify-end gap-2">
                                                         {isPending ? (
-                                                            <button 
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation()
-                                                                    handleFetchPaymentData(t)
-                                                                }}
-                                                                className="px-6 py-3 bg-black text-white text-[10px] font-bold uppercase tracking-[2px] hover:bg-[#1D5F31] transition-colors rounded-md whitespace-nowrap shadow-sm"
-                                                            >
-                                                                Pagar Agora
-                                                            </button>
+                                                            <span className="text-[10px] font-bold uppercase tracking-[2px] text-amber-600 px-4">
+                                                                Aguardando Compensação
+                                                            </span>
                                                         ) : (
                                                             <>
                                                                 <button

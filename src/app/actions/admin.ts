@@ -104,27 +104,56 @@ export async function getFinancialData() {
         const settings = await getPlatformSettings() as any
         const platformTaxPercent = settings.platform_tax || 20
 
-        // Buscamos todos os enrollments
-        const enrollmentsSnap = await adminDb.collection('enrollments').get()
-        const allEnrollments = enrollmentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[]
-        const enrollments = allEnrollments.filter((e: any) =>
-            e.payment_confirmed === true &&
-            e.status !== 'pending'
+        // BUG-27 FIX: Filtra diretamente no Firestore, evitando carregar todos os enrollments em memória.
+        // A query anterior carregava a coleção inteira e filtrava em JS — insustentável em escala.
+        const enrollmentsSnap = await adminDb.collection('enrollments')
+            .where('payment_confirmed', '==', true)
+            .get()
+        const enrollments = enrollmentsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[]
+
+        if (enrollments.length === 0) {
+            return { totalGross: 0, totalPlatform: 0, totalTeacher: 0, payments: [], platformTaxPercent }
+        }
+
+        // Extrai IDs únicos de cursos apenas das matrículas filtradas
+        const courseIds = [...new Set(enrollments.map((e: any) => e.course_id).filter(Boolean))] as string[]
+
+        const coursesMap = new Map()
+        const profilesMap = new Map()
+
+        // Busca cursos em chunks de 30
+        const courseChunks: string[][] = []
+        for (let i = 0; i < courseIds.length; i += 30) {
+            courseChunks.push(courseIds.slice(i, i + 30))
+        }
+        const courseSnapshots = await Promise.all(
+            courseChunks.map(chunk =>
+                adminDb.collection('courses').where('__name__', 'in', chunk).get()
+            )
+        )
+        courseSnapshots.forEach(snap =>
+            snap.docs.forEach(doc => coursesMap.set(doc.id, { id: doc.id, ...doc.data() }))
         )
 
-        // Buscamos todos os cursos para saber os preços e professores
-        const coursesSnap = await adminDb.collection('courses').get()
-        const coursesMap = new Map()
-        coursesSnap.docs.forEach(doc => {
-            coursesMap.set(doc.id, { id: doc.id, ...doc.data() })
-        })
+        // Extrai teacher_ids dos cursos encontrados e busca perfis em chunks de 30
+        const foundTeacherIds = [...new Set(
+            [...coursesMap.values()].map((c: any) => c.teacher_id).filter(Boolean)
+        )] as string[]
 
-        // Buscamos todos os perfis para saber nomes dos professores
-        const profilesSnap = await adminDb.collection('profiles').get()
-        const profilesMap = new Map()
-        profilesSnap.docs.forEach(doc => {
-            profilesMap.set(doc.id, { id: doc.id, ...doc.data() })
-        })
+        if (foundTeacherIds.length > 0) {
+            const profileChunks: string[][] = []
+            for (let i = 0; i < foundTeacherIds.length; i += 30) {
+                profileChunks.push(foundTeacherIds.slice(i, i + 30))
+            }
+            const profileSnapshots = await Promise.all(
+                profileChunks.map(chunk =>
+                    adminDb.collection('profiles').where('__name__', 'in', chunk).get()
+                )
+            )
+            profileSnapshots.forEach(snap =>
+                snap.docs.forEach(doc => profilesMap.set(doc.id, { id: doc.id, ...doc.data() }))
+            )
+        }
 
         const detailedPayments = enrollments.map(e => {
             const course = coursesMap.get(e.course_id)
@@ -635,11 +664,24 @@ export async function toggleUserStatus(uid: string, currentStatus: boolean) {
         return { success: false, error: 'Não autorizado' };
     }
     try {
+        const newStatus = !currentStatus
         await adminDb.collection('profiles').doc(uid).update({
-            ativo: !currentStatus,
+            ativo: newStatus,
             updated_at: new Date()
         })
-        
+
+        // BUG-11 FIX: Revoga o refresh token server-side imediatamente ao banir.
+        // Sem isso, o cookie de sessão Firebase permanece válido por até 1h.
+        // O getSessionUser usa verifySessionCookie(token, true) que checa revogação.
+        if (!newStatus) {
+            try {
+                await adminAuth.revokeRefreshTokens(uid)
+            } catch (revokeErr) {
+                // Não deve bloquear o ban — apenas loga o erro de revogação.
+                console.error('[toggleUserStatus] Falha ao revogar tokens:', revokeErr)
+            }
+        }
+
         revalidatePath('/admin/users')
         revalidatePath('/admin/teachers')
         return { success: true }
@@ -1053,6 +1095,14 @@ export async function banTeacher(teacherId: string): Promise<{ success: boolean;
             updated_at: new Date()
         })
 
+        // BUG-11 FIX: Revoga sessão Firebase imediatamente — sem isso o cookie
+        // permanece válido por até 1h mesmo após o ban.
+        try {
+            await adminAuth.revokeRefreshTokens(teacherId)
+        } catch (revokeErr) {
+            console.error('[banTeacher] Falha ao revogar tokens:', revokeErr)
+        }
+
         await adminDb.collection('notifications').add({
             user_id: teacherId,
             type: 'teacher_banned',
@@ -1133,25 +1183,51 @@ export async function getStudentDetails(uid: string) {
         const mfaStatus = profileData.mfaEnabled === true
         const lastLogin = authUser.metadata.lastSignInTime
 
-        // 3. Dados Acadêmicos (Matrículas e Progresso)
+        // 3. Dados Acadêmicos — busca apenas cursos onde o aluno está matriculado
         const enrollmentsSnap = await adminDb.collection('enrollments')
             .where('user_id', '==', uid)
             .get()
-        
-        const coursesSnap = await adminDb.collection('courses').get()
-        const coursesMap = new Map()
-        coursesSnap.docs.forEach(doc => coursesMap.set(doc.id, { id: doc.id, ...doc.data() }))
 
-        const lessonsSnap = await adminDb.collection('lessons')
-            .where('status', '==', 'APROVADO')
-            .get()
-        
-        // Agrupa lições por curso para contar total
+        const courseIds = [...new Set(enrollmentsSnap.docs.map(d => d.data().course_id).filter(Boolean))] as string[]
+
+        const coursesMap = new Map()
         const lessonsCountByCourse = new Map()
-        lessonsSnap.docs.forEach(doc => {
-            const courseId = doc.data().course_id
-            lessonsCountByCourse.set(courseId, (lessonsCountByCourse.get(courseId) || 0) + 1)
-        })
+
+        if (courseIds.length > 0) {
+            // Busca apenas os cursos do aluno (em chunks de 30)
+            const courseChunks: string[][] = []
+            for (let i = 0; i < courseIds.length; i += 30) {
+                courseChunks.push(courseIds.slice(i, i + 30))
+            }
+            const courseSnapshots = await Promise.all(
+                courseChunks.map(chunk =>
+                    adminDb.collection('courses').where('__name__', 'in', chunk).get()
+                )
+            )
+            courseSnapshots.forEach(snap =>
+                snap.docs.forEach(doc => coursesMap.set(doc.id, { id: doc.id, ...doc.data() }))
+            )
+
+            // Busca lições aprovadas apenas desses cursos
+            const lessonChunks: string[][] = []
+            for (let i = 0; i < courseIds.length; i += 30) {
+                lessonChunks.push(courseIds.slice(i, i + 30))
+            }
+            const lessonSnapshots = await Promise.all(
+                lessonChunks.map(chunk =>
+                    adminDb.collection('lessons')
+                        .where('course_id', 'in', chunk)
+                        .where('status', '==', 'APROVADO')
+                        .get()
+                )
+            )
+            lessonSnapshots.forEach(snap =>
+                snap.docs.forEach(doc => {
+                    const cid = doc.data().course_id
+                    lessonsCountByCourse.set(cid, (lessonsCountByCourse.get(cid) || 0) + 1)
+                })
+            )
+        }
 
         const academicData = enrollmentsSnap.docs.map(doc => {
             const data = doc.data()
@@ -1159,8 +1235,7 @@ export async function getStudentDetails(uid: string) {
             const completedCount = data.completed_lessons?.length || 0
             const totalCount = lessonsCountByCourse.get(data.course_id) || 0
             const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0
-            
-            // Verifica se tem certificado gerado no perfil
+
             const certificate = profileData.concluded_courses?.find((c: any) => c.courseId === data.course_id)
 
             return {
@@ -1175,7 +1250,7 @@ export async function getStudentDetails(uid: string) {
             }
         })
 
-        // 4. Montar Objeto Final (Padrão Industrial)
+        // 4. Montar Objeto Final
         return JSON.parse(JSON.stringify({
             success: true,
             student: {
@@ -1189,12 +1264,12 @@ export async function getStudentDetails(uid: string) {
                 createdAt: profileData.created_at ? parseFirebaseDate(profileData.created_at)?.toISOString() : null,
                 address: {
                     cep: profileData.cep || profileData.postalCode || null,
-                    logradouro: profileData.logradouro || profileData.address || null,
+                    logradouro: profileData.logradouro || profileData.address || profileData.rua || null,
                     numero: profileData.numero || profileData.addressNumber || null,
                     complemento: profileData.complemento || profileData.complement || null,
                     bairro: profileData.bairro || profileData.province || null,
                     cidade: profileData.cidade || profileData.city || null,
-                    uf: profileData.uf || profileData.state || null,
+                    uf: profileData.uf || profileData.state || profileData.estado || null,
                 },
                 security: {
                     mfaEnabled: mfaStatus,
@@ -1267,12 +1342,12 @@ export async function getTeacherDetails(uid: string) {
                 createdAt: profileData.created_at ? parseFirebaseDate(profileData.created_at)?.toISOString() : null,
                 address: {
                     cep: profileData.cep || profileData.postalCode || null,
-                    logradouro: profileData.logradouro || profileData.address || null,
+                    logradouro: profileData.logradouro || profileData.address || profileData.rua || null,
                     numero: profileData.numero || profileData.addressNumber || null,
                     complemento: profileData.complemento || profileData.complement || null,
                     bairro: profileData.bairro || profileData.province || null,
                     cidade: profileData.cidade || profileData.city || null,
-                    uf: profileData.uf || profileData.state || null,
+                    uf: profileData.uf || profileData.state || profileData.estado || null,
                 },
                 pix_key: maskSensitiveData(profileData.pix_key),
                 bank: {

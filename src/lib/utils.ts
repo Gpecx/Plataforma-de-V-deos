@@ -9,6 +9,10 @@ export function sanitizeCpfCnpj(value: string): string {
   return value.replace(/\D/g, '')
 }
 
+export function normalizeString(str: string): string {
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+}
+
 export function generateSlug(text: string): string {
   return text
     .toLowerCase()

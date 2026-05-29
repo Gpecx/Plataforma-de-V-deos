@@ -2,17 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { jwtVerify, createRemoteJWKSet } from 'jose'
 
 // =========================================================================
-// M-02: Rate Limiting System
-// Nota: Em produção com múltiplas instâncias, substituir por Upstash Redis
-// para garantir estado compartilhado entre instâncias (ex: @upstash/ratelimit).
+// M-02: Rate Limiting System (Map em memória — estado por instância)
+// Para multi-instância em produção, substituir por Redis/Upstash.
 // =========================================================================
-const RATE_LIMIT_WINDOW = 60 * 1000
-const MAX_REQUESTS = 60
+const RATE_LIMIT_WINDOW = 60_000
+const MAX_REQUESTS = 100
 const rateLimitMap = new Map<string, { count: number; lastReset: number }>()
 
 function isRateLimited(ip: string): boolean {
     const now = Date.now()
-    let entry = rateLimitMap.get(ip)
+    const entry = rateLimitMap.get(ip)
 
     if (!entry || now - entry.lastReset > RATE_LIMIT_WINDOW) {
         rateLimitMap.set(ip, { count: 1, lastReset: now })
@@ -20,21 +19,7 @@ function isRateLimited(ip: string): boolean {
     }
 
     entry.count++
-    if (entry.count > MAX_REQUESTS) {
-        return true
-    }
-
-    return false
-}
-
-// Cleanup de entradas expiradas a cada requisição (sem setInterval)
-function cleanupRateLimitMap(): void {
-    const now = Date.now()
-    for (const [ip, entry] of rateLimitMap.entries()) {
-        if (now - entry.lastReset > RATE_LIMIT_WINDOW) {
-            rateLimitMap.delete(ip)
-        }
-    }
+    return entry.count > MAX_REQUESTS
 }
 
 // =========================================================================
@@ -121,36 +106,37 @@ const RATE_LIMITED_ROUTES = [
     '/register',
 ]
 
+// =========================================================================
+// BUG-02 FIX: Exportado como `middleware` — único nome reconhecido pelo Next.js
+// O arquivo proxy.ts exportava como `proxy`, por isso nunca era executado.
+// =========================================================================
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl
 
-    // ── 1. Rate Limit ───────────────────────────────────────────────
+    // ── 1. Rate Limit ────────────────────────────────────────────
     const isRateLimitedRoute = RATE_LIMITED_ROUTES.some(route => pathname.startsWith(route))
     if (isRateLimitedRoute) {
-        cleanupRateLimitMap()
-
         const forwardedFor = request.headers.get('x-forwarded-for')
         const realIp = forwardedFor
             ? forwardedFor.split(',')[0].trim()
             : request.headers.get('x-real-ip') || '127.0.0.1'
 
         if (isRateLimited(realIp)) {
-            console.warn(`[RateLimit] IP ${realIp} excedeu limite em ${pathname}`)
             return new NextResponse(
-                JSON.stringify({ error: 'Muitas tentativas. Tente novamente em um minuto.' }),
+                JSON.stringify({ error: 'Too Many Requests' }),
                 { status: 429, headers: { 'Content-Type': 'application/json' } }
             )
         }
     }
 
-    // ── 2. Session verification ────────────────────────────────────
+    // ── 2. Session verification ───────────────────────────────────
     const sessionCookie = request.cookies.get('session')?.value
-
-    // Rotas públicas de autenticação: nunca redirecionar de volta para elas mesmas
     const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/register')
+    const isApiRoute = pathname.startsWith('/api/')
 
+    // MFA pendente: nunca bloquear rotas de API
     const isMfaPending = request.cookies.get('mfa_pending')?.value === 'true'
-    if (isMfaPending && !isAuthRoute) {
+    if (isMfaPending && !isAuthRoute && !isApiRoute) {
         const loginUrl = new URL('/login', request.url)
         loginUrl.searchParams.set('redirectTo', pathname)
         return NextResponse.redirect(loginUrl)
@@ -159,7 +145,7 @@ export async function middleware(request: NextRequest) {
     let payload: FirebaseTokenPayload | null = null
     if (sessionCookie) {
         payload = await verifyFirebaseSessionCookie(sessionCookie)
-        if (!payload && !isAuthRoute) {
+        if (!payload && !isAuthRoute && !isApiRoute) {
             const loginUrl = new URL('/login', request.url)
             loginUrl.searchParams.set('redirectTo', pathname)
             const response = NextResponse.redirect(loginUrl)
@@ -170,23 +156,22 @@ export async function middleware(request: NextRequest) {
 
     const userRole = payload?.role ?? null
 
-    // ── 3. Admin bypass ─────────────────────────────────────────────
+    // ── 3. Admin bypass ───────────────────────────────────────────
     if (userRole === 'admin') {
         return NextResponse.next()
     }
 
-    // ── 4. Unauthenticated: protect authenticated routes ───────────
+    // ── 4. Unauthenticated: protect authenticated routes ──────────
     const isProtectedRoute = AUTHENTICATED_ROUTES.some(route =>
         pathname.startsWith(route)
     )
-
     if (isProtectedRoute && !payload) {
         const loginUrl = new URL('/login', request.url)
         loginUrl.searchParams.set('redirectTo', pathname)
         return NextResponse.redirect(loginUrl)
     }
 
-    // ── 5. Teacher: block public/student routes ────────────────────
+    // ── 5. Teacher: block public/student routes ───────────────────
     if (userRole === 'teacher') {
         const isTeacherBlocked = TEACHER_BLOCKED_ROUTES.some(route =>
             pathname === route || pathname.startsWith(route + '/')
@@ -196,7 +181,7 @@ export async function middleware(request: NextRequest) {
         }
     }
 
-    // ── 6. Role-restricted routes ─────────────────────────────────
+    // ── 6. Role-restricted routes ──────────────────────────────────
     if (payload && userRole) {
         for (const [route, allowedRoles] of Object.entries(ROLE_RESTRICTED_ROUTES)) {
             if (pathname.startsWith(route) && !allowedRoles.includes(userRole)) {
@@ -211,8 +196,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
     matcher: [
-        // Exclui assets estáticos, imagens e rotas de webhook (Asaas, etc.)
-        // Webhooks são autenticados internamente pelo seu próprio token — não pelo middleware.
-        '/((?!_next/static|_next/image|favicon|images/|fonts/|icons/|api/webhooks/).*)',
+        '/((?!_next/static|_next/image|favicon|images/|fonts/|icons/|api/webhooks/|api/auth/).*)',
     ],
 }

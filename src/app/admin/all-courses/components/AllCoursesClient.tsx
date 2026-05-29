@@ -6,6 +6,7 @@ import { Search, User, Tag, BookOpen, X, AlertTriangle, ShieldCheck, Trash2, Loa
 import CourseDeleteButton from '@/components/CourseDeleteButton'
 import SecureMuxPlayer from '@/components/SecureMuxPlayer'
 import { toast } from 'sonner'
+import { normalizeString } from '@/lib/utils'
 
 interface Course {
     id: string
@@ -66,12 +67,12 @@ export default function AllCoursesClient({ courses, teachers }: AllCoursesClient
         }
 
         if (searchTerm) {
-            const term = searchTerm.toLowerCase()
+            const term = normalizeString(searchTerm)
             result = result.filter(course => 
-                course.title?.toLowerCase().includes(term) ||
-                course.subtitle?.toLowerCase().includes(term) ||
-                course.category?.toLowerCase().includes(term) ||
-                course.teacherName?.toLowerCase().includes(term)
+                course.title && normalizeString(course.title).includes(term) ||
+                course.subtitle && normalizeString(course.subtitle).includes(term) ||
+                course.category && normalizeString(course.category).includes(term) ||
+                course.teacherName && normalizeString(course.teacherName).includes(term)
             )
         }
 
@@ -209,15 +210,6 @@ export default function AllCoursesClient({ courses, teachers }: AllCoursesClient
             setIsProcessing(false)
         }
     }
-
-    const filteredTeachers = useMemo(() => {
-        if (!searchTerm) return teachers
-        const term = searchTerm.toLowerCase()
-        return teachers.filter(t => 
-            t.full_name?.toLowerCase().includes(term) ||
-            t.name?.toLowerCase().includes(term)
-        )
-    }, [teachers, searchTerm])
 
     return (
         <div className="space-y-8 min-h-screen font-montserrat admin-page">

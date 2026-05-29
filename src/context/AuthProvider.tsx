@@ -7,6 +7,7 @@ import { doc, onSnapshot } from 'firebase/firestore'
 import { useRouter } from 'next/navigation'
 import { useCartStore } from '@/store/useCartStore'
 import { getPurchasedCourseIds } from '@/app/actions/profile'
+import { setMfaCookie } from '@/app/actions/mfa'
 
 interface AuthContextType {
     user: User | null
@@ -34,30 +35,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [profile, setProfile] = useState<any | null>(null)
     const [role, setRole] = useState<'student' | 'teacher' | 'admin' | null>(null)
     const [loading, setLoading] = useState(true)
-    const [isMfaPending, setIsMfaPending] = useState(() => {
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem('mfa_pending') === 'true'
-        }
-        return false
-    })
+    const [isMfaPending, setIsMfaPending] = useState(false)
 
-    const setMfaPending = (pending: boolean) => {
+    const setMfaPending = async (pending: boolean) => {
         setIsMfaPending(pending)
-        if (typeof window !== 'undefined') {
-            // B-01: Explicit cookie attributes for mfa_pending
-            // sameSite=Lax allows redirect-based OAuth flows
-            // Secure flag is added in production (HTTPS)
-            const isProduction = process.env.NODE_ENV === 'production'
-            const secureFlag = isProduction ? '; Secure' : ''
-
-            if (pending) {
-                localStorage.setItem('mfa_pending', 'true')
-                document.cookie = `mfa_pending=true; path=/; max-age=3600; SameSite=Lax${secureFlag}`
-            } else {
-                localStorage.removeItem('mfa_pending')
-                document.cookie = `mfa_pending=; path=/; max-age=0; SameSite=Lax${secureFlag}`
-            }
-        }
+        await setMfaCookie(pending)
     }
 
     useEffect(() => {

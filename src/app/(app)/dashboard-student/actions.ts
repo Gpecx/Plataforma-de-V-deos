@@ -79,48 +79,6 @@ export async function getProfile() {
     }
 }
 
-export async function buyCourse(courseId: string) {
-    const user = await getAuthUser()
-    if (!user) throw new Error('Não autorizado')
-
-    try {
-        const courseDoc = await adminDb.collection('courses').doc(courseId).get()
-        if (!courseDoc.exists) return { success: false, error: 'Curso não encontrado' }
-
-        const courseData = courseDoc.data() as any
-        const settingsDoc = await adminDb.collection('config').doc('platform_settings').get()
-        const platformTaxPercent = settingsDoc.exists ? settingsDoc.data()?.platform_tax : 20
-
-        const platformShare = (courseData.price || 0) * (platformTaxPercent / 100)
-        const teacherShare = (courseData.price || 0) - platformShare
-
-        await adminDb.collection('enrollments').add({
-            user_id: user.uid,
-            course_id: courseId,
-            created_at: new Date()
-        })
-
-        // Log da Venda
-        await adminDb.collection('vendas_logs').add({
-            idTransacao: `TR-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-            alunoId: user.uid,
-            cursoId: courseId,
-            professorId: courseData.teacher_id,
-            valorBruto: courseData.price || 0,
-            taxaPlataforma: platformShare,
-            repasseProfessor: teacherShare,
-            statusPagamento: 'pago',
-            dataCriacao: new Date()
-        })
-
-        revalidatePath('/dashboard-student')
-        return { success: true }
-    } catch (error) {
-        console.error('Erro na compra:', error)
-        return { success: false }
-    }
-}
-
 export async function processCheckoutAction(
     courseIds: string[],
     billingType: BillingType = 'PIX',
@@ -771,6 +729,7 @@ export async function syncPaymentStatusAction(paymentId: string) {
             return { success: false, error: 'Pagamento ainda não confirmado no Asaas' }
         }
 
+        // 1. Leituras: todas antes de qualquer escrita
         const vendasSnapshot = await adminDb.collection('vendas_logs')
             .where('paymentId', '==', paymentId)
             .where('userId', '==', user.uid)
@@ -780,7 +739,14 @@ export async function syncPaymentStatusAction(paymentId: string) {
             return { success: false, error: 'Transação não encontrada no banco local' }
         }
 
+        const enrollmentsSnapshot = await adminDb.collection('enrollments')
+            .where('user_id', '==', user.uid)
+            .get()
+
+        // 2. Monta o batch com TODAS as operações
         const batch = adminDb.batch()
+
+        // Atualiza vendas_logs
         vendasSnapshot.forEach(doc => {
             batch.update(doc.ref, {
                 statusPagamento: 'pago',
@@ -789,28 +755,33 @@ export async function syncPaymentStatusAction(paymentId: string) {
             })
         })
 
-        const enrollmentsSnapshot = await adminDb.collection('enrollments')
-            .where('user_id', '==', user.uid)
-            .get()
-
-        vendasSnapshot.forEach(vendaDoc => {
+        // Atualiza enrollments — se algum curso não tiver enrollment, aborta
+        const vendaDocs = vendasSnapshot.docs
+        for (const vendaDoc of vendaDocs) {
             const vendaData = vendaDoc.data()
             const cursoId = vendaData.cursoId
-            if (cursoId) {
-                const matchEnrollment = enrollmentsSnapshot.docs.find(
-                    e => e.data().course_id === cursoId
-                )
-                if (matchEnrollment) {
-                    batch.update(matchEnrollment.ref, {
-                        payment_confirmed: true,
-                        payment_id: paymentId,
-                        updated_at: new Date(),
-                        status: FieldValue.delete(),
-                    })
-                }
-            }
-        })
 
+            if (!cursoId) {
+                throw new Error(`Venda ${vendaDoc.id} sem cursoId — operação abortada`)
+            }
+
+            const matchEnrollment = enrollmentsSnapshot.docs.find(
+                e => e.data().course_id === cursoId
+            )
+
+            if (!matchEnrollment) {
+                throw new Error(`Enrollment não encontrado para curso ${cursoId} — operação abortada`)
+            }
+
+            batch.update(matchEnrollment.ref, {
+                payment_confirmed: true,
+                payment_id: paymentId,
+                updated_at: new Date(),
+                status: FieldValue.delete(),
+            })
+        }
+
+        // 3. Commit único — tudo ou nada
         await batch.commit()
         revalidatePath('/dashboard-student/payments')
         return { success: true }

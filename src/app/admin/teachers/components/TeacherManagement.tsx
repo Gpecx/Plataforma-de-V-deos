@@ -5,6 +5,7 @@ import { Users, BookOpen, GraduationCap, Search, ChevronRight, Check, X, Mail, C
 import { getTeacherStudents, banTeacher, reactivateTeacher, getTeacherDetails } from '@/app/actions/admin'
 import { AnimatePresence, motion } from 'framer-motion'
 import { toast } from 'sonner'
+import { normalizeString } from '@/lib/utils'
 
 interface Teacher {
     id: string
@@ -96,8 +97,8 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
     const filteredTeachers = useMemo(() => {
         const list = activeTab === 'ativos' ? activeTeachers : bannedTeachers
         return list.filter(t =>
-            t.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            t.email?.toLowerCase().includes(searchTerm.toLowerCase())
+            t.full_name && normalizeString(t.full_name).includes(normalizeString(searchTerm)) ||
+            t.email && normalizeString(t.email).includes(normalizeString(searchTerm))
         )
     }, [activeTab, activeTeachers, bannedTeachers, searchTerm])
 

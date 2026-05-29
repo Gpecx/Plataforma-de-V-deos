@@ -4,39 +4,59 @@ import * as nodemailer from "nodemailer";
 
 admin.initializeApp();
 
+interface VendaLog {
+    alunoId: string
+    cursoId: string
+    professorId: string
+    valorBruto: number
+    statusPagamento: string
+    billingType?: string
+    dataCriacao?: FirebaseFirestore.Timestamp
+}
+
 /**
- * Trigger que observa novas vendas e cria notificações em tempo real para o professor.
+ * Trigger que observa novas vendas em vendas_logs e cria notificações em tempo real para o professor.
  */
 export const onNewSaleNotification = functions
     .region("us-central1")
     .firestore
-    .document("sales/{saleId}")
-    .onWrite(async (change, context) => {
-        // Apenas para criações (confirmadas)
-        if (!change.after.exists || change.before.exists) return;
+    .document("vendas_logs/{saleId}")
+    .onCreate(async (snapshot, context) => {
+        const saleData = snapshot.data() as VendaLog | undefined;
+        if (!saleData) {
+            functions.logger.warn("Venda sem dados:", context.params.saleId);
+            return;
+        }
 
-        const saleData = change.after.data();
-        if (!saleData) return;
+        const { professorId, cursoId, valorBruto } = saleData;
 
-        const { teacherId, courseName, amount } = saleData;
-
-        if (!teacherId) {
-            console.error("Venda sem teacherId identificado:", context.params.saleId);
+        if (!professorId) {
+            functions.logger.warn("Venda sem professorId:", context.params.saleId);
             return;
         }
 
         try {
+            let courseName = "Curso";
+            try {
+                const courseDoc = await admin.firestore().collection("courses").doc(cursoId).get();
+                if (courseDoc.exists) {
+                    courseName = courseDoc.data()?.title || courseDoc.data()?.shortTitle || courseName;
+                }
+            } catch (err) {
+                functions.logger.warn("Erro ao buscar nome do curso:", err);
+            }
+
             await admin.firestore().collection("notifications").add({
-                teacherId,
+                teacherId: professorId,
                 type: 'sale',
-                message: `Nova venda: O curso "${courseName}" foi adquirido por R$ ${amount}.`,
+                message: `Nova venda: O curso "${courseName}" foi adquirido por R$ ${Number(valorBruto).toFixed(2)}.`,
                 read: false,
                 createdAt: admin.firestore.FieldValue.serverTimestamp()
             });
 
-            console.log(`[Success] Notificação de venda enviada para: ${teacherId}`);
+            functions.logger.info(`[Success] Notificação de venda enviada para: ${professorId}`);
         } catch (error) {
-            console.error("[Error] Falha ao criar notificação de venda:", error);
+            functions.logger.error("[Error] Falha ao criar notificação de venda:", error);
         }
     });
 
@@ -128,16 +148,14 @@ export const sendMfaEmail = functions
                 await transporter.sendMail(mailOptions);
                 console.log(`[Success] MFA email sent to ${email}`);
 
-                // 3. Salvar no Perfil (Só após envio com sucesso) - Manobra Técnica para evitar erro de permissão
-                await admin.firestore().collection("profiles").doc(userId).update({
-                    mfa_auth_temp: {
-                        code: pin,
-                        expiresAt: Date.now() + 300000, // 5 minutos
-                        createdAt: admin.firestore.FieldValue.serverTimestamp()
-                    }
+                // 3. Salvar em coleção isolada temp_mfa_codes (não no perfil do usuário)
+                await admin.firestore().collection("temp_mfa_codes").doc(userId).set({
+                    code: pin,
+                    expiresAt: Date.now() + 300000, // 5 minutos
+                    createdAt: admin.firestore.FieldValue.serverTimestamp()
                 });
 
-                console.log(`[MFA] PIN salvo no documento de perfil para: ${userId}`);
+                console.log(`[MFA] PIN salvo em temp_mfa_codes para: ${userId}`);
             } catch (error) {
                 console.error("[MFA] Falha no processo de envio/salvamento:", error);
             }
@@ -164,38 +182,28 @@ export const verifyMfaCode = functions
     }
 
     try {
-        // 2. Buscar PIN no perfil do usuário
-        const profileDoc = await admin.firestore().collection("profiles").doc(uid).get();
+        // 2. Buscar PIN na coleção isolada temp_mfa_codes
+        const mfaDoc = await admin.firestore().collection("temp_mfa_codes").doc(uid).get();
 
-        if (!profileDoc.exists) {
-            return { success: false, error: "Perfil não encontrado." };
-        }
-
-        const profileData = profileDoc.data()!;
-        const mfaAuthTemp = profileData.mfa_auth_temp;
-
-        if (!mfaAuthTemp) {
+        if (!mfaDoc.exists) {
             return { success: false, error: "Código não encontrado ou já expirado." };
         }
 
+        const mfaData = mfaDoc.data()!;
+
         // 3. Validar expiração
-        if (Date.now() > mfaAuthTemp.expiresAt) {
-            await admin.firestore().collection("profiles").doc(uid).update({
-                mfa_auth_temp: admin.firestore.FieldValue.delete()
-            }).catch(() => {});
+        if (Date.now() > mfaData.expiresAt) {
+            await admin.firestore().collection("temp_mfa_codes").doc(uid).delete().catch(() => {});
             return { success: false, error: "Este código expirou." };
         }
 
         // 4. Validar valor do PIN
-        if (mfaAuthTemp.code !== code) {
+        if (mfaData.code !== code) {
             return { success: false, error: "Código de verificação incorreto." };
         }
 
-        // 5. Sucesso: Limpeza
-        await admin.firestore().collection("profiles").doc(uid).update({
-            mfa_auth_temp: admin.firestore.FieldValue.delete(),
-            mfaCodeRequested: false
-        });
+        // 5. Sucesso: deleta o código da coleção isolada
+        await admin.firestore().collection("temp_mfa_codes").doc(uid).delete();
 
         return { success: true };
     } catch (error) {
@@ -217,8 +225,8 @@ export const cancelMfaRequest = functions
     const uid = context.auth.uid;
 
     try {
+        await admin.firestore().collection("temp_mfa_codes").doc(uid).delete().catch(() => {});
         await admin.firestore().collection("profiles").doc(uid).update({
-            mfa_auth_temp: admin.firestore.FieldValue.delete(),
             mfaCodeRequested: false
         }).catch(() => {});
 
