@@ -227,68 +227,6 @@ export default function PaymentsPage() {
         setCcSuccess(false)
     }
 
-    const handleFetchPaymentData = async (t: any) => {
-        if ((t.statusPagamento || '').toLowerCase() !== 'pendente') return
-        
-        resetCardForm()
-        setIsFetchingPayment(true)
-        setSelectedPayment(t)
-        setPaymentData(null)
-        setPaymentAlreadyConfirmed(false)
-        
-        try {
-            const paymentId = t.paymentId
-            if (!paymentId) {
-                toast.error("Referência de pagamento não encontrada.")
-                return
-            }
-
-            const asaasRes = await getPaymentStatusAction(paymentId)
-            const asaasPayment = asaasRes.success ? asaasRes.data : null
-            
-            // Se o Asaas já confirma como pago, reconcilia e mostra tela de sucesso
-            if (asaasPayment && ['RECEIVED', 'CONFIRMED'].includes(asaasPayment.status)) {
-                await syncPaymentStatusAction(paymentId)
-                setPaymentAlreadyConfirmed(true)
-                setIsFetchingPayment(false)
-                
-                // Recarrega a lista de transações para refletir o novo status
-                const res = await getStudentTransactions()
-                if (res.success && res.data) {
-                    setTransactions(res.data)
-                }
-                return
-            }
-            
-            const paymentTypeRaw = asaasPayment?.billingType || t.asaasPaymentMethod || t.billingType || ''
-            const paymentType = paymentTypeRaw.toUpperCase()
-            setPendingPaymentType(paymentType)
-            
-            if (paymentType === 'PIX') {
-                const res = await getPixDataAction(paymentId)
-                if (res.success) setPaymentData(res.data)
-                else toast.error(res.error || "Erro ao buscar dados do PIX")
-            } else if (paymentType === 'BOLETO') {
-                const [boletoRes, paymentDetail] = await Promise.all([
-                    getBoletoDataAction(paymentId),
-                    asaasRes.success ? Promise.resolve(asaasRes) : getPaymentStatusAction(paymentId),
-                ])
-                const detail = paymentDetail.success ? paymentDetail.data : null
-                if (boletoRes.success) {
-                    setPaymentData({ ...boletoRes.data, bankSlipUrl: detail?.bankSlipUrl || null })
-                } else {
-                    toast.error(boletoRes.error || "Erro ao buscar dados do Boleto")
-                }
-            }
-            // CREDIT_CARD: don't fetch visual data, just show the card form in modal
-        } catch (error) {
-            console.error(error)
-            toast.error("Erro ao processar solicitação")
-        } finally {
-            setIsFetchingPayment(false)
-        }
-    }
-
     const handlePayWithCard = async () => {
         setCcError(null)
 

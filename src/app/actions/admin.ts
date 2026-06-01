@@ -1544,37 +1544,6 @@ export async function deleteActiveTrailerAction(courseId: string) {
 }
 
 /**
- * Marca uma lista de vendas como pagas para um professor.
- */
-export async function markTeacherSalesAsPaid(enrollmentIds: string[]) {
-    const session = await getSessionUser();
-    if (!session || session.role !== 'admin') {
-        console.error("Tentativa de acesso não autorizado detectada");
-        return { success: false, error: 'Não autorizado' };
-    }
-    try {
-        const batch = adminDb.batch()
-        
-        enrollmentIds.forEach(id => {
-            const ref = adminDb.collection('enrollments').doc(id)
-            batch.update(ref, {
-                commissionStatus: 'paid',
-                paid_at: new Date(),
-                updated_at: new Date()
-            })
-        })
-
-        await batch.commit()
-        
-        revalidatePath('/admin/dashboard')
-        return { success: true }
-    } catch (error) {
-        console.error("Error marking sales as paid:", error)
-        return { success: false, error: "Falha ao marcar como pago." }
-    }
-}
-
-/**
  * Busca detalhes completos de um curso para o modal de visualização do admin.
  * Suporta paginação incremental: retorna apenas `page * pageSize` lessons
  * no total, corretamente agrupadas por módulo.

@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   typedRoutes: true,        // ← nível raiz, fora do experimental
 
   experimental: {
-    serverActions: {        // ← só isso dentro do experimental
+    serverActions: {
       allowedOrigins: [
         'site-895835261078.us-central1.run.app',
       ],

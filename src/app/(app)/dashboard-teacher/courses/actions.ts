@@ -11,10 +11,8 @@ async function getAuthUser() {
 
     try {
         const decoded = await adminAuth.verifySessionCookie(token, true)
-        // Validação de role: busca o perfil e verifica se é teacher ou admin
-        const profileDoc = await adminDb.collection('profiles').doc(decoded.uid).get()
-        if (!profileDoc.exists) return null
-        const role = profileDoc.data()?.role
+        // A-03: Validar role diretamente do token decodificado (Custom Claims)
+        const role = decoded.role
         if (role !== 'teacher' && role !== 'admin') return null
         return decoded
     } catch (error) {
