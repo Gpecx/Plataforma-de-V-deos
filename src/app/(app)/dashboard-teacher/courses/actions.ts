@@ -689,11 +689,8 @@ export async function getInstructorStatsAction() {
     if (!user) return { error: "Não autorizado" }
 
     try {
-        // Valida se o usuário tem a role teacher ou admin no profile
-        const profileDoc = await adminDb.collection('profiles').doc(user.uid).get()
-        const profileData = profileDoc.data()
-        
-        if (profileData?.role !== 'teacher' && profileData?.role !== 'admin') {
+        // A-03: Valida a role diretamente da custom claim do token (não do Firestore)
+        if (user.role !== 'teacher' && user.role !== 'admin') {
             return { error: "Não autorizado. Acesso restrito a professores." }
         }
 

@@ -5,6 +5,7 @@ import {
     getPixDataAction,
     getBoletoDataAction
 } from '@/app/(app)/dashboard-student/actions'
+import { toast } from 'sonner'
 import {
     CheckCircle2,
     Download,
@@ -75,10 +76,22 @@ function SucessoContent() {
 
                 if (paymentDetail.billingType === 'PIX') {
                     const pixRes = await getPixDataAction(validPaymentId)
-                    if (pixRes.success) setPixData(pixRes.data)
+                    if (pixRes.success) {
+                        setPixData(pixRes.data)
+                    } else {
+                        const errMsg = pixRes.error || 'Erro ao carregar dados do PIX. Tente novamente na página de pagamentos.'
+                        toast.error(errMsg)
+                        setError(errMsg)
+                    }
                 } else if (paymentDetail.billingType === 'BOLETO') {
                     const boletoRes = await getBoletoDataAction(validPaymentId)
-                    if (boletoRes.success) setBoletoData(boletoRes.data)
+                    if (boletoRes.success) {
+                        setBoletoData(boletoRes.data)
+                    } else {
+                        const errMsg = boletoRes.error || 'Erro ao carregar dados do boleto. Tente novamente na página de pagamentos.'
+                        toast.error(errMsg)
+                        setError(errMsg)
+                    }
                 }
                 
                 setLoading(false)

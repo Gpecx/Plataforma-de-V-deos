@@ -4,7 +4,7 @@ import { FieldValue } from 'firebase-admin/firestore'
 import { cookies, headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { createPayment, payWithCreditCard, BillingType, getStudentAsaasId, createCustomer, getPaymentQrCode, getPayment, getPaymentIdentification, getTeacherWalletInfo, calculateSplitValues } from '@/services/asaasService'
+import { createPayment, payWithCreditCard, BillingType, getStudentAsaasId, createCustomer, getPaymentQrCode, withRetry, getPayment, getPaymentIdentification, getTeacherWalletInfo, calculateSplitValues } from '@/services/asaasService'
 import { sanitizeCpfCnpj } from '@/lib/utils'
 
 async function getClientIp(): Promise<string> {
@@ -338,21 +338,36 @@ export async function processCheckoutAction(
             }
 
             // Para PIX: busca QR Code via API (não usa pixTransaction do createPayment)
-            let pixQrCode: string | undefined
-            let pixPayload: string | undefined
             if (billingType === 'PIX') {
                 try {
-                    const pixResponse = await getPaymentQrCode(asaasResponse.id)
-                    pixQrCode = pixResponse.encodedImage
-                    pixPayload = pixResponse.payload
+                    const pixResponse = await withRetry(
+                        () => getPaymentQrCode(asaasResponse.id),
+                        { retries: 2, delayMs: 1000 }
+                    )
+                    const pixQrCode = pixResponse.encodedImage
+                    const pixPayload = pixResponse.payload
+
+                    return { 
+                        success: true,
+                        data: { 
+                            invoiceUrl: asaasResponse.invoiceUrl, 
+                            paymentId: asaasResponse.id,
+                            billingType: asaasResponse.billingType,
+                            status: asaasResponse.status,
+                            pixQrCode,
+                            payload: pixPayload,
+                        } 
+                    }
                 } catch (pixError) {
-                    console.error("ERRO_AO_BUSCAR_QRCODE_PIX_NO_CHECKOUT:", pixError)
+                    const pixMsg = pixError instanceof Error ? pixError.message : 'Erro ao buscar dados do PIX'
+                    console.error("ERRO_AO_BUSCAR_QRCODE_PIX_NO_CHECKOUT:", pixMsg)
+                    return { success: false, error: pixMsg }
                 }
             }
 
             const creditCardConfirmed = billingType === 'CREDIT_CARD' && (asaasResponse.status === 'CONFIRMED' || asaasResponse.status === 'RECEIVED')
 
-            return { 
+            const returnData: any = { 
                 success: true,
                 ...(creditCardConfirmed ? { status: asaasResponse.status } : {}),
                 data: { 
@@ -360,10 +375,11 @@ export async function processCheckoutAction(
                     paymentId: asaasResponse.id,
                     billingType: asaasResponse.billingType,
                     status: asaasResponse.status,
-                    ...(billingType === 'PIX' ? { pixQrCode, payload: pixPayload } : {}),
                     ...(creditCardConfirmed ? { paymentConfirmed: true } : {})
                 } 
             }
+
+            return returnData
         } catch (asaasError: any) {
             console.error("ERRO_ASAAS_DEPLOY:", asaasError.response?.data || asaasError.message || asaasError)
             const asaasMessage = asaasError.response?.data?.errors?.[0]?.description || asaasError.message || 'Erro ao gerar cobrança'
