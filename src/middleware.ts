@@ -9,8 +9,25 @@ const RATE_LIMIT_WINDOW = 60_000
 const MAX_REQUESTS = 100
 const rateLimitMap = new Map<string, { count: number; lastReset: number }>()
 
+let lastCleanup = Date.now()
+
+function cleanupRateLimitMap(): void {
+    const now = Date.now()
+    for (const [ip, entry] of rateLimitMap.entries()) {
+        if (now - entry.lastReset > RATE_LIMIT_WINDOW * 2) {
+            rateLimitMap.delete(ip)
+        }
+    }
+    lastCleanup = now
+}
+
 function isRateLimited(ip: string): boolean {
     const now = Date.now()
+
+    if (now - lastCleanup > RATE_LIMIT_WINDOW * 5) {
+        cleanupRateLimitMap()
+    }
+
     const entry = rateLimitMap.get(ip)
 
     if (!entry || now - entry.lastReset > RATE_LIMIT_WINDOW) {
@@ -196,6 +213,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
     matcher: [
-        '/((?!_next/static|_next/image|favicon|images/|fonts/|icons/|api/webhooks/|api/auth/).*)',
+        '/((?!_next/static|_next/image|favicon|images/|fonts/|icons/|api/webhooks/).*)',
     ],
 }

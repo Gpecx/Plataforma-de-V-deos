@@ -15,20 +15,27 @@ interface VendaLog {
 }
 
 /**
- * Trigger que observa novas vendas em vendas_logs e cria notificações em tempo real para o professor.
+ * Trigger que observa vendas em vendas_logs e cria notificações em tempo real para o professor.
+ * Só dispara quando o statusPagamento TRANSICIONA para 'pago' (ex: webhook do Asaas).
  */
 export const onNewSaleNotification = functions
     .region("us-central1")
     .firestore
     .document("vendas_logs/{saleId}")
-    .onCreate(async (snapshot, context) => {
-        const saleData = snapshot.data() as VendaLog | undefined;
-        if (!saleData) {
+    .onUpdate(async (change, context) => {
+        const beforeData = change.before.data() as VendaLog | undefined;
+        const afterData = change.after.data() as VendaLog | undefined;
+
+        if (!beforeData || !afterData) {
             functions.logger.warn("Venda sem dados:", context.params.saleId);
             return;
         }
 
-        const { professorId, cursoId, valorBruto } = saleData;
+        const wasPaid = beforeData.statusPagamento === 'pago';
+        const isNowPaid = afterData.statusPagamento === 'pago';
+        if (wasPaid || !isNowPaid) return;
+
+        const { professorId, cursoId, valorBruto } = afterData;
 
         if (!professorId) {
             functions.logger.warn("Venda sem professorId:", context.params.saleId);

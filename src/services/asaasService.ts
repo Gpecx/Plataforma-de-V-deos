@@ -149,15 +149,24 @@ async function makeRequest<T>(
     const cleanEndpoint = endpoint.replace(/^\/+/, '')
     const url = `${cleanBase}/${cleanEndpoint}`
     
-    const response = await fetch(url, {
-        ...options,
-        headers: {
-            'Content-Type': 'application/json',
-            'User-Agent': 'GpecxPlataforma/1.0',
-            'access_token': apiKey,
-            ...options.headers,
-        },
-    })
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 15_000)
+
+    let response: Response
+    try {
+        response = await fetch(url, {
+            ...options,
+            signal: controller.signal,
+            headers: {
+                'Content-Type': 'application/json',
+                'User-Agent': 'GpecxPlataforma/1.0',
+                'access_token': apiKey,
+                ...options.headers,
+            },
+        })
+    } finally {
+        clearTimeout(timeoutId)
+    }
 
     let data: any
     try {
@@ -186,6 +195,25 @@ async function makeRequest<T>(
     }
 
     return data as T
+}
+
+export async function withRetry<T>(
+    fn: () => Promise<T>,
+    { retries = 2, delayMs = 1000 }: { retries?: number; delayMs?: number } = {}
+): Promise<T> {
+    let lastError: unknown
+    for (let attempt = 0; attempt <= retries; attempt++) {
+        try {
+            return await fn()
+        } catch (err) {
+            lastError = err
+            if (err instanceof Error && err.name === 'AbortError') break
+            if (attempt < retries) {
+                await new Promise(resolve => setTimeout(resolve, delayMs * (attempt + 1)))
+            }
+        }
+    }
+    throw lastError
 }
 
 export async function createPayment(paymentData: PaymentRequest): Promise<PaymentResponse> {

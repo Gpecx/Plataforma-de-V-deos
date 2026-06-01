@@ -11,10 +11,8 @@ async function getAuthUser() {
 
     try {
         const decoded = await adminAuth.verifySessionCookie(token, true)
-        // Validação de role: busca o perfil e verifica se é teacher ou admin
-        const profileDoc = await adminDb.collection('profiles').doc(decoded.uid).get()
-        if (!profileDoc.exists) return null
-        const role = profileDoc.data()?.role
+        // A-03: Validar role diretamente do token decodificado (Custom Claims)
+        const role = decoded.role
         if (role !== 'teacher' && role !== 'admin') return null
         return decoded
     } catch (error) {
@@ -691,11 +689,8 @@ export async function getInstructorStatsAction() {
     if (!user) return { error: "Não autorizado" }
 
     try {
-        // Valida se o usuário tem a role teacher ou admin no profile
-        const profileDoc = await adminDb.collection('profiles').doc(user.uid).get()
-        const profileData = profileDoc.data()
-        
-        if (profileData?.role !== 'teacher' && profileData?.role !== 'admin') {
+        // A-03: Valida a role diretamente da custom claim do token (não do Firestore)
+        if (user.role !== 'teacher' && user.role !== 'admin') {
             return { error: "Não autorizado. Acesso restrito a professores." }
         }
 

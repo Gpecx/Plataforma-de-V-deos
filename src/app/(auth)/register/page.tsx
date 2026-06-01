@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { auth } from '@/lib/firebase'
 import { createUserWithEmailAndPassword, updateProfile as firebaseUpdateProfile, sendEmailVerification } from 'firebase/auth'
-import { createProfile, getAddressByCep, getDataByCnpj, checkUsernameAvailability } from './actions'
+import { createProfile, getDataByCnpj, checkUsernameAvailability } from './actions'
 import Logo from '@/components/Logo'
 import { ArrowRight, AlertCircle, Eye, EyeOff, ChevronLeft, Building2, User } from 'lucide-react'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
@@ -250,36 +250,49 @@ function RegisterForm() {
         setBirthDate(maskDate(e.target.value))
     }
 
-    const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setCep(maskCep(e.target.value))
-        if (cepError) setCepError('')
+    const handleCepSearch = async (cleanCep: string) => {
+        setIsCepLoading(true)
+        setCepError('')
+        try {
+            const response = await fetch(`https://brasilapi.com.br/api/cep/v1/${cleanCep}`)
+
+            if (!response.ok) {
+                setCepError('CEP não encontrado')
+                return
+            }
+
+            const data = await response.json()
+
+            setRua(data.street || '')
+            setBairro(data.neighborhood || '')
+            setCidade(data.city || '')
+            setEstado(data.state || '')
+
+            setTimeout(() => {
+                numberInputRef.current?.focus()
+            }, 100)
+        } catch (error) {
+            setCepError('BrasilAPI indisponível. Preencha manualmente.')
+        } finally {
+            setIsCepLoading(false)
+        }
     }
 
-    const handleCepBlur = async () => {
+    const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const raw = e.target.value
+        const masked = maskCep(raw)
+        setCep(masked)
+        if (cepError) setCepError('')
+        const cleanCep = masked.replace(/\D/g, '')
+        if (cleanCep.length === 8 && !isCepLoading) {
+            handleCepSearch(cleanCep)
+        }
+    }
+
+    const handleCepBlur = () => {
         const cleanCep = cep.replace(/\D/g, '')
         if (cleanCep.length === 8) {
-            setIsCepLoading(true)
-            setCepError('')
-            try {
-                const result = await getAddressByCep(cleanCep)
-                if (result.success && result.data) {
-                    setRua(result.data.rua || '')
-                    setBairro(result.data.bairro || '')
-                    setCidade(result.data.cidade || '')
-                    setEstado(result.data.estado || '')
-
-                    // Focar no campo Número automaticamente
-                    setTimeout(() => {
-                        numberInputRef.current?.focus()
-                    }, 100)
-                } else {
-                    setCepError(result.error || 'Erro ao buscar CEP')
-                }
-            } catch (error) {
-                setCepError('ViaCEP indisponível. Preencha manualmente.')
-            } finally {
-                setIsCepLoading(false)
-            }
+            handleCepSearch(cleanCep)
         }
     }
 
