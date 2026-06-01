@@ -3,7 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "standalone",
   reactCompiler: true,
-  typedRoutes: true,        // ← nível raiz, fora do experimental
+
+  typedRoutes: true,
 
   experimental: {
     serverActions: {
@@ -20,6 +21,7 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'sandbox.asaas.com' },
+      { protocol: 'https', hostname: 'api.asaas.com' },
       { protocol: 'https', hostname: 'www.asaas.com' },
       { protocol: 'https', hostname: 'firebasestorage.googleapis.com' },
       { protocol: 'https', hostname: '*.googleusercontent.com' },
@@ -37,9 +39,9 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.gstatic.com https://apis.google.com",
-              "connect-src 'self' *.googleapis.com *.firebaseapp.com *.mux.com *.asaas.com https://inferred.litix.io https://identitytoolkit.googleapis.com https://securetoken.googleapis.com site-895835261078.us-central1.run.app",
-              "frame-src 'self' *.mux.com *.asaas.com *.firebaseapp.com site-895835261078.us-central1.run.app",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://asaas.com https://*.asaas.com",
+              "connect-src 'self' *.googleapis.com *.firebaseapp.com *.mux.com *.asaas.com https://asaas.com https://www.asaas.com https://inferred.litix.io https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://brasilapi.com.br site-895835261078.us-central1.run.app",
+              "frame-src 'self' *.mux.com *.asaas.com https://asaas.com https://www.asaas.com *.firebaseapp.com site-895835261078.us-central1.run.app",
               "img-src 'self' data: blob: *.mux.com *.googleusercontent.com *.asaas.com *.googleapis.com images.unsplash.com",
               "style-src 'self' 'unsafe-inline'",
               "font-src 'self' data:",

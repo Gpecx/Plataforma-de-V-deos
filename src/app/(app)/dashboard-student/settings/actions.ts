@@ -2,7 +2,6 @@
 
 import { adminAuth, adminDb } from "@/lib/firebase-admin"
 import { cookies } from "next/headers"
-import { redirect } from "next/navigation"
 
 export async function deleteAccount() {
     const cookieStore = cookies()
@@ -51,6 +50,7 @@ export async function deleteAccount() {
         return { success: false, error: error.message || "Erro desconhecido ao deletar conta" }
     }
 
-    // Redireciona para fora após sucesso
-    redirect("/login?message=conta_excluida")
+    // Sucesso: retorna para o cliente concluir a limpeza de sessão client-side
+    // (signOut do Firebase Auth + stores) antes de navegar para /login.
+    return { success: true }
 }

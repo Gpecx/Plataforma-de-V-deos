@@ -49,7 +49,7 @@ export default async function AdminDashboardPage() {
                         </div>
                         <p className="!text-[#000000] text-sm font-bold uppercase tracking-tight mb-2">{m.label}</p>
                         <h3 className="text-3xl font-bold tracking-tighter !text-[#000000]">
-                            R$ {m.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                            R$ {(m.value ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                         </h3>
                     </div>
                 ))}
