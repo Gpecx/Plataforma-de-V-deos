@@ -108,6 +108,7 @@ export async function POST(request: NextRequest) {
                         payment_confirmed: true,
                         payment_id: payment.id,
                         updated_at: FieldValue.serverTimestamp(),
+                        paid_at: new Date(),
                         status: 'active'
                     })
 
