@@ -240,9 +240,10 @@ export async function processCheckoutAction(
             }, { merge: true })
         }
 
+        // Declarado fora do try para ficar acessível no catch (rollback dos enrollments)
+        const enrollRefs: { ref: FirebaseFirestore.DocumentReference; courseData: any }[] = []
         try {
             // 1. Cria enrollment ANTES de chamar o Asaas
-            const enrollRefs: any[] = []
             for (const courseData of coursesData) {
                 const enrollRef = adminDb.collection('enrollments').doc()
                 await enrollRef.set({
@@ -382,6 +383,17 @@ export async function processCheckoutAction(
             return returnData
         } catch (asaasError: any) {
             console.error("ERRO_ASAAS_DEPLOY:", asaasError.response?.data || asaasError.message || asaasError)
+
+            // Rollback: o pagamento falhou, então remove os enrollments "pending" criados
+            // nesta tentativa para não travar o curso no dashboard como "Aguardando Pagamento".
+            await Promise.all(
+                enrollRefs.map(({ ref }) =>
+                    ref.delete().catch((delErr: any) =>
+                        console.error("ERRO_ROLLBACK_ENROLLMENT:", delErr?.message || delErr)
+                    )
+                )
+            )
+
             const asaasMessage = asaasError.response?.data?.errors?.[0]?.description || asaasError.message || 'Erro ao gerar cobrança'
             throw new Error(`Falha no pagamento: ${asaasMessage}`)
         }
