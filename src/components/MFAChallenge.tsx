@@ -7,6 +7,7 @@ import { ShieldCheck, ArrowRight, Loader2 } from "lucide-react"
 import { auth, db } from "@/lib/firebase"
 import { doc, getDoc, updateDoc } from "firebase/firestore"
 import { useAuth } from "@/context/AuthProvider"
+import { setMfaTrustedCookie } from "@/app/actions/mfa"
 
 interface MFAChallengeProps {
     email: string;
@@ -102,6 +103,9 @@ export default function MFAChallenge({ email, onVerify, onCancel }: MFAChallenge
             if (!sessionRes.ok) {
                 throw new Error("Erro ao oficializar sessão no servidor.");
             }
+
+            // Salva cookie de dispositivo confiável vinculado ao e-mail (30 dias)
+            await setMfaTrustedCookie(email);
 
             // Redirecionamento (O cleanup do Firestore agora é feito no Backend pelo verifyMfaCode)
             isVerifiedRef.current = true;

@@ -4,6 +4,7 @@ import { FieldValue } from 'firebase-admin/firestore'
 import { cookies, headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { removeSessionCookie } from '@/app/actions/auth'
 import { createPayment, payWithCreditCard, BillingType, getStudentAsaasId, createCustomer, getPaymentQrCode, withRetry, getPayment, getPaymentIdentification, getTeacherWalletInfo, calculateSplitValues } from '@/services/asaasService'
 import { sanitizeCpfCnpj } from '@/lib/utils'
 
@@ -507,16 +508,12 @@ export async function deleteAccount() {
             console.error('Erro ao deletar conta:', error)
         }
     }
-    const cookieStore = cookies()
-        ; (await cookieStore).delete('session')
-        ; (await cookieStore).delete('active_session_id')
+    await removeSessionCookie()
     redirect('/')
 }
 
 export async function signOut() {
-    const cookieStore = cookies()
-        ; (await cookieStore).delete('session')
-        ; (await cookieStore).delete('active_session_id')
+    await removeSessionCookie()
     redirect('/')
 }
 

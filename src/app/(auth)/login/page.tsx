@@ -19,6 +19,7 @@ import MFAChallenge from "@/components/MFAChallenge"
 import { useAuth } from "@/context/AuthProvider"
 import { updateDoc } from "firebase/firestore"
 import { toast } from "sonner"
+import { checkMfaTrusted } from "@/app/actions/mfa"
 
 const loginSchema = z.object({
     email: z.string().email("E-mail inválido"),
@@ -77,6 +78,15 @@ function LoginContent() {
             }
 
             if (profileData?.mfaEnabled) {
+                // Verificar se o dispositivo já é confiável (cookie de 30 dias vinculado ao e-mail)
+                const isTrusted = await checkMfaTrusted(user.email || '')
+                if (isTrusted) {
+                    console.log("Dispositivo confiável reconhecido. Pulando desafio MFA...");
+                    setMfaPending(false);
+                    await handleLoginSuccess(user);
+                    return;
+                }
+
                 console.log("MFA Habilitado! Garantindo transição false → true no gatilho...");
                 
                 // CORREÇÃO: Resetar para false ANTES de ativar.
