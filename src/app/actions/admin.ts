@@ -172,7 +172,7 @@ export async function getFinancialData() {
                 platformShare,
                 teacherShare,
                 date: parseFirebaseDate(e.created_at)?.toISOString(),
-                commissionStatus: e.commissionStatus || 'pending'
+                commissionStatus: e.payment_confirmed === true ? 'paid' : 'pending'
             }
         }).sort((a, b) => {
             const dateA = a.date ? new Date(a.date).getTime() : 0
