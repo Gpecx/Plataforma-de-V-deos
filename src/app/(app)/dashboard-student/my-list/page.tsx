@@ -56,7 +56,7 @@ export default async function MyListPage() {
     const wishlistCourses = allCourses.filter(c => wishlistCourseIds.includes(c.id) && !purchasedCourseIds.includes(c.id))
 
     return (
-        <div className="min-h-screen bg-slate-50 font-montserrat relative flex flex-col">
+        <div className="min-h-screen bg-slate-50 text-slate-900 font-montserrat relative flex flex-col">
             <div className="px-6 md:px-12 pt-6 w-full">
                 <div className="relative max-w-[1600px] mx-auto rounded-3xl overflow-hidden shadow-xl min-h-[300px] md:min-h-[350px] flex items-center">
                     <img
@@ -78,10 +78,10 @@ export default async function MyListPage() {
                                 <Heart size={32} className="text-[#00c853] fill-[#00c853] filter drop-shadow-md" />
                             </div>
                             <div>
-                                <h1 className="text-2xl md:text-3xl font-bold uppercase tracking-tighter !text-white drop-shadow-2xl max-w-xl">
+                                <h1 className="text-2xl md:text-3xl font-bold uppercase tracking-tighter !text-white max-w-xl">
                                     Minha Lista
                                 </h1>
-                                <p className="!text-white text-sm md:text-base font-bold mt-2 flex items-center gap-2 tracking-wide drop-shadow-lg">
+                                <p className="text-white/90 text-sm md:text-base font-bold mt-2 flex items-center gap-2 tracking-wide">
                                     <span className="w-2 h-2 rounded-full bg-[#00c853] animate-pulse"></span>
                                     {wishlistCourses.length} curso{wishlistCourses.length !== 1 ? 's' : ''} favorito{wishlistCourses.length !== 1 ? 's' : ''}
                                 </p>
@@ -95,12 +95,12 @@ export default async function MyListPage() {
                 {wishlistCourses.length === 0 ? (
                     <div className="text-center py-24 bg-white rounded-[32px] border border-black/5 shadow-sm">
                         <div className="w-24 h-24 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-8 border border-slate-100 shadow-inner">
-                            <Heart size={44} className="text-slate-300" />
+                            <Heart size={44} className="text-slate-500" />
                         </div>
-                        <h2 className="text-2xl font-bold uppercase tracking-tighter text-black mb-4">
+                        <h2 className="text-2xl font-bold uppercase tracking-tighter text-slate-900 mb-4">
                             Sua lista está vazia
                         </h2>
-                        <p className="text-slate-500 font-medium mb-10 max-w-md mx-auto leading-relaxed">
+                        <p className="text-slate-600 font-medium mb-10 max-w-md mx-auto leading-relaxed">
                             Explore nosso catálogo técnico e salve os cursos que mais te interessam para acessá-los rapidamente aqui.
                         </p>
                         <Link

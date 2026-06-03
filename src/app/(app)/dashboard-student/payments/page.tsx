@@ -498,7 +498,7 @@ export default function PaymentsPage() {
                                 </div>
                                 <button 
                                     onClick={() => setSelectedPayment(null)}
-                                    className="p-2 hover:bg-slate-100 transition-colors rounded-md"
+                                    className="p-2 hover:bg-slate-100 transition-colors rounded-md text-slate-500 hover:text-slate-900"
                                 >
                                     <X size={20} />
                                 </button>
@@ -730,7 +730,7 @@ export default function PaymentsPage() {
                                                 <input 
                                                     readOnly 
                                                     value={paymentData.payload}
-                                                    className="flex-1 bg-slate-100 border border-slate-200 px-4 py-3 text-xs font-mono outline-none rounded-md"
+                                                    className="flex-1 bg-slate-100 border border-slate-200 px-4 py-3 text-xs font-mono outline-none rounded-md text-slate-900"
                                                 />
                                                 <button 
                                                     onClick={() => copyToClipboard(paymentData.payload)}
@@ -771,7 +771,7 @@ export default function PaymentsPage() {
                                                 <input 
                                                     readOnly 
                                                     value={paymentData.identificationField}
-                                                    className="flex-1 bg-slate-100 border border-slate-200 px-4 py-3 text-xs font-mono outline-none rounded-md"
+                                                    className="flex-1 bg-slate-100 border border-slate-200 px-4 py-3 text-xs font-mono outline-none rounded-md text-slate-900"
                                                 />
                                                 <button 
                                                     onClick={() => copyToClipboard(paymentData.identificationField)}

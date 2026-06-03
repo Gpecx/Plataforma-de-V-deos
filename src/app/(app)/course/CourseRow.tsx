@@ -70,13 +70,13 @@ export default function CourseRow({
 
     return (
         <div className="space-y-10">
-            <div className="flex items-end justify-between border-b border-[#1D5F31] pb-6">
-                <h2 className="text-xl md:text-2xl font-bold uppercase tracking-tighter flex items-center gap-3 group cursor-pointer text-black">
+            <div className="flex items-end justify-between border-b border-[#1D5F31]/50 pb-4">
+                <h2 className="text-lg md:text-xl font-bold uppercase tracking-wider flex items-center gap-3 group cursor-pointer text-[#22c55e]">
                     {category}
-                    <ChevronRight className="text-[#1D5F31] w-5 h-5 md:w-6 md:h-6 opacity-40 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                    <ChevronRight className="text-[#22c55e] w-4 h-4 opacity-40 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
                 </h2>
-                <span className="text-slate-500 text-sm font-bold uppercase tracking-tight mb-1">
-                    {courses.length} {courses.length === 1 ? 'Módulo Disponível' : 'Módulos Exibidos'}
+                <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">
+                    {courses.length} {courses.length === 1 ? 'MÓDULO DISPONÍVEL' : 'MÓDULOS EXIBIDOS'}
                 </span>
             </div>
 
@@ -85,7 +85,7 @@ export default function CourseRow({
                     <div
                         key={course.id}
                         onClick={() => handleCourseClick(course)}
-                        className="group bg-white border border-black p-0 rounded-xl overflow-hidden hover:border-[#1D5F31]/30 transition-all duration-300 flex flex-col hover:shadow-lg cursor-pointer"
+                        className="group bg-[#131F24] border border-slate-800 rounded-xl overflow-hidden hover:border-[#22c55e] transition-all duration-300 flex flex-col hover:shadow-[0_0_20px_rgba(34,197,94,0.15)] cursor-pointer"
                     >
                         <div className="aspect-video relative overflow-hidden">
                             <NextImage
@@ -104,28 +104,28 @@ export default function CourseRow({
                                 const isPurchased = profile?.role === 'admin' || (profile?.role === 'teacher' && course.teacher_id === user?.uid) || profile?.cursos_comprados?.includes(course.id) || purchasedCourseIds.includes(course.id);
                                 if (isPurchased) {
                                     return (
-                                        <div className="absolute top-2 left-2 bg-[#1D5F31] !text-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm z-10 shadow-lg no-theme-override">
+                                        <div className="absolute top-2 left-2 bg-[#22c55e] !text-[#0B1215] px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm z-10 shadow-lg no-theme-override">
                                             ADQUIRIDO
                                         </div>
                                     )
                                 }
                                 if (course.pricing_type === 'premium') {
                                     return (
-                                        <div className="absolute top-2 left-2 bg-[#1D5F31] !text-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm z-10 shadow-lg no-theme-override">
+                                        <div className="absolute top-2 left-2 bg-[#1D5F31] !text-[#22c55e] border border-[#22c55e]/50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm z-10 shadow-lg no-theme-override">
                                             PREMIUM
                                         </div>
                                     )
                                 }
                                 if (course.pricing_type === 'free') {
                                     return (
-                                        <div className="absolute top-2 left-2 bg-black !text-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm z-10 shadow-lg no-theme-override">
+                                        <div className="absolute top-2 left-2 bg-slate-800 !text-white border border-slate-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm z-10 shadow-lg no-theme-override">
                                             GRATUITO
                                         </div>
                                     )
                                 }
                                 if (isNewCourse(course.created_at)) {
                                     return (
-                                        <div className="absolute top-2 left-2 bg-white !text-[#1D5F31] px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm z-10 shadow-lg no-theme-override">
+                                        <div className="absolute top-2 left-2 bg-[#22c55e] !text-[#0B1215] px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm z-10 shadow-lg no-theme-override">
                                             NOVO
                                         </div>
                                     )
@@ -133,17 +133,20 @@ export default function CourseRow({
                                 return null
                             })()}
                         </div>
-                        <div className="p-6 flex-grow flex flex-col space-y-4">
-                            <h3 className="text-sm font-bold text-black leading-tight group-hover:text-[#1D5F31] transition-colors line-clamp-2">
+                        <div className="p-4 flex-grow flex flex-col space-y-4">
+                            <h3 className="text-sm font-bold text-white leading-tight group-hover:text-[#22c55e] transition-colors line-clamp-2">
                                 {course.title}
                             </h3>
-                            <div className="mt-auto pt-3 border-t border-slate-100 flex items-center justify-between">
+                            <div className="mt-auto pt-3 border-t border-slate-800 flex items-center justify-between">
                                 <div className="flex flex-col">
-                                    <span className="text-sm text-black uppercase font-bold tracking-tight leading-none mb-1" style={{ color: '#000000' }}>Investimento</span>
-                                    <span className="text-sm font-bold text-black leading-none" style={{ color: '#000000' }}>
-                                        R$ {Number(course.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                    <span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest leading-none mb-1">Investimento</span>
+                                    <span className="text-sm font-bold text-white leading-none">
+                                        {course.price === 0 ? "R$ 0,00" : `R$ ${Number(course.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
                                     </span>
                                 </div>
+                                <button className="bg-[#1D5F31] hover:bg-[#22c55e] text-[#22c55e] hover:text-[#0B1215] border border-[#22c55e]/50 text-[10px] px-3 py-1.5 rounded-md font-bold uppercase tracking-widest transition-colors shadow-[0_0_10px_rgba(34,197,94,0.1)]">
+                                    Continuar Aula
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -155,11 +158,11 @@ export default function CourseRow({
                     <button
                         onClick={loadMore}
                         disabled={isLoadingMore}
-                        className="bg-[#1D5F31] text-white px-8 py-3 rounded-lg font-bold uppercase tracking-widest text-xs hover:bg-[#154624] transition-all flex items-center gap-2 shadow-lg hover:shadow-xl active:scale-95 disabled:opacity-70"
+                        className="bg-[#22c55e] text-[#0B1215] px-8 py-3 rounded-lg font-bold uppercase tracking-widest text-xs hover:bg-[#16a34a] transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(34,197,94,0.3)] hover:shadow-[0_0_20px_rgba(34,197,94,0.5)] active:scale-95 disabled:opacity-70"
                     >
                         {isLoadingMore ? (
                             <>
-                                <Loader2 className="animate-spin" size={16} />
+                                <Loader2 className="animate-spin text-[#0B1215]" size={16} />
                                 Carregando...
                             </>
                         ) : (

@@ -57,7 +57,7 @@ body {
 /* White Clean Theme Utility */
 .theme-clean-white {
   background: #FFFFFF !important;
-  color: #000000 !important;
+  color: #000000;
   position: relative;
   z-index: 10;
 }
@@ -140,6 +140,25 @@ p {
 .classroom-theme div {
   color: #e2e8f0 !important;
 }
+
+/* Student Theme Override - Força alto contraste sobre fundo branco */
+.student-theme {
+  color: #0f172a;
+}
+
+.student-theme h1,
+.student-theme h2,
+.student-theme h3,
+.student-theme h4,
+.student-theme h5,
+.student-theme h6 {
+  color: #0f172a !important;
+}
+
+.student-theme p:not([class*="text-"]) {
+  color: #334155 !important;
+}
+
 
 /* Dark card style - Premium Depth */
 .dark-card {

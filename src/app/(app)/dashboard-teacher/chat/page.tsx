@@ -1,12 +1,13 @@
 "use client"
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { ArrowLeft, Send, Search, Users, MessageSquare, GraduationCap, Loader2 } from 'lucide-react'
+import { ArrowLeft, Send, Users, MessageSquare } from 'lucide-react'
 import Link from 'next/link'
 import { auth, db } from '@/lib/firebase'
-import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp, getDocs, doc, getDoc, limit } from 'firebase/firestore'
+import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp, getDocs } from 'firebase/firestore'
 import { useAuth } from '@/context/AuthProvider'
 import { parseFirebaseDate } from '@/lib/date-utils'
+import { toast } from 'sonner'
 
 interface ChatMessage {
     id: string
@@ -15,6 +16,8 @@ interface ChatMessage {
     time: string
     user_id: string
     teacher_id: string
+    created_at?: any
+    status?: 'sending' | 'sent' | 'error'
 }
 
 interface Student {
@@ -63,32 +66,36 @@ export default function TeacherChatPage() {
                 const q = query(
                     collection(db, 'messages'),
                     where('teacher_id', '==', user.uid),
-                    orderBy('created_at', 'desc')
                 )
 
                 const snapshot = await getDocs(q)
+
+
+                // ordenar no cliente para pegar a última mensagem por aluno
+                const sortedDocs = snapshot.docs.sort((a, b) => {
+                    const aTime = parseFirebaseDate(a.data().created_at)?.getTime() || 0
+                    const bTime = parseFirebaseDate(b.data().created_at)?.getTime() || 0
+                    return bTime - aTime
+                })
+
                 const studentIdsSeen = new Set<string>()
                 const mappedStudents: Student[] = []
 
-                for (const msgDoc of snapshot.docs) {
+                for (const msgDoc of sortedDocs) {
                     const msgData = msgDoc.data()
                     const studentId = msgData.user_id
 
                     if (!studentIdsSeen.has(studentId)) {
                         studentIdsSeen.add(studentId)
-                        // Fetch student profile
-                        const profileDoc = await getDoc(doc(db, 'profiles', studentId))
-                        if (profileDoc.exists()) {
-                            const profileData = profileDoc.data()
-                            mappedStudents.push({
-                                id: studentId,
-                                name: profileData.full_name || 'Aluno',
-                                course: 'Treinamento Ativo', // Simplification or fetch from enrollments
-                                initials: (profileData.full_name || 'A').split(' ').map((n: string) => n[0]).join('').toUpperCase().substring(0, 2),
-                                status: 'online', // Mock status for now
-                                lastMsg: msgData.content
-                            })
-                        }
+                        const senderName = msgData.sender_name || 'Aluno'
+                        mappedStudents.push({
+                            id: studentId,
+                            name: senderName,
+                            course: 'Treinamento Ativo',
+                            initials: senderName.split(' ').map((n: string) => n[0]).join('').toUpperCase().substring(0, 2),
+                            status: 'online',
+                            lastMsg: msgData.content
+                        })
                     }
                 }
 
@@ -112,18 +119,38 @@ export default function TeacherChatPage() {
 
         const q = query(
             collection(db, 'messages'),
-            where('user_id', '==', selectedStudent.id),
             where('teacher_id', '==', user.uid),
-            orderBy('created_at', 'asc')
+            where('user_id', '==', selectedStudent.id),
         )
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
-            const msgs = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-                time: formatTime(doc.data().created_at)
-            })) as any[]
-            setMessages(msgs)
+            const serverMsgs = snapshot.docs
+                .map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    time: formatTime(doc.data().created_at),
+                    status: 'sent' as const,
+                } as ChatMessage))
+                .filter(msg => msg.user_id === selectedStudent.id)
+                .sort((a, b) => {
+                    const aTime = parseFirebaseDate(a.created_at)?.getTime() || 0
+                    const bTime = parseFirebaseDate(b.created_at)?.getTime() || 0
+                    return aTime - bTime
+                })
+
+            setMessages(prev => {
+                const optimistic = prev.filter(m => m.id.startsWith('temp_'))
+                const remainingOptimistic = optimistic.filter(opt =>
+                    !serverMsgs.some(sm =>
+                        sm.content === opt.content &&
+                        sm.user_id === opt.user_id &&
+                        sm.teacher_id === opt.teacher_id
+                    )
+                )
+                return [...serverMsgs, ...remainingOptimistic]
+            })
+        }, (error) => {
+            console.error('Erro no listener de mensagens:', error)
         })
 
         return () => unsubscribe()
@@ -133,17 +160,35 @@ export default function TeacherChatPage() {
         const text = input.trim()
         if (!text || !user || !selectedStudent) return
 
+        const tempId = `temp_${Date.now()}`
+        const optimisticMessage: ChatMessage = {
+            id: tempId,
+            role: 'teacher',
+            content: text,
+            time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+            user_id: selectedStudent.id,
+            teacher_id: user.uid,
+            status: 'sending',
+        }
+
+        setMessages(prev => [...prev, optimisticMessage])
+        setInput('')
+
         try {
             await addDoc(collection(db, 'messages'), {
                 user_id: selectedStudent.id,
                 teacher_id: user.uid,
                 role: 'teacher',
                 content: text,
-                created_at: serverTimestamp()
+                created_at: serverTimestamp(),
             })
-            setInput('')
         } catch (error) {
             console.error('Erro ao enviar:', error)
+            setMessages(prev => prev.map(m =>
+                m.id === tempId ? { ...m, status: 'error' } : m
+            ))
+            setInput(text)
+            toast.error('Erro ao enviar mensagem. Tente novamente.')
         }
     }
 
@@ -158,154 +203,165 @@ export default function TeacherChatPage() {
         return (
             <div className="h-screen flex items-center justify-center bg-white">
                 <div className="flex flex-col items-center gap-4">
-                    <Loader2 className="animate-spin text-black" size={48} />
-                    <p className="text-xs font-bold uppercase tracking-widest text-black animate-pulse">
-                        Carregando Conversas...
-                    </p>
+                    <div className="w-12 h-12 border-4 border-[#1d5f31] border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-xs font-medium text-[#061629] animate-pulse">Carregando Conversas...</p>
                 </div>
             </div>
         )
     }
 
     return (
-        <div className="h-[calc(100vh-40px)] bg-transparent flex flex-col overflow-hidden font-montserrat animate-in fade-in duration-500">
-            <div className="max-w-full w-full mx-auto flex flex-col flex-1 pt-4 pb-2 px-4 gap-6 overflow-hidden">
+        <div className="h-[calc(100vh-120px)] bg-white text-slate-900 flex flex-col overflow-hidden font-sans animate-in fade-in duration-500">
+            <div className="max-w-full w-full mx-auto flex flex-col flex-1 pt-4 pb-4 px-6 gap-6 overflow-hidden">
 
-                {/* Page Header */}
+                {/* Header Simples */}
                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-4">
                         <Link
                             href="/dashboard-teacher"
-                            className="p-4 bg-white border border-black rounded-2xl hover:bg-black hover:text-white transition shadow-none active:scale-95"
+                            className="p-2 text-[#061629] hover:bg-[#F1F3F4] rounded-lg transition-colors border border-[#D1D7DC]"
                         >
-                            <ArrowLeft size={20} />
+                            <ArrowLeft size={18} />
                         </Link>
                         <div>
-                            <div className="flex items-center gap-2 mb-1">
-
-                            </div>
-                            <h1 className="text-2xl font-bold tracking-tighter uppercase text-black leading-none max-w-xl">
-                                Central de <span className="text-[#1D5F31]">Mensagens</span>
-                            </h1>
+                            <h1 className="text-xl font-bold text-[#061629]">Central de Mensagens</h1>
+                            <p className="text-sm text-gray-500 font-normal">Gerencie e responda seus alunos</p>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex flex-1 gap-8 overflow-hidden">
-                    {/* Student List Sidebar */}
-                    <aside className="w-80 shrink-0 hidden lg:flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar">
-                        <div className="text-[10px] font-bold uppercase tracking-[4px] text-black px-4 mb-2">CONVERSAS ATIVAS</div>
+                <div className="flex flex-1 gap-6 overflow-hidden">
+                    {/* Sidebar de Alunos */}
+                    <aside className="w-80 shrink-0 hidden md:flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar-premium">
+                        <div className="text-[11px] font-bold uppercase tracking-wider text-gray-400 px-2">Conversas Ativas</div>
                         {students.length > 0 ? (
                             students.map(student => (
                                 <button
                                     key={student.id}
                                     onClick={() => setSelectedStudent(student)}
-                                    className={`flex items-center gap-5 p-6 rounded-[24px] border transition-all duration-300 group ${selectedStudent?.id === student.id ? 'bg-black border-black shadow-xl shadow-black/10' : 'bg-white border-black hover:border-black/50 hover:bg-gray-50'}`}
+                                    className={`group flex items-center gap-4 p-4 rounded-lg border transition-all text-left ${selectedStudent?.id === student.id 
+                                        ? 'bg-white border-[#D1D7DC] border-l-4 border-l-[#1d5f31]' 
+                                        : 'bg-white border-[#D1D7DC] hover:bg-[#F1F3F4]'}`}
                                 >
-                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-xs shrink-0 transition-all ${selectedStudent?.id === student.id ? 'bg-white text-black shadow-inner' : 'bg-black text-white'}`}>
-                                        {student.initials}
+                                    <div className="relative shrink-0">
+                                        <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-sm ${selectedStudent?.id === student.id ? 'bg-[#1d5f31] text-white' : 'bg-[#F1F3F4] text-[#061629]'}`}>
+                                            {student.initials}
+                                        </div>
+                                        <div className={`absolute bottom-0 right-0 w-3 h-3 border-2 border-white rounded-full ${student.status === 'online' ? 'bg-[#00C402]' : 'bg-gray-300'}`}></div>
                                     </div>
-                                    <div className="min-w-0 text-left">
-                                        <h4 className={`font-bold uppercase text-xs tracking-tight truncate mb-1 ${selectedStudent?.id === student.id ? 'text-white' : 'text-black'}`}>
-                                            {student.name}
-                                        </h4>
-                                        <p className={`text-[9px] font-bold uppercase tracking-widest truncate  ${selectedStudent?.id === student.id ? 'text-white/70' : 'text-gray-500'}`}>{student.course}</p>
+                                    <div className="min-w-0 flex-1">
+                                        <h4 className="font-bold text-sm text-[#061629] truncate">{student.name}</h4>
+                                        <p className="text-xs text-gray-500 truncate mt-0.5">{student.course}</p>
                                     </div>
                                 </button>
                             ))
                         ) : (
-                            <div className="p-8 bg-white border border-black rounded-[24px] text-center">
-                                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Nenhuma conversa encontrada</p>
+                            <div className="p-8 bg-white border border-[#D1D7DC] rounded-lg text-center">
+                                <p className="text-sm text-gray-500">Nenhuma conversa encontrada.</p>
                             </div>
                         )}
                     </aside>
 
-                    {/* Chat Window */}
-                    <section className="flex-1 flex flex-col bg-white border border-black rounded-[40px] overflow-hidden shadow-none mb-4 relative">
+                    {/* Área de Chat Principal */}
+                    <section className="flex-1 flex flex-col bg-white border border-[#D1D7DC] rounded-xl overflow-hidden shadow-none">
                         {selectedStudent ? (
                             <>
                                 {/* Chat Header */}
-                                <div className="flex items-center gap-6 px-10 py-6 border-b border-black/10 bg-white">
-                                    <div className="w-12 h-12 rounded-full bg-black flex items-center justify-center text-white font-bold text-sm">
-                                        {selectedStudent.initials}
+                                <div className="flex items-center gap-4 px-8 py-4 border-b border-[#D1D7DC] bg-white">
+                                    <div className="relative">
+                                        <div className="w-10 h-10 rounded-full bg-[#F1F3F4] flex items-center justify-center text-[#1d5f31] font-bold text-sm border border-[#D1D7DC]">
+                                            {selectedStudent.initials}
+                                        </div>
+                                        <div className={`absolute bottom-0 right-0 w-3 h-3 border-2 border-white rounded-full ${selectedStudent.status === 'online' ? 'bg-[#00C402]' : 'bg-gray-300'}`}></div>
                                     </div>
                                     <div>
-                                        <h3 className="font-bold uppercase tracking-tighter text-lg text-black">{selectedStudent.name}</h3>
-                                        <div className="flex items-center gap-2 mt-1">
-                                            <div className={`w-1.5 h-1.5 rounded-full ${selectedStudent.status === 'online' ? 'bg-[#1D5F31]' : 'bg-gray-300'}`}></div>
-                                            <span className={`text-[10px] font-bold uppercase tracking-[3px] ${selectedStudent.status === 'online' ? 'text-[#1D5F31]' : 'text-gray-500'}`}>
-                                                {selectedStudent.status === 'online' ? 'Conectado agora' : 'Desconectado'}
-                                            </span>
-                                        </div>
+                                        <h3 className="font-bold text-[#061629] text-base">{selectedStudent.name}</h3>
+                                        <span className={`text-[10px] font-medium uppercase tracking-[1px] ${selectedStudent.status === 'online' ? 'text-[#00C402]' : 'text-gray-500'}`}>
+                                            {selectedStudent.status === 'online' ? 'Conectado agora' : 'Desconectado'}
+                                        </span>
                                     </div>
-                                    <div className="ml-auto flex items-center gap-4">
-                                        <div className="hidden xl:flex items-center gap-3 text-[9px] font-bold uppercase tracking-[2px] text-black bg-gray-50 px-5 py-2.5 rounded-xl border border-black">
-                                            <GraduationCap size={16} className="text-[#1D5F31]" />
+                                    <div className="ml-auto hidden lg:block">
+                                        <div className="text-[11px] font-medium text-gray-500 py-1.5 px-3 rounded-full bg-[#F1F3F4] border border-[#D1D7DC]">
                                             {selectedStudent.course}
                                         </div>
                                     </div>
                                 </div>
 
-                                {/* Messages */}
-                                <div className="flex-1 overflow-y-auto px-8 md:px-12 py-10 space-y-10 bg-transparent custom-scrollbar">
-                                    {messages.map(msg => (
-                                        <div
-                                            key={msg.id}
-                                            className={`flex gap-5 ${msg.role === 'teacher' ? 'flex-row-reverse' : 'flex-row'} animate-in fade-in slide-in-from-bottom-4 duration-500`}
-                                        >
-                                            {/* Avatar */}
-                                            <div className={`w-10 h-10 rounded-full shrink-0 flex items-center justify-center font-bold text-[10px] mt-1 shadow-sm ${msg.role === 'student' ? 'bg-black text-white' : 'bg-[#1D5F31] text-white border-2 border-white'}`}>
-                                                {msg.role === 'student' ? selectedStudent.initials : 'EU'}
-                                            </div>
-
-                                            {/* Bubble */}
-                                            <div className={`max-w-[70%] ${msg.role === 'teacher' ? 'items-end' : 'items-start'} flex flex-col gap-2.5`}>
-                                                <div className={`px-8 py-5 rounded-[24px] text-sm font-medium leading-relaxed ${msg.role === 'student' ? 'bg-white border border-black text-black rounded-tl-none shadow-none' : 'bg-black text-white rounded-tr-none shadow-none'}`}>
-                                                    {msg.content}
+                                {/* Mensagens */}
+                                <div className="flex-1 overflow-y-auto px-8 py-10 space-y-6 bg-white custom-scrollbar-premium">
+                                    {messages.length > 0 ? (
+                                        messages.map(msg => (
+                                            <div
+                                                key={msg.id}
+                                                className={`flex flex-col ${msg.role === 'teacher' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}
+                                            >
+                                                <div className={`max-w-[70%] flex flex-col gap-1`}>
+                                                    <div className={`px-5 py-3.5 rounded-2xl text-[14px] leading-relaxed ${
+                                                        msg.role === 'teacher' 
+                                                        ? 'bg-white border border-[#D1D7DC] text-[#061629]' 
+                                                        : 'bg-[#F1F3F4] text-[#061629]'
+                                                    }`}>
+                                                        {msg.content}
+                                                    </div>
+                                                    <span className={`text-[10px] text-gray-400 mt-1 font-medium flex items-center gap-1 ${msg.role === 'teacher' ? 'text-right mr-2 justify-end' : 'ml-2'}`}>
+                                                        {msg.id.startsWith('temp_') && msg.status === 'sending' && (
+                                                            <span className="text-gray-400 italic">Enviando...</span>
+                                                        )}
+                                                        {msg.status === 'error' && (
+                                                            <span className="text-red-500">Erro</span>
+                                                        )}
+                                                        {msg.time}
+                                                    </span>
                                                 </div>
-                                                <span className="text-[9px] font-bold uppercase tracking-widest text-gray-500 px-3">{msg.time}</span>
                                             </div>
+                                        ))
+                                    ) : (
+                                        <div className="h-full flex flex-col items-center justify-center text-center p-12 space-y-4">
+                                            <div className="w-16 h-16 bg-[#F1F3F4] rounded-full flex items-center justify-center text-gray-400 border border-[#D1D7DC]">
+                                                <MessageSquare size={28} />
+                                            </div>
+                                            <h3 className="text-lg font-bold text-[#061629]">Inicie uma conversa</h3>
+                                            <p className="text-sm text-gray-500 max-w-xs">Olá! Responda ao seu aluno {selectedStudent.name}.</p>
                                         </div>
-                                    ))}
+                                    )}
                                     <div ref={bottomRef} />
                                 </div>
 
-                                {/* Input Bar */}
-                                <div className="px-10 py-8 border-t border-black/10 bg-white">
-                                    <div className="flex items-end gap-5">
-                                        <button className="p-4 bg-gray-50 border border-black rounded-2xl text-black hover:bg-black hover:text-white transition-all active:scale-95">
-                                            <MessageSquare size={20} />
-                                        </button>
-                                        <div className="flex-1 bg-white border border-black rounded-[28px] flex items-end px-8 py-5 focus-within:ring-2 ring-black/5 transition-all">
-                                            <textarea
+                                {/* Input de Mensagem */}
+                                <div className="px-8 py-6 border-t border-[#D1D7DC] bg-white">
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex-1 flex items-center bg-white border border-[#D1D7DC] rounded-lg px-4 py-3 focus-within:border-[#1d5f31] transition-all group ring-offset-2">
+                                            <input
+                                                type="text"
                                                 value={input}
                                                 onChange={e => setInput(e.target.value)}
                                                 onKeyDown={handleKey}
                                                 placeholder="Digite sua resposta aqui..."
-                                                rows={1}
-                                                className="flex-1 bg-transparent outline-none resize-none font-bold text-sm text-black placeholder:text-gray-400 placeholder:font-bold max-h-40"
-                                                style={{ lineHeight: '1.6' }}
+                                                className="flex-1 bg-transparent outline-none text-sm text-[#061629] placeholder:text-gray-400"
                                             />
                                         </div>
                                         <button
                                             onClick={handleSend}
                                             disabled={!input.trim()}
-                                            className="w-16 h-16 bg-black text-white rounded-[24px] flex items-center justify-center hover:bg-gray-900 disabled:opacity-20 active:scale-95 transition-all shadow-none group shrink-0"
+                                            className="h-11 px-6 bg-[#1d5f31] text-white rounded-lg flex items-center gap-2 font-bold text-sm hover:opacity-90 disabled:opacity-30 transition-all shadow-none shrink-0"
                                         >
-                                            <Send size={22} strokeWidth={3} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                                            <span>Enviar</span>
+                                            <Send size={16} />
                                         </button>
                                     </div>
-                                    <p className="text-[10px] font-bold uppercase tracking-[4px] text-center text-gray-400 mt-6 ">PowerPlay Creator Ecosystem • Secure Mentorship</p>
+                                    <p className="text-[10px] text-center text-gray-400 mt-4 font-normal">PowerPlay Creator Ecosystem • Secure Mentorship</p>
                                 </div>
                             </>
                         ) : (
-                            <div className="flex-1 flex flex-col items-center justify-center text-center p-20 space-y-6">
-                                <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center border border-black text-black/20">
-                                    <Users size={32} />
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-bold uppercase tracking-tighter text-black">Selecione uma Mentoria</h3>
-                                    <p className="text-[11px] font-bold uppercase tracking-[3px] text-gray-400 mt-2 ">Aguardando interação com aluno real</p>
+                            <div className="flex-1 flex flex-col items-center justify-center text-center p-20 space-y-6 bg-[#F1F3F4]/30">
+                                <div className="max-w-xs space-y-4">
+                                    <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center text-[#D1D7DC] mx-auto border border-[#D1D7DC]">
+                                        <Users size={32} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-[#061629]">Selecione uma Mentoria</h3>
+                                        <p className="text-sm text-gray-500 mt-2">Aguardando interação com aluno real</p>
+                                    </div>
                                 </div>
                             </div>
                         )}
@@ -314,18 +370,18 @@ export default function TeacherChatPage() {
             </div>
 
             <style jsx>{`
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 6px;
+                .custom-scrollbar-premium::-webkit-scrollbar {
+                    width: 5px;
                 }
-                .custom-scrollbar::-webkit-scrollbar-track {
+                .custom-scrollbar-premium::-webkit-scrollbar-track {
                     background: transparent;
                 }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: rgba(0,0,0,0.1);
+                .custom-scrollbar-premium::-webkit-scrollbar-thumb {
+                    background: #D1D7DC;
                     border-radius: 10px;
                 }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: rgba(0,0,0,0.2);
+                .custom-scrollbar-premium::-webkit-scrollbar-thumb:hover {
+                    background: #94A3B8;
                 }
             `}</style>
         </div>

@@ -100,7 +100,7 @@ export default async function TeacherDashboard() {
 
 
     return (
-        <div className="min-h-screen bg-transparent font-montserrat pb-24 pt-12 relative animate-in fade-in duration-500">
+        <div className="bg-transparent font-montserrat pb-24 pt-12 relative animate-in fade-in duration-500">
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center px-8 mb-12 gap-6">
                 <div>
                     <h1 className="text-2xl md:text-3xl font-bold tracking-tighter text-slate-900 uppercase leading-none max-w-xl">

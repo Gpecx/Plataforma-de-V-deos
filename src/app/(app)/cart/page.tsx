@@ -60,7 +60,7 @@ export default function CartPage() {
 
     return (
         <div className="min-h-screen bg-slate-50 text-slate-900 font-montserrat border-t border-slate-200">
-            <div className="w-full px-4 md:px-8 lg:px-12 py-12">
+            <div className="w-full px-4 md:px-8 lg:px-12 pt-28 pb-12">
                 <div className="mb-12 flex flex-col md:flex-row md:items-center justify-between gap-8">
                     <div className="flex items-center gap-6">
                         <div className="w-16 h-16 bg-[#1D5F31] rounded-2xl flex items-center justify-center text-white shadow-lg relative">
@@ -70,8 +70,9 @@ export default function CartPage() {
                             </span>
                         </div>
                         <div>
-                            <h1 className="text-4xl font-bold tracking-tighter uppercase mb-1 text-slate-900">
-                                SEU <span className="text-[#1D5F31]">CARRINHO</span>
+                            <h1 className="text-4xl font-bold tracking-tighter uppercase mb-1 flex items-center gap-3 flex-wrap">
+                                <span className="!text-slate-900">SEU</span>
+                                <span className="text-[#1D5F31]">CARRINHO</span>
                             </h1>
                             <p className="text-slate-500 font-bold uppercase text-[10px] tracking-[4px]">
                                 {items.length === 0 ? 'Seu carrinho está vazio' : `VOCÊ TEM ${items.length} ITENS SELECIONADOS`}
@@ -104,7 +105,7 @@ export default function CartPage() {
                                         />
                                     </div>
                                     <div className="flex-1 text-center md:text-left">
-                                        <h3 className="text-2xl font-bold tracking-tighter mb-3 group-hover:text-[#1D5F31] transition uppercase text-slate-900 leading-tight">{course.title}</h3>
+                                        <h3 className="text-2xl font-bold tracking-tighter mb-3 group-hover:text-[#1D5F31] transition uppercase !text-slate-900 leading-tight">{course.title}</h3>
                                         <div className="flex flex-wrap items-center justify-center md:justify-start gap-5 mb-5">
                                             <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest flex items-center gap-2">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-[#1D5F31]"></div>
@@ -134,7 +135,7 @@ export default function CartPage() {
                         {/* Summary Section */}
                         <div className="xl:col-span-1 space-y-6">
                             <div className="bg-white border border-slate-200 p-8 md:p-10 shadow-lg rounded-[32px]">
-                                <h2 className="text-2xl font-bold uppercase mb-8 border-b border-slate-100 pb-6 tracking-tighter text-slate-900">RESUMO DO <span className="text-[#1D5F31]">PEDIDO</span></h2>
+                                <h2 className="text-2xl font-bold uppercase mb-8 border-b border-slate-100 pb-6 tracking-tighter"><span className="!text-slate-900">RESUMO DO</span> <span className="text-[#1D5F31]">PEDIDO</span></h2>
 
                                 <div className="space-y-5 mb-10">
                                     <div className="flex justify-between font-bold uppercase text-[11px] tracking-widest text-slate-500">
@@ -183,8 +184,8 @@ export default function CartPage() {
                         <div className="w-24 h-24 bg-slate-50 flex items-center justify-center mx-auto mb-10 border border-slate-100 rounded-full shadow-inner">
                             <BookOpen size={40} className="text-slate-300" />
                         </div>
-                        <h2 className="text-3xl font-bold tracking-tighter mb-4 text-slate-900 uppercase">Seu carrinho está vazio</h2>
-                        <p className="text-slate-500 mb-12 font-bold uppercase text-[11px] tracking-[4px]">Explore nossos treinamentos e comece sua evolução hoje.</p>
+                        <h2 className="text-3xl font-bold tracking-tighter mb-4 !text-slate-900 uppercase">Seu carrinho está vazio</h2>
+                        <p className="!text-slate-800 mb-12 font-bold uppercase text-[11px] tracking-[4px]">Explore nossos treinamentos e comece sua evolução hoje.</p>
                         <Link href="/course">
                             <button className="px-12 py-6 bg-[#1D5F31] text-white font-bold uppercase tracking-widest text-xs hover:opacity-90 transition-all shadow-xl shadow-[#1D5F31]/20 rounded-2xl active:scale-95">
                                 Ver Catálogo de Cursos

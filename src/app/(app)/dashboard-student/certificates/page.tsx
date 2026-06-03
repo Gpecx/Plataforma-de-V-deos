@@ -176,7 +176,7 @@ export default function CertificatesPage() {
     }
 
     return (
-        <div className="p-8 md:p-12 min-h-screen font-montserrat text-black bg-transparent animate-in fade-in duration-500">
+        <div className="p-8 md:p-12 min-h-screen font-montserrat text-black bg-white animate-in fade-in duration-500">
             <style jsx global>{`
                 @media print {
                     body {

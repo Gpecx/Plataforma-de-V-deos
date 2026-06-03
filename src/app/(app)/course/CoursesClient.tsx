@@ -139,18 +139,18 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: Cou
     const dynamicCategories = Array.from(new Set(filteredCourses.map(c => c.category || "Lançamentos"))).sort();
 
     return (
-        <div className="min-h-screen bg-white text-black font-montserrat">
+        <div className="min-h-screen bg-[#0B1215] text-white font-montserrat pt-24">
 
-            <BannerWrapper>
+            <section className="relative w-full overflow-hidden">
                 <div className="relative aspect-[21/9] md:aspect-[32/10]">
                     {displaySlides.map((slide, index) => (
                         <div key={index} className={`absolute inset-0 transition-opacity duration-1000 ${index === currentSlide ? "opacity-100" : "opacity-0"}`}>
-                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent z-10" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#0B1215] via-slate-900/60 to-transparent z-10" />
                             <NextImage src={slide.image} fill priority={index === 0} className="object-cover scale-105" alt={slide.title} sizes="100vw" />
                         </div>
                     ))}
 
-                    <div className="relative z-20 h-full flex flex-col justify-center px-8 md:px-12 lg:px-16 space-y-6 max-w-3xl pt-16 pb-12">
+                    <div className="relative z-20 h-full flex flex-col justify-center px-8 md:px-12 lg:px-24 space-y-6 max-w-3xl pt-32 pb-16">
                         <AnimatePresence mode="wait">
                             <motion.div
                                 key={isLoggedIn ? 'logged-in' : 'logged-out'}
@@ -179,7 +179,7 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: Cou
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: -10 }}
                                 transition={{ duration: 0.3, delay: 0.1 }}
-                                className="text-3xl md:text-5xl lg:text-[3.25rem] font-bold tracking-tighter leading-[0.9] !text-white max-w-2xl"
+                                className="text-3xl md:text-5xl lg:text-[3.25rem] font-bold tracking-tighter leading-[0.9] !text-[#22c55e] max-w-2xl"
                             >
                                 {isLoggedIn ? "CONTINUE SUA EVOLUÇÃO" : displaySlides[currentSlide]?.title}
                             </motion.h1>
@@ -215,19 +215,19 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: Cou
                         </div>
                     )}
                 </div>
-            </BannerWrapper>
+            </section>
 
             {/* Filtros e Busca */}
             <div className="relative z-30 px-6 md:px-12 mt-12">
-                <div className="flex flex-col md:flex-row gap-6 items-center justify-between bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
+                <div className="flex flex-col md:flex-row gap-6 items-center justify-between bg-transparent border-b border-[#1D5F31] pb-4">
                     {/* Filtros Rápidos */}
                     <div className="flex flex-wrap gap-2 w-full md:w-auto">
                         {(['all', 'premium', 'free', 'new'] as const).map((filter) => {
                             const labels = {
-                                all: 'Todos',
-                                premium: 'Premium',
-                                free: 'Gratuito',
-                                new: 'Novo'
+                                all: 'TODOS',
+                                premium: 'PREMIUM',
+                                free: 'GRATUITO',
+                                new: 'NOVO'
                             };
                             const isActive = activeFilter === filter;
                             return (
@@ -236,8 +236,8 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: Cou
                                     onClick={() => setActiveFilter(filter)}
                                     className={`px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all duration-300 border ${
                                         isActive 
-                                        ? 'bg-[#1D5F31] !text-white border-[#1D5F31] shadow-md no-theme-override' 
-                                        : 'bg-white text-slate-600 border-slate-200 hover:border-[#1D5F31]/50 hover:text-[#1D5F31]'
+                                        ? 'bg-[#22c55e] text-[#0B1215] border-[#22c55e] shadow-[0_0_15px_rgba(34,197,94,0.3)] no-theme-override' 
+                                        : 'bg-transparent text-slate-400 border-slate-700 hover:border-[#1D5F31] hover:text-[#22c55e]'
                                     }`}
                                 >
                                     {labels[filter]}
@@ -248,25 +248,25 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: Cou
 
                     {/* Barra de Pesquisa */}
                     <div className="relative w-full md:max-w-md">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#22c55e]" size={18} />
                         <input 
                             type="text" 
                             placeholder="Buscar treinamentos..." 
                             value={localSearch}
                             onChange={(e) => setLocalSearch(e.target.value)}
-                            className="w-full h-12 pl-11 pr-4 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-black placeholder:text-slate-400 focus:outline-none focus:border-[#1D5F31] focus:ring-1 focus:ring-[#1D5F31] transition-all"
+                            className="w-full h-10 pl-11 pr-4 bg-transparent border border-slate-700 rounded-lg text-sm font-medium text-white placeholder:text-slate-500 focus:outline-none focus:border-[#22c55e] focus:ring-1 focus:ring-[#22c55e] transition-all"
                         />
                     </div>
                 </div>
             </div>
 
             {/* Título */}
-            <div className="relative z-30 px-6 md:px-12 mt-12 mb-10">
+            <div className="relative z-30 px-6 md:px-12 mt-12 mb-8">
                 <div className="flex items-center gap-4 mb-2">
-                    <div className="w-12 h-[2px] bg-[#1D5F31]"></div>
-                    <span className="text-sm font-bold uppercase tracking-tight text-[#1D5F31]">Explorar</span>
+                    <div className="w-8 h-[2px] bg-[#22c55e]"></div>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Explorar</span>
                 </div>
-                <h2 className="text-2xl md:text-3xl font-bold tracking-tighter text-black">
+                <h2 className="text-2xl md:text-3xl font-bold tracking-tighter text-[#22c55e]">
                     {localSearch || searchQuery ? `RESULTADOS PARA: ${(localSearch || searchQuery).toUpperCase()}` : "CATÁLOGO DE FORMAÇÃO"}
                 </h2>
             </div>
@@ -283,24 +283,24 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: Cou
                             <div 
                                 key={teacher.id} 
                                 onClick={() => router.push(`/professor/${teacher.id}` as any)}
-                                className="group flex items-center gap-4 p-4 bg-white border border-black rounded-xl hover:border-[#1D5F31] transition-all cursor-pointer"
+                                className="group flex items-center gap-4 p-4 bg-[#131F24] border border-[#1D5F31] rounded-xl hover:border-[#22c55e] transition-all cursor-pointer"
                             >
-                                <div className="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center border border-black overflow-hidden shrink-0 group-hover:border-[#1D5F31] transition-all relative">
+                                <div className="w-12 h-12 rounded-xl bg-[#0B1215] flex items-center justify-center border border-[#1D5F31] overflow-hidden shrink-0 group-hover:border-[#22c55e] transition-all relative">
                                     {teacher.photoURL ? (
                                         <NextImage src={teacher.photoURL} alt={teacher.full_name} fill className="object-cover" sizes="48px" />
                                     ) : (
-                                        <User className="text-black" size={20} />
+                                        <User className="text-slate-400" size={20} />
                                     )}
                                 </div>
                                 <div className="flex flex-col">
-                                    <span className="text-sm font-bold uppercase tracking-tight text-black group-hover:text-[#1D5F31] transition-colors">
+                                    <span className="text-sm font-bold uppercase tracking-tight text-white group-hover:text-[#22c55e] transition-colors">
                                         {teacher.full_name}
                                     </span>
                                     <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">
                                         {teacher.specialty || (teacher.role === 'admin' ? 'Administrador' : 'Instrutor')}
                                     </span>
                                 </div>
-                                <ChevronRight className="ml-auto text-slate-300 group-hover:text-[#1D5F31] transition-all" size={18} />
+                                <ChevronRight className="ml-auto text-slate-500 group-hover:text-[#22c55e] transition-all" size={18} />
                             </div>
                         ))}
                     </div>
@@ -310,13 +310,13 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: Cou
             {/* Lista de Cursos */}
             <div className="px-6 md:px-12 relative z-30 space-y-16 pb-32">
                 {filteredCourses.length === 0 && filteredTeachers.length === 0 ? (
-                    <div className="text-center py-20 bg-white border border-slate-200 rounded-xl shadow-sm space-y-6">
-                        <div className="w-20 h-20 bg-[#1D5F31]/20 flex items-center justify-center mx-auto rounded-full">
-                            <Info size={32} className="text-slate-700" />
+                    <div className="text-center py-20 bg-[#131F24] border border-[#1D5F31] rounded-xl shadow-sm space-y-6">
+                        <div className="w-20 h-20 bg-[#1D5F31]/20 flex items-center justify-center mx-auto rounded-full border border-[#1D5F31]/50">
+                            <Info size={32} className="text-[#22c55e]" />
                         </div>
-                        <p className="text-lg font-bold text-slate-500 uppercase tracking-[3px]">Nenhum treinamento encontrado.</p>
+                        <p className="text-lg font-bold text-slate-300 uppercase tracking-[3px]">Nenhum treinamento encontrado.</p>
                         <Link href="/course">
-                            <Button variant="outline" className="border-[#1D5F31] text-slate-400 font-bold uppercase tracking-tight text-sm h-12 hover:bg-[#1D5F31]/20">
+                            <Button variant="outline" className="border-[#22c55e] text-[#22c55e] font-bold uppercase tracking-tight text-sm h-12 hover:bg-[#22c55e] hover:text-[#0B1215]">
                                 Ver todos os cursos
                             </Button>
                         </Link>
@@ -330,13 +330,13 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: Cou
 
                             return (
                                 <div key={category} className="space-y-10">
-                                    <div className="flex items-end justify-between border-b border-[#1D5F31] pb-6">
-                                        <h2 className="text-xl md:text-2xl font-bold uppercase tracking-tighter flex items-center gap-3 group cursor-pointer text-black">
+                                    <div className="flex items-end justify-between border-b border-[#1D5F31]/50 pb-4">
+                                        <h2 className="text-lg md:text-xl font-bold uppercase tracking-wider flex items-center gap-3 group cursor-pointer text-[#22c55e]">
                                             {category}
-                                            <ChevronRight className="text-[#1D5F31] w-5 h-5 md:w-6 md:h-6 opacity-40 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                                            <ChevronRight className="text-[#22c55e] w-4 h-4 opacity-40 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
                                         </h2>
-                                        <span className="text-slate-500 text-sm font-bold uppercase tracking-tight mb-1">
-                                            {coursesInCategory.length} Módulos Encontrados
+                                        <span className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mb-1">
+                                            {coursesInCategory.length} MÓDULOS ENCONTRADOS
                                         </span>
                                     </div>
 
@@ -345,7 +345,7 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: Cou
                                             <div
                                                 key={course.id}
                                                 onClick={() => handleCourseClick(course)}
-                                                className="group bg-white border border-black p-0 rounded-xl overflow-hidden hover:border-[#1D5F31]/30 transition-all duration-300 flex flex-col hover:shadow-lg cursor-pointer"
+                                                className="group bg-[#131F24] border border-slate-800 rounded-xl overflow-hidden hover:border-[#22c55e] transition-all duration-300 flex flex-col hover:shadow-[0_0_20px_rgba(34,197,94,0.15)] cursor-pointer"
                                             >
                                                 <div className="aspect-video relative overflow-hidden">
                                                     <NextImage
@@ -364,28 +364,28 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: Cou
                                                         const isPurchased = profile?.role === 'admin' || (profile?.role === 'teacher' && course.teacher_id === user?.uid) || profile?.cursos_comprados?.includes(course.id) || purchasedCourseIds.includes(course.id);
                                                         if (isPurchased) {
                                                             return (
-                                                                <div className="absolute top-2 left-2 bg-[#1D5F31] !text-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm z-10 shadow-lg no-theme-override">
+                                                                <div className="absolute top-2 left-2 bg-[#22c55e] !text-[#0B1215] px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm z-10 shadow-lg no-theme-override">
                                                                     ADQUIRIDO
                                                                 </div>
                                                             )
                                                         }
                                                         if (course.pricing_type === 'premium') {
                                                             return (
-                                                                <div className="absolute top-2 left-2 bg-[#1D5F31] !text-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm z-10 shadow-lg no-theme-override">
+                                                                <div className="absolute top-2 left-2 bg-[#1D5F31] !text-[#22c55e] border border-[#22c55e]/50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm z-10 shadow-lg no-theme-override">
                                                                     PREMIUM
                                                                 </div>
                                                             )
                                                         }
                                                         if (course.pricing_type === 'free') {
                                                             return (
-                                                                <div className="absolute top-2 left-2 bg-black !text-white px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm z-10 shadow-lg no-theme-override">
+                                                                <div className="absolute top-2 left-2 bg-slate-800 !text-white border border-slate-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm z-10 shadow-lg no-theme-override">
                                                                     GRATUITO
                                                                 </div>
                                                             )
                                                         }
                                                         if (isNewCourse(course.created_at)) {
                                                             return (
-                                                                <div className="absolute top-2 left-2 bg-white !text-[#1D5F31] px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm z-10 shadow-lg no-theme-override">
+                                                                <div className="absolute top-2 left-2 bg-[#22c55e] !text-[#0B1215] px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm z-10 shadow-lg no-theme-override">
                                                                     NOVO
                                                                 </div>
                                                             )
@@ -393,17 +393,20 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: Cou
                                                         return null
                                                     })()}
                                                 </div>
-                                                <div className="p-6 flex-grow flex flex-col space-y-4">
-                                                    <h3 className="text-sm font-bold text-black leading-tight group-hover:text-[#1D5F31] transition-colors line-clamp-2">
+                                                <div className="p-4 flex-grow flex flex-col space-y-4">
+                                                    <h3 className="text-sm font-bold text-white leading-tight group-hover:text-[#22c55e] transition-colors line-clamp-2">
                                                         {course.title}
                                                     </h3>
-                                                    <div className="mt-auto pt-3 border-t border-slate-100 flex items-center justify-between">
+                                                    <div className="mt-auto pt-3 border-t border-slate-800 flex items-center justify-between">
                                                         <div className="flex flex-col">
-                                                            <span className="text-sm text-black uppercase font-bold tracking-tight leading-none mb-1" style={{ color: '#000000' }}>Investimento</span>
-                                                            <span className="text-sm font-bold text-black leading-none" style={{ color: '#000000' }}>
-                                                                R$ {Number(course.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                                                            <span className="text-[10px] text-slate-400 uppercase font-bold tracking-widest leading-none mb-1">Investimento</span>
+                                                            <span className="text-sm font-bold text-white leading-none">
+                                                                {course.price === 0 ? "R$ 0,00" : `R$ ${Number(course.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
                                                             </span>
                                                         </div>
+                                                        <button className="bg-[#1D5F31] hover:bg-[#22c55e] text-[#22c55e] hover:text-[#0B1215] border border-[#22c55e]/50 text-[10px] px-3 py-1.5 rounded-md font-bold uppercase tracking-widest transition-colors shadow-[0_0_10px_rgba(34,197,94,0.1)]">
+                                                            Continuar Aula
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -453,9 +456,9 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: Cou
 export default function CoursesClient({ initialCourses, initialTeachers, heroBanners }: CoursesClientProps) {
     return (
         <Suspense fallback={
-            <div className="min-h-screen bg-white flex items-center justify-center">
+            <div className="min-h-screen bg-[#0B1215] flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
-                    <Loader2 className="animate-spin text-[#1D5F31]" size={40} />
+                    <Loader2 className="animate-spin text-[#22c55e]" size={40} />
                     <p className="text-sm font-bold uppercase tracking-tight text-slate-500">Preparando Cursos...</p>
                 </div>
             </div>

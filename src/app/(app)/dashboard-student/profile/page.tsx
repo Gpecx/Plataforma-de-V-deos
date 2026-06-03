@@ -6,8 +6,8 @@ import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 
 export default async function ProfilePage() {
-    const cookieStore = cookies()
-    const token = (await cookieStore).get('session')?.value
+    const cookieStore = await cookies()
+    const token = cookieStore.get('session')?.value
 
     if (!token) redirect('/login')
 
@@ -22,7 +22,7 @@ export default async function ProfilePage() {
     const profile = profileDoc.data()
 
     return (
-        <div className="min-h-screen bg-white font-montserrat p-8 md:p-12">
+        <div className="min-h-screen bg-white text-slate-900 font-montserrat p-8 md:p-12">
             <div className="max-w-4xl mx-auto space-y-10">
                 <div className="flex items-center justify-between">
                     <div>
