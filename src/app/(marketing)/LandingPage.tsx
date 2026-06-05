@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useAuth } from "@/context/AuthProvider";
-import { ArrowRight, Clock, Infinity, Award, Headphones, TrendingUp, Handshake, BarChart3, Loader2 } from "lucide-react";
+import { ArrowRight, Clock, Infinity, Award, Headphones, TrendingUp, Handshake, BarChart3, Loader2, ChevronDown } from "lucide-react";
 import { db, auth } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { collection, query, where, limit, getDocs, doc, getDoc } from "firebase/firestore";
@@ -103,6 +103,10 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
         );
     }
 
+    const scrollToNext = () => {
+        window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })
+    }
+
     return (
         <>
             <SpaceParticles />
@@ -111,6 +115,7 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
             <section
                 className="hero-section"
                 style={{
+                    position: "relative",
                     backgroundImage: "url('/images/hero-bg.png')",
                     backgroundSize: "cover",
                     backgroundPosition: "center"
@@ -241,6 +246,16 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
                 </div>
 
                 {/* Content flows directly over global background */}
+
+                {/* Scroll Down Button */}
+                <button
+                    onClick={scrollToNext}
+                    aria-label="Ver mais conteúdos"
+                    className="absolute left-1/2 -translate-x-1/2 z-10 rounded-md bg-transparent border border-[#1D5F31] p-3 text-white transition-all duration-200 hover:bg-[#1D5F31]/20 focus:outline-none animate-bounce inline-flex items-center justify-center"
+                    style={{ bottom: "7.5rem" }}
+                >
+                    <ChevronDown className="h-5 w-5 text-white" />
+                </button>
             </section>
 
             {/* ───────────────── DIVISÓRIA COM FRASE ───────────────── */}
