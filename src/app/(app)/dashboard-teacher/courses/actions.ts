@@ -14,6 +14,18 @@ async function getAuthUser() {
         // A-03: Validar role diretamente do token decodificado (Custom Claims)
         const role = decoded.role
         if (role !== 'teacher' && role !== 'admin') return null
+
+        // Professores só podem operar cursos após aprovação do admin. Sem este
+        // guard, um professor 'pending'/'rejected'/'banned' (role ainda é
+        // 'teacher') poderia criar/editar cursos chamando a action diretamente,
+        // contornando o TeacherStatusGuard que só bloqueia a UI.
+        if (role === 'teacher') {
+            const profile = (await adminDb.collection('profiles').doc(decoded.uid).get()).data()
+            const status = profile?.teacher_status
+            if (status === 'pending' || status === 'rejected' || status === 'banned') {
+                return null
+            }
+        }
         return decoded
     } catch (error) {
         return null

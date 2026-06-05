@@ -18,7 +18,7 @@ service cloud.firestore {
 
     // Busca o papel (role) do usuário no seu documento de perfil
     function getUserRole() {
-      return get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role;
+      return get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.get('role', 'student');
     }
 
     function isAdmin() {
@@ -69,8 +69,23 @@ service cloud.firestore {
         || isOwner(resource.data.teacher_id)
         || isAdmin()
       );
-      // Escrita: apenas professores e admins
-      allow write: if isTeacherOrAdmin();
+
+      // Criar: só professor/admin, e o dono declarado tem que ser ele mesmo.
+      // O status nasce sem aprovação — apenas o admin pode marcar 'APROVADO'.
+      allow create: if isTeacherOrAdmin()
+        && request.resource.data.teacher_id == request.auth.uid
+        && (isAdmin() || request.resource.data.status != 'APROVADO');
+
+      // Editar: só o dono (ou admin). Não pode trocar de dono nem se autoaprovar.
+      allow update: if isAdmin() || (
+        isTeacherOrAdmin()
+        && isOwner(resource.data.teacher_id)
+        && request.resource.data.teacher_id == resource.data.teacher_id
+        && request.resource.data.status == resource.data.status
+      );
+
+      // Apagar: só o dono ou admin.
+      allow delete: if isAdmin() || (isTeacherOrAdmin() && isOwner(resource.data.teacher_id));
     }
 
     // =========================================================================
@@ -94,8 +109,18 @@ service cloud.firestore {
         // ⭐ Trava 3: Aluno comprou o curso? Usa a Regra de Ouro.
         || hasPurchasedCourse(resource.data.course_id)
       );
-      // Escrita: apenas professores e admins
-      allow write: if isTeacherOrAdmin();
+
+      // Escrita: admin, ou o professor DONO do curso referenciado pela aula.
+      // Impede que um professor escreva aulas no curso de outro (ou aponte
+      // course_id para um curso que não é seu).
+      allow create: if isAdmin() || (
+        isTeacherOrAdmin()
+        && get(/databases/$(database)/documents/courses/$(request.resource.data.course_id)).data.teacher_id == request.auth.uid
+      );
+      allow update, delete: if isAdmin() || (
+        isTeacherOrAdmin()
+        && get(/databases/$(database)/documents/courses/$(resource.data.course_id)).data.teacher_id == request.auth.uid
+      );
     }
 
     // =========================================================================
@@ -122,18 +147,23 @@ service cloud.firestore {
 
     // =========================================================================
     // CONFIG (Configurações Globais)
-    // Qualquer um pode ler (ex: taxas, branding). Apenas admin escreve.
+    // LGPD: leitura restrita a autenticados. A vitrine pública lê via Admin SDK
+    // (server-side), que ignora estas regras — então restringir aqui não quebra
+    // a landing page e evita exposição pública caso algum dado sensível seja
+    // adicionado nesta coleção no futuro. Apenas admin escreve.
     // =========================================================================
     match /config/{settingId} {
-      allow read: if true;
+      allow read: if isSignedIn();
       allow write: if isAdmin();
     }
 
     // =========================================================================
     // SETTINGS (Branding / Banners)
+    // LGPD: leitura restrita a autenticados (branding público é servido via
+    // Admin SDK no server, que ignora estas regras). Apenas admin escreve.
     // =========================================================================
     match /settings/{settingId} {
-      allow read: if true;
+      allow read: if isSignedIn();
       allow write: if isAdmin();
     }
 
@@ -151,6 +181,16 @@ service cloud.firestore {
     }
 
     // =========================================================================
+    // CONSENT LOGS (LGPD)
+    // Registros de consentimento (contêm ip_address). Apenas o Admin SDK
+    // (backend) escreve; nenhum cliente lê ou escreve. Regra explícita para
+    // documentar a intenção — antes era 'default-deny' por omissão.
+    // =========================================================================
+    match /consent_logs/{logId} {
+      allow read, write: if isAdmin();
+    }
+
+    // =========================================================================
     // MESSAGES (Chat)
     // Alunos e professores leem apenas as conversas em que participam.
     // =========================================================================
@@ -165,6 +205,33 @@ service cloud.firestore {
         || request.resource.data.teacher_id == request.auth.uid
       );
       allow update, delete: if isAdmin();
+    }
+
+    // =========================================================================
+    // BUNDLES (Pacotes de Cursos)
+    // Professores criam e gerenciam seus próprios pacotes.
+    // Alunos autenticados leem para visualizar ofertas de upsell no carrinho.
+    // =========================================================================
+    match /bundles/{bundleId} {
+      // Leitura: qualquer usuário autenticado pode ver pacotes ativos
+      allow read: if isSignedIn();
+
+      // Criação: apenas o professor dono declarado pode criar
+      allow create: if isSignedIn()
+        && isTeacherOrAdmin()
+        && request.resource.data.teacher_id == request.auth.uid;
+
+      // Edição: apenas o dono do pacote ou admin
+      allow update: if isSignedIn() && (
+        isAdmin()
+        || (isTeacherOrAdmin() && resource.data.teacher_id == request.auth.uid)
+      );
+
+      // Exclusão: apenas o dono ou admin
+      allow delete: if isSignedIn() && (
+        isAdmin()
+        || (isTeacherOrAdmin() && resource.data.teacher_id == request.auth.uid)
+      );
     }
 
     // =========================================================================

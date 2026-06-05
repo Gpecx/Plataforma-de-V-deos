@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useMemo } from 'react'
-import { Users, BookOpen, GraduationCap, Search, ChevronRight, Check, X, Mail, Calendar, MapPin, Briefcase, Monitor, ShieldCheck, AlertTriangle } from 'lucide-react'
-import { getTeacherStudents, banTeacher, reactivateTeacher, getTeacherDetails } from '@/app/actions/admin'
+import { Users, BookOpen, GraduationCap, Search, ChevronRight, Check, X, Mail, Calendar, MapPin, Briefcase, Monitor, ShieldCheck, AlertTriangle, Clock } from 'lucide-react'
+import { getTeacherStudents, banTeacher, reactivateTeacher, getTeacherDetails, handleTeacherApproval } from '@/app/actions/admin'
 import { AnimatePresence, motion } from 'framer-motion'
 import { toast } from 'sonner'
 import { normalizeString } from '@/lib/utils'
@@ -13,7 +13,7 @@ interface Teacher {
     email?: string
     avatar_url?: string
     ativo?: boolean
-    teacher_status?: 'active' | 'banned'
+    teacher_status?: 'pending' | 'approved' | 'active' | 'rejected' | 'banned'
     created_at?: string
     teacher_application_data?: {
         primary_topic?: string
@@ -77,7 +77,7 @@ const HARDWARE_MAP: Record<string, string> = {
 }
 
 export default function TeacherManagement({ initialTeachers }: TeacherManagementProps) {
-    const [activeTab, setActiveTab] = useState<'ativos' | 'banidos'>('ativos')
+    const [activeTab, setActiveTab] = useState<'pendentes' | 'ativos' | 'banidos'>('ativos')
     const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
     const [teacherFullDetails, setTeacherFullDetails] = useState<any>(null)
     const [students, setStudents] = useState<Student[]>([])
@@ -85,22 +85,27 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
     const [searchTerm, setSearchTerm] = useState('')
     const [processingId, setProcessingId] = useState<string | null>(null)
 
-    const bannedTeachers = useMemo(() => 
-        initialTeachers.filter(t => t.teacher_status === 'banned'), 
+    const pendingTeachers = useMemo(() =>
+        initialTeachers.filter(t => t.teacher_status === 'pending'),
         [initialTeachers]
     )
-    const activeTeachers = useMemo(() => 
-        initialTeachers.filter(t => t.teacher_status !== 'banned'), 
+    const bannedTeachers = useMemo(() =>
+        initialTeachers.filter(t => t.teacher_status === 'banned'),
+        [initialTeachers]
+    )
+    // Ativos = nem pendentes, nem rejeitados, nem banidos (inclui 'active'/'approved'/legados sem status)
+    const activeTeachers = useMemo(() =>
+        initialTeachers.filter(t => !['pending', 'rejected', 'banned'].includes(t.teacher_status)),
         [initialTeachers]
     )
 
     const filteredTeachers = useMemo(() => {
-        const list = activeTab === 'ativos' ? activeTeachers : bannedTeachers
+        const list = activeTab === 'ativos' ? activeTeachers : activeTab === 'pendentes' ? pendingTeachers : bannedTeachers
         return list.filter(t =>
             t.full_name && normalizeString(t.full_name).includes(normalizeString(searchTerm)) ||
             t.email && normalizeString(t.email).includes(normalizeString(searchTerm))
         )
-    }, [activeTab, activeTeachers, bannedTeachers, searchTerm])
+    }, [activeTab, activeTeachers, pendingTeachers, bannedTeachers, searchTerm])
 
     const isNewTeacher = (createdAt?: string) => {
         if (!createdAt) return false
@@ -197,6 +202,39 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
 
 
 
+    const handleApproval = (teacherId: string, action: 'approve' | 'reject') => {
+        const isApprove = action === 'approve'
+        toast(isApprove ? 'Aprovar este professor?' : 'Reprovar este cadastro?', {
+            description: isApprove
+                ? 'O professor poderá criar e publicar cursos na plataforma.'
+                : 'O cadastro será marcado como reprovado e o acesso à área de professor ficará bloqueado.',
+            action: {
+                label: isApprove ? 'Aprovar' : 'Reprovar',
+                onClick: async () => {
+                    setProcessingId(teacherId)
+                    try {
+                        const result = await handleTeacherApproval(teacherId, action)
+                        if (result.success) {
+                            toast.success(result.message)
+                            setSelectedTeacher(null)
+                            window.location.reload()
+                        } else {
+                            toast.error(result.error || 'Erro ao processar solicitação')
+                        }
+                    } catch (error) {
+                        toast.error('Erro ao processar solicitação')
+                    } finally {
+                        setProcessingId(null)
+                    }
+                }
+            },
+            cancel: {
+                label: 'Cancelar',
+                onClick: () => {}
+            }
+        })
+    }
+
     const formatDate = (dateString?: string) => {
         if (!dateString) return '-'
         return new Date(dateString).toLocaleDateString('pt-BR', {
@@ -246,6 +284,21 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                 </div>
 
                 <div className="flex gap-2 mb-6 border-b border-slate-200">
+                    <button
+                        onClick={() => { setActiveTab('pendentes'); setSearchTerm(''); setSelectedTeacher(null); }}
+                        className={`px-4 py-2 text-[11px] font-bold uppercase tracking-wider transition-all border-b-2 -mb-[2px] flex items-center gap-2 ${
+                            activeTab === 'pendentes'
+                                ? 'border-[#1D5F31] text-[#1D5F31]'
+                                : 'border-transparent text-slate-400 hover:text-slate-600'
+                        }`}
+                    >
+                        Pendentes
+                        {pendingTeachers.length > 0 && (
+                            <span className="bg-amber-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
+                                {pendingTeachers.length}
+                            </span>
+                        )}
+                    </button>
                     <button
                         onClick={() => { setActiveTab('ativos'); setSearchTerm(''); setSelectedTeacher(null); }}
                         className={`px-4 py-2 text-[11px] font-bold uppercase tracking-wider transition-all border-b-2 -mb-[2px] ${
@@ -315,6 +368,11 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                                                             NOVO
                                                         </span>
                                                     )}
+                                                    {activeTab === 'pendentes' && (
+                                                        <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-[9px] font-bold uppercase rounded border border-amber-300">
+                                                            AGUARDANDO
+                                                        </span>
+                                                    )}
                                                     {activeTab === 'banidos' && (
                                                         <span className="px-2 py-0.5 bg-red-100 text-red-700 text-[9px] font-bold uppercase rounded border border-red-300">
                                                             BANIDO
@@ -350,7 +408,7 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                             }
                         </h2>
                         <p className="text-[10px] font-bold !text-[#1D5F31] uppercase tracking-widest mt-1">
-                            {activeTab === 'ativos' ? 'Auditória de Alunos' : 'Informações do Banido'}
+                            {activeTab === 'ativos' ? 'Auditória de Alunos' : activeTab === 'pendentes' ? 'Revisão de Cadastro' : 'Informações do Banido'}
                         </p>
                     </div>
                 </div>
@@ -362,7 +420,97 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                             <span className="text-[11px] font-bold uppercase tracking-widest text-[#000000]">Buscando na base...</span>
                         </div>
                     ) : selectedTeacher ? (
-                        activeTab === 'ativos' ? (
+                        activeTab === 'pendentes' ? (
+                            <div className="space-y-6 max-h-[650px] overflow-y-auto pr-2 custom-scrollbar">
+                                <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4">
+                                    <Clock className="text-amber-500 flex-shrink-0" size={24} />
+                                    <p className="text-[12px] font-semibold text-amber-800 leading-snug">
+                                        Cadastro aguardando revisão. Confira os dados e a aplicação antes de aprovar.
+                                    </p>
+                                </div>
+
+                                {teacherFullDetails && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-xl border border-slate-200">
+                                        <div>
+                                            <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Identificação</label>
+                                            <p className="text-sm font-semibold text-slate-900">{formatDocument(teacherFullDetails.cpfCnpj)}</p>
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">WhatsApp / Telefone</label>
+                                            <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.phone}</p>
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">E-mail</label>
+                                            <p className="text-sm font-semibold text-slate-900 break-all">{teacherFullDetails.email}</p>
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Localização</label>
+                                            <p className="text-sm font-semibold text-slate-900 uppercase">
+                                                {teacherFullDetails.address?.cidade || '-'} {teacherFullDetails.address?.uf ? `- ${teacherFullDetails.address.uf}` : ''}
+                                            </p>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {selectedTeacher.teacher_application_data && (
+                                    <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 space-y-4">
+                                        <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#1D5F31]">Dados da Aplicação</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div className="flex items-start gap-2">
+                                                <Briefcase size={14} className="text-[#1D5F31] mt-0.5" />
+                                                <div>
+                                                    <label className="text-[9px] font-semibold uppercase tracking-wider text-slate-500 block">Área</label>
+                                                    <p className="text-[12px] font-semibold text-slate-900">{TOPIC_MAP[selectedTeacher.teacher_application_data.primary_topic || ''] || selectedTeacher.teacher_application_data.primary_topic || '-'}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-start gap-2">
+                                                <ShieldCheck size={14} className="text-[#1D5F31] mt-0.5" />
+                                                <div>
+                                                    <label className="text-[9px] font-semibold uppercase tracking-wider text-slate-500 block">Experiência</label>
+                                                    <p className="text-[12px] font-semibold text-slate-900">{EXPERIENCE_MAP[selectedTeacher.teacher_application_data.experience_level || ''] || selectedTeacher.teacher_application_data.experience_level || '-'}</p>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-start gap-2">
+                                                <Monitor size={14} className="text-[#1D5F31] mt-0.5" />
+                                                <div>
+                                                    <label className="text-[9px] font-semibold uppercase tracking-wider text-slate-500 block">Equipamento</label>
+                                                    <p className="text-[12px] font-semibold text-slate-900">{HARDWARE_MAP[selectedTeacher.teacher_application_data.hardware_check || ''] || selectedTeacher.teacher_application_data.hardware_check || '-'}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {selectedTeacher.teacher_application_data.qualification_summary && (
+                                            <div>
+                                                <label className="text-[9px] font-semibold uppercase tracking-wider text-slate-500 block mb-1">Resumo / Qualificações</label>
+                                                <p className="text-[12px] text-slate-700 leading-relaxed whitespace-pre-line">{selectedTeacher.teacher_application_data.qualification_summary}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                <div className="mt-2 pt-6 border-t border-slate-200 grid grid-cols-2 gap-3">
+                                    <button
+                                        onClick={() => handleApproval(selectedTeacher.id, 'reject')}
+                                        disabled={processingId === selectedTeacher.id}
+                                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border-2 border-red-500 text-red-600 rounded-lg hover:bg-red-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-bold text-sm uppercase"
+                                    >
+                                        <X size={16} />
+                                        Reprovar
+                                    </button>
+                                    <button
+                                        onClick={() => handleApproval(selectedTeacher.id, 'approve')}
+                                        disabled={processingId === selectedTeacher.id}
+                                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#1D5F31] text-white rounded-lg hover:bg-[#1D5F31]/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-bold text-sm uppercase"
+                                    >
+                                        {processingId === selectedTeacher.id ? (
+                                            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        ) : (
+                                            <Check size={16} />
+                                        )}
+                                        Aprovar
+                                    </button>
+                                </div>
+                            </div>
+                        ) : activeTab === 'ativos' ? (
                             <div className="space-y-6 max-h-[650px] overflow-y-auto pr-2 custom-scrollbar">
                                 {teacherFullDetails && (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-xl border border-slate-200">

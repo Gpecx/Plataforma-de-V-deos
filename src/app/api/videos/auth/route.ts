@@ -115,6 +115,33 @@ export async function POST(request: NextRequest) {
             )
         }
 
+        // ── 3.5. O playbackId PERTENCE a este curso? ──────────────────────────
+        // Ter acesso ao curso A não pode liberar um vídeo do curso B. Confirmamos
+        // que o playbackId é de uma aula deste cursoId OU do trailer do curso,
+        // antes de assinar qualquer token. Caso contrário, um aluno legítimo de A
+        // poderia obter token para vídeos de cursos que não comprou.
+        const isTrailer =
+            courseData?.intro_video_playback_id === playbackId
+            || courseData?.pendingTrailerPlaybackId === playbackId
+
+        let belongsToCourse = isTrailer
+        if (!belongsToCourse) {
+            const lessonSnap = await adminDb.collection('lessons')
+                .where('course_id', '==', cursoId)
+                .where('mux_playback_id', '==', playbackId)
+                .limit(1)
+                .get()
+            belongsToCourse = !lessonSnap.empty
+        }
+
+        if (!belongsToCourse) {
+            console.warn(`[MUX AUTH] ACESSO NEGADO: playbackId ${playbackId} não pertence ao curso ${cursoId} (uid ${uid}).`)
+            return NextResponse.json(
+                { error: 'Acesso negado: vídeo não pertence a este curso' },
+                { status: 403 }
+            )
+        }
+
         // ── 4. Geração do Token Mux (JWT assinado) ───────────────────────────
         // Assina o token de reprodução usando as Signing Keys configuradas.
         const keyId = sanitizeKey(process.env.MUX_SIGNING_KEY_ID)

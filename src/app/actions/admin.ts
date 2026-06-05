@@ -72,12 +72,22 @@ export async function getAllTeachers() {
             .where('role', '==', 'teacher')
             .get()
             
+        // LGPD (minimização): a listagem só exibe nome/e-mail/status. NÃO fazer
+        // spread completo — isso carregaria CPF/CNPJ, endereço, asaas_customer_id
+        // e consent_log (com IP) no navegador do admin sem necessidade. Dados
+        // sensíveis ficam sob demanda em getTeacherDetails (carregado ao clicar).
         const teachers = teachersSnap.docs.map(doc => {
             const data = doc.data()
             return {
                 id: doc.id,
-                ...data,
-                created_at: data.created_at?.toDate ? data.created_at.toDate().toISOString() : null
+                full_name: data.full_name || '',
+                email: data.email || '',
+                avatar_url: data.avatar_url || '',
+                teacher_status: data.teacher_status || 'pending',
+                created_at: data.created_at?.toDate ? data.created_at.toDate().toISOString() : null,
+                teacher_application_data: data.teacher_application_data || null,
+                specialty: data.specialty || '',
+                role: data.role || 'teacher',
             }
         })
 

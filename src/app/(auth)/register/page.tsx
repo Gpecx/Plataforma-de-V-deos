@@ -359,7 +359,10 @@ function RegisterForm() {
             })
 
             // 1. Criar Perfil no Firestore (Essencial)
+            // O ID Token prova ao servidor que quem cria o perfil é o dono do uid.
+            const registrationIdToken = await user.getIdToken()
             const result = await createProfile({
+                idToken: registrationIdToken,
                 uid: user.uid,
                 email,
                 full_name: fullName,

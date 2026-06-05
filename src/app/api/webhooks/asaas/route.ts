@@ -27,7 +27,8 @@ export async function POST(request: NextRequest) {
         const payload: AsaasWebhookPayload = await request.json()
 
         if (!payload.event || !payload.payment?.id) {
-            console.error('Webhook Asaas: Payload inválido', payload)
+            // LGPD: não logar o payload inteiro (contém customer e externalReference). Só campos não-PII.
+            console.error('Webhook Asaas: Payload inválido', { event: payload?.event, paymentId: payload?.payment?.id, status: payload?.payment?.status })
             return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
         }
 
@@ -129,7 +130,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true }, { status: 200 })
 
     } catch (error) {
-        console.error('Webhook Asaas: Erro ao processar webhook:', error)
+        // LGPD: logar só a mensagem — o objeto de erro pode carregar PII do payload.
+        console.error('Webhook Asaas: Erro ao processar webhook:', error instanceof Error ? error.message : error)
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
     }
 }
