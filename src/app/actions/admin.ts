@@ -330,6 +330,97 @@ export async function getAllStudents() {
         return []
     }
 }
+
+/**
+ * Busca alunos paginados com filtro opcional por person_type.
+ * Não requer composite indexes — usa offset para paginação.
+ */
+export async function getStudentsPaginated(params: {
+    personType?: 'CPF' | 'CNPJ'
+    page?: number
+    pageSize?: number
+}) {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        return { students: [], hasMore: false }
+    }
+    try {
+        const { personType, page = 0, pageSize = 15 } = params
+
+        let query: FirebaseFirestore.Query = adminDb.collection('profiles')
+            .where('role', 'in', ['student', 'user'])
+
+        if (personType) {
+            query = query.where('person_type', '==', personType)
+        }
+
+        const snap = await query.offset(page * pageSize).limit(pageSize + 1).get()
+        const hasMore = snap.docs.length > pageSize
+        const docs = snap.docs.slice(0, pageSize)
+
+        const rawDocs = docs.map(doc => ({ id: doc.id, data: doc.data() }))
+
+        const studentDocs = rawDocs.map(({ id, data }) => ({
+            id,
+            uid: data.uid || id,
+            full_name: data.full_name || 'Sem nome',
+            email: data.email || 'Sem e-mail',
+            role: data.role || 'user',
+            ativo: data.ativo !== false,
+            person_type: data.person_type || null,
+            cpf_cnpj: data.cpf_cnpj || null,
+            razao_social: data.razao_social || null,
+            lastAccess: data.last_access || null,
+            createdAt: data.created_at || null,
+            certificatesCount: data.concluded_courses?.length || 0,
+        }))
+
+        const uids = studentDocs.map(s => s.uid).filter(Boolean)
+        const enrollmentsMap = new Map<string, any[]>()
+
+        if (uids.length > 0) {
+            const uidChunks: string[][] = []
+            for (let i = 0; i < uids.length; i += 30) {
+                uidChunks.push(uids.slice(i, i + 30))
+            }
+            const enrollmentSnaps = await Promise.all(
+                uidChunks.map(chunk =>
+                    adminDb.collection('enrollments')
+                        .where('user_id', 'in', chunk)
+                        .get()
+                )
+            )
+            enrollmentSnaps.forEach(snap =>
+                snap.docs.forEach(doc => {
+                    const d = doc.data()
+                    const userId = d.user_id
+                    if (!enrollmentsMap.has(userId)) enrollmentsMap.set(userId, [])
+                    enrollmentsMap.get(userId)!.push(d)
+                })
+            )
+        }
+
+        const students = studentDocs.map(s => {
+            const userEnrollments = enrollmentsMap.get(s.uid) || []
+            const coursesCount = userEnrollments.length
+            const certificatesCount = s.certificatesCount || 0
+            const watchedTime = userEnrollments.reduce((acc, e: any) => acc + (Number(e.last_timestamp) || 0), 0)
+
+            return {
+                ...s,
+                coursesCount,
+                certificatesCount,
+                watchedTime,
+            }
+        })
+
+        return JSON.parse(JSON.stringify({ students, hasMore }))
+    } catch (error) {
+        console.error("Error getting paginated students:", error)
+        return { students: [], hasMore: false }
+    }
+}
+
 /**
  * Lista todos os cursos com status PENDENTE.
  */
