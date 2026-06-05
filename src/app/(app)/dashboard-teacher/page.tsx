@@ -68,6 +68,7 @@ export default async function TeacherDashboard() {
     if (courseIds.length > 0) {
         const enrollmentsSnapshot = await adminDb.collection('enrollments')
             .where('course_id', 'in', courseIds)
+            .where('payment_confirmed', '==', true)
             .get()
         enrollments = enrollmentsSnapshot.docs.map(doc => ({
             id: doc.id,
