@@ -88,23 +88,21 @@ export default async function StudentDashboard() {
     const cursosDisponiveis = allCourses.filter(c => !purchasedCourseIds.includes(c.id) && c.status === 'APROVADO')
 
     return (
-        <div className="bg-white text-slate-900 font-montserrat min-h-full">
+        <div className="bg-white text-slate-900 font-montserrat min-h-full flex flex-col">
             <StoreInitializer purchasedCourseIds={purchasedCourseIds} />
             <ProgressInitializer 
                 purchasedCourseIds={purchasedCourseIds}
                 courseLessonsCount={courseLessonsCount}
             />
 
-            <div className="-mt-6 md:-mt-8">
-                <BannerWrapper>
-                    <div className="absolute top-10 left-8 md:left-20 z-20 pointer-events-none">
-                        <h1 className="text-2xl md:text-3xl font-bold tracking-tighter !text-white uppercase max-w-xl">
-                            Olá, <span className="!text-white bg-[#1D5F31] px-2 py-0.5 rounded-md">{profile?.full_name?.split(' ')[0] || 'Daniel'}!</span>
-                        </h1>
-                    </div>
-                    <StudentCarousel heroBanners={banners.hero_dashboard} />
-                </BannerWrapper>
-            </div>
+            <BannerWrapper>
+                <div className="absolute top-10 left-8 md:left-20 z-20 pointer-events-none">
+                    <h1 className="text-2xl md:text-3xl font-bold tracking-tighter !text-white uppercase max-w-xl">
+                        Olá, <span className="!text-white bg-[#1D5F31] px-2 py-0.5 rounded-md">{profile?.full_name?.split(' ')[0] || 'Daniel'}!</span>
+                    </h1>
+                </div>
+                <StudentCarousel heroBanners={banners.hero_dashboard} />
+            </BannerWrapper>
 
             {/* 2. CONTEÚDO COM PADDING LATERAL E GRID FORTE */}
             <div className="px-6 md:px-12 mt-16 space-y-16 max-w-[1600px] mx-auto">

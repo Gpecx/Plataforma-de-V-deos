@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { ChevronRight, Loader2 } from "lucide-react";
 import NextImage from "next/image";
+import { useRouter } from "next/navigation";
 import WishlistButton from "@/components/WishlistButton";
 import { isNewCourse } from "@/lib/date-utils";
 import { getCoursesByCategory } from "./actions";
+import { useCartStore } from "@/store/useCartStore";
 
 interface Course {
     id: string;
@@ -41,6 +43,7 @@ export default function CourseRow({
     purchasedCourseIds, 
     handleCourseClick 
 }: CourseRowProps) {
+    const router = useRouter()
     const [courses, setCourses] = useState<Course[]>(initialCourses);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [hasMore, setHasMore] = useState(initialCourses.length === 4); // Se veio 4, pode haver mais. Se veio menos, já acabou.
@@ -137,9 +140,26 @@ export default function CourseRow({
                                         {course.price === 0 ? "R$ 0,00" : `R$ ${Number(course.price || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`}
                                     </span>
                                 </div>
-                                <button className="bg-[#1D5F31] hover:bg-[#22c55e] text-[#22c55e] hover:text-[#0B1215] border border-[#22c55e]/50 text-[10px] px-3 py-1.5 rounded-md font-bold uppercase tracking-widest transition-colors shadow-[0_0_10px_rgba(34,197,94,0.1)]">
-                                    Continuar Aula
-                                </button>
+                                {(() => {
+                                    const hasCourse = !!(profile?.role === 'admin' || (profile?.role === 'teacher' && course.teacher_id === user?.uid) || profile?.cursos_comprados?.includes(course.id) || purchasedCourseIds.includes(course.id))
+                                    return (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                if (!user) {
+                                                    router.push('/login?redirectTo=%2Fcourse')
+                                                } else if (hasCourse) {
+                                                    router.push(`/classroom/${course.id}`)
+                                                } else {
+                                                    useCartStore.getState().addItem({ id: course.id, title: course.title, price: course.price ?? 0, image_url: course.image_url || undefined })
+                                                }
+                                            }}
+                                            className="bg-[#1D5F31] hover:bg-[#22c55e] text-[#22c55e] hover:text-[#0B1215] border border-[#22c55e]/50 text-[10px] px-3 py-1.5 rounded-md font-bold uppercase tracking-widest transition-colors shadow-[0_0_10px_rgba(34,197,94,0.1)]"
+                                        >
+                                            {!user || !hasCourse ? "ADICIONAR AO CARRINHO" : "CONTINUAR AULA"}
+                                        </button>
+                                    )
+                                })()}
                             </div>
                         </div>
                     </div>

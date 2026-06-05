@@ -58,7 +58,7 @@ export function StudentCarousel({ heroBanners }: { heroBanners?: BannerItem[] })
     }, [next, displayItems.length])
 
     return (
-        <section className="mb-12 relative overflow-hidden rounded-xl bg-slate-900 aspect-[21/9] md:aspect-[32/10] group">
+        <section className="relative overflow-hidden bg-slate-900 w-full h-full aspect-[21/9] md:aspect-[32/10] group">
             {/* Imagens */}
             <div
                 className="flex w-full h-full transition-transform duration-700 ease-in-out"

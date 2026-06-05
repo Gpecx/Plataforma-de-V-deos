@@ -85,7 +85,9 @@ export function NotificationBell({
                 const enrollmentsRef = collection(db, 'enrollments')
                 const enrollmentsQuery = query(enrollmentsRef, where('user_id', '==', user.uid))
                 const enrollmentsSnapshot = await getDocs(enrollmentsQuery)
-                const myCourseIds = enrollmentsSnapshot.docs.map(doc => doc.data().course_id)
+                const myCourseIds = enrollmentsSnapshot.docs
+                    .filter(doc => doc.data().payment_confirmed === true)
+                    .map(doc => doc.data().course_id)
                 if (myCourseIds.length === 0) { 
                     setNotifications([])
                     setLoading(false)
