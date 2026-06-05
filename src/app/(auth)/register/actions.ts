@@ -212,7 +212,10 @@ export async function createProfile(data: CreateProfileData) {
                 accepted_at: new Date().toISOString(),
                 ip_address: ipAddress,
                 version: 'v1.0',
-                form_source: 'registration_page'
+                form_source: 'registration_page',
+                // LGPD: retenção de 24 meses para o IP. Após esta data o
+                // /api/admin/cleanup-consent remove o campo ip_address.
+                consent_expires_at: new Date(Date.now() + 24 * 30 * 24 * 60 * 60 * 1000)
             }
         }
 

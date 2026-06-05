@@ -87,7 +87,10 @@ export default function TeacherChatPage() {
 
                     if (!studentIdsSeen.has(studentId)) {
                         studentIdsSeen.add(studentId)
-                        const senderName = msgData.sender_name || 'Aluno'
+                        // LGPD: prioriza display_name (novo). Mantém sender_name (mensagens
+                        // antigas) e cai para um ID abreviado quando nenhum nome existe
+                        // (ex.: conta excluída → user_id 'deleted_user').
+                        const senderName = msgData.display_name || msgData.sender_name || `Aluno ${String(studentId).substring(0, 6)}`
                         mappedStudents.push({
                             id: studentId,
                             name: senderName,

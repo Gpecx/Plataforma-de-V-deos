@@ -190,7 +190,10 @@ export async function processCheckoutAction(
             form_source: 'checkout_page',
             course_ids: courseIds,
             total_amount: totalAmount,
-            billing_type: billingType
+            billing_type: billingType,
+            // LGPD: retenção de 24 meses. Após esta data o
+            // /api/admin/cleanup-consent deleta o log de auditoria.
+            consent_expires_at: new Date(Date.now() + 24 * 30 * 24 * 60 * 60 * 1000)
         })
 
         revalidatePath('/dashboard-student')

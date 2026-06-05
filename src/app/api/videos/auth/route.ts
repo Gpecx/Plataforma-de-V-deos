@@ -75,7 +75,7 @@ export async function POST(request: NextRequest) {
 
         // M-01: Bloqueia acesso se o usuário estiver inativo ou banido
         if (profileData?.ativo === false) {
-            console.warn(`[MUX AUTH] ACESSO NEGADO: Usuário ${uid} está inativo ou banido.`)
+            console.warn(`[MUX AUTH] ACESSO NEGADO: conta inativa ou suspensa.`)
             return NextResponse.json(
                 { error: 'Acesso negado: sua conta está inativa ou suspensa.' }, 
                 { status: 403 }
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
         }
 
         if (!isAdmin && !isAuthor && !hasPurchased && !hasEnrollment) {
-            console.warn(`[MUX AUTH] ACESSO NEGADO: Usuário ${uid} tentou acessar curso ${cursoId} sem permissão (Perfil ou Enrollment).`)
+            console.warn(`[MUX AUTH] ACESSO NEGADO: curso ${cursoId} não autorizado (sem compra/matrícula).`)
             return NextResponse.json(
                 { error: 'Acesso negado: você não tem permissão para ver este conteúdo' },
                 { status: 403 }
@@ -135,7 +135,7 @@ export async function POST(request: NextRequest) {
         }
 
         if (!belongsToCourse) {
-            console.warn(`[MUX AUTH] ACESSO NEGADO: playbackId ${playbackId} não pertence ao curso ${cursoId} (uid ${uid}).`)
+            console.warn(`[MUX AUTH] ACESSO NEGADO: vídeo não pertence ao curso ${cursoId}.`)
             return NextResponse.json(
                 { error: 'Acesso negado: vídeo não pertence a este curso' },
                 { status: 403 }

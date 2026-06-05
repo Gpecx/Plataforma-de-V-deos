@@ -173,7 +173,10 @@ export default function StudentChatPage() {
                 teacher_id: selectedTeacher.id,
                 role: 'student',
                 content: text,
-                sender_name: user.displayName || user.email || 'Aluno',
+                // LGPD: nome de EXIBIÇÃO (não o nome legal do perfil). Usa o
+                // displayName do Auth ou o local-part do e-mail (sem domínio).
+                // Removido na exclusão de conta (direito ao esquecimento).
+                display_name: user.displayName || user.email?.split('@')[0] || 'Aluno',
                 created_at: serverTimestamp(),
             })
         } catch (error) {

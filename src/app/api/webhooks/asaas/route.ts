@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { timingSafeEqual } from 'crypto'
 import { adminDb } from '@/lib/firebase-admin'
 import { FieldValue } from 'firebase-admin/firestore'
 import { getPayment } from '@/services/asaasService'
@@ -17,9 +18,15 @@ interface AsaasWebhookPayload {
 
 export async function POST(request: NextRequest) {
     try {
-        const token = request.headers.get('asaas-access-token')
+        // Comparação constant-time para evitar timing attack na descoberta do token.
+        // timingSafeEqual exige buffers do mesmo tamanho — daí a checagem de length antes.
+        const receivedToken = request.headers.get('asaas-access-token') || ''
+        const expectedToken = process.env.ASAAS_WEBHOOK_TOKEN || ''
+        const tokensMatch = expectedToken.length > 0
+            && receivedToken.length === expectedToken.length
+            && timingSafeEqual(Buffer.from(receivedToken), Buffer.from(expectedToken))
 
-        if (!token || token !== process.env.ASAAS_WEBHOOK_TOKEN) {
+        if (!tokensMatch) {
             console.error('Webhook Asaas: Token inválido ou ausente')
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
@@ -117,7 +124,7 @@ export async function POST(request: NextRequest) {
                     const wishlistRef = adminDb.collection('profiles').doc(userId).collection('wishlist').doc(cursoId)
                     batch.delete(wishlistRef)
                 } else {
-                    console.warn(`Webhook Asaas: Tentativa de confirmar matrícula inexistente para user ${userId} e curso ${cursoId}`)
+                    console.warn(`Webhook Asaas: Tentativa de confirmar matrícula inexistente (curso ${cursoId})`)
                 }
             }
 

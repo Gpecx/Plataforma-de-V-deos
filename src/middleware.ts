@@ -119,6 +119,7 @@ const ADMIN_BLOCKED_ROUTES = [
 const RATE_LIMITED_ROUTES = [
     '/api/auth',
     '/api/videos/auth',
+    '/api/cnpj',
     '/login',
     '/register',
 ]
