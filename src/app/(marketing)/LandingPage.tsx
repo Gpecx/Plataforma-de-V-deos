@@ -37,7 +37,7 @@ interface LandingPageProps {
 }
 
 export default function LandingPageClient({ user: initialUser, initialCourses }: LandingPageProps) {
-    const { user, loading: authLoading } = useAuth();
+    const { user, role, loading: authLoading } = useAuth();
     const router = useRouter();
     const courses = initialCourses;
     const [loading, setLoading] = useState(false);
@@ -47,9 +47,15 @@ export default function LandingPageClient({ user: initialUser, initialCourses }:
     // Redirect if authenticated
     useEffect(() => {
         if (!authLoading && user) {
-            router.push('/course');
+            if (role === 'admin') {
+                router.push('/admin/dashboard');
+            } else if (role === 'teacher') {
+                router.push('/dashboard-teacher/courses');
+            } else {
+                router.push('/course');
+            }
         }
-    }, [user, authLoading, router]);
+    }, [user, role, authLoading, router]);
 
     useEffect(() => {
         getBanners().then(data => setBanners(data));

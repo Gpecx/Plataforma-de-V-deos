@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useMemo } from 'react'
-import { Users, BookOpen, GraduationCap, Search, ChevronRight, Check, X, Mail, Calendar, MapPin, Briefcase, Monitor, ShieldCheck, AlertTriangle, Clock } from 'lucide-react'
+import { Users, BookOpen, GraduationCap, Search, ChevronRight, Check, X, Mail, Calendar, MapPin, Briefcase, Monitor, ShieldCheck, AlertTriangle, Clock, Eye, EyeOff, User, Globe, AtSign, CreditCard, FileText } from 'lucide-react'
 import { getTeacherStudents, banTeacher, reactivateTeacher, getTeacherDetails, handleTeacherApproval } from '@/app/actions/admin'
 import { AnimatePresence, motion } from 'framer-motion'
 import { toast } from 'sonner'
@@ -84,6 +84,8 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
     const [loading, setLoading] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
     const [processingId, setProcessingId] = useState<string | null>(null)
+    const [revealCpf, setRevealCpf] = useState(false)
+    const [revealRg, setRevealRg] = useState(false)
 
     const pendingTeachers = useMemo(() =>
         initialTeachers.filter(t => t.teacher_status === 'pending'),
@@ -254,6 +256,21 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
             return clean.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
         }
         return doc
+    }
+
+    const maskDocument = (value: string | null | undefined, type: 'cpf' | 'cnpj' | 'rg'): string => {
+        if (!value) return 'N/A'
+        const digits = value.replace(/\D/g, '')
+        if (type === 'cpf' && digits.length === 11) {
+            return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.***.***-$4')
+        }
+        if (type === 'cnpj' && digits.length === 14) {
+            return digits.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.***.***/****-$5')
+        }
+        if (type === 'rg' && digits.length >= 7) {
+            return digits.replace(/(\d{2})(\d+)(\d{1})/, '$1.***.**-$3')
+        }
+        return value
     }
 
     const formatAddress = (teacher: Teacher) => {
@@ -430,26 +447,124 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                                 </div>
 
                                 {teacherFullDetails && (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-xl border border-slate-200">
+                                    <div className="space-y-6">
                                         <div>
-                                            <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Identificação</label>
-                                            <p className="text-sm font-semibold text-slate-900">{formatDocument(teacherFullDetails.cpfCnpj)}</p>
+                                            <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#1D5F31] mb-4">Identificação</h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-xl border border-slate-200">
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Nome Completo</label>
+                                                    <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.fullName}</p>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Data de Nascimento</label>
+                                                    <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.birthDate ? formatDate(teacherFullDetails.birthDate) : 'N/A'}</p>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">{(teacherFullDetails.personType || '').toLowerCase() === 'cnpj' ? 'CNPJ' : 'CPF'}</label>
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="text-sm font-semibold text-slate-900">{revealCpf ? formatDocument(teacherFullDetails.cpfCnpj) : maskDocument(teacherFullDetails.cpfCnpj, (teacherFullDetails.personType || '').toLowerCase() === 'cnpj' ? 'cnpj' : 'cpf')}</p>
+                                                        <button onClick={() => setRevealCpf(!revealCpf)} className="p-1 text-slate-400 hover:text-slate-700 transition-colors">
+                                                            {revealCpf ? <EyeOff size={14} /> : <Eye size={14} />}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">RG</label>
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="text-sm font-semibold text-slate-900">{revealRg ? (teacherFullDetails.rg || 'N/A') : maskDocument(teacherFullDetails.rg, 'rg')}</p>
+                                                        {teacherFullDetails.rg && (
+                                                            <button onClick={() => setRevealRg(!revealRg)} className="p-1 text-slate-400 hover:text-slate-700 transition-colors">
+                                                                {revealRg ? <EyeOff size={14} /> : <Eye size={14} />}
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Tipo de Pessoa</label>
+                                                    <p className="text-sm font-semibold text-slate-900 uppercase">{(teacherFullDetails.personType || '').toLowerCase() === 'cnpj' ? 'CNPJ' : (teacherFullDetails.personType || '').toLowerCase() === 'cpf' ? 'CPF' : 'N/A'}</p>
+                                                </div>
+                                                {(teacherFullDetails.personType || '').toLowerCase() === 'cnpj' && (
+                                                    <div>
+                                                        <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Razão Social</label>
+                                                        <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.razaoSocial || 'N/A'}</p>
+                                                    </div>
+                                                )}
+                                                {(teacherFullDetails.personType || '').toLowerCase() !== 'cnpj' && <div />}
+                                            </div>
                                         </div>
+
                                         <div>
-                                            <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">WhatsApp / Telefone</label>
-                                            <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.phone}</p>
+                                            <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#1D5F31] mb-4">Contato</h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-xl border border-slate-200">
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">E-mail</label>
+                                                    <p className="text-sm font-semibold text-slate-900 break-all">{teacherFullDetails.email}</p>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">WhatsApp / Telefone</label>
+                                                    <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.phone}</p>
+                                                </div>
+                                                {teacherFullDetails.instagram && (
+                                                    <div>
+                                                        <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Instagram</label>
+                                                        <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.instagram}</p>
+                                                    </div>
+                                                )}
+                                                {teacherFullDetails.linkedin && (
+                                                    <div>
+                                                        <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">LinkedIn</label>
+                                                        <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.linkedin}</p>
+                                                    </div>
+                                                )}
+                                                {teacherFullDetails.youtube && (
+                                                    <div>
+                                                        <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">YouTube</label>
+                                                        <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.youtube}</p>
+                                                    </div>
+                                                )}
+                                                {teacherFullDetails.website && (
+                                                    <div>
+                                                        <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Website</label>
+                                                        <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.website}</p>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
+
                                         <div>
-                                            <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">E-mail</label>
-                                            <p className="text-sm font-semibold text-slate-900 break-all">{teacherFullDetails.email}</p>
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Localização</label>
-                                            <p className="text-sm font-semibold text-slate-900 uppercase">
-                                                {teacherFullDetails.address?.cidade || '-'} {teacherFullDetails.address?.uf ? `- ${teacherFullDetails.address.uf}` : ''}
-                                            </p>
+                                            <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#1D5F31] mb-4">Endereço</h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-xl border border-slate-200">
+                                            <div>
+                                                <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Logradouro</label>
+                                                <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.address?.logradouro || 'N/A'}</p>
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Número</label>
+                                                <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.address?.numero || 'N/A'}</p>
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Complemento</label>
+                                                <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.address?.complemento || 'N/A'}</p>
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Bairro</label>
+                                                <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.address?.bairro || 'N/A'}</p>
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Cidade</label>
+                                                <p className="text-sm font-semibold text-slate-900 uppercase">{teacherFullDetails.address?.cidade || 'N/A'}</p>
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Estado</label>
+                                                <p className="text-sm font-semibold text-slate-900 uppercase">{teacherFullDetails.address?.uf || 'N/A'}</p>
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">CEP</label>
+                                                <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.address?.cep || 'N/A'}</p>
+                                            </div>
                                         </div>
                                     </div>
+                                </div>
                                 )}
 
                                 {selectedTeacher.teacher_application_data && (
@@ -513,46 +628,139 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                         ) : activeTab === 'ativos' ? (
                             <div className="space-y-6 max-h-[650px] overflow-y-auto pr-2 custom-scrollbar">
                                 {teacherFullDetails && (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-xl border border-slate-200">
-                                        <div className="space-y-4">
-                                            <div>
-                                                <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Identificação</label>
-                                                <p className="text-sm font-semibold text-slate-900">{formatDocument(teacherFullDetails.cpfCnpj)}</p>
-                                            </div>
-                                            <div>
-                                                <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">WhatsApp / Telefone</label>
-                                                <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.phone}</p>
-                                            </div>
-                                            <div>
-                                                <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">E-mail de Contato</label>
-                                                <p className="text-sm font-semibold text-slate-900 break-all">{teacherFullDetails.email}</p>
-                                            </div>
-                                        </div>
-                                        <div className="space-y-4">
-                                            <div>
-                                                <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Status de Segurança</label>
-                                                <div className="flex items-center gap-2">
-                                                    <div className={`w-2 h-2 rounded-full ${teacherFullDetails.security?.mfaEnabled ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                                                    <p className="text-sm font-semibold text-slate-900">
-                                                        {teacherFullDetails.security?.mfaEnabled ? '2FA ATIVO' : '2FA DESATIVADO'}
-                                                    </p>
+                                    <div className="space-y-6">
+                                        {/* Identificação */}
+                                        <div>
+                                            <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#1D5F31] mb-4 flex items-center gap-2">
+                                                <User size={14} /> Identificação
+                                            </h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-xl border border-slate-200">
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Nome Completo</label>
+                                                    <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.fullName}</p>
                                                 </div>
-                                            </div>
-                                            <div>
-                                                <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Último Acesso</label>
-                                                <p className="text-sm font-semibold text-slate-900">{formatDate(teacherFullDetails.security?.lastLogin)}</p>
-                                            </div>
-                                            <div>
-                                                <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Localização</label>
-                                                <p className="text-sm font-semibold text-slate-900 uppercase">
-                                                    {teacherFullDetails.address?.cidade} - {teacherFullDetails.address?.uf}
-                                                </p>
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Data de Nascimento</label>
+                                                    <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.birthDate ? formatDate(teacherFullDetails.birthDate) : 'N/A'}</p>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">{(teacherFullDetails.personType || '').toLowerCase() === 'cnpj' ? 'CNPJ' : 'CPF'}</label>
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="text-sm font-semibold text-slate-900">{revealCpf ? formatDocument(teacherFullDetails.cpfCnpj) : maskDocument(teacherFullDetails.cpfCnpj, (teacherFullDetails.personType || '').toLowerCase() === 'cnpj' ? 'cnpj' : 'cpf')}</p>
+                                                        <button onClick={() => setRevealCpf(!revealCpf)} className="p-1 text-slate-400 hover:text-slate-700 transition-colors">
+                                                            {revealCpf ? <EyeOff size={14} /> : <Eye size={14} />}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">RG</label>
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="text-sm font-semibold text-slate-900">{revealRg ? (teacherFullDetails.rg || 'N/A') : maskDocument(teacherFullDetails.rg, 'rg')}</p>
+                                                        {teacherFullDetails.rg && (
+                                                            <button onClick={() => setRevealRg(!revealRg)} className="p-1 text-slate-400 hover:text-slate-700 transition-colors">
+                                                                {revealRg ? <EyeOff size={14} /> : <Eye size={14} />}
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Tipo de Pessoa</label>
+                                                    <p className="text-sm font-semibold text-slate-900 uppercase">{(teacherFullDetails.personType || '').toLowerCase() === 'cnpj' ? 'CNPJ' : (teacherFullDetails.personType || '').toLowerCase() === 'cpf' ? 'CPF' : 'N/A'}</p>
+                                                </div>
+                                                {(teacherFullDetails.personType || '').toLowerCase() === 'cnpj' && (
+                                                    <div>
+                                                        <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Razão Social</label>
+                                                        <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.razaoSocial || 'N/A'}</p>
+                                                    </div>
+                                                )}
+                                                {(teacherFullDetails.personType || '').toLowerCase() !== 'cnpj' && <div />}
                                             </div>
                                         </div>
 
-                                        <div className="md:col-span-2 pt-4 border-t border-slate-200">
-                                            <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#1D5F31] mb-4">Dados Financeiros</h4>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {/* Contato */}
+                                        <div>
+                                            <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#1D5F31] mb-4 flex items-center gap-2">
+                                                <AtSign size={14} /> Contato
+                                            </h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-xl border border-slate-200">
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">E-mail</label>
+                                                    <p className="text-sm font-semibold text-slate-900 break-all">{teacherFullDetails.email}</p>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">WhatsApp / Telefone</label>
+                                                    <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.phone}</p>
+                                                </div>
+                                                {teacherFullDetails.instagram && (
+                                                    <div>
+                                                        <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Instagram</label>
+                                                        <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.instagram}</p>
+                                                    </div>
+                                                )}
+                                                {teacherFullDetails.linkedin && (
+                                                    <div>
+                                                        <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">LinkedIn</label>
+                                                        <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.linkedin}</p>
+                                                    </div>
+                                                )}
+                                                {teacherFullDetails.youtube && (
+                                                    <div>
+                                                        <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">YouTube</label>
+                                                        <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.youtube}</p>
+                                                    </div>
+                                                )}
+                                                {teacherFullDetails.website && (
+                                                    <div>
+                                                        <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Website</label>
+                                                        <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.website}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Endereço */}
+                                        <div>
+                                            <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#1D5F31] mb-4 flex items-center gap-2">
+                                                <MapPin size={14} /> Endereço
+                                            </h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-xl border border-slate-200">
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Logradouro</label>
+                                                    <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.address?.logradouro || 'N/A'}</p>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Número</label>
+                                                    <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.address?.numero || 'N/A'}</p>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Complemento</label>
+                                                    <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.address?.complemento || 'N/A'}</p>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Bairro</label>
+                                                    <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.address?.bairro || 'N/A'}</p>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Cidade</label>
+                                                    <p className="text-sm font-semibold text-slate-900 uppercase">{teacherFullDetails.address?.cidade || 'N/A'}</p>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Estado</label>
+                                                    <p className="text-sm font-semibold text-slate-900 uppercase">{teacherFullDetails.address?.uf || 'N/A'}</p>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">CEP</label>
+                                                    <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.address?.cep || 'N/A'}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Financeiro */}
+                                        <div>
+                                            <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#1D5F31] mb-4 flex items-center gap-2">
+                                                <CreditCard size={14} /> Financeiro
+                                            </h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-xl border border-slate-200">
                                                 <div>
                                                     <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Chave PIX</label>
                                                     <p className="text-sm font-semibold text-slate-900 break-all">{teacherFullDetails.pix_key || 'NÃO INFORMADA'}</p>
@@ -572,6 +780,81 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                                                         <p className="text-sm font-semibold text-slate-500 uppercase italic">Não informada</p>
                                                     </div>
                                                 )}
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Asaas ID</label>
+                                                    <p className="text-sm font-semibold text-slate-900 break-all">{teacherFullDetails.asaasCustomerId || 'N/A'}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Perfil Profissional */}
+                                        <div>
+                                            <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#1D5F31] mb-4 flex items-center gap-2">
+                                                <Briefcase size={14} /> Perfil Profissional
+                                            </h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-xl border border-slate-200">
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Especialidade</label>
+                                                    <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.specialty || 'N/A'}</p>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Área de Atuação</label>
+                                                    <p className="text-sm font-semibold text-slate-900">{TOPIC_MAP[teacherFullDetails.teacherApplicationData?.primary_topic || ''] || teacherFullDetails.teacherApplicationData?.primary_topic || 'N/A'}</p>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Nível de Experiência</label>
+                                                    <p className="text-sm font-semibold text-slate-900">{EXPERIENCE_MAP[teacherFullDetails.teacherApplicationData?.experience_level || ''] || teacherFullDetails.teacherApplicationData?.experience_level || 'N/A'}</p>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Equipamento</label>
+                                                    <p className="text-sm font-semibold text-slate-900">{HARDWARE_MAP[teacherFullDetails.teacherApplicationData?.hardware_check || ''] || teacherFullDetails.teacherApplicationData?.hardware_check || 'N/A'}</p>
+                                                </div>
+                                            </div>
+                                            {teacherFullDetails.bio && (
+                                                <div className="mt-4 bg-slate-50 p-6 rounded-xl border border-slate-200">
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Bio</label>
+                                                    <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{teacherFullDetails.bio}</p>
+                                                </div>
+                                            )}
+                                            {teacherFullDetails.teacherApplicationData?.qualification_summary && (
+                                                <div className="mt-4 bg-slate-50 p-6 rounded-xl border border-slate-200">
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Qualificações</label>
+                                                    <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{teacherFullDetails.teacherApplicationData.qualification_summary}</p>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Status */}
+                                        <div>
+                                            <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#1D5F31] mb-4 flex items-center gap-2">
+                                                <ShieldCheck size={14} /> Status
+                                            </h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-xl border border-slate-200">
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Status do Professor</label>
+                                                    <p className="text-sm font-semibold text-slate-900 uppercase">{teacherFullDetails.teacherStatus || 'N/A'}</p>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Segurança</label>
+                                                    <div className="flex items-center gap-2">
+                                                        <div className={`w-2 h-2 rounded-full ${teacherFullDetails.security?.mfaEnabled ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                                                        <p className="text-sm font-semibold text-slate-900">
+                                                            {teacherFullDetails.security?.mfaEnabled ? '2FA ATIVO' : '2FA DESATIVADO'}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Último Acesso</label>
+                                                    <p className="text-sm font-semibold text-slate-900">{formatDate(teacherFullDetails.security?.lastLogin)}</p>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Data de Cadastro</label>
+                                                    <p className="text-sm font-semibold text-slate-900">{formatDate(teacherFullDetails.createdAt)}</p>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Data de Atualização</label>
+                                                    <p className="text-sm font-semibold text-slate-900">{formatDate(teacherFullDetails.updatedAt)}</p>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

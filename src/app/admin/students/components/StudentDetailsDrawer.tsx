@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, User, BookOpen, ShieldCheck, ShieldAlert, Calendar, ExternalLink, Loader2, Medal, CheckCircle2, Shield, Map } from 'lucide-react'
+import { X, User, BookOpen, ShieldCheck, ShieldAlert, Calendar, ExternalLink, Loader2, Medal, CheckCircle2, Shield, Map, Eye, EyeOff } from 'lucide-react'
 import { getStudentDetails } from '@/app/actions/admin'
 
 interface AcademicProgress {
@@ -22,6 +22,8 @@ interface StudentDetails {
     fullName: string
     email: string
     phone: string
+    cpfCnpj: string | null
+    rg: string | null
     role: string
     ativo: boolean
     createdAt: string | null | undefined
@@ -51,6 +53,8 @@ export default function StudentDetailsDrawer({ uid, onClose }: StudentDetailsDra
     const [loading, setLoading] = useState(false)
     const [details, setDetails] = useState<StudentDetails | null>(null)
     const [error, setError] = useState<string | null>(null)
+    const [revealCpf, setRevealCpf] = useState(false)
+    const [revealRg, setRevealRg] = useState(false)
 
     useEffect(() => {
         if (uid) {
@@ -73,6 +77,27 @@ export default function StudentDetailsDrawer({ uid, onClose }: StudentDetailsDra
         } finally {
             setLoading(false)
         }
+    }
+
+    const maskDocument = (value: string | null, type: 'cpf' | 'rg'): string => {
+        if (!value) return ''
+        const digits = value.replace(/\D/g, '')
+        if (type === 'cpf' && digits.length === 11) {
+            return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.***.***-$4')
+        }
+        if (type === 'rg' && digits.length >= 7) {
+            return digits.replace(/(\d{2})(\d+)(\d{1})/, '$1.***.**-$3')
+        }
+        return value
+    }
+
+    const formatDocument = (value: string | null): string => {
+        if (!value) return ''
+        const digits = value.replace(/\D/g, '')
+        if (digits.length === 11) {
+            return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+        }
+        return value
     }
 
     const EmptyField = () => <span className="text-sm font-semibold !text-slate-400 italic">Não informado</span>
@@ -186,6 +211,45 @@ export default function StudentDetailsDrawer({ uid, onClose }: StudentDetailsDra
                                                         {details.address.cidade ? `${details.address.cidade} - ${details.address.uf || ''}` : <EmptyField />}
                                                     </p>
                                                     <p className="text-sm md:text-base !text-slate-600 font-medium">{details.address.cep ? `CEP: ${details.address.cep}` : ''}</p>
+                                                </div>
+                                            </div>
+                                        </section>
+
+                                        {/* Documentos (LGPD) */}
+                                        <section className="space-y-4">
+                                            <div className="flex items-center gap-3 pb-3 border-b border-slate-200">
+                                                <div className="p-2.5 bg-slate-100 rounded-xl flex items-center justify-center">
+                                                    <Shield size={22} className="!text-slate-700" />
+                                                </div>
+                                                <h3 className="text-xl font-bold !text-slate-900 tracking-tight">Documentos</h3>
+                                            </div>
+                                            
+                                            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 md:p-8 grid grid-cols-1 md:grid-cols-2 gap-8 shadow-sm">
+                                                <div className="space-y-2">
+                                                    <label className="text-xs font-bold uppercase tracking-wider !text-slate-500">CPF</label>
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="text-lg md:text-xl font-bold !text-slate-900 leading-tight font-mono">
+                                                            {details.cpfCnpj ? (revealCpf ? formatDocument(details.cpfCnpj) : maskDocument(details.cpfCnpj, 'cpf')) : <EmptyField />}
+                                                        </p>
+                                                        {details.cpfCnpj && (
+                                                            <button onClick={() => setRevealCpf(!revealCpf)} className="p-1.5 !text-slate-400 hover:!text-slate-700 transition-colors">
+                                                                {revealCpf ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-xs font-bold uppercase tracking-wider !text-slate-500">RG</label>
+                                                    <div className="flex items-center gap-2">
+                                                        <p className="text-lg md:text-xl font-bold !text-slate-900 leading-tight font-mono">
+                                                            {details.rg ? (revealRg ? details.rg : maskDocument(details.rg, 'rg')) : <EmptyField />}
+                                                        </p>
+                                                        {details.rg && (
+                                                            <button onClick={() => setRevealRg(!revealRg)} className="p-1.5 !text-slate-400 hover:!text-slate-700 transition-colors">
+                                                                {revealRg ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </section>

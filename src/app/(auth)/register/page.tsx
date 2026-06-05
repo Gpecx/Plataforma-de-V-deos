@@ -10,7 +10,7 @@ import Logo from '@/components/Logo'
 import { ArrowRight, AlertCircle, Eye, EyeOff, ChevronLeft, Building2, User } from 'lucide-react'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import { RegisterSchema, Step1Schema, Step2Schema, Step3Schema } from '@/lib/validations/register'
-import { validateCPF, validateCNPJ, maskCPF, maskCNPJ } from '@/lib/document-utils'
+import { validateCPF, validateCNPJ, maskCPF, maskCNPJ, maskRG } from '@/lib/document-utils'
 import { generateSlug } from '@/lib/utils'
 
 const fadeUp: Variants = {
@@ -98,6 +98,7 @@ function RegisterForm() {
     const [phone, setPhone] = useState('')
     const [personType, setPersonType] = useState<'CPF' | 'CNPJ'>('CPF')
     const [cpfCnpj, setCpfCnpj] = useState('')
+    const [rg, setRg] = useState('')
     const [birthDate, setBirthDate] = useState('')
     const [role, setRole] = useState<'student' | 'teacher'>('student')
     const [loading, setLoading] = useState(false)
@@ -194,6 +195,7 @@ function RegisterForm() {
         if (personType === 'CPF') {
             data.cpf = cpfCnpj
             data.birthDate = birthDate
+            data.rg = rg
         } else {
             data.cnpj = cpfCnpj
             data.razaoSocial = razaoSocial
@@ -204,6 +206,7 @@ function RegisterForm() {
             const errors = result.error.flatten().fieldErrors
             if (personType === 'CPF') {
                 if (errors.cpf) return errors.cpf[0]
+                if (errors.rg) return errors.rg[0]
                 if (errors.birthDate) return errors.birthDate[0]
             } else {
                 if (errors.cnpj) return errors.cnpj[0]
@@ -219,6 +222,7 @@ function RegisterForm() {
             fullName, email, phone, password, confirmPassword,
             personType, 
             cpf: personType === 'CPF' ? cpfCnpj : undefined,
+            rg: personType === 'CPF' ? rg : undefined,
             cnpj: personType === 'CNPJ' ? cpfCnpj : undefined,
             birthDate: personType === 'CPF' ? birthDate : undefined,
             razaoSocial: personType === 'CNPJ' ? razaoSocial : undefined,
@@ -226,17 +230,22 @@ function RegisterForm() {
             termsAccepted, username
         }
         return RegisterSchema.safeParse(data).success
-    }, [email, password, confirmPassword, fullName, phone, personType, cpfCnpj, birthDate, razaoSocial, cep, rua, numero, complemento, bairro, cidade, estado, termsAccepted])
+    }, [email, password, confirmPassword, fullName, phone, personType, cpfCnpj, rg, birthDate, razaoSocial, cep, rua, numero, complemento, bairro, cidade, estado, termsAccepted])
 
     const handleCpfCnpjChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCpfCnpj(personType === 'CPF' ? maskCPF(e.target.value) : maskCNPJ(e.target.value))
         if (cnpjError) setCnpjError(null)
     }
 
+    const handleRgChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setRg(maskRG(e.target.value))
+    }
+
     const handleTypeChange = (type: 'CPF' | 'CNPJ') => {
         if (type !== personType) {
             setPersonType(type)
             setCpfCnpj('')
+            setRg('')
             setCpfCnpjTouched(false)
             setCnpjError(null)
         }
@@ -368,6 +377,7 @@ function RegisterForm() {
                 full_name: fullName,
                 phone,
                 cpf_cnpj: cpfCnpj,
+                rg: rg,
                 person_type: personType,
                 razao_social: razaoSocial,
                 username,
@@ -698,18 +708,31 @@ function RegisterForm() {
                                             </div>
 
                                             {personType === 'CPF' ? (
-                                                <div className="space-y-1">
-                                                    <label className={labelClass}>Data de Nascimento</label>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="DD/MM/AAAA"
-                                                        inputMode="numeric"
-                                                        required
-                                                        maxLength={10}
-                                                        className={inputClass()}
-                                                        value={birthDate}
-                                                        onChange={handleBirthDateChange}
-                                                    />
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div className="space-y-1">
+                                                        <label className={labelClass}>RG</label>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="00.000.000-0"
+                                                            inputMode="numeric"
+                                                            className={inputClass()}
+                                                            value={rg}
+                                                            onChange={handleRgChange}
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className={labelClass}>Data de Nascimento</label>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="DD/MM/AAAA"
+                                                            inputMode="numeric"
+                                                            required
+                                                            maxLength={10}
+                                                            className={inputClass()}
+                                                            value={birthDate}
+                                                            onChange={handleBirthDateChange}
+                                                        />
+                                                    </div>
                                                 </div>
                                             ) : (
                                                 <div className="space-y-1">

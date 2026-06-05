@@ -10,6 +10,7 @@ interface CreateProfileData {
     full_name: string
     phone: string // Novo campo
     cpf_cnpj: string
+    rg?: string
     person_type: 'CPF' | 'CNPJ'
     birth_date: string
     role: 'student' | 'teacher'
@@ -192,6 +193,7 @@ export async function createProfile(data: CreateProfileData) {
             created_at: new Date(),
         }
 
+        if (data.rg !== undefined) payload.rg = data.rg
         if (data.cep !== undefined) payload.cep = sanitizedCep
         if (data.rua !== undefined) payload.rua = data.rua
         if (data.numero !== undefined) payload.numero = data.numero

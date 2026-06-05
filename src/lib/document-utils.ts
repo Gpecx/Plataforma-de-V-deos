@@ -96,6 +96,17 @@ export function maskCNPJ(value: string): string {
 }
 
 /**
+ * Aplica máscara de RG: 00.000.000-0
+ */
+export function maskRG(value: string): string {
+    const v = value.replace(/\D/g, '').slice(0, 9)
+    return v
+        .replace(/(\d{2})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d{1,1})/, '$1-$2')
+}
+
+/**
  * Aplica máscara dinâmica de CPF ou CNPJ baseado no length sendo digitado
  */
 export function maskCpfCnpj(value: string): string {

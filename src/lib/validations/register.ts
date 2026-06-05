@@ -21,6 +21,16 @@ export const Step2Schema = z.object({
     cnpj: z.string().optional(),
     birthDate: z.string().optional(),
     razaoSocial: z.string().optional(),
+    rg: z.string().optional(),
+}).refine((data) => {
+    if (data.personType === "CPF") {
+        const digits = (data.rg || '').replace(/\D/g, '')
+        if (digits.length > 0 && digits.length < 7) return false
+    }
+    return true
+}, {
+    message: "RG deve ter pelo menos 7 dígitos",
+    path: ["rg"],
 }).refine((data) => {
     if (data.personType === "CPF") {
         return !!data.cpf && validateCPF(data.cpf);

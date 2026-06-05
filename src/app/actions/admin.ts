@@ -1269,6 +1269,8 @@ export async function getStudentDetails(uid: string) {
                 fullName: profileData.full_name || 'N/A',
                 email: profileData.email,
                 phone: profileData.phone || profileData.mobilePhone || 'N/A',
+                cpfCnpj: profileData.cpf_cnpj || null,
+                rg: profileData.rg || null,
                 role: profileData.role,
                 ativo: profileData.ativo !== false,
                 createdAt: profileData.created_at ? parseFirebaseDate(profileData.created_at)?.toISOString() : null,
@@ -1345,11 +1347,15 @@ export async function getTeacherDetails(uid: string) {
                 fullName: profileData.full_name || 'N/A',
                 email: profileData.email,
                 phone: profileData.phone || profileData.mobilePhone || 'N/A',
-                cpfCnpj: maskSensitiveData(profileData.cpf_cnpj),
+                cpfCnpj: profileData.cpf_cnpj || null,
+                rg: profileData.rg || null,
                 role: profileData.role,
                 ativo: profileData.ativo !== false,
                 teacherStatus: profileData.teacher_status || 'active',
                 createdAt: profileData.created_at ? parseFirebaseDate(profileData.created_at)?.toISOString() : null,
+                birthDate: profileData.birth_date || null,
+                personType: profileData.person_type || null,
+                razaoSocial: profileData.razao_social || null,
                 address: {
                     cep: profileData.cep || profileData.postalCode || null,
                     logradouro: profileData.logradouro || profileData.address || profileData.rua || null,
@@ -1359,6 +1365,12 @@ export async function getTeacherDetails(uid: string) {
                     cidade: profileData.cidade || profileData.city || null,
                     uf: profileData.uf || profileData.state || profileData.estado || null,
                 },
+                bio: profileData.bio || null,
+                specialty: profileData.specialty || null,
+                instagram: profileData.instagram || null,
+                linkedin: profileData.linkedin || null,
+                youtube: profileData.youtube || null,
+                website: profileData.website || null,
                 pix_key: maskSensitiveData(profileData.pix_key),
                 bank: {
                     name: profileData.bank_name || null,
@@ -1366,11 +1378,16 @@ export async function getTeacherDetails(uid: string) {
                     account: maskSensitiveData(profileData.bank_account),
                     type: profileData.bank_account_type || null,
                 },
+                asaasCustomerId: profileData.asaas_customer_id
+                    ? '*'.repeat(Math.max(0, String(profileData.asaas_customer_id).length - 6)) + String(profileData.asaas_customer_id).slice(-6)
+                    : null,
+                teacherApplicationData: profileData.teacher_application_data || null,
                 security: {
                     mfaEnabled: mfaStatus,
                     lastLogin: lastLogin,
                     emailVerified: authUser.emailVerified
                 },
+                updatedAt: profileData.updated_at ? parseFirebaseDate(profileData.updated_at)?.toISOString() : null,
                 courses: courses
             }
         }))
