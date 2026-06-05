@@ -41,7 +41,7 @@ interface CourseFormData {
     subtitle: string
     description: string
     price: number
-    pricing_type: 'premium' | 'free' | 'standard'
+    pricing_type: 'free' | 'standard'
     duration: number
     image_url?: string
     intro_video_url?: string

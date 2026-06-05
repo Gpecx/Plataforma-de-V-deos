@@ -51,7 +51,7 @@ interface Course {
     teacher_id?: string;
     teacher_name?: string;
     tags?: string[];
-    pricing_type?: 'premium' | 'free' | 'standard';
+    pricing_type?: 'free' | 'standard';
     created_at?: any;
 }
 
@@ -80,7 +80,7 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: Cou
     const [selectedCourse, setSelectedCourse] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [localSearch, setLocalSearch] = useState("");
-    const [activeFilter, setActiveFilter] = useState<'all' | 'premium' | 'free' | 'new'>('all');
+    const [activeFilter, setActiveFilter] = useState<'all' | 'free' | 'new'>('all');
 
     const firstName = profile?.full_name?.split(' ')[0] || '';
     const isLoggedIn = !loading && !!user;
@@ -112,7 +112,6 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: Cou
                 (c.tags && c.tags.some((tag: string) => normalizeString(tag).includes(query)))
             ) : true;
             if (!matchesSearch) return false;
-            if (activeFilter === 'premium') return c.pricing_type === 'premium';
             if (activeFilter === 'free') return c.pricing_type === 'free';
             if (activeFilter === 'new') return isNewCourse(c.created_at);
             return true;
@@ -222,10 +221,9 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: Cou
                 <div className="flex flex-col md:flex-row gap-6 items-center justify-between bg-transparent border-b border-[#1D5F31] pb-4">
                     {/* Filtros Rápidos */}
                     <div className="flex flex-wrap gap-2 w-full md:w-auto">
-                        {(['all', 'premium', 'free', 'new'] as const).map((filter) => {
+                        {(['all', 'free', 'new'] as const).map((filter) => {
                             const labels = {
                                 all: 'TODOS',
-                                premium: 'PREMIUM',
                                 free: 'GRATUITO',
                                 new: 'NOVO'
                             };
@@ -366,13 +364,6 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: Cou
                                                             return (
                                                                 <div className="absolute top-2 left-2 bg-[#22c55e] !text-[#0B1215] px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm z-10 shadow-lg no-theme-override">
                                                                     ADQUIRIDO
-                                                                </div>
-                                                            )
-                                                        }
-                                                        if (course.pricing_type === 'premium') {
-                                                            return (
-                                                                <div className="absolute top-2 left-2 bg-[#1D5F31] !text-[#22c55e] border border-[#22c55e]/50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm z-10 shadow-lg no-theme-override">
-                                                                    PREMIUM
                                                                 </div>
                                                             )
                                                         }

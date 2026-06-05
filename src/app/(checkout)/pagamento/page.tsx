@@ -220,8 +220,10 @@ export default function PagamentoPage() {
         if (isFree) {
             setIsProcessing(true)
             try {
-                const courseIds = items.map(item => item.id)
-                const result = await processCheckoutAction(courseIds, 'PIX', true, undefined)
+                const courseIds = items.flatMap(item => item.course_ids || [item.id])
+                const bundleItem = items.find(item => item.bundle_id)
+                const bundleData = bundleItem ? { bundle_id: bundleItem.bundle_id!, course_ids: bundleItem.course_ids || [], bundle_price: bundleItem.price } : null
+                const result = await processCheckoutAction(courseIds, 'PIX', true, undefined, bundleData)
                 if (!result.success) {
                     setPaymentError(result.error || "Erro ao liberar acesso gratuito")
                     setIsProcessing(false)
@@ -259,7 +261,9 @@ export default function PagamentoPage() {
         setIsProcessing(true)
 
         try {
-            const courseIds = items.map(item => item.id)
+            const courseIds = items.flatMap(item => item.course_ids || [item.id])
+            const bundleItem = items.find(item => item.bundle_id)
+            const bundleData = bundleItem ? { bundle_id: bundleItem.bundle_id!, course_ids: bundleItem.course_ids || [], bundle_price: bundleItem.price } : null
             
             const methodMap: Record<PaymentMethod, any> = {
                 credit_card: 'CREDIT_CARD',
@@ -287,7 +291,7 @@ export default function PagamentoPage() {
                 }
             } : undefined
 
-            const result = await processCheckoutAction(courseIds, billingType, termsAccepted, cardData)
+            const result = await processCheckoutAction(courseIds, billingType, termsAccepted, cardData, bundleData)
 
             if (!result.success) {
                 setPaymentError(result.error || "Erro ao processar pagamento")
@@ -690,6 +694,9 @@ export default function PagamentoPage() {
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <h4 className="text-[12px] font-bold uppercase tracking-tight truncate text-[#1a1a1a]">{item.title}</h4>
+                                            {item.bundle_id && (
+                                                <span className="text-[8px] font-bold uppercase tracking-widest text-amber-600 bg-amber-50 px-2 py-0.5 rounded inline-block mt-1 border border-amber-200">PACOTE</span>
+                                            )}
                                             <span className="text-sm font-bold text-[#1D5F31]">
                                                 {isLoadingPrices ? (
                                                     <span className="animate-pulse opacity-50">Carregando...</span>

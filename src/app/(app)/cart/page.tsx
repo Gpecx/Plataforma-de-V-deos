@@ -2,17 +2,22 @@
 
 import { useCartStore } from '@/store/useCartStore'
 import { validateCartItemsAction } from './actions'
-import { ShoppingCart, Trash2, CreditCard, ArrowLeft, BookOpen, ChevronRight, ShieldCheck } from 'lucide-react'
+import { ShoppingCart, Trash2, CreditCard, ArrowLeft, BookOpen, ChevronRight, ShieldCheck, Gift, X } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthProvider'
+import { db } from '@/lib/firebase'
+import { collection, query, where, getDocs } from 'firebase/firestore'
 
 export default function CartPage() {
     const { items, removeItem, getTotal, purchasedCourseIds } = useCartStore()
     const router = useRouter()
     const { user, loading: authLoading } = useAuth()
     const [mounted, setMounted] = useState(false)
+    const [bundleOffer, setBundleOffer] = useState<any>(null)
+    const [dismissedBundleIds, setDismissedBundleIds] = useState<string[]>([])
+    const [loadingBundle, setLoadingBundle] = useState(false)
 
     useEffect(() => {
         setMounted(true)
@@ -37,6 +42,78 @@ export default function CartPage() {
         
         validateCart()
     }, [])
+
+    // Look for bundle offers when items change
+    useEffect(() => {
+        if (items.length === 0) return
+
+        const nonBundleItems = items.filter(item => !item.bundle_id)
+        if (nonBundleItems.length === 0) return
+
+        const checkBundles = async () => {
+            setLoadingBundle(true)
+            try {
+                const itemIds = nonBundleItems.map(i => i.id)
+                const q = query(
+                    collection(db, 'bundles'),
+                    where('course_ids', 'array-contains-any', itemIds),
+                    where('active', '==', true),
+                )
+                const snapshot = await getDocs(q)
+                const found: any[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+                // Pick first bundle that has at least 2 courses in the cart and not dismissed
+                const candidate = found.find((b: any) => {
+                    if (dismissedBundleIds.includes(b.id)) return false
+                    const cartIds = new Set(itemIds)
+                    const matchingCourses = b.course_ids.filter((id: string) => cartIds.has(id))
+                    return matchingCourses.length >= 1
+                })
+                if (candidate) {
+                    const cartIds = new Set(itemIds)
+                    const matchingCourses = candidate.course_ids.filter((id: string) => cartIds.has(id))
+                    const bundleCourseNames = nonBundleItems
+                        .filter(i => candidate.course_ids.includes(i.id))
+                        .map(i => i.title)
+                    setBundleOffer({ ...candidate, matchingCourses, bundleCourseNames })
+                } else {
+                    setBundleOffer(null)
+                }
+            } catch (error) {
+                console.error('Erro ao buscar pacotes:', error)
+            }
+            setLoadingBundle(false)
+        }
+        checkBundles()
+    }, [items, dismissedBundleIds])
+
+    const handleAcceptBundle = () => {
+        if (!bundleOffer) return
+        const { addItem: addCartItem, removeItem: removeCartItem, showNotification } = useCartStore.getState()
+        // Remove individual course items that are in the bundle
+        bundleOffer.course_ids.forEach((courseId: string) => {
+            removeCartItem(courseId)
+        })
+        // Add bundle as a single item
+        const bundleCourses = items.filter(i => bundleOffer.course_ids.includes(i.id))
+        const firstImage = bundleCourses.find((i: any) => i.image_url)?.image_url
+        addCartItem({
+            id: `bundle-${bundleOffer.id}`,
+            title: bundleOffer.name,
+            price: bundleOffer.bundle_price,
+            image_url: firstImage,
+            bundle_id: bundleOffer.id,
+            course_ids: bundleOffer.course_ids,
+        })
+        setBundleOffer(null)
+        showNotification('PACOTE ADICIONADO!', 'success')
+    }
+
+    const handleDismissBundle = () => {
+        if (bundleOffer) {
+            setDismissedBundleIds(prev => [...prev, bundleOffer.id])
+            setBundleOffer(null)
+        }
+    }
 
     const hasPurchasedItems = items.some(item => purchasedCourseIds.includes(item.id))
     const isValidatingOwnership = authLoading && items.length > 0
@@ -103,9 +180,21 @@ export default function CartPage() {
                                             alt={course.title}
                                             className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                                         />
+                                        {course.bundle_id && (
+                                            <div className="absolute top-2 left-2 bg-amber-500 text-white text-[7px] font-bold uppercase tracking-widest px-2 py-1 rounded-md shadow-sm">
+                                                PACOTE
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="flex-1 text-center md:text-left">
                                         <h3 className="text-2xl font-bold tracking-tighter mb-3 group-hover:text-[#1D5F31] transition uppercase !text-slate-900 leading-tight">{course.title}</h3>
+                                        {course.bundle_id && course.course_ids && (
+                                            <div className="flex flex-wrap gap-1.5 mb-3 justify-center md:justify-start">
+                                                <span className="text-[8px] font-bold uppercase tracking-wider text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                                                    {course.course_ids.length} cursos no pacote
+                                                </span>
+                                            </div>
+                                        )}
                                         <div className="flex flex-wrap items-center justify-center md:justify-start gap-5 mb-5">
                                             <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest flex items-center gap-2">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-[#1D5F31]"></div>
@@ -113,12 +202,12 @@ export default function CartPage() {
                                             </span>
                                         </div>
                                         <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-slate-50 border border-slate-100 text-slate-500 text-[10px] font-bold uppercase tracking-[2px] rounded-lg">
-                                            Treinamento Premium
+                                            {course.bundle_id ? 'Pacote de Cursos' : 'Treinamento Premium'}
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-center md:items-end gap-6 min-w-[160px]">
                                         <div className="text-center md:text-right">
-                                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block mb-1">Preço do Curso</span>
+                                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block mb-1">{course.bundle_id ? 'Preço do Pacote' : 'Preço do Curso'}</span>
                                             <span className="text-3xl font-bold text-slate-900 tracking-tight">R$ {course.price.toFixed(2)}</span>
                                         </div>
                                         <button
@@ -130,6 +219,69 @@ export default function CartPage() {
                                     </div>
                                 </div>
                             ))}
+
+                            {/* Bundle Upsell Card */}
+                            {bundleOffer && !loadingBundle && (
+                                <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-300 p-6 md:p-8 rounded-[24px] shadow-lg shadow-amber-200/30">
+                                    <div className="flex items-start gap-4 mb-5">
+                                        <div className="p-3 bg-amber-100 rounded-xl border border-amber-200 shrink-0">
+                                            <Gift size={24} className="text-amber-600" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-[9px] font-bold uppercase tracking-[3px] text-amber-700 bg-amber-100 px-3 py-1 rounded-full border border-amber-200">Oferta Especial</span>
+                                                <button onClick={handleDismissBundle} className="p-1.5 hover:bg-amber-200/50 rounded-lg transition">
+                                                    <X size={16} className="text-amber-500" />
+                                                </button>
+                                            </div>
+                                            <h3 className="text-xl font-bold tracking-tighter uppercase text-slate-900 mt-3">{bundleOffer.name}</h3>
+                                            {bundleOffer.bundleCourseNames && bundleOffer.bundleCourseNames.length > 0 && (
+                                                <p className="text-[11px] text-slate-600 font-bold uppercase tracking-wider mt-1">
+                                                    {bundleOffer.bundleCourseNames.join(' + ')}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-baseline gap-3 mb-2">
+                                        <span className="text-2xl font-bold text-amber-600 tracking-tight">R$ {(bundleOffer.bundle_price || 0).toFixed(2)}</span>
+                                        <span className="text-sm text-slate-400 line-through font-bold">R$ {(bundleOffer.original_price || 0).toFixed(2)}</span>
+                                        {bundleOffer.original_price > bundleOffer.bundle_price && (
+                                            <span className="text-[10px] font-bold text-[#1D5F31] bg-green-50 border border-green-200 px-2 py-0.5 rounded">
+                                                -{Math.round((1 - bundleOffer.bundle_price / bundleOffer.original_price) * 100)}%
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-6">
+                                        Você economiza <span className="text-[#1D5F31]">R$ {((bundleOffer.original_price || 0) - (bundleOffer.bundle_price || 0)).toFixed(2)}</span>
+                                    </p>
+
+                                    <div className="flex gap-4">
+                                        <button
+                                            onClick={handleAcceptBundle}
+                                            className="flex-1 py-4 bg-amber-600 text-white font-bold uppercase text-[10px] tracking-widest rounded-xl hover:opacity-90 transition-all shadow-lg shadow-amber-600/20 active:scale-95"
+                                        >
+                                            Adicionar Pacote
+                                        </button>
+                                        <button
+                                            onClick={handleDismissBundle}
+                                            className="px-6 py-4 bg-white text-slate-600 font-bold uppercase text-[10px] tracking-widest rounded-xl border border-slate-200 hover:border-slate-400 transition-all active:scale-95"
+                                        >
+                                            Não, Obrigado
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Bundle badge on bundle items */}
+                            {items.some(i => i.bundle_id) && (
+                                <div className="bg-blue-50 border border-blue-200 p-4 rounded-2xl flex items-center gap-3">
+                                    <Gift size={18} className="text-blue-500 shrink-0" />
+                                    <p className="text-[10px] font-bold uppercase tracking-wider text-blue-700">
+                                        Pacote de cursos no carrinho — você está levando vários cursos com preço especial!
+                                    </p>
+                                </div>
+                            )}
                         </div>
 
                         {/* Summary Section */}

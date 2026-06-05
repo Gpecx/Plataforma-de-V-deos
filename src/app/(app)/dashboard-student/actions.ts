@@ -87,7 +87,8 @@ export async function processCheckoutAction(
     cardData?: {
         creditCard: { holderName: string; number: string; expiryMonth: string; expiryYear: string; ccv: string };
         creditCardHolderInfo: { name: string; email: string; cpfCnpj: string; postalCode: string; addressNumber: string; phone?: string };
-    }
+    },
+    bundleData?: { bundle_id: string; course_ids: string[]; bundle_price: number } | null
 ): Promise<
     | { success: true; isFree: true; data?: undefined; error?: undefined }
     | { success: true; isFree?: undefined; data: { invoiceUrl: string; paymentId: string; billingType: string; status?: string; pixQrCode?: string; payload?: string }; error?: undefined }
@@ -133,7 +134,8 @@ export async function processCheckoutAction(
                         ...(isInstantlyConfirmed ? { updated_at: new Date() } : {})
                     } : {
                         status: 'pending',
-                    })
+                    }),
+                    ...(bundleData ? { bundle_id: bundleData.bundle_id } : {}),
                 })
 
                 const { platformAmount: platformShare, teacherAmount: teacherShare } = calculateSplitValues(Number(courseData.price) || 0, platformTaxPercent)
@@ -154,7 +156,8 @@ export async function processCheckoutAction(
                     statusPagamento: totalAmount === 0 || isInstantlyConfirmed ? 'pago' : 'pendente',
                     billingType: billingType,
                     dataCriacao: new Date(),
-                    ...(isInstantlyConfirmed ? { paymentDate: new Date() } : {})
+                    ...(isInstantlyConfirmed ? { paymentDate: new Date() } : {}),
+                    ...(bundleData ? { bundle_id: bundleData.bundle_id, course_ids: bundleData.course_ids, is_bundle_purchase: true } : {}),
                 })
 
                 if (isInstantlyConfirmed) {
@@ -252,6 +255,7 @@ export async function processCheckoutAction(
                     course_id: courseData.id,
                     status: 'pending',
                     created_at: new Date(),
+                    ...(bundleData ? { bundle_id: bundleData.bundle_id } : {}),
                 })
                 enrollRefs.push({ ref: enrollRef, courseData })
             }
@@ -335,7 +339,8 @@ export async function processCheckoutAction(
                     statusPagamento: isInstantlyConfirmed ? 'pago' : 'pendente',
                     billingType: billingType,
                     dataCriacao: new Date(),
-                    ...(isInstantlyConfirmed ? { paymentDate: new Date() } : {})
+                    ...(isInstantlyConfirmed ? { paymentDate: new Date() } : {}),
+                    ...(bundleData ? { bundle_id: bundleData.bundle_id, course_ids: bundleData.course_ids, is_bundle_purchase: true } : {}),
                 })
             }
 

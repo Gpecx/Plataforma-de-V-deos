@@ -20,7 +20,7 @@ interface Course {
     teacher_id?: string;
     teacher_name?: string;
     tags?: string[];
-    pricing_type?: 'premium' | 'free' | 'standard';
+    pricing_type?: 'free' | 'standard';
     created_at?: any;
 }
 
@@ -106,13 +106,6 @@ export default function CourseRow({
                                     return (
                                         <div className="absolute top-2 left-2 bg-[#22c55e] !text-[#0B1215] px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm z-10 shadow-lg no-theme-override">
                                             ADQUIRIDO
-                                        </div>
-                                    )
-                                }
-                                if (course.pricing_type === 'premium') {
-                                    return (
-                                        <div className="absolute top-2 left-2 bg-[#1D5F31] !text-[#22c55e] border border-[#22c55e]/50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest rounded-sm z-10 shadow-lg no-theme-override">
-                                            PREMIUM
                                         </div>
                                     )
                                 }
