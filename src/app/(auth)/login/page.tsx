@@ -329,8 +329,8 @@ function LoginContent() {
 
                         {/* Footer Links (Closer) */}
                         <div className="mt-12 pt-8 border-t border-slate-100 text-center">
-                            <p className="text-[11px] text-green-200 font-bold uppercase tracking-widest">
-                                Não tem uma conta? <Link href="/register" className="font-bold text-[#1D5F31] hover:underline underline-offset-8 ml-2">Crie agora</Link>
+                            <p className="text-[11px] text-slate-300 font-bold uppercase tracking-widest">
+                                Não tem uma conta? <Link href="/register" className="font-bold text-emerald-400 hover:text-emerald-300 hover:underline underline-offset-8 ml-2">Crie agora</Link>
                             </p>
                         </div>
                     </div>
