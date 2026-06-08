@@ -12,14 +12,14 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { ArrowRight, Eye, EyeOff } from "lucide-react"
 import { auth, db } from "@/lib/firebase"
 import { signInWithEmailAndPassword, reload } from "firebase/auth"
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore"
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore"
 import Logo from "@/components/Logo"
 import { ConversionBridge } from "@/components/ConversionBridge"
 import MFAChallenge from "@/components/MFAChallenge"
 import { useAuth } from "@/context/AuthProvider"
-import { updateDoc } from "firebase/firestore"
 import { toast } from "sonner"
 import { checkMfaTrusted } from "@/app/actions/mfa"
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton"
 
 const loginSchema = z.object({
     email: z.string().email("E-mail inválido"),
@@ -317,6 +317,15 @@ function LoginContent() {
                                 </form>
                             </Form>
                         )}
+
+                        {/* Google Sign-In Divider */}
+                        <div className="relative flex items-center gap-4 my-8">
+                            <div className="flex-1 h-px bg-slate-700/30" />
+                            <span className="text-[10px] font-bold uppercase tracking-[4px] text-green-200">ou</span>
+                            <div className="flex-1 h-px bg-slate-700/30" />
+                        </div>
+
+                        <GoogleSignInButton />
 
                         {/* Footer Links (Closer) */}
                         <div className="mt-12 pt-8 border-t border-slate-100 text-center">

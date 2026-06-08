@@ -2,6 +2,7 @@
 
 import { cookies } from 'next/headers'
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
+import { FieldValue } from 'firebase-admin/firestore'
 
 export async function getSessionUser() {
     const cookieStore = await cookies()
@@ -68,4 +69,33 @@ export async function removeSessionCookie() {
     // mfa_trusted NÃO é removido no sign-out comum para que o
     // "Confiar neste dispositivo" persista por 30 dias no navegador.
     // O cookie expira naturalmente via maxAge ou se o usuário limpar os cookies manualmente.
+}
+
+export async function syncGoogleAuthAction(idToken: string) {
+    try {
+        const decodedToken = await adminAuth.verifyIdToken(idToken)
+        const { uid, email, name, picture } = decodedToken
+
+        const profileRef = adminDb.collection('profiles').doc(uid)
+        const profileDoc = await profileRef.get()
+
+        if (!profileDoc.exists) {
+            const payload: Record<string, any> = {
+                role: 'student',
+                mfaEnabled: true,
+                displayName: name || email?.split('@')[0] || 'Usuário',
+                email: email || '',
+                photoURL: picture || '',
+                created_at: FieldValue.serverTimestamp(),
+                updated_at: FieldValue.serverTimestamp(),
+            }
+            await profileRef.set(payload)
+        }
+
+        const role = (profileDoc.exists ? profileDoc.data()?.role : 'student') || 'student'
+        return { success: true, role }
+    } catch (error) {
+        console.error('[syncGoogleAuthAction] Erro:', error)
+        return { success: false, error: 'Falha na autenticação com Google' }
+    }
 }
