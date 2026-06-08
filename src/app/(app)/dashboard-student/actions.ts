@@ -121,17 +121,21 @@ export async function processCheckoutAction(
         const buildBatch = (paymentId?: string, asaasStatus?: string, invoiceUrl?: string) => {
             const isInstantlyConfirmed = billingType === 'CREDIT_CARD' && (asaasStatus === 'CONFIRMED' || asaasStatus === 'RECEIVED')
             const isFree = totalAmount === 0
+            const now = new Date()
+            const isConfirmed = isInstantlyConfirmed || isFree
             const batch = adminDb.batch()
             for (const courseData of coursesData) {
                 const enrollRef = adminDb.collection('enrollments').doc()
                 batch.set(enrollRef, {
                     user_id: user.uid,
                     course_id: courseData.id,
-                    created_at: new Date(),
+                    created_at: now,
                     ...(paymentId ? { payment_id: paymentId } : {}),
-                    ...(isInstantlyConfirmed || isFree ? {
+                    ...(isConfirmed ? {
                         payment_confirmed: true,
-                        ...(isInstantlyConfirmed ? { updated_at: new Date() } : {})
+                        purchasedAt: now,
+                        expiresAt: new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000),
+                        ...(isInstantlyConfirmed ? { updated_at: now } : {})
                     } : {
                         status: 'pending',
                     }),
@@ -699,10 +703,13 @@ export async function payPendingCreditCardAction(
                         e => e.data().course_id === cursoId
                     )
                     if (matchEnrollment) {
+                        const now = new Date()
                         batch.update(matchEnrollment.ref, {
                             payment_confirmed: true,
+                            purchasedAt: now,
+                            expiresAt: new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000),
                             payment_id: paymentId,
-                            updated_at: new Date(),
+                            updated_at: now,
                             status: FieldValue.delete(),
                         })
 
@@ -808,6 +815,8 @@ export async function syncPaymentStatusAction(paymentId: string) {
 
             batch.update(matchEnrollment.ref, {
                 payment_confirmed: true,
+                purchasedAt: new Date(),
+                expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
                 payment_id: paymentId,
                 updated_at: new Date(),
                 status: FieldValue.delete(),

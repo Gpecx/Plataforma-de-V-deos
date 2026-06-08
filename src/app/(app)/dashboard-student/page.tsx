@@ -55,17 +55,31 @@ export default async function StudentDashboard() {
         };
     }) as any[]
     const allLessons = lessonsSnapshot.docs.map(doc => doc.data()) as any[]
-    const purchasedCourseIds = enrollmentsSnapshot.docs.map(doc => doc.data().course_id)
+
+    const now = new Date()
+    const activeEnrollments = enrollmentsSnapshot.docs.filter(doc => {
+        const data = doc.data()
+        if (!data.expiresAt) return true
+        const expiresAt = data.expiresAt.toDate ? data.expiresAt.toDate() : new Date(data.expiresAt)
+        return expiresAt > now
+    })
+
+    const purchasedCourseIds = activeEnrollments.map(doc => doc.data().course_id)
     const enrollmentStatusMap: Record<string, string> = {}
-    enrollmentsSnapshot.docs.forEach(doc => {
+    const expiresAtMap: Record<string, string> = {}
+    activeEnrollments.forEach(doc => {
         const data = doc.data()
         if (data.course_id) {
             enrollmentStatusMap[data.course_id] = data.status || 'active'
+            if (data.expiresAt) {
+                const d = data.expiresAt.toDate ? data.expiresAt.toDate() : new Date(data.expiresAt)
+                expiresAtMap[data.course_id] = d.toLocaleDateString('pt-BR')
+            }
         }
     })
     
     const userProgressMap: Record<string, { completedLessons: string[], totalLessons: number }> = {}
-    enrollmentsSnapshot.docs.forEach(doc => {
+    activeEnrollments.forEach(doc => {
         const data = doc.data()
         const courseId = data.course_id
         if (courseId) {
@@ -177,6 +191,11 @@ export default async function StudentDashboard() {
                                                         totalLessons={totalLessons} 
                                                     />
                                                     <ContinueLessonButton courseId={curso.id} lessonId={nextLessonId} />
+                                                    {expiresAtMap[curso.id] && (
+                                                        <p className="text-[10px] font-mono text-slate-400 uppercase tracking-wider text-center">
+                                                            Acesso válido até: {expiresAtMap[curso.id]}
+                                                        </p>
+                                                    )}
                                                 </>
                                             )}
                                         </div>

@@ -112,11 +112,14 @@ export async function POST(request: NextRequest) {
 
                 if (!enrollmentQuery.empty) {
                     const enrollmentRef = enrollmentQuery.docs[0].ref
+                    const now = new Date()
                     batch.update(enrollmentRef, {
                         payment_confirmed: true,
                         payment_id: payment.id,
+                        purchasedAt: now,
+                        expiresAt: new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000),
                         updated_at: FieldValue.serverTimestamp(),
-                        paid_at: new Date(),
+                        paid_at: now,
                         status: 'active'
                     })
 
