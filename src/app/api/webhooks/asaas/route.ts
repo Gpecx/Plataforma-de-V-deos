@@ -3,6 +3,7 @@ import { timingSafeEqual } from 'crypto'
 import { adminDb } from '@/lib/firebase-admin'
 import { FieldValue } from 'firebase-admin/firestore'
 import { getPayment } from '@/services/asaasService'
+import { sendCourseReleasedEmail, sendNewSaleEmail } from '@/lib/mail'
 
 interface AsaasWebhookPayload {
     event: string
@@ -80,11 +81,13 @@ export async function POST(request: NextRequest) {
 
             // 3. Confirma cada venda e atualiza o enrollment correspondente
             const batch = adminDb.batch()
+            const emailQueue: { userId: string; cursoId: string; professorId: string }[] = []
 
             for (const saleDoc of vendasLogsQuery.docs) {
                 const saleData = saleDoc.data()
                 const userId: string = saleData.userId || saleData.alunoId
                 const cursoId: string = saleData.cursoId
+                const professorId: string = saleData.professorId
 
                 // Marca a venda como paga
                 batch.update(saleDoc.ref, {
@@ -126,12 +129,64 @@ export async function POST(request: NextRequest) {
                     // Remove da lista de desejos, se existir
                     const wishlistRef = adminDb.collection('profiles').doc(userId).collection('wishlist').doc(cursoId)
                     batch.delete(wishlistRef)
+
+                    emailQueue.push({ userId, cursoId, professorId })
                 } else {
                     console.warn(`Webhook Asaas: Tentativa de confirmar matrícula inexistente (curso ${cursoId})`)
                 }
             }
 
             await batch.commit()
+
+            // Dispara e-mails após o commit
+            if (emailQueue.length > 0) {
+                const uniqueStudentIds = [...new Set(emailQueue.map(e => e.userId))]
+                const uniqueStudentId = uniqueStudentIds[0]
+                const firstEntry = emailQueue[0]
+
+                const [studentProfile, courseDoc] = await Promise.all([
+                    adminDb.collection('profiles').doc(uniqueStudentId).get(),
+                    adminDb.collection('courses').doc(firstEntry.cursoId).get(),
+                ])
+
+                const studentData = studentProfile.data()
+                const courseData = courseDoc.data()
+                const studentName = studentData?.full_name || studentData?.name || studentData?.displayName || 'Aluno'
+                const courseName = courseData?.title || 'Curso'
+
+                if (studentData?.email) {
+                    await sendCourseReleasedEmail({
+                        studentEmail: studentData.email,
+                        studentName,
+                        courseName,
+                        courseId: firstEntry.cursoId,
+                    })
+                }
+
+                // Notifica cada professor envolvido
+                const uniqueTeacherIds = [...new Set(emailQueue.map(e => e.professorId).filter(Boolean))]
+                for (const teacherId of uniqueTeacherIds) {
+                    const teacherProfile = await adminDb.collection('profiles').doc(teacherId).get()
+                    const teacherData = teacherProfile.data()
+                    if (teacherData?.email) {
+                        const teacherName = teacherData.full_name || teacherData.name || teacherData.displayName || 'Professor'
+                        const teacherCourses = emailQueue.filter(e => e.professorId === teacherId)
+                        const courseNames = await Promise.all(
+                            teacherCourses.map(e =>
+                                adminDb.collection('courses').doc(e.cursoId).get()
+                                    .then(d => d.data()?.title || 'Curso')
+                            )
+                        )
+                        // Para simplificar, notifica sobre o primeiro curso da venda
+                        await sendNewSaleEmail({
+                            teacherEmail: teacherData.email,
+                            teacherName,
+                            studentName,
+                            courseName: courseNames[0] || courseName,
+                        })
+                    }
+                }
+            }
 
         } else {
             // Eventos ignorados não precisam ser logados em produção

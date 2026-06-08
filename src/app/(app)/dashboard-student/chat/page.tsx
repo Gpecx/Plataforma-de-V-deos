@@ -179,6 +179,19 @@ export default function StudentChatPage() {
                 display_name: user.displayName || user.email?.split('@')[0] || 'Aluno',
                 created_at: serverTimestamp(),
             })
+
+            // Notifica o professor por e-mail (side-effect, não bloqueante)
+            fetch('/api/notify/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'student',
+                    teacherId: selectedTeacher.id,
+                    studentId: user.uid,
+                    courseName: selectedTeacher.course,
+                    messageContent: text,
+                }),
+            }).catch(() => {})
         } catch (error) {
             console.error('Erro ao enviar:', error)
             setMessages(prev => prev.map(m =>

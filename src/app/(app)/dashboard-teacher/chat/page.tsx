@@ -185,6 +185,19 @@ export default function TeacherChatPage() {
                 content: text,
                 created_at: serverTimestamp(),
             })
+
+            // Notifica o aluno por e-mail (side-effect, não bloqueante)
+            fetch('/api/notify/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'teacher',
+                    teacherId: user.uid,
+                    studentId: selectedStudent.id,
+                    courseName: selectedStudent.course,
+                    messageContent: text,
+                }),
+            }).catch(() => {})
         } catch (error) {
             console.error('Erro ao enviar:', error)
             setMessages(prev => prev.map(m =>

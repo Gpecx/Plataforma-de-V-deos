@@ -7,6 +7,7 @@ import { redirect } from 'next/navigation'
 import { removeSessionCookie } from '@/app/actions/auth'
 import { createPayment, payWithCreditCard, BillingType, getStudentAsaasId, createCustomer, getPaymentQrCode, withRetry, getPayment, getPaymentIdentification, getTeacherWalletInfo, calculateSplitValues } from '@/services/asaasService'
 import { sanitizeCpfCnpj } from '@/lib/utils'
+import { sendCourseReleasedEmail, sendNewSaleEmail } from '@/lib/mail'
 
 async function getClientIp(): Promise<string> {
     const headersList = await headers()
@@ -204,6 +205,32 @@ export async function processCheckoutAction(
 
         // Curso gratuito: matrícula já commitada acima
         if (totalAmount === 0) {
+            // Dispara e-mails em background (free courses)
+            const studentProfile = await adminDb.collection('profiles').doc(user.uid).get()
+            const studentData = studentProfile.data()
+            const studentName = studentData?.full_name || studentData?.name || studentData?.displayName || 'Aluno'
+            for (const course of coursesData) {
+                if (studentData?.email) {
+                    sendCourseReleasedEmail({
+                        studentEmail: studentData.email,
+                        studentName,
+                        courseName: course.title || 'Curso',
+                        courseId: course.id,
+                    })
+                }
+                if (course.teacher_id) {
+                    const teacherProfile = await adminDb.collection('profiles').doc(course.teacher_id).get()
+                    const teacherData = teacherProfile.data()
+                    if (teacherData?.email) {
+                        sendNewSaleEmail({
+                            teacherEmail: teacherData.email,
+                            teacherName: teacherData.full_name || teacherData.name || teacherData.displayName || 'Professor',
+                            studentName,
+                            courseName: course.title || 'Curso',
+                        })
+                    }
+                }
+            }
             return { success: true, isFree: true }
         }
 
@@ -349,6 +376,35 @@ export async function processCheckoutAction(
                     ...(isInstantlyConfirmed ? { paymentDate: new Date() } : {}),
                     ...(bundleData ? { bundle_id: bundleData.bundle_id, course_ids: bundleData.course_ids, is_bundle_purchase: true } : {}),
                 })
+            }
+
+            // Dispara e-mails se pagamento foi confirmado instantaneamente
+            if (isInstantlyConfirmed) {
+                const studentProfile = await adminDb.collection('profiles').doc(user.uid).get()
+                const studentData = studentProfile.data()
+                const studentName = studentData?.full_name || studentData?.name || studentData?.displayName || 'Aluno'
+                for (const { courseData } of enrollRefs) {
+                    if (studentData?.email) {
+                        sendCourseReleasedEmail({
+                            studentEmail: studentData.email,
+                            studentName,
+                            courseName: courseData.title || 'Curso',
+                            courseId: courseData.id,
+                        })
+                    }
+                    if (courseData.teacher_id) {
+                        const teacherProfile = await adminDb.collection('profiles').doc(courseData.teacher_id).get()
+                        const teacherData = teacherProfile.data()
+                        if (teacherData?.email) {
+                            sendNewSaleEmail({
+                                teacherEmail: teacherData.email,
+                                teacherName: teacherData.full_name || teacherData.name || teacherData.displayName || 'Professor',
+                                studentName,
+                                courseName: courseData.title || 'Curso',
+                            })
+                        }
+                    }
+                }
             }
 
             // Para PIX: busca QR Code via API (não usa pixTransaction do createPayment)
@@ -721,6 +777,45 @@ export async function payPendingCreditCardAction(
             })
 
             await batch.commit()
+
+            // Dispara e-mails em background
+            const studentProfile = await adminDb.collection('profiles').doc(user.uid).get()
+            const studentData = studentProfile.data()
+            const studentName = studentData?.full_name || studentData?.name || studentData?.displayName || 'Aluno'
+            const processedCourseIds = new Set<string>()
+            vendasSnapshot.forEach(vendaDoc => {
+                const vendaData = vendaDoc.data()
+                const cursoId = vendaData.cursoId
+                const professorId = vendaData.professorId
+                if (cursoId && !processedCourseIds.has(cursoId)) {
+                    processedCourseIds.add(cursoId)
+                    adminDb.collection('courses').doc(cursoId).get().then(courseDoc => {
+                        const courseTitle = courseDoc.data()?.title || 'Curso'
+                        if (studentData?.email) {
+                            sendCourseReleasedEmail({
+                                studentEmail: studentData.email,
+                                studentName,
+                                courseName: courseTitle,
+                                courseId: cursoId,
+                            })
+                        }
+                        if (professorId) {
+                            adminDb.collection('profiles').doc(professorId).get().then(teacherDoc => {
+                                const teacherData = teacherDoc.data()
+                                if (teacherData?.email) {
+                                    sendNewSaleEmail({
+                                        teacherEmail: teacherData.email,
+                                        teacherName: teacherData.full_name || teacherData.name || teacherData.displayName || 'Professor',
+                                        studentName,
+                                        courseName: courseTitle,
+                                    })
+                                }
+                            })
+                        }
+                    })
+                }
+            })
+
             revalidatePath('/dashboard-student/payments')
         }
 
@@ -825,6 +920,43 @@ export async function syncPaymentStatusAction(paymentId: string) {
 
         // 3. Commit único — tudo ou nada
         await batch.commit()
+
+        // Dispara e-mails em background
+        const studentProfile = await adminDb.collection('profiles').doc(user.uid).get()
+        const studentData = studentProfile.data()
+        const studentName = studentData?.full_name || studentData?.name || studentData?.displayName || 'Aluno'
+        const processedCourseIds = new Set<string>()
+        for (const vendaDoc of vendaDocs) {
+            const vendaData = vendaDoc.data()
+            const cursoId = vendaData.cursoId
+            const professorId = vendaData.professorId
+            if (cursoId && !processedCourseIds.has(cursoId)) {
+                processedCourseIds.add(cursoId)
+                const courseDoc = await adminDb.collection('courses').doc(cursoId).get()
+                const courseTitle = courseDoc.data()?.title || 'Curso'
+                if (studentData?.email) {
+                    sendCourseReleasedEmail({
+                        studentEmail: studentData.email,
+                        studentName,
+                        courseName: courseTitle,
+                        courseId: cursoId,
+                    })
+                }
+                if (professorId) {
+                    const teacherDoc = await adminDb.collection('profiles').doc(professorId).get()
+                    const teacherData = teacherDoc.data()
+                    if (teacherData?.email) {
+                        sendNewSaleEmail({
+                            teacherEmail: teacherData.email,
+                            teacherName: teacherData.full_name || teacherData.name || teacherData.displayName || 'Professor',
+                            studentName,
+                            courseName: courseTitle,
+                        })
+                    }
+                }
+            }
+        }
+
         revalidatePath('/dashboard-student/payments')
         return { success: true }
     } catch (error: any) {
