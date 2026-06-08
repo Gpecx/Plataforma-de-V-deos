@@ -86,6 +86,7 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
     const [processingId, setProcessingId] = useState<string | null>(null)
     const [revealCpf, setRevealCpf] = useState(false)
     const [revealRg, setRevealRg] = useState(false)
+    const [rejectionReason, setRejectionReason] = useState('')
 
     const pendingTeachers = useMemo(() =>
         initialTeachers.filter(t => t.teacher_status === 'pending'),
@@ -206,6 +207,10 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
 
     const handleApproval = (teacherId: string, action: 'approve' | 'reject') => {
         const isApprove = action === 'approve'
+        if (!isApprove && !rejectionReason.trim()) {
+            toast.error('Digite o motivo da reprovação antes de confirmar.')
+            return
+        }
         toast(isApprove ? 'Aprovar este professor?' : 'Reprovar este cadastro?', {
             description: isApprove
                 ? 'O professor poderá criar e publicar cursos na plataforma.'
@@ -215,10 +220,11 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                 onClick: async () => {
                     setProcessingId(teacherId)
                     try {
-                        const result = await handleTeacherApproval(teacherId, action)
+                        const result = await handleTeacherApproval(teacherId, action, isApprove ? undefined : rejectionReason.trim())
                         if (result.success) {
                             toast.success(result.message)
                             setSelectedTeacher(null)
+                            setRejectionReason('')
                             window.location.reload()
                         } else {
                             toast.error(result.error || 'Erro ao processar solicitação')
@@ -613,6 +619,19 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                                         </div>
                                     </div>
                                 )}
+
+                                <div className="mt-2">
+                                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1.5 ml-1">
+                                        Motivo da Reprovação <span className="text-red-500">*</span>
+                                    </label>
+                                    <textarea
+                                        value={rejectionReason}
+                                        onChange={(e) => setRejectionReason(e.target.value)}
+                                        placeholder="Descreva o que o professor precisa melhorar..."
+                                        rows={3}
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-[12px] text-slate-900 focus:border-red-400 focus:bg-white outline-none transition-all placeholder:text-slate-400 resize-none"
+                                    />
+                                </div>
 
                                 <div className="mt-6 pt-6 border-t border-slate-100 grid grid-cols-2 gap-4">
                                     <button

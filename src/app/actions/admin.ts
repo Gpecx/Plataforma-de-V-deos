@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { getSessionUser } from '@/app/actions/auth'
 import { parseFirebaseDate } from '@/lib/date-utils'
 import { deleteMuxAsset } from '@/app/actions/mux'
+import { sendTeacherStatusEmail } from '@/lib/mail'
 
 /**
  * Busca todas as configurações globais da plataforma.
@@ -1131,7 +1132,8 @@ export async function suspendLesson(lessonId: string) {
  */
 export async function handleTeacherApproval(
     teacherId: string,
-    action: 'approve' | 'reject'
+    action: 'approve' | 'reject',
+    rejectionReason?: string
 ): Promise<{ success: boolean; message: string; error?: string }> {
     const session = await getSessionUser();
     if (!session || session.role !== 'admin') {
@@ -1140,21 +1142,45 @@ export async function handleTeacherApproval(
     }
     try {
         const newStatus = action === 'approve' ? 'approved' : 'rejected'
-        await adminDb.collection('profiles').doc(teacherId).update({
+
+        const updateData: any = {
             teacher_status: newStatus,
             updated_at: new Date()
-        })
+        }
+        if (action === 'reject' && rejectionReason) {
+            updateData.rejection_reason = rejectionReason
+        }
+
+        await adminDb.collection('profiles').doc(teacherId).update(updateData)
+
+        const notificationMsg = action === 'approve'
+            ? 'Sua solicitação para ser professor foi aprovada! Você já pode criar cursos.'
+            : `Sua solicitação para ser professor foi rejeitada.${rejectionReason ? ` Motivo: ${rejectionReason}` : ' Entre em contato para mais informações.'}`
 
         await adminDb.collection('notifications').add({
             user_id: teacherId,
             type: action === 'approve' ? 'teacher_approved' : 'teacher_rejected',
             title: action === 'approve' ? 'Solicitação Aprovada' : 'Solicitação Rejeitada',
-            message: action === 'approve'
-                ? 'Sua solicitação para ser professor foi aprovada! Você já pode criar cursos.'
-                : 'Sua solicitação para ser professor foi rejeitada. Entre em contato para mais informações.',
+            message: notificationMsg,
             read: false,
             created_at: new Date()
         })
+
+        // Busca dados do professor para enviar e-mail
+        try {
+            const profileDoc = await adminDb.collection('profiles').doc(teacherId).get()
+            const profileData = profileDoc.data()
+            if (profileData?.email && profileData?.full_name) {
+                sendTeacherStatusEmail({
+                    teacherEmail: profileData.email,
+                    teacherName: profileData.full_name,
+                    status: action === 'approve' ? 'approved' : 'rejected',
+                    rejectionReason: action === 'reject' ? rejectionReason : undefined,
+                })
+            }
+        } catch (emailErr) {
+            console.error('[TeacherApproval] Falha ao enviar e-mail:', emailErr)
+        }
 
         revalidatePath('/admin/teachers')
 

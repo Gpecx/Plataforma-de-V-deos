@@ -173,6 +173,94 @@ PowerPlay — Transformando precisão técnica em resultados estratégicos.
     }
 }
 
+export async function sendTeacherStatusEmail(params: {
+    teacherEmail: string
+    teacherName: string
+    status: 'pending' | 'approved' | 'rejected'
+    rejectionReason?: string
+}) {
+    if (!resend) return
+    const { teacherEmail, teacherName, status, rejectionReason } = params
+    const to = resolveToEmail(teacherEmail)
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://powerplay.cursos'
+
+    let subject: string
+    let heading: string
+    let bodyHtml: string
+
+    if (status === 'pending') {
+        subject = `📋 ${teacherName}, seu cadastro foi recebido!`
+        heading = `Olá, ${teacherName}!`
+        bodyHtml = `
+<p style="font-size: 16px; color: #555; margin: 0 0 24px;">Seu cadastro de professor foi recebido com sucesso e está em análise pela nossa equipe.</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="background: #f8f8f8; border-radius: 8px; padding: 24px; margin-bottom: 24px;">
+<tr><td>
+<p style="font-size: 14px; color: #555; margin: 0;"><strong>Status:</strong> <span style="color: #d97706;">Em análise</span></p>
+<p style="font-size: 14px; color: #555; margin: 8px 0 0;">Assim que sua solicitação for analisada, você receberá uma notificação por e-mail.</p>
+</td></tr>
+</table>
+<p style="font-size: 14px; color: #999; margin: 0;">Agradecemos pelo interesse em fazer parte do nosso time de instrutores!</p>`
+    } else if (status === 'approved') {
+        subject = `✅ ${teacherName}, sua solicitação foi aprovada!`
+        heading = `Parabéns, ${teacherName}!`
+        bodyHtml = `
+<p style="font-size: 16px; color: #555; margin: 0 0 24px;">Sua solicitação para se tornar professor da PowerPlay foi <strong style="color: #1D5F31;">aprovada</strong>!</p>
+<table width="100%" cellpadding="0" cellspacing="0" style="background: #f0fdf4; border-radius: 8px; padding: 24px; margin-bottom: 24px; border: 1px solid #bbf7d0;">
+<tr><td>
+<p style="font-size: 14px; color: #333; margin: 0 0 8px;">Você já pode acessar o painel do professor e começar a criar seus cursos.</p>
+</td></tr>
+</table>
+<a href="${appUrl}/dashboard-teacher" style="display: inline-block; background: #1D5F31; color: #ffffff; font-size: 14px; font-weight: 700; padding: 14px 32px; border-radius: 6px; text-decoration: none;">Acessar Painel do Professor</a>
+<p style="font-size: 13px; color: #999; margin-top: 32px;">Estamos ansiosos para ver seu conteúdo na plataforma!</p>`
+    } else {
+        subject = `❌ ${teacherName}, sua solicitação foi revisada`
+        heading = `Olá, ${teacherName}!`
+        const reasonBlock = rejectionReason
+            ? `<table width="100%" cellpadding="0" cellspacing="0" style="background: #fef2f2; border-radius: 8px; padding: 24px; margin-bottom: 24px; border: 1px solid #fecaca;">
+<tr><td>
+<p style="font-size: 14px; font-weight: 700; color: #991b1b; margin: 0 0 8px;">O que você precisa melhorar:</p>
+<p style="font-size: 14px; color: #333; margin: 0;">${rejectionReason}</p>
+</td></tr>
+</table>`
+            : ''
+        bodyHtml = `
+<p style="font-size: 16px; color: #555; margin: 0 0 24px;">Seu cadastro de professor foi analisado e, infelizmente, não foi aprovado neste momento.</p>
+${reasonBlock}
+<p style="font-size: 14px; color: #999; margin: 24px 0 0;">Você pode refazer seu cadastro a qualquer momento com as melhorias sugeridas. Estamos à disposição para ajudar!</p>`
+    }
+
+    try {
+        const data = await resend.emails.send({
+            from: `${FROM_NAME} <${FROM_EMAIL}>`,
+            to,
+            subject,
+            html: `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; margin: 0; padding: 0;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background: #f5f5f5; padding: 40px 20px;">
+<tr><td align="center">
+<table width="560" cellpadding="0" cellspacing="0" style="background: #ffffff; border-radius: 8px; overflow: hidden;">
+<tr><td style="padding: 48px 40px 32px;">
+<h1 style="font-size: 24px; font-weight: 800; margin: 0 0 8px; color: #1a1a1a;">${heading}</h1>
+${bodyHtml}
+</td></tr>
+<tr><td style="padding: 24px 40px; border-top: 1px solid #eee; font-size: 12px; color: #aaa; text-align: center;">
+PowerPlay — Transformando precisão técnica em resultados estratégicos.
+</td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>`,
+        })
+        return data
+    } catch (error) {
+        console.error('[mail.ts] Erro ao enviar e-mail de status do professor:', error)
+    }
+}
+
 export async function sendChatReplyEmail(params: {
     studentEmail: string
     studentName: string

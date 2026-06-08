@@ -2,6 +2,7 @@
 
 import { headers } from 'next/headers'
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
+import { sendTeacherStatusEmail } from '@/lib/mail'
 
 interface CreateProfileData {
     idToken: string
@@ -229,6 +230,16 @@ export async function createProfile(data: CreateProfileData) {
         })
 
         await ref.set(payload)
+
+        // Notifica o professor por e-mail que o cadastro foi recebido
+        if (role === 'teacher') {
+            sendTeacherStatusEmail({
+                teacherEmail: verifiedEmail || data.email,
+                teacherName: data.full_name,
+                status: 'pending',
+            }).catch(err => console.error('[createProfile] Erro ao enviar e-mail de pending:', err))
+        }
+
         return { success: true }
     } catch (error) {
         console.error('Error creating profile:', error)
