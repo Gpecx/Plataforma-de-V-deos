@@ -165,7 +165,7 @@ export default function CartPage() {
                             </span>
                         </div>
                         <div>
-                            <h1 className="text-4xl font-bold tracking-tighter uppercase mb-1 flex items-center gap-3 flex-wrap">
+                            <h1 className="text-3xl md:text-4xl font-bold tracking-tighter uppercase mb-1 flex items-center gap-3 flex-wrap">
                                 <span className="!text-slate-900">SEU</span>
                                 <span className="text-[#1D5F31]">CARRINHO</span>
                             </h1>
@@ -192,7 +192,7 @@ export default function CartPage() {
                                     key={course.id}
                                     className="bg-white border border-slate-200 p-6 md:p-8 flex flex-col md:flex-row gap-8 items-center hover:border-[#1D5F31]/30 transition-all group shadow-sm rounded-[24px] overflow-hidden"
                                 >
-                                    <div className="w-full md:w-56 h-32 bg-slate-50 rounded-xl overflow-hidden shrink-0 relative border border-slate-100">
+                                    <div className="w-full md:w-56 h-48 md:h-32 bg-slate-50 rounded-xl overflow-hidden shrink-0 relative border border-slate-100">
                                         <img
                                             src={course.image_url || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=80"}
                                             alt={course.title}
@@ -223,7 +223,7 @@ export default function CartPage() {
                                             {course.bundle_id ? 'Pacote de Cursos' : 'Treinamento Premium'}
                                         </div>
                                     </div>
-                                    <div className="flex flex-col items-center md:items-end gap-6 min-w-[160px]">
+                                    <div className="flex flex-col items-center md:items-end gap-4 md:gap-6 min-w-[160px] mt-4 md:mt-0">
                                         <div className="text-center md:text-right">
                                             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block mb-1">{course.bundle_id ? 'Preço do Pacote' : 'Preço do Curso'}</span>
                                             <span className="text-3xl font-bold text-slate-900 tracking-tight">R$ {course.price.toFixed(2)}</span>
@@ -364,7 +364,7 @@ export default function CartPage() {
 
                         {/* Summary Section */}
                         <div className="xl:col-span-1 space-y-6">
-                            <div className="bg-white border border-slate-200 p-8 md:p-10 shadow-lg rounded-[32px]">
+                            <div className="bg-white border border-slate-200 p-6 md:p-10 shadow-lg rounded-[32px]">
                                 <h2 className="text-2xl font-bold uppercase mb-8 border-b border-slate-100 pb-6 tracking-tighter"><span className="!text-slate-900">RESUMO DO</span> <span className="text-[#1D5F31]">PEDIDO</span></h2>
 
                                 <div className="space-y-5 mb-10">
@@ -410,7 +410,7 @@ export default function CartPage() {
                         </div>
                     </div>
                 ) : (
-                    <div className="text-center py-32 bg-white border border-slate-200 shadow-sm rounded-[32px]">
+                    <div className="text-center py-16 md:py-32 bg-white border border-slate-200 shadow-sm rounded-[32px]">
                         <div className="w-24 h-24 bg-slate-50 flex items-center justify-center mx-auto mb-10 border border-slate-100 rounded-full shadow-inner">
                             <BookOpen size={40} className="text-slate-300" />
                         </div>

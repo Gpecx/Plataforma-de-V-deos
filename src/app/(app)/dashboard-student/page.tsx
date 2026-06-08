@@ -119,7 +119,7 @@ export default async function StudentDashboard() {
             </BannerWrapper>
 
             {/* 2. CONTEÚDO COM PADDING LATERAL E GRID FORTE */}
-            <div className="px-6 md:px-12 mt-16 space-y-16 max-w-[1600px] mx-auto">
+            <div className="px-4 md:px-12 mt-10 md:mt-16 space-y-10 md:space-y-16 max-w-[1600px] mx-auto">
 
                 {/* Seção: Meus Cursos (Seu Aprendizado) */}
                 {meusCursos.length > 0 && (
@@ -172,7 +172,7 @@ export default async function StudentDashboard() {
                                             </div>
                                         )}
                                     </div>
-                                    <div className="p-8 flex-1 flex flex-col">
+                                    <div className="p-6 md:p-8 flex-1 flex flex-col">
                                         <h3 className={`font-bold text-lg mb-4 line-clamp-2 leading-tight uppercase transition-colors ${isPending ? '' : 'group-hover:text-[#1D5F31]'}`}>{curso.title}</h3>
                                         <div className="mt-auto space-y-4">
                                             {isPending ? (
@@ -208,7 +208,7 @@ export default async function StudentDashboard() {
                 )}
 
                 {/* Seção Founders (Banner Centralizado) */}
-                <section className="bg-white rounded-[32px] p-10 md:p-14 overflow-hidden relative shadow-xl border border-black">
+                <section className="bg-white rounded-[32px] p-6 sm:p-10 md:p-14 overflow-hidden relative shadow-xl border border-black">
                     <div className="relative z-10">
                         <div className="inline-flex items-center gap-3 px-4 py-2 bg-slate-100 rounded-xl mb-6 border border-black/10">
                             <Trophy size={18} className="text-[#1D5F31]" />
@@ -235,7 +235,7 @@ export default async function StudentDashboard() {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         <Card className="border-black rounded-[24px] transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 flex flex-col bg-white">
-                            <CardHeader className="p-8 pb-0">
+                            <CardHeader className="p-6 md:p-8 pb-0">
                                 <div className="flex items-center gap-4 mb-2">
                                     <div className="p-3 bg-[#1D5F31]/10 rounded-xl">
                                         <Clock size={24} className="text-[#1D5F31]" />
@@ -243,7 +243,7 @@ export default async function StudentDashboard() {
                                     <CardTitle className="text-sm font-bold text-black uppercase tracking-tight">Tempo de Estudo</CardTitle>
                                 </div>
                             </CardHeader>
-                            <CardContent className="p-8 pt-4 flex-grow flex flex-col justify-end">
+                            <CardContent className="p-6 md:p-8 pt-4 flex-grow flex flex-col justify-end">
                                 <div className="text-4xl font-black text-black mb-2 leading-none">
                                     {stats?.studyTime?.hours ?? 0}h {stats?.studyTime?.minutes ?? 0}m
                                 </div>

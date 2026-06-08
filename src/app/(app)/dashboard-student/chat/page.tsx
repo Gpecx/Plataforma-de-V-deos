@@ -222,7 +222,7 @@ export default function StudentChatPage() {
 
     return (
         <div className="h-[calc(100vh-120px)] bg-white text-slate-900 flex flex-col overflow-hidden font-sans">
-            <div className="max-w-full w-full mx-auto flex flex-col flex-1 pt-4 pb-4 px-6 gap-6 overflow-hidden">
+            <div className="max-w-full w-full mx-auto flex flex-col flex-1 pt-4 pb-4 px-4 md:px-6 gap-4 md:gap-6 overflow-hidden">
 
                 {/* Header Simples */}
                 <div className="flex items-center justify-between">
@@ -278,7 +278,7 @@ export default function StudentChatPage() {
                         {selectedTeacher ? (
                             <>
                                 {/* Chat Header */}
-                                <div className="flex items-center gap-4 px-8 py-4 border-b border-[#D1D7DC] bg-white">
+                                <div className="flex items-center gap-4 px-4 md:px-8 py-4 border-b border-[#D1D7DC] bg-white">
                                     <div className="relative">
                                         <div className="w-10 h-10 rounded-full bg-[#F1F3F4] flex items-center justify-center text-[#1d5f31] font-bold text-sm border border-[#D1D7DC]">
                                             {selectedTeacher.initials}
@@ -297,7 +297,7 @@ export default function StudentChatPage() {
                                 </div>
 
                                 {/* Mensagens */}
-                                <div className="flex-1 overflow-y-auto px-8 py-10 space-y-6 bg-white custom-scrollbar-premium">
+                                <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6 md:py-10 space-y-6 bg-white custom-scrollbar-premium">
                                     {messages.length > 0 ? (
                                         messages.map(msg => (
                                             <div
@@ -337,7 +337,7 @@ export default function StudentChatPage() {
                                 </div>
 
                                 {/* Input de Mensagem */}
-                                <div className="px-8 py-6 border-t border-[#D1D7DC] bg-white">
+                                <div className="px-4 md:px-8 py-4 md:py-6 border-t border-[#D1D7DC] bg-white">
                                     <div className="flex items-center gap-4">
                                         <button className="p-2 text-[#1d5f31] hover:bg-[#F1F3F4] rounded-full transition-colors shrink-0">
                                             <Paperclip size={20} />

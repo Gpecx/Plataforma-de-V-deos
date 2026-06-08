@@ -166,7 +166,7 @@ export default function CertificatesPage() {
 
     if (isCheckingAccess) {
         return (
-            <div className="p-8 md:p-12 min-h-screen flex items-center justify-center">
+            <div className="p-4 sm:p-8 md:p-12 min-h-screen flex items-center justify-center">
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-8 h-8 border-4 border-[#1D5F31]/30 border-t-[#1D5F31] rounded-full animate-spin" />
                     <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Verificando Acesso...</p>
@@ -176,7 +176,7 @@ export default function CertificatesPage() {
     }
 
     return (
-        <div className="p-8 md:p-12 min-h-screen font-montserrat text-black bg-white animate-in fade-in duration-500">
+        <div className="p-4 sm:p-8 md:p-12 min-h-screen font-montserrat text-black bg-white animate-in fade-in duration-500">
             <style jsx global>{`
                 @media print {
                     body {

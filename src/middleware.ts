@@ -164,9 +164,21 @@ export async function middleware(request: NextRequest) {
     if (sessionCookie) {
         payload = await verifyFirebaseSessionCookie(sessionCookie)
         if (!payload && !isAuthRoute && !isApiRoute) {
-            const loginUrl = new URL('/login', request.url)
-            loginUrl.searchParams.set('redirectTo', pathname)
-            const response = NextResponse.redirect(loginUrl)
+            // Sessão inválida (cookie expirado ou usuário removido do Firebase Auth).
+            // Rotas públicas (ex: landing page /): apenas deleta o cookie, sem redirect.
+            // Rotas protegidas: redireciona para login com redirectTo.
+            const isProtected = AUTHENTICATED_ROUTES.some(route =>
+                pathname.startsWith(route)
+            )
+            if (isProtected) {
+                const loginUrl = new URL('/login', request.url)
+                loginUrl.searchParams.set('redirectTo', pathname)
+                const response = NextResponse.redirect(loginUrl)
+                response.cookies.delete('session')
+                return response
+            }
+            // Rota pública: apenas limpa o cookie e deixa passar
+            const response = NextResponse.next()
             response.cookies.delete('session')
             return response
         }
@@ -194,7 +206,7 @@ export async function middleware(request: NextRequest) {
         const isTeacherBlocked = TEACHER_BLOCKED_ROUTES.some(route =>
             pathname === route || pathname.startsWith(route + '/')
         )
-        if (isTeacherBlocked || pathname === '/') {
+        if (isTeacherBlocked) {
             return NextResponse.redirect(new URL('/dashboard-teacher', request.url))
         }
     }

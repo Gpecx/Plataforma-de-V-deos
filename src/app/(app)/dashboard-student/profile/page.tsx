@@ -22,7 +22,7 @@ export default async function ProfilePage() {
     const profile = profileDoc.data()
 
     return (
-        <div className="min-h-screen bg-white text-slate-900 font-montserrat p-8 md:p-12">
+        <div className="min-h-screen bg-white text-slate-900 font-montserrat p-4 sm:p-8 md:p-12">
             <div className="max-w-4xl mx-auto space-y-10">
                 <div className="flex items-center justify-between">
                     <div>
@@ -40,7 +40,7 @@ export default async function ProfilePage() {
                     </Link>
                 </div>
 
-                <div className="bg-white border border-black rounded-xl p-8 md:p-12 shadow-sm">
+                <div className="bg-white border border-black rounded-xl p-6 sm:p-8 md:p-12 shadow-sm">
                     <ProfileForm 
                         initialFullName={profile?.full_name || ''} 
                         initialPhotoURL={profile?.photoURL || ''}
