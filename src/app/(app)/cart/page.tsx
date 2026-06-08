@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthProvider'
 import { db } from '@/lib/firebase'
-import { collection, query, where, getDocs } from 'firebase/firestore'
+import { collection, query, where, getDocs, documentId } from 'firebase/firestore'
 
 export default function CartPage() {
     const { items, removeItem, getTotal, purchasedCourseIds } = useCartStore()
@@ -61,8 +61,14 @@ export default function CartPage() {
                 )
                 const snapshot = await getDocs(q)
                 const found: any[] = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-                // Pick first bundle that has at least 2 courses in the cart and not dismissed
-                const candidate = found.find((b: any) => {
+
+                // Skip bundles that contain courses the user already owns
+                const { purchasedCourseIds: ownedIds } = useCartStore.getState()
+                const ownedSet = new Set(ownedIds)
+                const available = found.filter(b => !b.course_ids?.some((id: string) => ownedSet.has(id)))
+
+                // Pick first bundle that has at least 1 course in the cart and not dismissed
+                const candidate = available.find((b: any) => {
                     if (dismissedBundleIds.includes(b.id)) return false
                     const cartIds = new Set(itemIds)
                     const matchingCourses = b.course_ids.filter((id: string) => cartIds.has(id))
@@ -71,10 +77,22 @@ export default function CartPage() {
                 if (candidate) {
                     const cartIds = new Set(itemIds)
                     const matchingCourses = candidate.course_ids.filter((id: string) => cartIds.has(id))
-                    const bundleCourseNames = nonBundleItems
-                        .filter(i => candidate.course_ids.includes(i.id))
-                        .map(i => i.title)
-                    setBundleOffer({ ...candidate, matchingCourses, bundleCourseNames })
+                    
+                    let bundleCoursesData: any[] = [];
+                    try {
+                        if (candidate.course_ids && candidate.course_ids.length > 0) {
+                            const coursesQuery = query(
+                                collection(db, 'courses'),
+                                where(documentId(), 'in', candidate.course_ids.slice(0, 30))
+                            );
+                            const coursesSnapshot = await getDocs(coursesQuery);
+                            bundleCoursesData = coursesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                        }
+                    } catch (err) {
+                        console.error('Error fetching bundle courses:', err);
+                    }
+
+                    setBundleOffer({ ...candidate, matchingCourses, bundleCoursesData })
                 } else {
                     setBundleOffer(null)
                 }
@@ -222,53 +240,113 @@ export default function CartPage() {
 
                             {/* Bundle Upsell Card */}
                             {bundleOffer && !loadingBundle && (
-                                <div className="bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-300 p-6 md:p-8 rounded-[24px] shadow-lg shadow-amber-200/30">
-                                    <div className="flex items-start gap-4 mb-5">
-                                        <div className="p-3 bg-amber-100 rounded-xl border border-amber-200 shrink-0">
-                                            <Gift size={24} className="text-amber-600" />
-                                        </div>
-                                        <div className="flex-1">
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-[9px] font-bold uppercase tracking-[3px] text-amber-700 bg-amber-100 px-3 py-1 rounded-full border border-amber-200">Oferta Especial</span>
-                                                <button onClick={handleDismissBundle} className="p-1.5 hover:bg-amber-200/50 rounded-lg transition">
-                                                    <X size={16} className="text-amber-500" />
-                                                </button>
+                                <div className="bg-[#0B2514] text-white p-6 md:p-8 rounded-[24px] shadow-2xl shadow-[#1D5F31]/20 border border-[#1D5F31]/30 relative overflow-hidden group">
+                                    <div className="absolute -top-32 -right-32 w-64 h-64 bg-[#1D5F31] rounded-full blur-[100px] opacity-40 group-hover:opacity-60 transition-opacity duration-700 pointer-events-none"></div>
+                                    <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-emerald-600 rounded-full blur-[100px] opacity-20 group-hover:opacity-40 transition-opacity duration-700 pointer-events-none"></div>
+                                    
+                                    <div className="relative z-10">
+                                        <div className="flex items-center justify-between mb-8">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-2.5 bg-[#1D5F31]/50 border border-emerald-500/30 rounded-xl backdrop-blur-sm">
+                                                    <Gift size={20} className="text-emerald-400" />
+                                                </div>
+                                                <span className="text-[10px] font-bold uppercase tracking-[4px] text-emerald-300 bg-emerald-950/50 border border-emerald-800/50 px-4 py-2 rounded-lg backdrop-blur-sm shadow-inner">
+                                                    Oferta Especial
+                                                </span>
                                             </div>
-                                            <h3 className="text-xl font-bold tracking-tighter uppercase text-slate-900 mt-3">{bundleOffer.name}</h3>
-                                            {bundleOffer.bundleCourseNames && bundleOffer.bundleCourseNames.length > 0 && (
-                                                <p className="text-[11px] text-slate-600 font-bold uppercase tracking-wider mt-1">
-                                                    {bundleOffer.bundleCourseNames.join(' + ')}
-                                                </p>
-                                            )}
+                                            <button
+                                                onClick={handleDismissBundle}
+                                                className="p-2 hover:bg-white/10 rounded-xl transition-all text-slate-400 hover:text-white"
+                                            >
+                                                <X size={20} />
+                                            </button>
                                         </div>
-                                    </div>
 
-                                    <div className="flex items-baseline gap-3 mb-2">
-                                        <span className="text-2xl font-bold text-amber-600 tracking-tight">R$ {(bundleOffer.bundle_price || 0).toFixed(2)}</span>
-                                        <span className="text-sm text-slate-400 line-through font-bold">R$ {(bundleOffer.original_price || 0).toFixed(2)}</span>
-                                        {bundleOffer.original_price > bundleOffer.bundle_price && (
-                                            <span className="text-[10px] font-bold text-[#1D5F31] bg-green-50 border border-green-200 px-2 py-0.5 rounded">
-                                                -{Math.round((1 - bundleOffer.bundle_price / bundleOffer.original_price) * 100)}%
-                                            </span>
-                                        )}
-                                    </div>
-                                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-6">
-                                        Você economiza <span className="text-[#1D5F31]">R$ {((bundleOffer.original_price || 0) - (bundleOffer.bundle_price || 0)).toFixed(2)}</span>
-                                    </p>
+                                        <div className="flex flex-col md:flex-row md:items-start justify-between gap-8">
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="text-3xl md:text-4xl font-black tracking-tighter uppercase text-white mb-2 leading-none">
+                                                    {bundleOffer.name}
+                                                </h3>
+                                                <p className="text-emerald-100/70 text-sm font-medium mb-8">
+                                                    Eleve seu conhecimento com este pacote exclusivo e economize muito.
+                                                </p>
 
-                                    <div className="flex gap-4">
-                                        <button
-                                            onClick={handleAcceptBundle}
-                                            className="flex-1 py-4 bg-amber-600 text-white font-bold uppercase text-[10px] tracking-widest rounded-xl hover:opacity-90 transition-all shadow-lg shadow-amber-600/20 active:scale-95"
-                                        >
-                                            Adicionar Pacote
-                                        </button>
-                                        <button
-                                            onClick={handleDismissBundle}
-                                            className="px-6 py-4 bg-white text-slate-600 font-bold uppercase text-[10px] tracking-widest rounded-xl border border-slate-200 hover:border-slate-400 transition-all active:scale-95"
-                                        >
-                                            Não, Obrigado
-                                        </button>
+                                                {bundleOffer.bundleCoursesData && bundleOffer.bundleCoursesData.length > 0 && (
+                                                    <div className="mt-2 bg-white/5 rounded-2xl p-5 border border-white/10">
+                                                        <p className="text-[11px] font-bold uppercase tracking-[3px] text-emerald-400 mb-4 flex items-center gap-2">
+                                                            <BookOpen size={14} />
+                                                            Este pacote inclui:
+                                                        </p>
+                                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                            {bundleOffer.bundleCoursesData.map((course: any) => (
+                                                                <div
+                                                                    key={course.id}
+                                                                    className="bg-[#0f341b] border border-emerald-800/30 hover:border-emerald-500/50 transition-all p-2 rounded-xl flex items-center gap-3 group/course"
+                                                                >
+                                                                    <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 border border-white/10 relative">
+                                                                        <img
+                                                                            src={course.image_url || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&q=80"}
+                                                                            alt={course.title}
+                                                                            className="w-full h-full object-cover group-hover/course:scale-110 transition duration-500"
+                                                                        />
+                                                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                                                                    </div>
+                                                                    <div className="min-w-0 flex-1 pr-2">
+                                                                        <p className="text-xs font-bold text-white truncate mb-1">
+                                                                            {course.title}
+                                                                        </p>
+                                                                        <Link href={`/course/${course.id}`} className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-emerald-300 hover:text-emerald-100 transition-colors">
+                                                                            Ver Detalhes <ChevronRight size={10} />
+                                                                        </Link>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            <div className="flex flex-col items-start md:items-end gap-6 shrink-0 md:min-w-[240px] md:pt-2">
+                                                <div className="text-left md:text-right w-full bg-white/5 md:bg-transparent p-5 md:p-0 rounded-2xl md:rounded-none border border-white/10 md:border-none">
+                                                    <span className="text-[10px] text-emerald-400/80 font-bold uppercase tracking-[3px] block mb-2">
+                                                        Preço do Pacote
+                                                    </span>
+                                                    <div className="flex items-baseline gap-3 flex-wrap md:justify-end mb-1">
+                                                        <span className="text-4xl font-black text-white tracking-tighter">
+                                                            R$ {(bundleOffer.bundle_price || 0).toFixed(2)}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 flex-wrap md:justify-end">
+                                                        <span className="text-sm text-emerald-200/50 line-through font-bold">
+                                                            R$ {(bundleOffer.original_price || 0).toFixed(2)}
+                                                        </span>
+                                                        {bundleOffer.original_price > bundleOffer.bundle_price && (
+                                                            <span className="text-[10px] font-bold text-emerald-950 bg-emerald-400 px-2 py-0.5 rounded-md shadow-sm">
+                                                                -{Math.round((1 - bundleOffer.bundle_price / bundleOffer.original_price) * 100)}%
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-[11px] text-emerald-100/70 font-bold uppercase tracking-wider mt-3 bg-emerald-900/30 inline-block px-3 py-1.5 rounded-lg border border-emerald-800/30">
+                                                        Você economiza <span className="text-emerald-400">R$ {((bundleOffer.original_price || 0) - (bundleOffer.bundle_price || 0)).toFixed(2)}</span>
+                                                    </p>
+                                                </div>
+
+                                                <div className="flex flex-col gap-3 w-full mt-2">
+                                                    <button
+                                                        onClick={handleAcceptBundle}
+                                                        className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-emerald-950 font-black uppercase text-[11px] tracking-[3px] rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] active:scale-95 flex items-center justify-center gap-2"
+                                                    >
+                                                        Adicionar Pacote <ArrowLeft className="rotate-180" size={16} strokeWidth={2.5} />
+                                                    </button>
+                                                    <button
+                                                        onClick={handleDismissBundle}
+                                                        className="w-full py-3 bg-transparent text-emerald-100/50 hover:text-white hover:bg-white/5 font-bold uppercase text-[10px] tracking-widest rounded-xl transition-all active:scale-95"
+                                                    >
+                                                        Não, Obrigado
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             )}
