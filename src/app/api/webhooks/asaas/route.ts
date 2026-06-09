@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { timingSafeEqual } from 'crypto'
 import { adminDb } from '@/lib/firebase-admin'
+import { getCourseValidityMonths } from '@/app/actions/admin'
 import { FieldValue } from 'firebase-admin/firestore'
 import { getPayment } from '@/services/asaasService'
 import { sendCourseReleasedEmail, sendNewSaleEmail } from '@/lib/mail'
@@ -80,6 +81,10 @@ export async function POST(request: NextRequest) {
             }
 
             // 3. Confirma cada venda e atualiza o enrollment correspondente
+            const validityMonths = await getCourseValidityMonths()
+            if (!validityMonths || isNaN(validityMonths)) {
+                throw new Error('[webhook] course_validity_months inválido — abortando gravação de expiresAt')
+            }
             const batch = adminDb.batch()
             const emailQueue: { userId: string; cursoId: string; professorId: string }[] = []
 
@@ -116,11 +121,13 @@ export async function POST(request: NextRequest) {
                 if (!enrollmentQuery.empty) {
                     const enrollmentRef = enrollmentQuery.docs[0].ref
                     const now = new Date()
+                    const expiresAt = new Date(now)
+                    expiresAt.setMonth(expiresAt.getMonth() + validityMonths)
                     batch.update(enrollmentRef, {
                         payment_confirmed: true,
                         payment_id: payment.id,
                         purchasedAt: now,
-                        expiresAt: new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000),
+                        expiresAt,
                         updated_at: FieldValue.serverTimestamp(),
                         paid_at: now,
                         status: 'active'

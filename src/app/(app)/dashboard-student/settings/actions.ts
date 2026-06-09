@@ -22,7 +22,7 @@ export async function deleteAccount() {
     const uid = decodedToken.uid
 
     try {
-        // 1. Deletar matrículas (enrollments)
+        // 1. Deletar matrículas (enrollments) do próprio usuário (se ele comprou cursos)
         const enrollmentsSnapshot = await adminDb.collection('enrollments')
             .where('user_id', '==', uid)
             .get()
@@ -32,13 +32,76 @@ export async function deleteAccount() {
             batch.delete(doc.ref)
         })
 
-        // 2. Deletar documento de perfil
+        // ====== LÓGICA DO PROFESSOR ======
+        // 1. Buscar todos os cursos do professor
+        const coursesSnapshot = await adminDb.collection('courses')
+            .where('teacher_id', '==', uid)
+            .get()
+
+        if (!coursesSnapshot.empty) {
+            // Importar utilitário do Mux somente se necessário
+            const { deleteMuxAsset } = await import('@/app/actions/mux')
+            const now = new Date()
+
+            for (const courseDoc of coursesSnapshot.docs) {
+                const courseId = courseDoc.id
+                const courseData = courseDoc.data()
+
+                // 2. Classificar o curso
+                const courseEnrollmentsSnap = await adminDb.collection('enrollments')
+                    .where('course_id', '==', courseId)
+                    .where('payment_confirmed', '==', true)
+                    .get()
+
+                const hasValidEnrollment = courseEnrollmentsSnap.docs.some(eDoc => {
+                    const eData = eDoc.data()
+                    if (!eData.expiresAt) return false
+                    const expiresAt = eData.expiresAt.toDate ? eData.expiresAt.toDate() : new Date(eData.expiresAt)
+                    return expiresAt > now
+                })
+
+                if (hasValidEnrollment) {
+                    // 4. Para cursos a ARQUIVAR
+                    batch.update(courseDoc.ref, {
+                        status: 'ARCHIVED',
+                        teacher_deleted: true,
+                        updated_at: new Date()
+                    })
+                } else {
+                    // 3. Para cursos a DELETAR
+                    const lessonsSnapshot = await adminDb.collection('lessons')
+                        .where('course_id', '==', courseId)
+                        .get()
+
+                    // b. Deletar assets Mux das lessons
+                    for (const lessonDoc of lessonsSnapshot.docs) {
+                        const lessonData = lessonDoc.data()
+                        if (lessonData.mux_asset_id) {
+                            await deleteMuxAsset(lessonData.mux_asset_id).catch(err => console.error(`Erro Mux (lesson):`, err))
+                        }
+                        // d. Montar batch: deletar lessons
+                        batch.delete(lessonDoc.ref)
+                    }
+
+                    // c. Deletar asset Mux do trailer do curso
+                    if (courseData.intro_video_asset_id) {
+                        await deleteMuxAsset(courseData.intro_video_asset_id).catch(err => console.error(`Erro Mux (trailer):`, err))
+                    }
+
+                    // d. Montar batch: deletar course
+                    batch.delete(courseDoc.ref)
+                }
+            }
+        }
+        // ====== FIM LÓGICA DO PROFESSOR ======
+
+        // 6. Deletar documento de perfil
         batch.delete(adminDb.collection('profiles').doc(uid))
 
-        // 3. Executar batch de deleção no Firestore
+        // 5. Executar batch de deleção no Firestore (único commit para todas as operações)
         await batch.commit()
 
-        // 4. Deletar usuário do Firebase Auth
+        // 7. Deletar usuário do Firebase Auth
         await adminAuth.deleteUser(uid)
 
         // 4.5. LGPD (direito ao esquecimento): anonimizar conteúdo vinculável que

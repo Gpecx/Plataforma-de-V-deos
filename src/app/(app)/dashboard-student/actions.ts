@@ -1,5 +1,6 @@
 'use server'
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
+import { getCourseValidityMonths } from '@/app/actions/admin'
 import { FieldValue } from 'firebase-admin/firestore'
 import { cookies, headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
@@ -113,6 +114,7 @@ export async function processCheckoutAction(
     try {
         const settingsDoc = await adminDb.collection('config').doc('platform_settings').get()
         const platformTaxPercent = settingsDoc.exists ? settingsDoc.data()?.platform_tax : 20
+        const validityMonths = await getCourseValidityMonths()
 
         // Busca todos os cursos e calcula o total
         const courseDocs = await Promise.all(
@@ -143,7 +145,7 @@ export async function processCheckoutAction(
                     ...(isConfirmed ? {
                         payment_confirmed: true,
                         purchasedAt: now,
-                        expiresAt: new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000),
+                        expiresAt: (() => { const d = new Date(now); d.setMonth(d.getMonth() + validityMonths); return d; })(),
                         ...(isInstantlyConfirmed ? { updated_at: now } : {})
                     } : {
                         status: 'pending',
@@ -357,9 +359,12 @@ export async function processCheckoutAction(
                     payment_id: asaasResponse.id
                 }
                 if (isInstantlyConfirmed) {
+                    const now = new Date()
                     updateData.payment_confirmed = true
                     updateData.status = 'active'
-                    updateData.updated_at = new Date()
+                    updateData.updated_at = now
+                    updateData.purchasedAt = now
+                    updateData.expiresAt = (() => { const d = new Date(now); d.setMonth(d.getMonth() + validityMonths); return d; })()
                 }
                 await ref.update(updateData)
             }
@@ -743,6 +748,7 @@ export async function payPendingCreditCardAction(
         const asaasResponse = await payWithCreditCard(paymentId, cardData)
 
         if (asaasResponse.status === 'CONFIRMED' || asaasResponse.status === 'RECEIVED') {
+            const validityMonths = await getCourseValidityMonths()
             const vendasSnapshot = await adminDb.collection('vendas_logs')
                 .where('paymentId', '==', paymentId)
                 .where('userId', '==', user.uid)
@@ -773,7 +779,7 @@ export async function payPendingCreditCardAction(
                         batch.update(matchEnrollment.ref, {
                             payment_confirmed: true,
                             purchasedAt: now,
-                            expiresAt: new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000),
+                            expiresAt: (() => { const d = new Date(now); d.setMonth(d.getMonth() + validityMonths); return d; })(),
                             payment_id: paymentId,
                             updated_at: now,
                             status: FieldValue.delete(),
@@ -888,6 +894,7 @@ export async function syncPaymentStatusAction(paymentId: string) {
             .where('user_id', '==', user.uid)
             .get()
 
+        const validityMonths = await getCourseValidityMonths()
         // 2. Monta o batch com TODAS as operações
         const batch = adminDb.batch()
 
@@ -921,7 +928,7 @@ export async function syncPaymentStatusAction(paymentId: string) {
             batch.update(matchEnrollment.ref, {
                 payment_confirmed: true,
                 purchasedAt: new Date(),
-                expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+                expiresAt: (() => { const d = new Date(); d.setMonth(d.getMonth() + validityMonths); return d; })(),
                 payment_id: paymentId,
                 updated_at: new Date(),
                 status: FieldValue.delete(),

@@ -74,6 +74,49 @@ export async function updatePlatformTax(tax: number) {
 }
 
 /**
+ * Lê a validade configurada (em meses) para acesso a cursos.
+ * Sem auth guard intencional — chamado internamente pelo checkout e webhook.
+ * Sempre fresh (sem cache) para garantir valor atual no momento da compra.
+ */
+export async function getCourseValidityMonths(): Promise<number> {
+    try {
+        const doc = await adminDb.collection('config').doc('platform_settings').get()
+        const val = doc.exists ? doc.data()?.course_validity_months : null
+        const parsed = parseInt(String(val))
+        return (!isNaN(parsed) && parsed >= 1 && parsed <= 60) ? parsed : 12
+    } catch (error) {
+        console.error('Error reading course_validity_months:', error)
+        return 12
+    }
+}
+
+/**
+ * Atualiza a validade de acesso aos cursos (em meses).
+ * Requer autenticação como admin.
+ */
+export async function updateCourseValidityMonths(months: number) {
+    const session = await getSessionUser()
+    if (!session || session.role !== 'admin') {
+        return { success: false, error: 'Não autorizado' }
+    }
+    const parsed = parseInt(String(months))
+    if (isNaN(parsed) || parsed < 1 || parsed > 60) {
+        return { success: false, error: 'Valor inválido. Use entre 1 e 60 meses.' }
+    }
+    try {
+        await adminDb.collection('config').doc('platform_settings').set(
+            { course_validity_months: parsed },
+            { merge: true }
+        )
+        revalidatePath('/admin/dashboard')
+        return { success: true }
+    } catch (error) {
+        console.error('Error updating course_validity_months:', error)
+        return { success: false, error: 'Falha ao atualizar validade.' }
+    }
+}
+
+/**
  * Lista todos os usuários que são professores.
  */
 export async function getAllTeachers() {
