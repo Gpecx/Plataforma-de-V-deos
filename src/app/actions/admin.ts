@@ -1293,6 +1293,46 @@ export async function banTeacher(teacherId: string): Promise<{ success: boolean;
             updated_at: new Date()
         })
 
+        // ====== LÓGICA DE CURSOS DO PROFESSOR BANIDO ======
+        const coursesSnapshot = await adminDb.collection('courses')
+            .where('teacher_id', '==', teacherId)
+            .get()
+
+        if (!coursesSnapshot.empty) {
+            const batch = adminDb.batch()
+            const now = new Date()
+
+            for (const courseDoc of coursesSnapshot.docs) {
+                const courseId = courseDoc.id
+
+                const courseEnrollmentsSnap = await adminDb.collection('enrollments')
+                    .where('course_id', '==', courseId)
+                    .where('payment_confirmed', '==', true)
+                    .get()
+
+                const hasValidEnrollment = courseEnrollmentsSnap.docs.some(eDoc => {
+                    const eData = eDoc.data()
+                    if (!eData.expiresAt) return false
+                    const expiresAt = eData.expiresAt.toDate ? eData.expiresAt.toDate() : new Date(eData.expiresAt)
+                    return expiresAt > now
+                })
+
+                if (hasValidEnrollment) {
+                    batch.update(courseDoc.ref, {
+                        status: 'ARCHIVED',
+                        updated_at: new Date()
+                    })
+                } else {
+                    batch.update(courseDoc.ref, {
+                        status: 'SUSPENSO',
+                        updated_at: new Date()
+                    })
+                }
+            }
+            await batch.commit()
+        }
+        // ====== FIM LÓGICA DE CURSOS ======
+
         // BUG-11 FIX: Revoga sessão Firebase imediatamente — sem isso o cookie
         // permanece válido por até 1h mesmo após o ban.
         try {
@@ -1311,6 +1351,8 @@ export async function banTeacher(teacherId: string): Promise<{ success: boolean;
         })
 
         revalidatePath('/admin/teachers')
+        revalidatePath('/admin/all-courses')
+        revalidatePath('/course')
         return { success: true, message: "Professor banido com sucesso.", error: "" }
     } catch (error) {
         console.error("[banTeacher] Erro ao banir professor:", error)
