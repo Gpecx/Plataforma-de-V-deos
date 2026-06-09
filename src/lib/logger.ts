@@ -1,6 +1,7 @@
 // LGPD: Utilitário de logging que redige campos pessoais sensíveis antes de
 // qualquer saída para console/logs de servidor. Nunca logar dados brutos de
 // usuário — usar sempre logError/logInfo em vez de console.error/console.log.
+// teste
 
 const SENSITIVE_KEYS = [
   'cpf_cnpj',
