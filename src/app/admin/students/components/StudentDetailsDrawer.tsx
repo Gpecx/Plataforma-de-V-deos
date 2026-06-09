@@ -57,27 +57,26 @@ export default function StudentDetailsDrawer({ uid, onClose }: StudentDetailsDra
     const [revealRg, setRevealRg] = useState(false)
 
     useEffect(() => {
+        const fetchDetails = async (studentUid: string) => {
+            setLoading(true)
+            setError(null)
+            try {
+                const res = await getStudentDetails(studentUid)
+                if (res.success && res.student) {
+                    setDetails(res.student)
+                } else {
+                    setError(res.error || 'Erro ao carregar detalhes')
+                }
+            } catch (err) {
+                setError('Falha na comunicação com o servidor')
+            } finally {
+                setLoading(false)
+            }
+        }
         if (uid) {
             fetchDetails(uid)
         }
     }, [uid])
-
-    const fetchDetails = async (studentUid: string) => {
-        setLoading(true)
-        setError(null)
-        try {
-            const res = await getStudentDetails(studentUid)
-            if (res.success && res.student) {
-                setDetails(res.student)
-            } else {
-                setError(res.error || 'Erro ao carregar detalhes')
-            }
-        } catch (err) {
-            setError('Falha na comunicação com o servidor')
-        } finally {
-            setLoading(false)
-        }
-    }
 
     const maskDocument = (value: string | null, type: 'cpf' | 'rg'): string => {
         if (!value) return ''

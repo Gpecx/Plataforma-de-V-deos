@@ -3,6 +3,7 @@
 import { cookies } from 'next/headers'
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { FieldValue } from 'firebase-admin/firestore'
+import { logError } from '@/lib/logger'
 
 export async function getSessionUser() {
     const cookieStore = await cookies()
@@ -43,32 +44,24 @@ export async function getSessionUser() {
 }
 
 export async function removeSessionCookie() {
-    const cookieStore = await cookies()
-
-    // Deleção segura: usar set() com maxAge:0 e MESMAS flags de criação
-    // para que navegadores modernos em HTTPS respeitem a exclusão.
-
-    // session/active_session_id foram criados com sameSite:'lax', secure condicional
-    cookieStore.set('session', '', {
-        path: '/',
-        maxAge: 0,
-        sameSite: 'lax',
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-    })
-    cookieStore.set('active_session_id', '', {
-        path: '/',
-        maxAge: 0,
-        sameSite: 'lax',
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-    })
-
-    // Clean up any legacy firebase-token cookies
-    cookieStore.delete('firebase-token')
-    // mfa_trusted NÃO é removido no sign-out comum para que o
-    // "Confiar neste dispositivo" persista por 30 dias no navegador.
-    // O cookie expira naturalmente via maxAge ou se o usuário limpar os cookies manualmente.
+    try {
+        const cookieStore = await cookies()
+        cookieStore.set('session', '', {
+            path: '/',
+            maxAge: 0,
+            sameSite: 'lax',
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+        })
+        cookieStore.set('active_session_id', '', {
+            path: '/',
+            maxAge: 0,
+            sameSite: 'lax',
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+        })
+        cookieStore.delete('firebase-token')
+    } catch (e) { logError('removeSessionCookie', e) }
 }
 
 export async function syncGoogleAuthAction(idToken: string) {

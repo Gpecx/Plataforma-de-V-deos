@@ -56,6 +56,10 @@ const DEFAULT_PLANS: PlanData[] = [
  */
 export async function getFinancialSettings(): Promise<FinancialSettings> {
     try {
+        const session = await getSessionUser() // SEC
+        if (!session || session.role !== 'admin') { // SEC
+            return { platformTax: 20, plans: DEFAULT_PLANS } // SEC
+        } // SEC
         // Get Tax
         const taxDoc = await adminDb.collection('config').doc('platform_settings').get()
         const platformTax = taxDoc.exists ? (taxDoc.data()?.platform_tax || 20) : 20

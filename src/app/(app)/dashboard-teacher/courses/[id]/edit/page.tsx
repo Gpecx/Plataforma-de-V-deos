@@ -998,7 +998,7 @@ export default function CourseBuilder() {
                         onClick={() => router.push('/dashboard-teacher/courses')}
                         className="px-8 py-4 bg-[#061629] border-none rounded-md text-[10px] font-bold uppercase tracking-[4px] text-white hover:bg-[#061629]/90 transition-all font-montserrat"
                     >
-                        Cancelar
+                        SAIR
                     </button>
                     <button
                         onClick={handleSave}

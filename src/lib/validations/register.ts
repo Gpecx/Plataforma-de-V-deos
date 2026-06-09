@@ -6,7 +6,7 @@ export const Step1Schema = z.object({
     fullName: z.string().min(3, "O nome completo deve ter pelo menos 3 caracteres"),
     email: z.string().email("E-mail inválido"),
     phone: z.string().min(14, "Telefone inválido"),
-    password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
+    password: z.string().min(8, "A senha deve ter pelo menos 8 caracteres"),
     confirmPassword: z.string(),
     username: z.string().min(3, "ID de usuário inválido").optional(),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -19,7 +19,14 @@ export const Step2Schema = z.object({
     personType: z.enum(["CPF", "CNPJ"]),
     cpf: z.string().optional(),
     cnpj: z.string().optional(),
-    birthDate: z.string().optional(),
+    birthDate: z.string().optional().refine((val) => {
+        if (!val) return true
+        const birth = new Date(val)
+        const today = new Date()
+        const age = today.getFullYear() - birth.getFullYear() -
+            (today < new Date(today.getFullYear(), birth.getMonth(), birth.getDate()) ? 1 : 0)
+        return age >= 18
+    }, { message: 'É necessário ter pelo menos 18 anos para se cadastrar.' }),
     razaoSocial: z.string().optional(),
     rg: z.string().optional(),
 }).refine((data) => {
@@ -52,7 +59,7 @@ export const Step2Schema = z.object({
 // Step 3: Address
 export const Step3Schema = z.object({
     cep: z.string().length(9, "CEP inválido"),
-    rua: z.string().min(3, "Rua é obrigatória"),
+    logradouro: z.string().min(3, "Logradouro é obrigatório"),
     numero: z.string().min(1, "Número é obrigatório"),
     complemento: z.string().optional(),
     bairro: z.string().min(2, "Bairro é obrigatório"),

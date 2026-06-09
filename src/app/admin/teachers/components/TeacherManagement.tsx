@@ -254,24 +254,28 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
 
     const formatDocument = (doc?: string) => {
         if (!doc) return 'N/A'
-        const clean = doc.replace(/\D/g, '')
+        const clean = doc.toUpperCase().replace(/[^A-Z0-9]/g, '')
         if (clean.length === 11) {
             return clean.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
         }
         if (clean.length === 14) {
-            return clean.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
+            return clean.replace(/^([A-Z0-9]{2})([A-Z0-9]{3})([A-Z0-9]{3})([A-Z0-9]{4})(\d{2})$/, '$1.$2.$3/$4-$5')
         }
         return doc
     }
 
     const maskDocument = (value: string | null | undefined, type: 'cpf' | 'cnpj' | 'rg'): string => {
         if (!value) return 'N/A'
+        if (type === 'cnpj') {
+            const v = value.toUpperCase().replace(/[^A-Z0-9]/g, '')
+            if (v.length === 14) {
+                return v.replace(/^([A-Z0-9]{2})([A-Z0-9]{3})([A-Z0-9]{3})([A-Z0-9]{4})(\d{2})$/, '$1.***.***/****-$5')
+            }
+            return value
+        }
         const digits = value.replace(/\D/g, '')
         if (type === 'cpf' && digits.length === 11) {
             return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.***.***-$4')
-        }
-        if (type === 'cnpj' && digits.length === 14) {
-            return digits.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.***.***/****-$5')
         }
         if (type === 'rg' && digits.length >= 7) {
             return digits.replace(/(\d{2})(\d+)(\d{1})/, '$1.***.**-$3')

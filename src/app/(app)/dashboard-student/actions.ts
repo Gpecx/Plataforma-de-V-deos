@@ -39,15 +39,23 @@ export async function getProfile() {
         const data = profileDoc.data()
         if (!data) return { success: true, data: null }
 
-        // Converte todos os Timestamp do Firestore em strings ISO serializáveis
-        // E enriquece cursos concluídos com nome do professor se faltar
-        const plainData = { ...data }
-        
-        for (const [key, value] of Object.entries(plainData)) {
-            if (value && typeof value === 'object' && typeof (value as any).toDate === 'function') {
-                plainData[key] = (value as any).toDate().toISOString()
+        function serializeFirestoreData(input: Record<string, any>): Record<string, any> {
+            const result: Record<string, any> = {}
+            for (const [key, value] of Object.entries(input)) {
+                if (value && typeof value === 'object' && '_seconds' in value && '_nanoseconds' in value) {
+                    result[key] = new Date((value as any)._seconds * 1000).toISOString()
+                } else if (value && typeof value === 'object' && typeof (value as any).toDate === 'function') {
+                    result[key] = (value as any).toDate().toISOString()
+                } else if (value && typeof value === 'object' && !Array.isArray(value)) {
+                    result[key] = serializeFirestoreData(value)
+                } else {
+                    result[key] = value
+                }
             }
+            return result
         }
+
+        const plainData = serializeFirestoreData(data as Record<string, any>)
 
         // Soft Migration: Enriquece concluded_courses se teacherName estiver ausente
         if (plainData.concluded_courses && Array.isArray(plainData.concluded_courses)) {
@@ -510,6 +518,7 @@ export async function updateSettings(prevState: any, formData: FormData) {
     const user = await getAuthUser()
     if (!user) throw new Error('Não autorizado')
 
+    const phone = formData.get('phone') as string
     const pixKey = formData.get('pix_key') as string
     const bankName = formData.get('bank_name') as string
     const logradouro = formData.get('logradouro') as string
@@ -524,6 +533,7 @@ export async function updateSettings(prevState: any, formData: FormData) {
             updated_at: new Date()
         }
 
+        if (phone) updateData.phone = phone
         if (pixKey) updateData.pix_key = pixKey
         if (bankName) updateData.bank_name = bankName
         if (logradouro) updateData.logradouro = logradouro

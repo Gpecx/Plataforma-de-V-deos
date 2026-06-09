@@ -235,7 +235,7 @@ export default function StudentChatPage() {
                         </Link>
                         <div>
                             <h1 className="text-xl font-bold text-[#061629]">Suporte ao Aluno</h1>
-                            <p className="text-sm text-gray-500 font-normal">Fale diretamente com seus mentores</p>
+                            <p className="text-sm !text-black font-normal">Fale diretamente com seus mentores</p>
                         </div>
                     </div>
                 </div>
@@ -243,7 +243,7 @@ export default function StudentChatPage() {
                 <div className="flex flex-1 gap-6 overflow-hidden">
                     {/* Sidebar de Mentores */}
                     <aside className="w-80 shrink-0 hidden md:flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar-premium">
-                        <div className="text-[11px] font-bold uppercase tracking-wider text-gray-400 px-2">Meus Mentores</div>
+                        <div className="text-[11px] font-bold uppercase tracking-wider !text-black px-2">Meus Mentores</div>
                         {teachers.length > 0 ? (
                             teachers.map(teacher => (
                                 <button
@@ -261,7 +261,7 @@ export default function StudentChatPage() {
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <h4 className="font-bold text-sm text-[#061629] truncate">{teacher.name}</h4>
-                                        <p className="text-xs text-gray-500 truncate mt-0.5">{teacher.course}</p>
+                                        <p className="text-xs !text-black truncate mt-0.5">{teacher.course}</p>
                                     </div>
                                 </button>
                             ))

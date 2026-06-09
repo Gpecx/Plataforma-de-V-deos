@@ -2,7 +2,7 @@ import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Plus, DollarSign, TrendingUp, Edit, MessageSquare } from 'lucide-react'
+import { Plus, DollarSign, TrendingUp, Edit } from 'lucide-react'
 import { SalesChart } from './components/SalesChart'
 import { parseFirebaseDate } from '@/lib/date-utils'
 import { InstructorStats } from './components/InstructorStats'
@@ -205,9 +205,6 @@ export default async function TeacherDashboard() {
                                     <div className="mt-auto flex items-center gap-3">
                                         <Link href={`/dashboard-teacher/courses/${curso.id}/edit`} className="flex-1">
                                             <button className="w-full bg-slate-900 text-white font-bold uppercase text-[10px] tracking-widest py-4 rounded-xl hover:bg-[#1D5F31] transition-all shadow-md active:scale-95">Editar</button>
-                                        </Link>
-                                        <Link href={`/dashboard-teacher/chat?course=${curso.id}`} className="p-4 bg-slate-50 text-slate-900 hover:text-[#1D5F31] hover:bg-white border border-black/20 rounded-xl transition-all shadow-sm">
-                                            <MessageSquare size={16} />
                                         </Link>
                                     </div>
                                 </div>

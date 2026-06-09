@@ -187,7 +187,7 @@ export default function NavbarTeacher() {
                                     {(userProfile?.photoURL || userProfile?.avatar_url) ? (
                                         <img src={userProfile?.photoURL || userProfile?.avatar_url} alt="Profile" className="w-full h-full object-cover" />
                                     ) : (
-                                        <span className="text-xs font-bold uppercase tracking-widest">
+                                        <span className="text-xs font-bold uppercase tracking-widest text-white">
                                             {getInitials(userProfile?.full_name || '')}
                                         </span>
                                     )}

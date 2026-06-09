@@ -5,13 +5,14 @@ import { auth } from '@/lib/firebase'
 import { onAuthStateChanged, updatePassword, EmailAuthProvider, reauthenticateWithCredential } from 'firebase/auth'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
-import { Lock, CreditCard, Trash2, ArrowLeft, Save, Key, MapPin, CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react'
+import { User, Lock, CreditCard, Trash2, ArrowLeft, Save, Key, MapPin, CheckCircle2, AlertCircle, Eye, EyeOff } from 'lucide-react'
 import Link from 'next/link'
 import DeleteAccountButton from '@/components/DeleteAccountButton'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { useCartStore } from '@/store/useCartStore'
 import { updateSettings, getProfile } from '../actions'
+import { ProfileForm } from '../profile/ProfileForm'
 
 const initialState = {
     success: false,
@@ -33,12 +34,26 @@ interface SettingsData {
     bank_name?: string
 }
 
+function maskPhone(value: string): string {
+    const digits = value.replace(/\D/g, '').slice(0, 11)
+    if (digits.length <= 10) {
+        return digits
+            .replace(/^(\d{2})(\d)/, '($1) $2')
+            .replace(/(\d{4})(\d)/, '$1-$2')
+    }
+    return digits
+        .replace(/^(\d{2})(\d)/, '($1) $2')
+        .replace(/(\d{5})(\d)/, '$1-$2')
+}
+
 export default function SettingsPage() {
     const router = useRouter()
     const [loading, setLoading] = useState(true)
     const [user, setUser] = useState<any>(null)
+    const [phone, setPhone] = useState('')
     const [settingsData, setSettingsData] = useState<SettingsData>({})
     const [addressData, setAddressData] = useState<AddressData>({})
+    const [profileData, setProfileData] = useState({ fullName: '', photoURL: '' })
     const [isLoadingData, setIsLoadingData] = useState(false)
     const [state, formAction, isPending] = useActionState(updateSettings, initialState)
 
@@ -65,10 +80,15 @@ export default function SettingsPage() {
                 try {
                     const result = await getProfile()
                     if (result.success && result.data) {
+                        setPhone(result.data.phone || '')
                         setSettingsData({
                             cpf_cnpj: result.data.cpf_cnpj || '',
                             pix_key: result.data.pix_key || '',
                             bank_name: result.data.bank_name || ''
+                        })
+                        setProfileData({
+                            fullName: result.data.full_name || '',
+                            photoURL: result.data.photoURL || ''
                         })
                         setAddressData({
                             logradouro: result.data.logradouro || '',
@@ -195,6 +215,36 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="space-y-10">
+                    {/* Informações Básicas */}
+                    <section className="bg-white border border-black p-8 md:p-10 rounded-[24px] shadow-sm">
+                        <div className="flex items-center gap-5 mb-8">
+                            <div className="w-14 h-14 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-[#1D5F31] shadow-sm"><User size={24} /></div>
+                            <div>
+                                <h2 className="font-bold uppercase text-xl !text-black tracking-tight">Informações Básicas</h2>
+                                <p className="text-[10px] !text-black uppercase tracking-[2px] font-bold">Como você aparece para os instrutores e colegas</p>
+                            </div>
+                        </div>
+                        {user && (
+                            <>
+                                <ProfileForm
+                                    initialFullName={profileData.fullName}
+                                    initialPhotoURL={profileData.photoURL}
+                                    uid={user.uid}
+                                />
+                                <div className="space-y-2 mt-6">
+                                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-900 ml-1">Celular</label>
+                                    <Input
+                                        name="phone"
+                                        value={phone}
+                                        onChange={(e) => setPhone(maskPhone(e.target.value))}
+                                        className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-600 font-medium focus-visible:ring-[#1D5F31]/20 focus-visible:border-black"
+                                        placeholder="(00) 00000-0000"
+                                    />
+                                </div>
+                            </>
+                        )}
+                        </section>
+
                     {/* Segurança */}
                     <section className="bg-white border border-black p-8 md:p-10 rounded-[24px] shadow-sm">
                         <div className="flex items-center gap-5 mb-8">

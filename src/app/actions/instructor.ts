@@ -2,7 +2,6 @@
 
 import { adminDb } from '@/lib/firebase-admin'
 import { parseFirebaseDate } from '@/lib/date-utils'
-
 /**
  * Busca o perfil público de um instrutor
  */

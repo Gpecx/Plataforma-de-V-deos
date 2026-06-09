@@ -25,6 +25,7 @@ import { QuizPlayer } from './QuizPlayer'
 import { useProgressStore } from '@/store/useProgressStore'
 import SecureMuxPlayer from '@/components/SecureMuxPlayer'
 
+
 const scrollbarHideStyle = {
     msOverflowStyle: 'none',
     scrollbarWidth: 'none',
@@ -109,26 +110,6 @@ export default function ClassroomPage() {
     const currentLessonRef = useRef<any>(null)
     const currentVideoTimeRef = useRef(0)
     const lastSavedTimeRef = useRef(0)
-
-    const isExternalVideo = (url: string | null | undefined) => {
-        if (!url) return false
-        return url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com')
-    }
-
-    const getEmbedUrl = (url: string) => {
-        if (!url) return ''
-        if (url.includes('youtube.com') || url.includes('youtu.be')) {
-            const videoId = url.includes('v=')
-                ? url.split('v=')[1].split('&')[0]
-                : url.split('/').pop()?.split('?')[0]
-            return `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1`
-        }
-        if (url.includes('vimeo.com')) {
-            const videoId = url.split('/').pop()?.split('?')[0]
-            return `https://player.vimeo.com/video/${videoId}?title=0&byline=0&portrait=0`
-        }
-        return url
-    }
 
     const courseProgress = useProgressStore(state => state.courseProgress[params.id as string])
 
@@ -566,15 +547,6 @@ export default function ClassroomPage() {
                                         }}
                                         className="w-full h-full"
                                     />
-                                ) : isExternalVideo(currentLesson?.video_url) ? (
-                                    <div className="w-full h-full">
-                                        <iframe
-                                            src={getEmbedUrl(currentLesson?.video_url || '')}
-                                            className="w-full h-full border-0"
-                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                                            allowFullScreen
-                                        />
-                                    </div>
                                 ) : (
                                     <>
                                         <video

@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { cookies } from "next/headers";
+import { adminAuth } from "@/lib/firebase-admin";
 
 const BRASIL_API_URL = "https://brasilapi.com.br/api/cnpj/v1";
 const RECEITAWS_URL = "https://receitaws.com.br/v1/cnpj";
@@ -80,11 +82,32 @@ async function fetchReceitaWs(cnpj: string): Promise<CnpjResponse> {
     }
 }
 
+async function getAuthUser() {
+    const cookieStore = await cookies()
+    const token = cookieStore.get('session')?.value
+    if (!token) return null
+
+    try {
+        return await adminAuth.verifySessionCookie(token, true)
+    } catch (error) {
+        return null
+    }
+}
+
 export async function GET(request: NextRequest): Promise<NextResponse> {
     try {
+        const user = await getAuthUser()
+
+        if (!user) {
+            return new NextResponse(
+                JSON.stringify({ error: 'Unauthorized' }),
+                { status: 401 }
+            )
+        }
+
         const cnpj = request.nextUrl.searchParams.get("cnpj") || ""
 
-        const cleanCnpj = cnpj.replace(/\D/g, "")
+        const cleanCnpj = cnpj.toUpperCase().replace(/[^A-Z0-9]/g, "")
 
         if (cleanCnpj.length !== 14) {
             return NextResponse.json(
@@ -103,7 +126,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     } catch (error) {
         try {
             const cnpj = request.nextUrl.searchParams.get("cnpj") || ""
-            const cleanCnpj = cnpj.replace(/\D/g, "")
+            const cleanCnpj = cnpj.toUpperCase().replace(/[^A-Z0-9]/g, "")
             const fallback = await fetchReceitaWs(cleanCnpj)
             return NextResponse.json(fallback, { status: fallback.success ? 200 : 404 })
         } catch (fallbackError) {

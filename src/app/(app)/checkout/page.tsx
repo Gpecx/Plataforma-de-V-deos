@@ -12,6 +12,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { processCheckoutAction } from '@/app/(app)/dashboard-student/actions'
+import { toast } from 'sonner'
+import { logError } from '@/lib/logger'
 
 export default function CheckoutPage() {
     const { items, getTotal, clearCart } = useCartStore()
@@ -42,7 +44,7 @@ export default function CheckoutPage() {
 
 
             if (!result.success) {
-                alert("Erro ao processar pagamento: " + result.error)
+                toast.error("Erro ao processar pagamento: " + result.error)
                 setIsProcessing(false)
                 return
             }
@@ -64,8 +66,8 @@ export default function CheckoutPage() {
             // Fallback caso a action retorne success mas sem invoiceUrl (ex: matrícula já existia)
             router.push('/dashboard-student')
         } catch (error) {
-            console.error(error)
-            alert("Erro fatal no pagamento. Tente novamente.")
+            logError('handlePayment', error)
+            toast.error("Erro fatal no pagamento. Tente novamente.")
             setIsProcessing(false)
         }
     }

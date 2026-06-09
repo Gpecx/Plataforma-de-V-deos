@@ -132,14 +132,16 @@ export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl
 
     // ── 1. Rate Limit ────────────────────────────────────────────
+    // LGPD: IP é usado apenas para rate limiting em memória volátil,
+    // nunca persistido em logs ou banco de dados.
     const isRateLimitedRoute = RATE_LIMITED_ROUTES.some(route => pathname.startsWith(route))
     if (isRateLimitedRoute) {
         const forwardedFor = request.headers.get('x-forwarded-for')
-        const realIp = forwardedFor
+        const ip = forwardedFor
             ? forwardedFor.split(',')[0].trim()
-            : request.headers.get('x-real-ip') || '127.0.0.1'
+            : request.headers.get('x-real-ip') ?? '127.0.0.1'
 
-        if (isRateLimited(realIp)) {
+        if (isRateLimited(ip)) {
             return new NextResponse(
                 JSON.stringify({ error: 'Too Many Requests' }),
                 { status: 429, headers: { 'Content-Type': 'application/json' } }
@@ -147,7 +149,33 @@ export async function middleware(request: NextRequest) {
         }
     }
 
-    // ── 2. Session verification ───────────────────────────────────
+    // ── 2. Webhook routes ─────────────────────────────────────────
+    // Validação de assinatura feita aqui para garantir que o handler
+    // receba apenas requisições legítimas do Asaas. O matcher NÃO exclui
+    // /api/webhooks/ para que este guard seja efetivo.
+    // A validação de corpo (HMAC) deve ser feita no route handler
+    // onde o body bruto ainda está disponível.
+    const isWebhookRoute = pathname.startsWith('/api/webhooks/')
+    if (isWebhookRoute) {
+        const webhookSecret = process.env.WEBHOOK_SECRET
+        if (!webhookSecret) {
+            console.error('[Middleware] WEBHOOK_SECRET não configurado.')
+            return new NextResponse(
+                JSON.stringify({ error: 'Webhook not configured' }),
+                { status: 403, headers: { 'Content-Type': 'application/json' } }
+            )
+        }
+        const signature = request.headers.get('x-webhook-signature')
+        if (!signature || signature !== webhookSecret) {
+            return new NextResponse(
+                JSON.stringify({ error: 'Invalid signature' }),
+                { status: 401, headers: { 'Content-Type': 'application/json' } }
+            )
+        }
+        return NextResponse.next()
+    }
+
+    // ── 3. Session verification ───────────────────────────────────
     const sessionCookie = request.cookies.get('session')?.value
     const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/register')
     const isApiRoute = pathname.startsWith('/api/')
@@ -186,12 +214,12 @@ export async function middleware(request: NextRequest) {
 
     const userRole = payload?.role ?? null
 
-    // ── 3. Admin bypass ───────────────────────────────────────────
+    // ── 4. Admin bypass ───────────────────────────────────────────
     if (userRole === 'admin') {
         return NextResponse.next()
     }
 
-    // ── 4. Unauthenticated: protect authenticated routes ──────────
+    // ── 5. Unauthenticated: protect authenticated routes ──────────
     const isProtectedRoute = AUTHENTICATED_ROUTES.some(route =>
         pathname.startsWith(route)
     )
@@ -201,7 +229,7 @@ export async function middleware(request: NextRequest) {
         return NextResponse.redirect(loginUrl)
     }
 
-    // ── 5. Teacher: block public/student routes ───────────────────
+    // ── 6. Teacher: block public/student routes ───────────────────
     if (userRole === 'teacher') {
         const isTeacherBlocked = TEACHER_BLOCKED_ROUTES.some(route =>
             pathname === route || pathname.startsWith(route + '/')
@@ -211,7 +239,7 @@ export async function middleware(request: NextRequest) {
         }
     }
 
-    // ── 6. Role-restricted routes ──────────────────────────────────
+    // ── 7. Role-restricted routes ──────────────────────────────────
     if (payload && userRole) {
         for (const [route, allowedRoles] of Object.entries(ROLE_RESTRICTED_ROUTES)) {
             if (pathname.startsWith(route) && !allowedRoles.includes(userRole)) {
@@ -225,7 +253,9 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
+    // Inclui /api/webhooks/ no matcher para que o guard do step 2 seja executado.
+    // _next/static, imagens e assets estáticos permanecem excluídos por performance.
     matcher: [
-        '/((?!_next/static|_next/image|favicon|images/|fonts/|icons/|api/webhooks/).*)',
+        '/((?!_next/static|_next/image|favicon|images/|fonts/|icons/).*)',
     ],
 }

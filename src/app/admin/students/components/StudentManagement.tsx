@@ -67,12 +67,12 @@ function SkeletonRow() {
 
 function maskDoc(value: string | null | undefined, isCnpj: boolean): string {
     if (!value) return ''
-    const digits = value.replace(/\D/g, '')
-    if (isCnpj && digits.length === 14) {
-        return digits.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.***.***/****-$5')
+    const v = value.toUpperCase().replace(/[^A-Z0-9]/g, '')
+    if (isCnpj && v.length === 14) {
+        return v.replace(/^([A-Z0-9]{2})([A-Z0-9]{3})([A-Z0-9]{3})([A-Z0-9]{4})(\d{2})$/, '$1.***.***/****-$5')
     }
-    if (!isCnpj && digits.length === 11) {
-        return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.***.***-$4')
+    if (!isCnpj && v.length === 11) {
+        return v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.***.***-$4')
     }
     return value
 }

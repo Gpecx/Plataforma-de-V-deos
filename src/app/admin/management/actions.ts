@@ -110,8 +110,8 @@ export async function updateAdminPassword(adminId: string, newPassword: string) 
             return { success: false, error: 'Não autorizado.' }
         }
 
-        if (!newPassword || newPassword.length < 6) {
-            return { success: false, error: 'A senha deve ter pelo menos 6 caracteres.' }
+        if (!newPassword || newPassword.length < 8) {
+            return { success: false, error: 'A senha deve ter pelo menos 8 caracteres.' }
         }
 
         await adminAuth.updateUser(adminId, {

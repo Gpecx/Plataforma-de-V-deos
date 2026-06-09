@@ -4,6 +4,15 @@ import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { deleteMuxAsset } from '@/app/actions/mux'
 
+function validateVideoUrl(url: string | undefined | null): string | null {
+    if (!url) return null
+    const lower = url.toLowerCase()
+    if (lower.includes('youtube.com') || lower.includes('youtu.be') || lower.includes('vimeo.com')) {
+        return "Formato de vídeo não permitido. Utilize apenas vídeos carregados diretamente na plataforma (Mux)."
+    }
+    return null
+}
+
 async function getAuthUser() {
     const cookieStore = cookies()
     const token = (await cookieStore).get('session')?.value
@@ -40,6 +49,16 @@ export async function createCourseAction(formData: any) {
     if (!user) return { error: "Não autorizado" }
 
     try {
+        // Validação estrita: rejeita YouTube/Vimeo
+        const introError = validateVideoUrl(formData.intro_video_url)
+        if (introError) return { error: introError }
+        if (formData.lessons) {
+            for (const lesson of formData.lessons) {
+                const lessonError = validateVideoUrl(lesson.video_url)
+                if (lessonError) return { error: lessonError }
+            }
+        }
+
         // Constrói metadados dos módulos
         const modules =
             formData.modules && formData.modules.length > 0
@@ -205,6 +224,16 @@ export async function updateCourseAction(courseId: string, formData: any) {
     if (!user) return { error: "Não autorizado" }
 
     try {
+        // Validação estrita: rejeita YouTube/Vimeo
+        const introError = validateVideoUrl(formData.intro_video_url)
+        if (introError) return { error: introError }
+        if (formData.lessons) {
+            for (const lesson of formData.lessons) {
+                const lessonError = validateVideoUrl(lesson.video_url)
+                if (lessonError) return { error: lessonError }
+            }
+        }
+
         const courseRef = adminDb.collection('courses').doc(courseId)
         const courseDoc = await courseRef.get()
 

@@ -60,14 +60,23 @@ export async function getTeacherProfile() {
         const data = profileDoc.data()
         if (!data) return { success: true, data: null }
 
-        const plainData = Object.fromEntries(
-            Object.entries(data).map(([key, value]) => {
-                if (value && typeof value === 'object' && typeof (value as any).toDate === 'function') {
-                    return [key, (value as any).toDate().toISOString()]
+        function serializeFirestoreData(input: Record<string, any>): Record<string, any> {
+            const result: Record<string, any> = {}
+            for (const [key, value] of Object.entries(input)) {
+                if (value && typeof value === 'object' && '_seconds' in value && '_nanoseconds' in value) {
+                    result[key] = new Date((value as any)._seconds * 1000).toISOString()
+                } else if (value && typeof value === 'object' && typeof (value as any).toDate === 'function') {
+                    result[key] = (value as any).toDate().toISOString()
+                } else if (value && typeof value === 'object' && !Array.isArray(value)) {
+                    result[key] = serializeFirestoreData(value)
+                } else {
+                    result[key] = value
                 }
-                return [key, value]
-            })
-        )
+            }
+            return result
+        }
+
+        const plainData = serializeFirestoreData(data as Record<string, any>)
 
         return { success: true, data: plainData }
     } catch (error) {
@@ -82,6 +91,7 @@ export async function updateTeacherSettings(prevState: any, formData: FormData) 
     }
 
     try {
+        const phone = formData.get('phone') as string
         const pixKey = formData.get('pix_key') as string
         const bankName = formData.get('bank_name') as string
         const bankAgency = formData.get('bank_agency') as string
@@ -102,6 +112,7 @@ export async function updateTeacherSettings(prevState: any, formData: FormData) 
             notifications_push
         }
 
+        if (phone) updateData.phone = phone
         if (pixKey !== null) updateData.pix_key = pixKey
         if (bankName !== null) updateData.bank_name = bankName
         if (bankAgency !== null) updateData.bank_agency = bankAgency

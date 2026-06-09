@@ -6,6 +6,20 @@ import { getSessionUser } from '@/app/actions/auth'
 import { parseFirebaseDate } from '@/lib/date-utils'
 import { deleteMuxAsset } from '@/app/actions/mux'
 import { sendTeacherStatusEmail } from '@/lib/mail'
+import { logError } from '@/lib/logger'
+
+async function logAuditAccess(adminId: string, targetId: string, action: string) {
+  try {
+    await adminDb.collection('audit_log').add({
+      adminId,
+      targetId,
+      action,
+      timestamp: new Date().toISOString(),
+    })
+  } catch {
+    // audit failure must never block the main operation
+  }
+}
 
 /**
  * Busca todas as configurações globais da plataforma.
@@ -287,10 +301,24 @@ export async function getAllStudents() {
             .where('role', 'in', ['student', 'user'])
             .get()
         
-        const students = studentsSnap.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        })) as any[]
+        const students = studentsSnap.docs.map(doc => {
+            const data = doc.data()
+            return {
+                id: doc.id,
+                uid: data.uid || doc.id,
+                full_name: data.full_name || 'Sem nome',
+                email: data.email || '',
+                role: data.role || 'user',
+                ativo: data.ativo !== false,
+                avatar_url: data.avatar_url || '',
+                username: data.username || '',
+                concluded_courses: data.concluded_courses || [],
+                totalStudyTime: data.totalStudyTime || 0,
+                totalStudyTimeSeconds: data.totalStudyTimeSeconds || 0,
+                last_access: data.last_access || null,
+                created_at: data.created_at || null,
+            }
+        })
         
         // Busca todas as matrículas para contar cursos e somar tempo assistido
         const enrollmentsSnap = await adminDb.collection('enrollments').get()
@@ -327,7 +355,7 @@ export async function getAllStudents() {
 
         return JSON.parse(JSON.stringify(studentsWithData))
     } catch (error) {
-        console.error("Error getting students:", error)
+        logError("Error getting students:", error)
         return []
     }
 }
@@ -417,7 +445,7 @@ export async function getStudentsPaginated(params: {
 
         return JSON.parse(JSON.stringify({ students, hasMore }))
     } catch (error) {
-        console.error("Error getting paginated students:", error)
+        logError("Error getting paginated students:", error)
         return { students: [], hasMore: false }
     }
 }
@@ -788,7 +816,7 @@ export async function toggleUserStatus(uid: string, currentStatus: boolean) {
         revalidatePath('/admin/teachers')
         return { success: true }
     } catch (error) {
-        console.error("Error toggling user status:", error)
+        logError("Error toggling user status:", error)
         return { success: false, error: "Falha ao atualizar status do usuário." }
     }
 }
@@ -1171,7 +1199,7 @@ export async function handleTeacherApproval(
             const profileDoc = await adminDb.collection('profiles').doc(teacherId).get()
             const profileData = profileDoc.data()
             if (profileData?.email && profileData?.full_name) {
-                sendTeacherStatusEmail({
+                await sendTeacherStatusEmail({
                     teacherEmail: profileData.email,
                     teacherName: profileData.full_name,
                     status: action === 'approve' ? 'approved' : 'rejected',
@@ -1295,13 +1323,15 @@ export async function getStudentDetails(uid: string) {
     try {
         const userSession = await getSessionUser()
         if (!userSession || userSession.role !== 'admin') {
-            throw new Error('Acesso negado: Apenas administradores podem ver detalhes de alunos.')
+            return { success: false, error: 'Acesso negado: Apenas administradores podem ver detalhes de alunos.' } // B3
         }
+
+        await logAuditAccess(userSession.uid, uid, 'view_student_details') // LGPD
 
         // 1. Dados de Perfil do Firestore
         const profileDoc = await adminDb.collection('profiles').doc(uid).get()
         if (!profileDoc.exists) {
-            throw new Error('Perfil não encontrado.')
+            return { success: false, error: 'Perfil não encontrado.' } // B3
         }
         const profileData = profileDoc.data() as any
 
@@ -1409,7 +1439,7 @@ export async function getStudentDetails(uid: string) {
             }
         }))
     } catch (error: any) {
-        console.error('Error fetching student details:', error)
+        logError('Error fetching student details:', error)
         return { success: false, error: error.message || 'Falha ao buscar detalhes do aluno.' }
     }
 }
@@ -1421,8 +1451,10 @@ export async function getTeacherDetails(uid: string) {
     try {
         const userSession = await getSessionUser()
         if (!userSession || userSession.role !== 'admin') {
-            throw new Error('Acesso negado: Apenas administradores podem ver detalhes de professores.')
+            return { success: false, error: 'Acesso negado: Apenas administradores podem ver detalhes de professores.' } // B3
         }
+
+        await logAuditAccess(userSession.uid, uid, 'view_teacher_details') // LGPD
 
         // Helper para mascaramento de dados sensíveis (A-05)
         const maskSensitiveData = (value: any) => {
@@ -1435,7 +1467,7 @@ export async function getTeacherDetails(uid: string) {
         // 1. Dados de Perfil do Firestore
         const profileDoc = await adminDb.collection('profiles').doc(uid).get()
         if (!profileDoc.exists) {
-            throw new Error('Perfil não encontrado.')
+            return { success: false, error: 'Perfil não encontrado.' } // B3
         }
         const profileData = profileDoc.data() as any
 
@@ -1509,7 +1541,7 @@ export async function getTeacherDetails(uid: string) {
             }
         }))
     } catch (error: any) {
-        console.error('Error fetching teacher details:', error)
+        logError('Error fetching teacher details:', error)
         return { success: false, error: error.message || 'Falha ao buscar detalhes do professor.' }
     }
 }

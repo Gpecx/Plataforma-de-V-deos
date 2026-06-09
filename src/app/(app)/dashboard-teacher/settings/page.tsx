@@ -26,10 +26,23 @@ interface AddressData {
     cep?: string
 }
 
+function maskPhone(value: string): string {
+    const digits = value.replace(/\D/g, '').slice(0, 11)
+    if (digits.length <= 10) {
+        return digits
+            .replace(/^(\d{2})(\d)/, '($1) $2')
+            .replace(/(\d{4})(\d)/, '$1-$2')
+    }
+    return digits
+        .replace(/^(\d{2})(\d)/, '($1) $2')
+        .replace(/(\d{5})(\d)/, '$1-$2')
+}
+
 export default function TeacherSettingsPage() {
     const router = useRouter()
     const [loading, setLoading] = useState(true)
     const [user, setUser] = useState<any>(null)
+    const [phone, setPhone] = useState('')
     const [pixKey, setPixKey] = useState('')
     const [bankName, setBankName] = useState('')
     const [bankAgency, setBankAgency] = useState('')
@@ -65,6 +78,7 @@ export default function TeacherSettingsPage() {
                 try {
                     const result = await getTeacherProfile()
                     if (result.success && result.data) {
+                        setPhone(result.data.phone || '')
                         setPixKey(result.data.pix_key || '')
                         setBankName(result.data.bank_name || '')
                         setBankAgency(result.data.bank_agency || '')
@@ -216,6 +230,19 @@ export default function TeacherSettingsPage() {
                         </div>
 
                         <div className="space-y-6">
+                            <div className="space-y-3">
+                                <label className="text-sm font-bold uppercase tracking-tight text-slate-900 px-1">Celular</label>
+                                <div className="relative group">
+                                    <Input
+                                        name="phone"
+                                        value={phone}
+                                        onChange={(e) => setPhone(maskPhone(e.target.value))}
+                                        placeholder="(00) 00000-0000"
+                                        className="bg-slate-50 border-black/20 rounded-lg px-6 h-14 focus:border-[#1D5F31] focus:ring-4 focus:ring-[#1D5F31]/5 font-bold text-sm text-slate-900 placeholder:text-slate-400"
+                                    />
+                                </div>
+                            </div>
+
                             <div className="space-y-3">
                                 <label className="text-sm font-bold uppercase tracking-tight text-slate-900 px-1">Chave PIX</label>
                                 <div className="relative group">

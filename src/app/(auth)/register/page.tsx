@@ -27,20 +27,19 @@ const inputVariants: Variants = {
 
 // ─── Máscaras ───────────────────────────────────────────────────────────────
 function maskCpfCnpj(value: string, type: 'CPF' | 'CNPJ'): string {
-    const digits = value.replace(/\D/g, '')
     if (type === 'CPF') {
-        const limited = digits.slice(0, 11)
-        return limited
+        const digits = value.replace(/\D/g, '').slice(0, 11)
+        return digits
             .replace(/^(\d{3})(\d)/, '$1.$2')
             .replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
             .replace(/\.(\d{3})(\d)/, '.$1-$2')
     } else {
-        const limited = digits.slice(0, 14)
-        return limited
-            .replace(/^(\d{2})(\d)/, '$1.$2')
-            .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
-            .replace(/\.(\d{3})(\d)/, '.$1/$2')
-            .replace(/(\d{4})(\d)/, '$1-$2')
+        const v = value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 14)
+        return v
+            .replace(/^([A-Z0-9]{2})([A-Z0-9])/, '$1.$2')
+            .replace(/^([A-Z0-9]{2})\.([A-Z0-9]{3})([A-Z0-9])/, '$1.$2.$3')
+            .replace(/\.([A-Z0-9]{3})([A-Z0-9])/, '.$1/$2')
+            .replace(/([A-Z0-9]{4})([A-Z0-9])/, '$1-$2')
     }
 }
 
@@ -85,6 +84,7 @@ function RegisterForm() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const numberInputRef = useRef<HTMLInputElement>(null)
+    const razaoSocialRef = useRef<HTMLInputElement>(null)
 
     // Captura o email da URL se existir
     const initialEmail = searchParams.get('email') || ''
@@ -143,7 +143,7 @@ function RegisterForm() {
 
     // Novos estados de endereço
     const [cep, setCep] = useState('')
-    const [rua, setRua] = useState('')
+    const [logradouro, setLogradouro] = useState('')
     const [numero, setNumero] = useState('')
     const [complemento, setComplemento] = useState('')
     const [bairro, setBairro] = useState('')
@@ -226,11 +226,11 @@ function RegisterForm() {
             cnpj: personType === 'CNPJ' ? cpfCnpj : undefined,
             birthDate: personType === 'CPF' ? birthDate : undefined,
             razaoSocial: personType === 'CNPJ' ? razaoSocial : undefined,
-            cep, rua, numero, complemento, bairro, cidade, estado, 
+            cep, logradouro, numero, complemento, bairro, cidade, estado, 
             termsAccepted, username
         }
         return RegisterSchema.safeParse(data).success
-    }, [email, password, confirmPassword, fullName, phone, personType, cpfCnpj, rg, birthDate, razaoSocial, cep, rua, numero, complemento, bairro, cidade, estado, termsAccepted])
+    }, [email, password, confirmPassword, fullName, phone, personType, cpfCnpj, rg, birthDate, razaoSocial, cep, logradouro, numero, complemento, bairro, cidade, estado, termsAccepted])
 
     const handleCpfCnpjChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setCpfCnpj(personType === 'CPF' ? maskCPF(e.target.value) : maskCNPJ(e.target.value))
@@ -272,7 +272,7 @@ function RegisterForm() {
 
             const data = await response.json()
 
-            setRua(data.street || '')
+            setLogradouro(data.street || '')
             setBairro(data.neighborhood || '')
             setCidade(data.city || '')
             setEstado(data.state || '')
@@ -310,11 +310,26 @@ function RegisterForm() {
         const triggerCnpjLookup = async () => {
             if (personType !== 'CNPJ') return
 
+            // Limpar dados do CNPJ anterior antes de qualquer nova tentativa
+            setRazaoSocial('')
+            setCep('')
+            setLogradouro('')
+            setNumero('')
+            setComplemento('')
+            setBairro('')
+            setCidade('')
+            setEstado('')
             setCnpjError(null)
 
-            const cnpjLimpo = cpfCnpj.replace(/\D/g, '')
+            const cnpjLimpo = cpfCnpj.toUpperCase().replace(/[^A-Z0-9]/g, '')
 
             if (cnpjLimpo.length === 14) {
+                if (/[A-Z]/.test(cnpjLimpo)) {
+                    setCnpjError('Formato de CNPJ novo detectado. Por favor, insira a Razão Social manualmente.')
+                    razaoSocialRef.current?.focus()
+                    return
+                }
+
                 setIsCnpjLoading(true)
                 try {
                     const response = await fetch(`/api/cnpj?cnpj=${cnpjLimpo}`)
@@ -327,7 +342,7 @@ function RegisterForm() {
                             setRazaoSocial(d.razao_social || '')
 
                             if (d.cep) setCep(maskCep(d.cep))
-                            if (d.logradouro) setRua(d.logradouro)
+                            if (d.logradouro) setLogradouro(d.logradouro)
                             if (d.bairro) setBairro(d.bairro)
                             if (d.municipio) setCidade(d.municipio)
                             if (d.uf) setEstado(d.uf)
@@ -346,6 +361,16 @@ function RegisterForm() {
                 } finally {
                     setIsCnpjLoading(false)
                 }
+            } else {
+                // CNPJ incompleto — limpar campos dependentes
+                setRazaoSocial('')
+                setCep('')
+                setLogradouro('')
+                setNumero('')
+                setComplemento('')
+                setBairro('')
+                setCidade('')
+                setEstado('')
             }
         }
 
@@ -384,7 +409,7 @@ function RegisterForm() {
                 birth_date: birthDate,
                 role,
                 cep,
-                rua,
+                logradouro,
                 numero,
                 complemento,
                 bairro,
@@ -738,6 +763,7 @@ function RegisterForm() {
                                                 <div className="space-y-1">
                                                     <label className={labelClass}>Razão Social</label>
                                                     <input
+                                                        ref={razaoSocialRef}
                                                         type="text"
                                                         placeholder="NOME DA EMPRESA"
                                                         required
@@ -816,8 +842,8 @@ function RegisterForm() {
                                                         placeholder="AV. INDUSTRIAL"
                                                         required
                                                         className={inputClass(false, isCnpjLoading)}
-                                                        value={rua}
-                                                        onChange={(e) => setRua(e.target.value)}
+                                                        value={logradouro}
+                                                        onChange={(e) => setLogradouro(e.target.value)}
                                                     />
                                                 </div>
                                             </div>
@@ -927,7 +953,7 @@ function RegisterForm() {
                                 )}
                             </AnimatePresence>
 
-                            {step === 1 && (
+                            {step === 1 && !isTeacherFlow && (
                                 <button
                                     type="button"
                                     onClick={() => router.push(`/register/be-a-teacher?email=${encodeURIComponent(email)}` as any)}

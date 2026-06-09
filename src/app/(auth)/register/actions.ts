@@ -16,7 +16,7 @@ interface CreateProfileData {
     birth_date: string
     role: 'student' | 'teacher'
     cep?: string
-    rua?: string
+    logradouro?: string
     numero?: string
     complemento?: string
     bairro?: string
@@ -56,7 +56,7 @@ export async function getAddressByCep(cep: string) {
         return {
             success: true,
             data: {
-                rua: data.logradouro,
+                logradouro: data.logradouro,
                 bairro: data.bairro,
                 cidade: data.localidade,
                 estado: data.uf
@@ -69,7 +69,7 @@ export async function getAddressByCep(cep: string) {
 }
 
 export async function getDataByCnpj(cnpj: string) {
-    const cleanCnpj = sanitize(cnpj)
+    const cleanCnpj = cnpj.toUpperCase().replace(/[^A-Z0-9]/g, '')
     if (cleanCnpj.length !== 14) return { success: false, error: 'CNPJ inválido' }
 
     try {
@@ -196,7 +196,7 @@ export async function createProfile(data: CreateProfileData) {
 
         if (data.rg !== undefined) payload.rg = data.rg
         if (data.cep !== undefined) payload.cep = sanitizedCep
-        if (data.rua !== undefined) payload.rua = data.rua
+        if (data.logradouro !== undefined) payload.logradouro = data.logradouro
         if (data.numero !== undefined) payload.numero = data.numero
         if (data.complemento !== undefined) payload.complemento = data.complemento
         if (data.bairro !== undefined) payload.bairro = data.bairro

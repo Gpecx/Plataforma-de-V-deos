@@ -6,6 +6,7 @@ import { X, Play, AlertCircle, Loader2, LayoutGrid, PlaySquare, ShieldCheck, XCi
 import Logo from '@/components/Logo'
 import SecureMuxPlayer from '@/components/SecureMuxPlayer'
 
+
 import { toast } from 'sonner'
 
 interface CourseApprovalListProps {
@@ -19,25 +20,6 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
     const [reviewingCourse, setReviewingCourse] = useState<any | null>(null)
     const [rejectionReason, setRejectionReason] = useState('')
     
-    const isExternalVideo = (url: string) => {
-        return url?.includes('youtube.com') || url?.includes('youtu.be') || url?.includes('vimeo.com')
-    }
-
-    const getEmbedUrl = (url: string) => {
-        if (!url) return ''
-        if (url.includes('youtube.com') || url.includes('youtu.be')) {
-            const videoId = url.includes('v=')
-                ? url.split('v=')[1].split('&')[0]
-                : url.split('/').pop()?.split('?')[0]
-            return `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1&mute=1`
-        }
-        if (url.includes('vimeo.com')) {
-            const videoId = url.split('/').pop()?.split('?')[0]
-            return `https://player.vimeo.com/video/${videoId}?autoplay=1&muted=1&title=0&byline=0&portrait=0`
-        }
-        return url
-    }
-
     const handleApprove = async (course: any) => {
         const id = course.id
         const isTrailerReview = course.trailer_review_status === 'trailer_pending_review'
@@ -194,23 +176,14 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
                                             />
                                         </div>
                                     ) : reviewingCourse.intro_video_url ? (
-                                        isExternalVideo(reviewingCourse.intro_video_url) ? (
-                                            <iframe
-                                                src={getEmbedUrl(reviewingCourse.intro_video_url)}
-                                                className="w-full h-full aspect-video border-0"
-                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                                                allowFullScreen
-                                            ></iframe>
-                                        ) : (
-                                            <video
-                                                src={reviewingCourse.intro_video_url}
-                                                controls
-                                                autoPlay
-                                                muted
-                                                playsInline
-                                                className="w-full h-full aspect-video object-contain"
-                                            />
-                                        )
+                                        <video
+                                            src={reviewingCourse.intro_video_url}
+                                            controls
+                                            autoPlay
+                                            muted
+                                            playsInline
+                                            className="w-full h-full aspect-video object-contain"
+                                        />
                                     ) : (
                                         <div className="flex flex-col items-center gap-6 text-white text-center px-10">
                                             <div className="scale-125 origin-center mb-4">
