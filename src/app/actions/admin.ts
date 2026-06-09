@@ -1774,3 +1774,77 @@ export async function getCourseFullDetailsAdmin(courseId: string, page: number =
         return { success: false, error: "Falha ao buscar detalhes do curso." }
     }
 }
+
+// NOVO: Server actions for vitrine categories (settings/vitrine.categorias)
+export async function getVitrineCategorias() {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        return { success: false, error: 'Não autorizado', categorias: [], cursosFixados: {} };
+    }
+    try {
+        const vitrineDoc = await adminDb.collection('settings').doc('vitrine').get();
+        const categorias: string[] = vitrineDoc.exists ? (vitrineDoc.data()?.categorias || []) : [];
+        const cursosFixados: Record<string, string[]> = vitrineDoc.exists ? (vitrineDoc.data()?.cursosFixados || {}) : {};
+        return { success: true, categorias, cursosFixados };
+    } catch (error) {
+        console.error("Error getting vitrine categorias:", error);
+        return { success: false, error: 'Erro ao buscar categorias', categorias: [], cursosFixados: {} };
+    }
+}
+
+export async function addVitrineCategoria(categoria: string) {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        return { success: false, error: 'Não autorizado' };
+    }
+    try {
+        const vitrineRef = adminDb.collection('settings').doc('vitrine');
+        const vitrineDoc = await vitrineRef.get();
+        const categorias: string[] = vitrineDoc.exists ? (vitrineDoc.data()?.categorias || []) : [];
+        if (!categorias.includes(categoria)) {
+            categorias.push(categoria);
+            await vitrineRef.set({ categorias }, { merge: true });
+        }
+        return { success: true };
+    } catch (error) {
+        console.error("Error adding vitrine categoria:", error);
+        return { success: false, error: 'Erro ao adicionar categoria' };
+    }
+}
+
+export async function removeVitrineCategoria(categoria: string) {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        return { success: false, error: 'Não autorizado' };
+    }
+    try {
+        const vitrineRef = adminDb.collection('settings').doc('vitrine');
+        const vitrineDoc = await vitrineRef.get();
+        const categorias: string[] = vitrineDoc.exists ? (vitrineDoc.data()?.categorias || []) : [];
+        const filtered = categorias.filter(c => c !== categoria);
+        await vitrineRef.set({ categorias: filtered }, { merge: true });
+        return { success: true };
+    } catch (error) {
+        console.error("Error removing vitrine categoria:", error);
+        return { success: false, error: 'Erro ao remover categoria' };
+    }
+}
+
+// NOVO: Save cursosFixados for a vitrine category
+export async function saveVitrineCursosSelecionados(categoria: string, courseIds: string[]) {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        return { success: false, error: 'Não autorizado' };
+    }
+    try {
+        const vitrineRef = adminDb.collection('settings').doc('vitrine');
+        const vitrineDoc = await vitrineRef.get();
+        const cursosFixados: Record<string, string[]> = vitrineDoc.exists ? (vitrineDoc.data()?.cursosFixados || {}) : {};
+        cursosFixados[categoria] = courseIds;
+        await vitrineRef.set({ cursosFixados }, { merge: true });
+        return { success: true };
+    } catch (error) {
+        console.error("Error saving cursosFixados:", error);
+        return { success: false, error: 'Erro ao salvar seleção de cursos' };
+    }
+}

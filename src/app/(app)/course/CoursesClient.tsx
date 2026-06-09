@@ -67,9 +67,11 @@ interface CoursesClientProps {
     initialCourses: Course[];
     initialTeachers?: Teacher[];
     heroBanners?: string[];
+    vitrineCategorias?: string[]; // NOVO
+    vitrineCursosFixados?: Record<string, string[]>; // NOVO
 }
 
-function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: CoursesClientProps) {
+function CoursesInner({ initialCourses, initialTeachers = [], heroBanners, vitrineCategorias = [], vitrineCursosFixados = {} }: CoursesClientProps) {
     const searchParams = useSearchParams();
     const router = useRouter();
     const searchQuery = searchParams.get('s')?.toLowerCase() || "";
@@ -80,7 +82,7 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: Cou
     const [selectedCourse, setSelectedCourse] = useState<any>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [localSearch, setLocalSearch] = useState("");
-    const [activeFilter, setActiveFilter] = useState<'all' | 'free' | 'new'>('all');
+    const [activeFilter, setActiveFilter] = useState<string>('all');
 
     const firstName = profile?.full_name?.split(' ')[0] || '';
     const isLoggedIn = !loading && !!user;
@@ -114,6 +116,14 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: Cou
             if (!matchesSearch) return false;
             if (activeFilter === 'free') return c.pricing_type === 'free';
             if (activeFilter === 'new') return isNewCourse(c.created_at);
+            // CORRIGIDO: case-insensitive comparison
+            if (vitrineCategorias.some(cat => cat.toUpperCase() === activeFilter.toUpperCase())) {
+                const fixados = vitrineCursosFixados[activeFilter]; // NOVO: cursosFixados
+                if (fixados && fixados.length > 0) {
+                    return fixados.includes(c.id);
+                }
+                return c.category?.toUpperCase() === activeFilter.toUpperCase(); // CORRIGIDO
+            }
             return true;
         }).map(c => ({ data: c, type: 'course' as const }));
 
@@ -239,6 +249,23 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: Cou
                                     }`}
                                 >
                                     {labels[filter]}
+                                </button>
+                            );
+                        })}
+                        {/* NOVO: Dynamic vitrine categories */}
+                        {vitrineCategorias.map(cat => {
+                            const isActive = activeFilter === cat;
+                            return (
+                                <button
+                                    key={cat}
+                                    onClick={() => setActiveFilter(cat)}
+                                    className={`px-4 py-2 rounded-full text-[11px] font-bold uppercase tracking-widest transition-all duration-300 border ${
+                                        isActive 
+                                        ? 'bg-[#22c55e] text-[#0B1215] border-[#22c55e] shadow-[0_0_15px_rgba(34,197,94,0.3)] no-theme-override' 
+                                        : 'bg-transparent text-slate-400 border-slate-700 hover:border-[#1D5F31] hover:text-[#22c55e]'
+                                    }`}
+                                >
+                                    {cat}
                                 </button>
                             );
                         })}
@@ -461,7 +488,7 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners }: Cou
     );
 }
 
-export default function CoursesClient({ initialCourses, initialTeachers, heroBanners }: CoursesClientProps) {
+export default function CoursesClient({ initialCourses, initialTeachers, heroBanners, vitrineCategorias, vitrineCursosFixados }: CoursesClientProps) {
     return (
         <Suspense fallback={
             <div className="min-h-screen bg-[#0B1215] flex items-center justify-center">
@@ -471,7 +498,7 @@ export default function CoursesClient({ initialCourses, initialTeachers, heroBan
                 </div>
             </div>
         }>
-            <CoursesInner initialCourses={initialCourses} initialTeachers={initialTeachers} heroBanners={heroBanners} />
+            <CoursesInner initialCourses={initialCourses} initialTeachers={initialTeachers} heroBanners={heroBanners} vitrineCategorias={vitrineCategorias} vitrineCursosFixados={vitrineCursosFixados} />
         </Suspense>
     );
 }

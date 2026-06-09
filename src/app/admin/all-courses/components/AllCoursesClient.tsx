@@ -1,8 +1,8 @@
 "use client"
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import Link from 'next/link'
-import { Search, User, Tag, BookOpen, X, AlertTriangle, ShieldCheck, Trash2, Loader2, CheckCircle2, XCircle, FileText, Clock, DollarSign, Layers, ChevronDown, ChevronRight, Play, HelpCircle } from 'lucide-react'
+import { Search, User, Tag, BookOpen, X, AlertTriangle, ShieldCheck, Trash2, Loader2, CheckCircle2, XCircle, FileText, Clock, DollarSign, Layers, ChevronDown, ChevronRight, Play, HelpCircle, Lock, Settings2 } from 'lucide-react' // NOVO: Lock, Settings2
 import CourseDeleteButton from '@/components/CourseDeleteButton'
 import SecureMuxPlayer from '@/components/SecureMuxPlayer'
 import { toast } from 'sonner'
@@ -43,6 +43,107 @@ export default function AllCoursesClient({ courses, teachers }: AllCoursesClient
     const [searchTerm, setSearchTerm] = useState('')
     const [selectedTeacher, setSelectedTeacher] = useState<string>('')
     const [showTeacherDropdown, setShowTeacherDropdown] = useState(false)
+
+    // NOVO: Vitrine categories state
+    const [vitrineCategorias, setVitrineCategorias] = useState<string[]>([])
+    const [newCategoria, setNewCategoria] = useState('')
+    const [vitrineLoading, setVitrineLoading] = useState(true)
+    // NOVO: cursosFixados state + editing
+    const [vitrineCursosFixados, setVitrineCursosFixados] = useState<Record<string, string[]>>({})
+    const [editingCategoria, setEditingCategoria] = useState<string | null>(null)
+    const [selectedCourseIds, setSelectedCourseIds] = useState<string[]>([])
+
+    // NOVO: Load vitrine categories on mount
+    const loadVitrineCategorias = useCallback(async () => {
+        setVitrineLoading(true)
+        try {
+            const { getVitrineCategorias } = await import('@/app/actions/admin')
+            const result = await getVitrineCategorias()
+            if (result.success) {
+                setVitrineCategorias(result.categorias)
+                setVitrineCursosFixados(result.cursosFixados || {}) // NOVO
+            }
+        } catch (err) {
+            console.error('Erro ao carregar categorias da vitrine:', err)
+        } finally {
+            setVitrineLoading(false)
+        }
+    }, [])
+
+    useEffect(() => { loadVitrineCategorias() }, [loadVitrineCategorias])
+
+    // NOVO: Extract unique categories from courses for suggestions (uppercase for consistency)
+    const existingCourseCategories = useMemo(() => {
+        return Array.from(new Set(courses.map(c => c.category?.toUpperCase()).filter(Boolean) as string[])).sort()
+    }, [courses])
+
+    // NOVO: Add a category to vitrine
+    const handleAddCategoria = async () => {
+        const trimmed = newCategoria.trim().toUpperCase()
+        if (!trimmed) return
+        if (vitrineCategorias.includes(trimmed)) {
+            setNewCategoria('')
+            return
+        }
+        try {
+            const { addVitrineCategoria } = await import('@/app/actions/admin')
+            const result = await addVitrineCategoria(trimmed)
+            if (result.success) {
+                setVitrineCategorias(prev => [...prev, trimmed])
+                setNewCategoria('')
+            }
+        } catch (err) {
+            console.error('Erro ao adicionar categoria:', err)
+        }
+    }
+
+    // NOVO: Remove a category from vitrine
+    const handleRemoveCategoria = async (categoria: string) => {
+        try {
+            const { removeVitrineCategoria } = await import('@/app/actions/admin')
+            const result = await removeVitrineCategoria(categoria)
+            if (result.success) {
+                setVitrineCategorias(prev => prev.filter(c => c !== categoria))
+                setEditingCategoria(prev => prev === categoria ? null : prev)
+            }
+        } catch (err) {
+            console.error('Erro ao remover categoria:', err)
+        }
+    }
+
+    // NOVO: Open inline editor for a category
+    const handleOpenEditor = (categoria: string) => {
+        setEditingCategoria(categoria)
+        setSelectedCourseIds(vitrineCursosFixados[categoria] || [])
+    }
+
+    // NOVO: Toggle a course in the selection
+    const handleToggleCourse = (courseId: string) => {
+        setSelectedCourseIds(prev =>
+            prev.includes(courseId)
+                ? prev.filter(id => id !== courseId)
+                : [...prev, courseId]
+        )
+    }
+
+    // NOVO: Save cursosFixados
+    const handleSaveCursosFixados = async () => {
+        if (!editingCategoria) return
+        try {
+            const { saveVitrineCursosSelecionados } = await import('@/app/actions/admin')
+            const result = await saveVitrineCursosSelecionados(editingCategoria, selectedCourseIds)
+            if (result.success) {
+                setVitrineCursosFixados(prev => ({ ...prev, [editingCategoria]: selectedCourseIds }))
+                setEditingCategoria(null)
+                toast.success('Seleção salva com sucesso!')
+            } else {
+                toast.error(result.error || 'Erro ao salvar')
+            }
+        } catch (err) {
+            toast.error('Erro ao salvar seleção')
+            console.error(err)
+        }
+    }
 
     const getStatusBadge = (status: string) => {
         switch (status) {
@@ -222,6 +323,145 @@ export default function AllCoursesClient({ courses, teachers }: AllCoursesClient
                         Auditoria completa de todos os cursos
                     </p>
                 </div>
+            </div>
+
+            {/* NOVO: Vitrine Categories Section */}
+            <div className="bg-white border-2 border-slate-200 rounded-lg p-6">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-[10px] font-bold uppercase tracking-[4px] text-slate-700">
+                        CATEGORIAS DA VITRINE
+                    </h2>
+                    {vitrineLoading && <Loader2 size={14} className="animate-spin text-slate-400" />}
+                </div>
+
+                {/* Badges */}
+                <div className="flex flex-wrap gap-2 mb-2 min-h-[36px]">
+                    {/* NOVO: Fixed system badges — removíveis como as demais */}
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-800 bg-slate-100 border border-slate-200 rounded-md">
+                        TODOS
+                        <button onClick={() => handleRemoveCategoria('TODOS')} className="text-slate-500 hover:text-slate-800 transition-colors">
+                            <X size={12} />
+                        </button>
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-800 bg-slate-100 border border-slate-200 rounded-md">
+                        GRATUITO
+                        <button onClick={() => handleRemoveCategoria('GRATUITO')} className="text-slate-500 hover:text-slate-800 transition-colors">
+                            <X size={12} />
+                        </button>
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-800 bg-slate-100 border border-slate-200 rounded-md">
+                        NOVO
+                        <button onClick={() => handleRemoveCategoria('NOVO')} className="text-slate-500 hover:text-slate-800 transition-colors">
+                            <X size={12} />
+                        </button>
+                    </span>
+                    {vitrineCategorias.length === 0 && !vitrineLoading && (
+                        <span className="text-[10px] text-slate-400 italic self-center ml-2">Nenhuma categoria cadastrada</span>
+                    )}
+                    {vitrineCategorias.map(cat => (
+                        <span key={cat} className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-800 bg-slate-100 border border-slate-200 rounded-md">
+                            {cat}
+                            <button onClick={() => handleOpenEditor(cat)} className="text-slate-400 hover:text-slate-700 transition-colors" title="Editar cursos">
+                                <Settings2 size={11} />
+                            </button>
+                            <button onClick={() => handleRemoveCategoria(cat)} className="text-slate-500 hover:text-slate-800 transition-colors">
+                                <X size={12} />
+                            </button>
+                        </span>
+                    ))}
+                </div>
+
+                {/* Input + Add Button */}
+                <div className="flex gap-2 mb-4">
+                    <input
+                        type="text"
+                        placeholder="Nova categoria..."
+                        value={newCategoria}
+                        onChange={(e) => setNewCategoria(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddCategoria() } }}
+                        className="flex-1 max-w-xs px-4 py-2 bg-white border-2 border-slate-200 rounded-lg text-xs font-medium uppercase focus:border-[#1D5F31] focus:ring-2 focus:ring-green-700/20 focus:outline-none transition-colors"
+                    />
+                    <button
+                        onClick={handleAddCategoria}
+                        disabled={!newCategoria.trim()}
+                        className="px-5 py-2 text-white text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all disabled:opacity-50"
+                        style={{ backgroundColor: '#1D5F31' }}
+                    >
+                        ADICIONAR
+                    </button>
+                </div>
+
+                {/* Suggestions from existing courses */}
+                {existingCourseCategories.length > 0 && (
+                    <div>
+                        <p className="text-[9px] font-bold uppercase tracking-[3px] text-slate-400 mb-2">Sugestões dos cursos cadastrados:</p>
+                        <div className="flex flex-wrap gap-1.5">
+                            {existingCourseCategories
+                                .filter(cat => !vitrineCategorias.includes(cat))
+                                .map(cat => (
+                                    <button
+                                        key={cat}
+                                        onClick={() => {
+                                            setNewCategoria(cat)
+                                        }}
+                                        className="px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 border border-slate-200 rounded-md hover:bg-slate-200 hover:text-slate-700 transition-colors"
+                                    >
+                                        {cat}
+                                    </button>
+                                ))
+                            }
+                        </div>
+                    </div>
+                )}
+
+                {/* NOVO: Inline editor for course selection per category */}
+                {editingCategoria && (
+                    <div className="mt-4 border-t pt-4 border-slate-200">
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-700">
+                                CURSOS EM: {editingCategoria}
+                            </h3>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={handleSaveCursosFixados}
+                                    className="px-5 py-2 text-white text-[10px] font-bold uppercase tracking-widest rounded-md transition-all"
+                                    style={{ backgroundColor: '#1D5F31' }}
+                                >
+                                    SALVAR SELEÇÃO
+                                </button>
+                                <button
+                                    onClick={() => setEditingCategoria(null)}
+                                    className="px-4 py-2 text-slate-600 text-[10px] font-bold uppercase tracking-widest rounded-md border border-slate-300 hover:bg-slate-100 transition-all"
+                                >
+                                    FECHAR
+                                </button>
+                            </div>
+                        </div>
+                        <div className="max-h-48 overflow-y-auto border border-slate-200 rounded-md">
+                            {courses.map(course => (
+                                <label
+                                    key={course.id}
+                                    className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-50 cursor-pointer border-b border-slate-100 last:border-b-0"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedCourseIds.includes(course.id)}
+                                        onChange={() => handleToggleCourse(course.id)}
+                                        className="accent-[#1D5F31]"
+                                    />
+                                    <span className="text-xs font-medium text-slate-700 uppercase truncate">
+                                        {course.title}
+                                    </span>
+                                    {course.category && (
+                                        <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 ml-auto flex-shrink-0">
+                                            {course.category}
+                                        </span>
+                                    )}
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Filtros */}
