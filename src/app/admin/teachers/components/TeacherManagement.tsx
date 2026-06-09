@@ -472,7 +472,7 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
 
                                         {/* Bloco de Identificação */}
                                         <div>
-                                            <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#1D5F31] mb-3 ml-1">Identificação</h4>
+                                            <h4 className="text-[11px] font-bold uppercase tracking-wider !text-[#1D5F31] mb-3 ml-1">Identificação</h4>
                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 border border-slate-100 p-4 rounded-xl">
                                                 <div>
                                                     <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Nome Completo</label>
@@ -518,7 +518,7 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                                         {/* Bloco de Redes Sociais */}
                                         {(teacherFullDetails.instagram || teacherFullDetails.linkedin || teacherFullDetails.youtube || teacherFullDetails.website) && (
                                             <div>
-                                                <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#1D5F31] mb-3 ml-1">Redes e Links</h4>
+                                                <h4 className="text-[11px] font-bold uppercase tracking-wider !text-[#1D5F31] mb-3 ml-1">Redes e Links</h4>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 border border-slate-100 p-4 rounded-xl">
                                                     {teacherFullDetails.instagram && (
                                                         <div>
@@ -550,7 +550,7 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
 
                                         {/* Bloco de Endereço */}
                                         <div>
-                                            <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#1D5F31] mb-3 ml-1">Endereço</h4>
+                                            <h4 className="text-[11px] font-bold uppercase tracking-wider !text-[#1D5F31] mb-3 ml-1">Endereço</h4>
                                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-slate-50 border border-slate-100 p-4 rounded-xl">
                                                 <div className="md:col-span-2 lg:col-span-1">
                                                     <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Logradouro</label>
@@ -678,7 +678,7 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
 
                                         {/* Identificação */}
                                         <div>
-                                            <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#1D5F31] mb-3 ml-1 flex items-center gap-2">
+                                            <h4 className="text-[11px] font-bold uppercase tracking-wider !text-[#1D5F31] mb-3 ml-1 flex items-center gap-2">
                                                 <User size={14} /> Identificação
                                             </h4>
                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 border border-slate-100 p-4 rounded-xl">
@@ -726,8 +726,8 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                                         {/* Redes Sociais */}
                                         {(teacherFullDetails.instagram || teacherFullDetails.linkedin || teacherFullDetails.youtube || teacherFullDetails.website) && (
                                             <div>
-                                                <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#1D5F31] mb-3 ml-1 flex items-center gap-2">
-                                                    <AtSign size={14} /> Redes e Links
+                                                <h4 className="text-[11px] font-bold uppercase tracking-wider !text-[#1D5F31] mb-3 ml-1">
+                                                    Redes Sociais
                                                 </h4>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 border border-slate-100 p-4 rounded-xl">
                                                     {teacherFullDetails.instagram && (
@@ -760,7 +760,7 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
 
                                         {/* Endereço */}
                                         <div>
-                                            <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#1D5F31] mb-3 ml-1 flex items-center gap-2">
+                                            <h4 className="text-[11px] font-bold uppercase tracking-wider !text-[#1D5F31] mb-3 ml-1 flex items-center gap-2">
                                                 <MapPin size={14} /> Endereço
                                             </h4>
                                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-slate-50 border border-slate-100 p-4 rounded-xl">
@@ -797,7 +797,7 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
 
                                         {/* Financeiro */}
                                         <div>
-                                            <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#1D5F31] mb-3 ml-1 flex items-center gap-2">
+                                            <h4 className="text-[11px] font-bold uppercase tracking-wider !text-[#1D5F31] mb-3 ml-1 flex items-center gap-2">
                                                 <CreditCard size={14} /> Financeiro
                                             </h4>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 border border-slate-100 p-4 rounded-xl">
@@ -828,7 +828,7 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
 
                                         {/* Perfil Profissional */}
                                         <div>
-                                            <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#1D5F31] mb-3 ml-1 flex items-center gap-2">
+                                            <h4 className="text-[11px] font-bold uppercase tracking-wider !text-[#1D5F31] mb-3 ml-1 flex items-center gap-2">
                                                 <Briefcase size={14} /> Perfil Profissional
                                             </h4>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 border border-slate-100 p-4 rounded-xl">
@@ -865,7 +865,7 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
 
                                         {/* Status */}
                                         <div>
-                                            <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#1D5F31] mb-3 ml-1 flex items-center gap-2">
+                                            <h4 className="text-[11px] font-bold uppercase tracking-wider !text-[#1D5F31] mb-3 ml-1 flex items-center gap-2">
                                                 <ShieldCheck size={14} /> Status
                                             </h4>
                                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-slate-50 border border-slate-100 p-4 rounded-xl">
@@ -900,7 +900,7 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                                 )}
 
                                 <div className="space-y-3">
-                                    <h4 className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#1D5F31] border-b border-slate-200 pb-2 mb-4">
+                                    <h4 className="text-[11px] font-bold uppercase tracking-[0.2em] !text-[#1D5F31] border-b border-slate-200 pb-2 mb-4">
                                         Alunos Matriculados ({students.length})
                                     </h4>
                                     {students.length > 0 ? (
@@ -927,22 +927,22 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                                     )}
                                 </div>
 
-                                <div className="mt-6 pt-6 border-t border-slate-200 space-y-4">
-
-
-                                    <button
-                                        onClick={() => handleBan(selectedTeacher.id)}
-                                        disabled={processingId === selectedTeacher.id}
-                                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-bold text-sm uppercase"
-                                    >
-                                        {processingId === selectedTeacher.id ? (
-                                            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                        ) : (
-                                            <X size={16} />
-                                        )}
-                                        Banir Professor
-                                    </button>
-                                </div>
+                                {(!selectedTeacher.teacher_status || selectedTeacher.teacher_status === 'approved' || selectedTeacher.teacher_status === 'active') && (
+                                    <div className="mt-6 pt-6 border-t border-slate-200 space-y-4">
+                                        <button
+                                            onClick={() => handleBan(selectedTeacher.id)}
+                                            disabled={processingId === selectedTeacher.id}
+                                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-bold text-sm uppercase"
+                                        >
+                                            {processingId === selectedTeacher.id ? (
+                                                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            ) : (
+                                                <X size={16} />
+                                            )}
+                                            Banir Professor
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <div className="space-y-6">
