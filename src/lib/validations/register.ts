@@ -21,7 +21,8 @@ export const Step2Schema = z.object({
     cnpj: z.string().optional(),
     birthDate: z.string().optional().refine((val) => {
         if (!val) return true
-        const birth = new Date(val)
+        const [day, month, year] = val.split('/')
+        const birth = new Date(Number(year), Number(month) - 1, Number(day))
         const today = new Date()
         const age = today.getFullYear() - birth.getFullYear() -
             (today < new Date(today.getFullYear(), birth.getMonth(), birth.getDate()) ? 1 : 0)
