@@ -115,7 +115,6 @@ export function ExpandableCard({
         <>
             {/* Card Thumbnail */}
             <motion.div
-                layoutId={`card-${id}`}
                 onClick={() => setIsOpen(true)}
                 className="relative cursor-pointer aspect-[2/3] bg-white rounded-xl overflow-hidden group border border-white/10 hover:border-[#1D5F31] transition-all w-full max-w-[200px] flex items-end shadow-2xl"
                 whileHover={{ scale: 1.05 }}
@@ -123,7 +122,6 @@ export function ExpandableCard({
             >
                 <div className="absolute inset-0 z-0">
                     <motion.img
-                        layoutId={`image-${id}`}
                         src={thumbnail || "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=2070"}
                         alt={title}
                         className="w-full h-full object-cover"
@@ -211,7 +209,10 @@ export function ExpandableCard({
 
                         {/* Modal Content */}
                         <motion.div
-                            layoutId={`card-${id}`}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ duration: 0.2 }}
                             className="relative w-full max-w-5xl bg-[#061629]/90 backdrop-blur-xl border border-[#1D5F31]/30 rounded-2xl overflow-hidden shadow-[0_30px_60px_-15px_rgba(0,0,0,0.8)]"
                         >
                             {/* Fechar */}
@@ -225,7 +226,6 @@ export function ExpandableCard({
                             <div className="flex flex-col md:flex-row min-h-[400px]">
                                 <div className="w-full md:w-3/5 relative aspect-video md:aspect-auto overflow-hidden">
                                     <motion.img
-                                        layoutId={`image-${id}`}
                                         src={thumbnail || "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=2070"}
                                         alt={title}
                                         className="w-full h-full object-cover scale-105"
@@ -235,10 +235,10 @@ export function ExpandableCard({
 
                                 <motion.div 
                                     className="p-8 md:p-12 md:w-2/5 flex flex-col justify-center bg-[#061629]"
-                                    initial={{ opacity: 0, x: 40 }}
+                                    initial={{ opacity: 0, x: 20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: 20 }}
-                                    transition={{ delay: 0.3, duration: 0.5, ease: "easeOut" }}
+                                    transition={{ delay: 0.1, duration: 0.3, ease: "easeOut" }}
                                 >
                                     <div className="flex items-center gap-3 mb-6">
                                         <div className="w-10 h-px bg-[#1D5F31]" />
