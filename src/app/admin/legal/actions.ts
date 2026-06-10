@@ -105,6 +105,20 @@ export async function getLegalDocsSettings(): Promise<LegalDocsSettings> {
     }
 }
 
+export async function getPublicLegalDocsSettings(): Promise<LegalDocsSettings> {
+    try {
+        const doc = await adminDb.collection(SETTINGS_COLLECTION).doc(LEGAL_DOCS_ID).get()
+        const defaults = await getLegalDocsDefaults()
+        if (!doc.exists) {
+            return defaults
+        }
+        return { ...defaults, ...(doc.data() as Partial<LegalDocsSettings>) }
+    } catch (error) {
+        console.error("Erro ao buscar configurações legais:", error)
+        return getLegalDocsDefaults()
+    }
+}
+
 export async function saveLegalDocsSettings(data: Partial<LegalDocsSettings>, revalidate = true) {
     try {
         const user = await getSessionUser()
