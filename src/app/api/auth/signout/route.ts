@@ -27,3 +27,20 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   return response;
 }
+
+export async function POST(request: NextRequest): Promise<NextResponse> {
+  const response = NextResponse.json({ success: true }, { status: 200 });
+
+  const clearOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax" as const,
+    maxAge: 0,
+    path: "/",
+  };
+
+  response.cookies.set("session", "", clearOptions);
+  response.cookies.set("active_session_id", "", clearOptions);
+
+  return response;
+}

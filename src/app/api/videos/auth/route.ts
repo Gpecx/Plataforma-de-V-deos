@@ -63,9 +63,9 @@ export async function POST(request: NextRequest) {
         }
 
         // ── 3. Validação de Acesso (Admin, Autor ou Aluno com Compra) ─────────
-        // Esta é a trava de segurança: admin sempre acessa, autor sempre acessa seu curso, 
+        // Esta é a trava de segurança: admin sempre acessa, autor sempre acessa seu curso,
         // e alunos só acessam se tiverem comprado.
-        
+
         // a) Busca o perfil do usuário para checar a ROLE
         const profileDoc = await adminDb.collection('profiles').doc(uid).get()
         if (!profileDoc.exists) {
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
         if (profileData?.ativo === false) {
             console.warn(`[MUX AUTH] ACESSO NEGADO: conta inativa ou suspensa.`)
             return NextResponse.json(
-                { error: 'Acesso negado: sua conta está inativa ou suspensa.' }, 
+                { error: 'Acesso negado: sua conta está inativa ou suspensa.' },
                 { status: 403 }
             )
         }
@@ -104,7 +104,26 @@ export async function POST(request: NextRequest) {
                 .where('course_id', '==', cursoId)
                 .limit(1) // Otimização para busca rápida
                 .get()
-            hasEnrollment = !enrollmentsSnapshot.empty && enrollmentsSnapshot.docs[0].data().status !== 'pending'
+
+            // FIX: Verifica também se a matrícula não expirou (expiresAt).
+            // Antes só checava status !== 'pending', o que deixava matrículas
+            // com status 'active' mas expiresAt no passado passarem livremente.
+            if (!enrollmentsSnapshot.empty) {
+                const enrollmentData = enrollmentsSnapshot.docs[0].data()
+                const rawExpiry = enrollmentData.expiresAt
+                const expiresAt: Date | null = rawExpiry?.toDate?.() ?? (rawExpiry ? new Date(rawExpiry) : null)
+
+                hasEnrollment =
+                    enrollmentData.status !== 'pending'
+                    && (!expiresAt || new Date() < expiresAt)
+
+                if (!hasEnrollment) {
+                    console.warn(
+                        `[MUX AUTH] ACESSO NEGADO: matrícula expirada ou pendente`,
+                        { uid, cursoId, status: enrollmentData.status, expiresAt }
+                    )
+                }
+            }
         }
 
         if (!isAdmin && !isAuthor && !hasPurchased && !hasEnrollment) {

@@ -6,6 +6,7 @@ import { getSessionUser } from '@/app/actions/auth'
 import { parseFirebaseDate } from '@/lib/date-utils'
 import { deleteMuxAsset } from '@/app/actions/mux'
 import { sendTeacherStatusEmail } from '@/lib/mail'
+import { createTeacherWallet } from '@/app/admin/teachers/teacherOnboarding'
 import { logError } from '@/lib/logger'
 
 async function logAuditAccess(adminId: string, targetId: string, action: string) {
@@ -1253,6 +1254,24 @@ export async function handleTeacherApproval(
             console.error('[TeacherApproval] Falha ao enviar e-mail:', emailErr)
         }
 
+        // Cria subconta Asaas automaticamente ao aprovar professor
+        if (action === 'approve') {
+            try {
+                const profileDoc = await adminDb.collection('profiles').doc(teacherId).get()
+                const profileData = profileDoc.data()
+                if (profileData && !profileData.asaas_wallet_id) {
+                    await createTeacherWallet({
+                        teacherUid: teacherId,
+                        name: profileData.full_name || profileData.displayName || 'Professor',
+                        email: profileData.email || '',
+                        cpfCnpj: profileData.cpfCnpj || profileData.cpf || '',
+                        mobilePhone: profileData.mobilePhone || profileData.phone || '',
+                    })
+                }
+            } catch (walletErr) {
+                console.error('[TeacherApproval] Falha ao criar wallet Asaas:', walletErr)
+            }
+        }
         revalidatePath('/admin/teachers')
 
         return {

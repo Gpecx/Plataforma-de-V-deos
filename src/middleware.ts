@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { jwtVerify, createRemoteJWKSet } from 'jose'
 
-// =========================================================================
-// M-02: Rate Limiting System (Map em memória — estado por instância)
-// Para multi-instância em produção, substituir por Redis/Upstash.
-// =========================================================================
 const RATE_LIMIT_WINDOW = 60_000
 const MAX_REQUESTS = 100
 const rateLimitMap = new Map<string, { count: number; lastReset: number }>()
@@ -39,9 +35,6 @@ function isRateLimited(ip: string): boolean {
     return entry.count > MAX_REQUESTS
 }
 
-// =========================================================================
-// Auth Configuration
-// =========================================================================
 const FIREBASE_JWKS_URL = 'https://identitytoolkit.googleapis.com/v1/sessionCookiePublicKeys'
 const FIREBASE_PROJECT_ID = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
 
@@ -83,14 +76,12 @@ async function verifyFirebaseSessionCookie(
     }
 }
 
-// Routes restricted by role
 const ROLE_RESTRICTED_ROUTES: Record<string, string[]> = {
     '/admin': ['admin'],
     '/dashboard-teacher': ['teacher', 'admin'],
     '/payouts': ['teacher', 'admin'],
 }
 
-// Routes that require any valid authenticated session
 const AUTHENTICATED_ROUTES = [
     '/dashboard-student',
     '/dashboard-teacher',
@@ -100,14 +91,12 @@ const AUTHENTICATED_ROUTES = [
     '/admin',
 ]
 
-// Routes that redirect teachers to their dashboard
 const TEACHER_BLOCKED_ROUTES = [
     '/course',
     '/cart',
     '/dashboard-student',
 ]
 
-// Routes that redirect admins away
 const ADMIN_BLOCKED_ROUTES = [
     '/course',
     '/cart',
@@ -115,7 +104,6 @@ const ADMIN_BLOCKED_ROUTES = [
     '/dashboard-teacher',
 ]
 
-// Rotas que exigem rate limiting
 const RATE_LIMITED_ROUTES = [
     '/api/auth',
     '/api/videos/auth',
@@ -124,16 +112,16 @@ const RATE_LIMITED_ROUTES = [
     '/register',
 ]
 
-// =========================================================================
-// BUG-02 FIX: Exportado como `middleware` — único nome reconhecido pelo Next.js
-// O arquivo proxy.ts exportava como `proxy`, por isso nunca era executado.
-// =========================================================================
 export async function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl
 
+    // ── 0. Signout bypass ─────────────────────────────────────────
+    // Deixa a rota de signout passar sem qualquer interceptação
+    if (pathname.startsWith('/api/auth/signout')) {
+        return NextResponse.next()
+    }
+
     // ── 1. Rate Limit ────────────────────────────────────────────
-    // LGPD: IP é usado apenas para rate limiting em memória volátil,
-    // nunca persistido em logs ou banco de dados.
     const isRateLimitedRoute = RATE_LIMITED_ROUTES.some(route => pathname.startsWith(route))
     if (isRateLimitedRoute) {
         const forwardedFor = request.headers.get('x-forwarded-for')
@@ -150,11 +138,6 @@ export async function middleware(request: NextRequest) {
     }
 
     // ── 2. Webhook routes ─────────────────────────────────────────
-    // Validação de assinatura feita aqui para garantir que o handler
-    // receba apenas requisições legítimas do Asaas. O matcher NÃO exclui
-    // /api/webhooks/ para que este guard seja efetivo.
-    // A validação de corpo (HMAC) deve ser feita no route handler
-    // onde o body bruto ainda está disponível.
     const isWebhookRoute = pathname.startsWith('/api/webhooks/')
     if (isWebhookRoute) {
         const webhookSecret = process.env.WEBHOOK_SECRET
@@ -180,7 +163,6 @@ export async function middleware(request: NextRequest) {
     const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/register')
     const isApiRoute = pathname.startsWith('/api/')
 
-    // MFA pendente: nunca bloquear rotas de API
     const isMfaPending = request.cookies.get('mfa_pending')?.value === 'true'
     if (isMfaPending && !isAuthRoute && !isApiRoute) {
         const loginUrl = new URL('/login', request.url)
@@ -192,9 +174,6 @@ export async function middleware(request: NextRequest) {
     if (sessionCookie) {
         payload = await verifyFirebaseSessionCookie(sessionCookie)
         if (!payload && !isAuthRoute && !isApiRoute) {
-            // Sessão inválida (cookie expirado ou usuário removido do Firebase Auth).
-            // Rotas públicas (ex: landing page /): apenas deleta o cookie, sem redirect.
-            // Rotas protegidas: redireciona para login com redirectTo.
             const isProtected = AUTHENTICATED_ROUTES.some(route =>
                 pathname.startsWith(route)
             )
@@ -205,7 +184,6 @@ export async function middleware(request: NextRequest) {
                 response.cookies.delete('session')
                 return response
             }
-            // Rota pública: apenas limpa o cookie e deixa passar
             const response = NextResponse.next()
             response.cookies.delete('session')
             return response
@@ -253,8 +231,6 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-    // Inclui /api/webhooks/ no matcher para que o guard do step 2 seja executado.
-    // _next/static, imagens e assets estáticos permanecem excluídos por performance.
     matcher: [
         '/((?!_next/static|_next/image|favicon|images/|fonts/|icons/).*)',
     ],
