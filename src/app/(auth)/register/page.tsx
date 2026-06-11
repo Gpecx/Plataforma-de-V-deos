@@ -85,6 +85,7 @@ function RegisterForm() {
     const searchParams = useSearchParams()
     const numberInputRef = useRef<HTMLInputElement>(null)
     const razaoSocialRef = useRef<HTMLInputElement>(null)
+    const fullNameRef = useRef<HTMLInputElement>(null)
 
     // Captura o email da URL se existir
     const initialEmail = searchParams.get('email') || ''
@@ -109,6 +110,41 @@ function RegisterForm() {
     const [termsAccepted, setTermsAccepted] = useState(false)
     const [username, setUsername] = useState('')
     const [isCheckingUsername, setIsCheckingUsername] = useState(false)
+    const [usernameError, setUsernameError] = useState<string | null>(null)
+    const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+
+    const clearFieldError = (field: string) => {
+        setFieldErrors(prev => {
+            if (prev[field]) {
+                const next = { ...prev }
+                delete next[field]
+                return next
+            }
+            return prev
+        })
+    }
+
+    const handleBlurValidation = (field: string) => {
+        const valueMap: Record<string, string> = {
+            fullName, email, phone, password, confirmPassword
+        }
+        const val = (valueMap[field] || '').trim()
+        if (!val) {
+            setFieldErrors(prev => {
+                if (!prev[field]) return { ...prev, [field]: 'Este campo é obrigatório.' }
+                return prev
+            })
+        } else {
+            setFieldErrors(prev => {
+                if (prev[field] === 'Este campo é obrigatório.') {
+                    const next = { ...prev }
+                    delete next[field]
+                    return next
+                }
+                return prev
+            })
+        }
+    }
 
     useEffect(() => {
         if (fullName && fullName.length > 2) {
@@ -154,35 +190,36 @@ function RegisterForm() {
     const [cnpjError, setCnpjError] = useState<string | null>(null)
     const [cepError, setCepError] = useState('')
 
-    const validateStep1 = () => {
+    const validateStep1 = (): Record<string, string> | null => {
         const result = Step1Schema.safeParse({
             fullName, email, phone, password, confirmPassword, username
         })
         if (!result.success) {
             const errors = result.error.flatten().fieldErrors
-            if (errors.fullName) return errors.fullName[0]
-            if (errors.email) return errors.email[0]
-            if (errors.phone) return errors.phone[0]
-            if (errors.password) return errors.password[0]
-            if (errors.confirmPassword) return errors.confirmPassword[0]
-            return "Verifique os dados informados"
+            const fieldErrorMap: Record<string, string> = {}
+            if (errors.fullName?.[0]) fieldErrorMap.fullName = errors.fullName[0]
+            if (errors.email?.[0]) fieldErrorMap.email = errors.email[0]
+            if (errors.phone?.[0]) fieldErrorMap.phone = errors.phone[0]
+            if (errors.password?.[0]) fieldErrorMap.password = errors.password[0]
+            if (errors.confirmPassword?.[0]) fieldErrorMap.confirmPassword = errors.confirmPassword[0]
+            return Object.keys(fieldErrorMap).length > 0 ? fieldErrorMap : null
         }
         return null
     }
 
-    const validateStep1WithUsername = async () => {
-        const error = validateStep1()
-        if (error) return error
+    const validateStep1WithUsername = async (): Promise<Record<string, string> | null> => {
+        const fieldErrs = validateStep1()
+        if (fieldErrs) return fieldErrs
 
-        if (!username) return 'O Nome Completo é obrigatório para gerar seu ID.'
+        if (!username) return { fullName: 'O Nome Completo é obrigatório para gerar seu ID.' }
 
         setIsCheckingUsername(true)
         try {
             const result = await checkUsernameAvailability(username)
-            if (!result.success) return result.error
-            if (!result.available) return 'Este ID (@' + username + ') já está em uso por outro usuário. Tente adicionar um sobrenome ou número ao seu nome.'
+            if (!result.success) return { username: result.error || 'Erro ao validar ID' }
+            if (!result.available) return { username: 'Este ID público já está em uso.' }
         } catch (e) {
-            return 'Erro ao validar disponibilidade do ID.'
+            return { username: 'Erro ao validar disponibilidade do ID.' }
         } finally {
             setIsCheckingUsername(false)
         }
@@ -464,6 +501,12 @@ function RegisterForm() {
         }
     }
 
+    const errorInputStyle: React.CSSProperties = {
+        border: '1.5px solid #e53e3e',
+        backgroundColor: 'rgba(229, 62, 62, 0.06)',
+        boxShadow: '0 0 0 3px rgba(229, 62, 62, 0.15)',
+    }
+
     const inputClass = (hasError: boolean = false, isFieldLoading: boolean = false) =>
         `w-full p-4 bg-white/5 text-white border border-white/10 shadow-sm transition-all outline-none text-sm font-medium placeholder:text-white/30 focus:border-[#28b828] focus:bg-white/10 rounded-lg relative overflow-hidden ${hasError ? 'border-red-500/60' : ''} ${isFieldLoading ? 'opacity-50 animate-pulse' : ''}`
 
@@ -574,57 +617,112 @@ function RegisterForm() {
                                         <span className={sectionTitleClass}>Passo 1: Dados de Acesso</span>
                                         <div className="space-y-4">
                                             <div className="space-y-1">
-                                                <label className={labelClass}>Nome Completo</label>
+                                                <label className={labelClass} htmlFor="fullName">Nome Completo</label>
                                                 <input
+                                                    ref={fullNameRef}
+                                                    id="fullName"
                                                     type="text"
                                                     placeholder="NOME PARA CERTIFICADOS"
                                                     required
-                                                    className={inputClass()}
+                                                    className={inputClass(!!fieldErrors.fullName || !!usernameError)}
+                                                    style={fieldErrors.fullName || fieldErrors.username || usernameError ? errorInputStyle : undefined}
                                                     value={fullName}
-                                                    onChange={(e) => setFullName(e.target.value)}
+                                                    onChange={(e) => {
+                                                        setFullName(e.target.value)
+                                                        clearFieldError('fullName')
+                                                        clearFieldError('username')
+                                                        if (usernameError) setUsernameError(null)
+                                                    }}
+                                                    onBlur={() => handleBlurValidation('fullName')}
+                                                    aria-invalid={!!fieldErrors.fullName || !!fieldErrors.username}
+                                                    aria-describedby={fieldErrors.fullName ? 'error-fullName' : fieldErrors.username ? 'error-username' : undefined}
                                                 />
-                                                {username && (
+                                                {fieldErrors.fullName && (
+                                                    <p id="error-fullName" className="text-[12px] text-[#e53e3e] mt-1 flex items-center gap-1">
+                                                        <span aria-hidden="true">✕</span> {fieldErrors.fullName}
+                                                    </p>
+                                                )}
+                                                {!fieldErrors.fullName && !fieldErrors.username && !usernameError && username && (
                                                     <p className="text-[10px] font-bold text-[#28b828] uppercase tracking-wider mt-2 animate-pulse">
                                                         Seu ID público será: @{username}
+                                                    </p>
+                                                )}
+                                                {(fieldErrors.username || usernameError) && (
+                                                    <p id="error-username" className="text-[12px] text-[#e53e3e] mt-1 flex items-center gap-1">
+                                                        <span aria-hidden="true">✕</span> {usernameError || fieldErrors.username}
                                                     </p>
                                                 )}
                                             </div>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div className="space-y-1">
-                                                    <label className={labelClass}>E-mail</label>
+                                                    <label className={labelClass} htmlFor="email">E-mail</label>
                                                     <input
+                                                        id="email"
                                                         type="email"
                                                         placeholder="seu@email.com"
                                                         required
-                                                        className={inputClass()}
+                                                        className={inputClass(!!fieldErrors.email)}
+                                                        style={fieldErrors.email ? errorInputStyle : undefined}
                                                         value={email}
-                                                        onChange={(e) => setEmail(e.target.value)}
+                                                        onChange={(e) => {
+                                                            setEmail(e.target.value)
+                                                            clearFieldError('email')
+                                                        }}
+                                                        onBlur={() => handleBlurValidation('email')}
+                                                        aria-invalid={!!fieldErrors.email}
+                                                        aria-describedby={fieldErrors.email ? 'error-email' : undefined}
                                                     />
+                                                    {fieldErrors.email && (
+                                                        <p id="error-email" className="text-[12px] text-[#e53e3e] mt-1 flex items-center gap-1">
+                                                            <span aria-hidden="true">✕</span> {fieldErrors.email}
+                                                        </p>
+                                                    )}
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <label className={labelClass}>WhatsApp / Telefone</label>
+                                                    <label className={labelClass} htmlFor="phone">WhatsApp / Telefone</label>
                                                     <input
+                                                        id="phone"
                                                         type="text"
                                                         placeholder="(00) 00000-0000"
                                                         inputMode="numeric"
                                                         required
-                                                        className={inputClass()}
+                                                        className={inputClass(!!fieldErrors.phone)}
+                                                        style={fieldErrors.phone ? errorInputStyle : undefined}
                                                         value={phone}
-                                                        onChange={handlePhoneChange}
+                                                        onChange={(e) => {
+                                                            handlePhoneChange(e)
+                                                            clearFieldError('phone')
+                                                        }}
+                                                        onBlur={() => handleBlurValidation('phone')}
+                                                        aria-invalid={!!fieldErrors.phone}
+                                                        aria-describedby={fieldErrors.phone ? 'error-phone' : undefined}
                                                     />
+                                                    {fieldErrors.phone && (
+                                                        <p id="error-phone" className="text-[12px] text-[#e53e3e] mt-1 flex items-center gap-1">
+                                                            <span aria-hidden="true">✕</span> {fieldErrors.phone}
+                                                        </p>
+                                                    )}
                                                 </div>
                                             </div>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div className="space-y-1">
-                                                    <label className={labelClass}>Senha</label>
+                                                    <label className={labelClass} htmlFor="password">Senha</label>
                                                     <div className="relative">
                                                         <input
+                                                            id="password"
                                                             type={showPassword ? "text" : "password"}
                                                             placeholder="••••••••"
                                                             required
-                                                            className={`${inputClass()} pr-12`}
+                                                            className={`${inputClass(!!fieldErrors.password)} pr-12`}
+                                                            style={fieldErrors.password ? errorInputStyle : undefined}
                                                             value={password}
-                                                            onChange={(e) => setPassword(e.target.value)}
+                                                            onChange={(e) => {
+                                                                setPassword(e.target.value)
+                                                                clearFieldError('password')
+                                                            }}
+                                                            onBlur={() => handleBlurValidation('password')}
+                                                            aria-invalid={!!fieldErrors.password}
+                                                            aria-describedby={fieldErrors.password ? 'error-password' : undefined}
                                                         />
                                                         <button
                                                             type="button"
@@ -634,19 +732,37 @@ function RegisterForm() {
                                                             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                                         </button>
                                                     </div>
+                                                    {fieldErrors.password && (
+                                                        <p id="error-password" className="text-[12px] text-[#e53e3e] mt-1 flex items-center gap-1">
+                                                            <span aria-hidden="true">✕</span> {fieldErrors.password}
+                                                        </p>
+                                                    )}
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <label className={labelClass}>Confirmar Senha</label>
+                                                    <label className={labelClass} htmlFor="confirmPassword">Confirmar Senha</label>
                                                     <div className="relative">
                                                         <input
+                                                            id="confirmPassword"
                                                             type={showConfirmPassword ? "text" : "password"}
                                                             placeholder="••••••••"
                                                             required
-                                                            className={inputClass(confirmPassword !== "" && password !== confirmPassword)}
+                                                            className={inputClass(!!fieldErrors.confirmPassword)}
+                                                            style={fieldErrors.confirmPassword ? errorInputStyle : undefined}
                                                             value={confirmPassword}
-                                                            onChange={(e) => setConfirmPassword(e.target.value)}
+                                                            onChange={(e) => {
+                                                                setConfirmPassword(e.target.value)
+                                                                clearFieldError('confirmPassword')
+                                                            }}
+                                                            onBlur={() => handleBlurValidation('confirmPassword')}
+                                                            aria-invalid={!!fieldErrors.confirmPassword}
+                                                            aria-describedby={fieldErrors.confirmPassword ? 'error-confirmPassword' : undefined}
                                                         />
                                                     </div>
+                                                    {fieldErrors.confirmPassword && (
+                                                        <p id="error-confirmPassword" className="text-[12px] text-[#e53e3e] mt-1 flex items-center gap-1">
+                                                            <span aria-hidden="true">✕</span> {fieldErrors.confirmPassword}
+                                                        </p>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
@@ -654,10 +770,16 @@ function RegisterForm() {
                                             type="button"
                                             disabled={isCheckingUsername}
                                             onClick={async () => {
-                                                const error = await validateStep1WithUsername()
-                                                if (error) {
-                                                    setFormError({ message: error, isEmailConflict: false })
+                                                const fieldErrs = await validateStep1WithUsername()
+                                                if (fieldErrs) {
+                                                    setFieldErrors(fieldErrs)
+                                                    setFormError({ message: Object.values(fieldErrs)[0], isEmailConflict: false })
+                                                    if (fieldErrs.username) {
+                                                        setUsernameError(fieldErrs.username)
+                                                        setTimeout(() => fullNameRef.current?.focus(), 100)
+                                                    }
                                                 } else {
+                                                    setFieldErrors({})
                                                     setFormError(null)
                                                     setStep(2)
                                                 }

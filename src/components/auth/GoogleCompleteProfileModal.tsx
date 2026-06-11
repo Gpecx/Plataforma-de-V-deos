@@ -323,6 +323,12 @@ export function GoogleCompleteProfileModal({ isOpen, user, onSuccess, onClose }:
         }
     }
 
+    const errorInputStyle: React.CSSProperties = {
+        border: '1.5px solid #e53e3e',
+        backgroundColor: 'rgba(229, 62, 62, 0.06)',
+        boxShadow: '0 0 0 3px rgba(229, 62, 62, 0.15)',
+    }
+
     const inputClass = (hasError: boolean = false, isFieldLoading: boolean = false) =>
         `w-full p-4 bg-white/5 text-white border border-white/10 shadow-sm transition-all outline-none text-sm font-medium placeholder:text-white/30 focus:border-[#28b828] focus:bg-white/10 rounded-lg relative overflow-hidden ${hasError ? 'border-red-500/60' : ''} ${isFieldLoading ? 'opacity-50 animate-pulse' : ''}`
 
@@ -431,12 +437,15 @@ export function GoogleCompleteProfileModal({ isOpen, user, onSuccess, onClose }:
                                             type="text"
                                             placeholder="seu-id-publico"
                                             className={inputClass(usernameAvailable === false)}
+                                            style={usernameAvailable === false ? errorInputStyle : undefined}
                                             value={username}
                                             onChange={(e) => {
                                                 setUsername(generateSlug(e.target.value))
                                                 setUsernameAvailable(null)
                                             }}
                                             onBlur={handleUsernameBlur}
+                                            aria-invalid={usernameAvailable === false}
+                                            aria-describedby={usernameAvailable === false ? 'error-username-google' : undefined}
                                         />
                                         {isCheckingUsername && (
                                             <p className="text-[10px] text-white/40 font-bold uppercase tracking-wider mt-1">
@@ -445,12 +454,12 @@ export function GoogleCompleteProfileModal({ isOpen, user, onSuccess, onClose }:
                                         )}
                                         {!isCheckingUsername && usernameAvailable === true && (
                                             <p className="text-[10px] text-[#28b828] font-bold uppercase tracking-wider mt-1">
-                                                @{username} disponível ✓
+                                                ✓ @{username} disponível
                                             </p>
                                         )}
                                         {!isCheckingUsername && usernameAvailable === false && (
-                                            <p className="text-[10px] text-red-400 font-bold uppercase tracking-wider mt-1">
-                                                Este ID já está em uso. Tente outro.
+                                            <p id="error-username-google" className="text-[12px] text-[#e53e3e] font-bold uppercase tracking-wider mt-1 flex items-center gap-1">
+                                                <span aria-hidden="true">✕</span> Este ID já está em uso. Tente outro.
                                             </p>
                                         )}
                                     </div>

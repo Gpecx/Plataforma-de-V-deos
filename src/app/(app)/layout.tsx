@@ -5,6 +5,7 @@ import { useMemo, Suspense } from 'react'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { AuthProvider } from '@/context/AuthProvider'
+import { RegistrationGuard } from '@/components/auth/RegistrationGuard'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname()
@@ -23,6 +24,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
     return (
         <AuthProvider>
+            <RegistrationGuard>
             <div className={`min-h-screen flex flex-col ${isBrandedPage ? (isStudentPage ? 'student-theme' : '') : 'theme-clean-white'}`}>
                 <Suspense fallback={null}>
                     {!isClassroom && <Navbar light={!isBrandedPage} />}
@@ -32,6 +34,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </main>
                 {!isClassroom && <Footer variant={isBrandedPage ? 'dark' : 'light'} />}
             </div>
+            </RegistrationGuard>
         </AuthProvider>
     )
 }
