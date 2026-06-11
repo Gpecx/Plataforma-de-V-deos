@@ -13,13 +13,15 @@ export const DEFAULT_BRANDING: BrandingData = {
 const BrandingContext = createContext<BrandingData>(DEFAULT_BRANDING)
 
 export function BrandingProvider({ children, value }: { children: ReactNode; value: BrandingData }) {
+    // SEC: Sanitize primaryColor to prevent CSS injection
+    const safePrimaryColor = value.primaryColor?.replace(/[^a-zA-Z0-9#,.()\s%]/g, '') ?? '#000000'
     return (
         <BrandingContext.Provider value={value}>
             {/* Inject dynamic CSS variables for primaryColor */}
             <style>{`
                 :root {
-                    --color-primary: ${value.primaryColor};
-                    --color-primary-hover: ${value.primaryColor}CC;
+                    --color-primary: ${safePrimaryColor};
+                    --color-primary-hover: ${safePrimaryColor}CC;
                 }
             `}</style>
             {children}

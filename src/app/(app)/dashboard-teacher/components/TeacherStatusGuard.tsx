@@ -1,6 +1,8 @@
 "use client"
 
-import { Clock, AlertCircle, LogOut, Mail } from 'lucide-react'
+import { Clock, AlertCircle, LogOut } from 'lucide-react'
+import { auth } from '@/lib/firebase'
+import { signOut as firebaseSignOut } from 'firebase/auth'
 
 interface TeacherStatusGuardProps {
   status: 'pending' | 'rejected'
@@ -55,19 +57,20 @@ export function TeacherStatusGuard({ status, userName }: TeacherStatusGuardProps
 
           <div className="flex flex-col gap-3 w-full max-w-xs">
             <button
-              onClick={() => window.location.href = 'mailto:suporte@gpecx.com.br'}
-              className="flex items-center justify-center gap-2 px-6 py-3 bg-[#061629] text-white font-bold text-sm uppercase tracking-wider rounded-lg hover:bg-[#0a1f33] transition-all"
-            >
-              <Mail size={16} />
-              {config.buttonText}
-            </button>
-            
-            <button
-              onClick={() => {
-                document.cookie = 'session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
-                window.location.href = '/login'
+              onClick={async () => {
+                try {
+                  await firebaseSignOut(auth)
+                  await fetch('/api/auth/signout', { 
+                    method: 'POST',
+                    credentials: 'include'
+                  })
+                } finally {
+                  document.cookie = 'session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax'
+                  document.cookie = 'active_session_id=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT; SameSite=Lax'
+                  window.location.replace('/')
+                }
               }}
-              className="flex items-center justify-center gap-2 px-6 py-3 border border-slate-300 text-slate-600 font-bold text-sm uppercase tracking-wider rounded-lg hover:bg-slate-100 transition-all"
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-[#061629] text-white font-bold text-sm uppercase tracking-wider rounded-lg hover:bg-[#0a1f33] transition-all"
             >
               <LogOut size={16} />
               Sair da Conta

@@ -119,7 +119,6 @@ export async function signMuxPlaybackToken(
         const pkcs8 = pkcs1ToPkcs8(der)
         pem = toPkcs8Pem(pkcs8)
     } else if (!pem.startsWith('-----BEGIN PRIVATE KEY-----')) {
-        console.log("CONTEÚDO DA VARIÁVEL PEM:", JSON.stringify(pem));
         throw new TypeError('MUX_SIGNING_KEY must be a PEM-encoded private key (PKCS#1 or PKCS#8)')
     }
 

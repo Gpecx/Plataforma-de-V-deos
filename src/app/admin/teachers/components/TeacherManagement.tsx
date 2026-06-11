@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useMemo } from 'react'
-import { Users, BookOpen, GraduationCap, Search, ChevronRight, Check, X, Mail, Calendar, MapPin, Briefcase, Monitor, ShieldCheck, AlertTriangle } from 'lucide-react'
-import { getTeacherStudents, banTeacher, reactivateTeacher, getTeacherDetails } from '@/app/actions/admin'
+import { Users, BookOpen, GraduationCap, Search, ChevronRight, Check, X, Mail, Calendar, MapPin, Briefcase, Monitor, ShieldCheck, AlertTriangle, Clock, Eye, EyeOff, User, Globe, AtSign, CreditCard, FileText } from 'lucide-react'
+import { getTeacherStudents, banTeacher, reactivateTeacher, getTeacherDetails, handleTeacherApproval } from '@/app/actions/admin'
 import { AnimatePresence, motion } from 'framer-motion'
 import { toast } from 'sonner'
 import { normalizeString } from '@/lib/utils'
@@ -13,7 +13,7 @@ interface Teacher {
     email?: string
     avatar_url?: string
     ativo?: boolean
-    teacher_status?: 'active' | 'banned'
+    teacher_status?: 'pending' | 'approved' | 'active' | 'rejected' | 'banned'
     created_at?: string
     teacher_application_data?: {
         primary_topic?: string
@@ -77,30 +77,38 @@ const HARDWARE_MAP: Record<string, string> = {
 }
 
 export default function TeacherManagement({ initialTeachers }: TeacherManagementProps) {
-    const [activeTab, setActiveTab] = useState<'ativos' | 'banidos'>('ativos')
+    const [activeTab, setActiveTab] = useState<'pendentes' | 'ativos' | 'banidos'>('ativos')
     const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
     const [teacherFullDetails, setTeacherFullDetails] = useState<any>(null)
     const [students, setStudents] = useState<Student[]>([])
     const [loading, setLoading] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
     const [processingId, setProcessingId] = useState<string | null>(null)
+    const [revealCpf, setRevealCpf] = useState(false)
+    const [revealRg, setRevealRg] = useState(false)
+    const [rejectionReason, setRejectionReason] = useState('')
 
-    const bannedTeachers = useMemo(() => 
-        initialTeachers.filter(t => t.teacher_status === 'banned'), 
+    const pendingTeachers = useMemo(() =>
+        initialTeachers.filter(t => t.teacher_status === 'pending'),
         [initialTeachers]
     )
-    const activeTeachers = useMemo(() => 
-        initialTeachers.filter(t => t.teacher_status !== 'banned'), 
+    const bannedTeachers = useMemo(() =>
+        initialTeachers.filter(t => t.teacher_status === 'banned'),
+        [initialTeachers]
+    )
+    // Ativos = nem pendentes, nem rejeitados, nem banidos (inclui 'active'/'approved'/legados sem status)
+    const activeTeachers = useMemo(() =>
+        initialTeachers.filter(t => !['pending', 'rejected', 'banned'].includes(t.teacher_status)),
         [initialTeachers]
     )
 
     const filteredTeachers = useMemo(() => {
-        const list = activeTab === 'ativos' ? activeTeachers : bannedTeachers
+        const list = activeTab === 'ativos' ? activeTeachers : activeTab === 'pendentes' ? pendingTeachers : bannedTeachers
         return list.filter(t =>
             t.full_name && normalizeString(t.full_name).includes(normalizeString(searchTerm)) ||
             t.email && normalizeString(t.email).includes(normalizeString(searchTerm))
         )
-    }, [activeTab, activeTeachers, bannedTeachers, searchTerm])
+    }, [activeTab, activeTeachers, pendingTeachers, bannedTeachers, searchTerm])
 
     const isNewTeacher = (createdAt?: string) => {
         if (!createdAt) return false
@@ -197,6 +205,44 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
 
 
 
+    const handleApproval = (teacherId: string, action: 'approve' | 'reject') => {
+        const isApprove = action === 'approve'
+        if (!isApprove && !rejectionReason.trim()) {
+            toast.error('Digite o motivo da reprovação antes de confirmar.')
+            return
+        }
+        toast(isApprove ? 'Aprovar este professor?' : 'Reprovar este cadastro?', {
+            description: isApprove
+                ? 'O professor poderá criar e publicar cursos na plataforma.'
+                : 'O cadastro será marcado como reprovado e o acesso à área de professor ficará bloqueado.',
+            action: {
+                label: isApprove ? 'Aprovar' : 'Reprovar',
+                onClick: async () => {
+                    setProcessingId(teacherId)
+                    try {
+                        const result = await handleTeacherApproval(teacherId, action, isApprove ? undefined : rejectionReason.trim())
+                        if (result.success) {
+                            toast.success(result.message)
+                            setSelectedTeacher(null)
+                            setRejectionReason('')
+                            window.location.reload()
+                        } else {
+                            toast.error(result.error || 'Erro ao processar solicitação')
+                        }
+                    } catch (error) {
+                        toast.error('Erro ao processar solicitação')
+                    } finally {
+                        setProcessingId(null)
+                    }
+                }
+            },
+            cancel: {
+                label: 'Cancelar',
+                onClick: () => {}
+            }
+        })
+    }
+
     const formatDate = (dateString?: string) => {
         if (!dateString) return '-'
         return new Date(dateString).toLocaleDateString('pt-BR', {
@@ -208,14 +254,33 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
 
     const formatDocument = (doc?: string) => {
         if (!doc) return 'N/A'
-        const clean = doc.replace(/\D/g, '')
+        const clean = doc.toUpperCase().replace(/[^A-Z0-9]/g, '')
         if (clean.length === 11) {
             return clean.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
         }
         if (clean.length === 14) {
-            return clean.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
+            return clean.replace(/^([A-Z0-9]{2})([A-Z0-9]{3})([A-Z0-9]{3})([A-Z0-9]{4})(\d{2})$/, '$1.$2.$3/$4-$5')
         }
         return doc
+    }
+
+    const maskDocument = (value: string | null | undefined, type: 'cpf' | 'cnpj' | 'rg'): string => {
+        if (!value) return 'N/A'
+        if (type === 'cnpj') {
+            const v = value.toUpperCase().replace(/[^A-Z0-9]/g, '')
+            if (v.length === 14) {
+                return v.replace(/^([A-Z0-9]{2})([A-Z0-9]{3})([A-Z0-9]{3})([A-Z0-9]{4})(\d{2})$/, '$1.***.***/****-$5')
+            }
+            return value
+        }
+        const digits = value.replace(/\D/g, '')
+        if (type === 'cpf' && digits.length === 11) {
+            return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.***.***-$4')
+        }
+        if (type === 'rg' && digits.length >= 7) {
+            return digits.replace(/(\d{2})(\d+)(\d{1})/, '$1.***.**-$3')
+        }
+        return value
     }
 
     const formatAddress = (teacher: Teacher) => {
@@ -246,6 +311,21 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                 </div>
 
                 <div className="flex gap-2 mb-6 border-b border-slate-200">
+                    <button
+                        onClick={() => { setActiveTab('pendentes'); setSearchTerm(''); setSelectedTeacher(null); }}
+                        className={`px-4 py-2 text-[11px] font-bold uppercase tracking-wider transition-all border-b-2 -mb-[2px] flex items-center gap-2 ${
+                            activeTab === 'pendentes'
+                                ? 'border-[#1D5F31] text-[#1D5F31]'
+                                : 'border-transparent text-slate-400 hover:text-slate-600'
+                        }`}
+                    >
+                        Pendentes
+                        {pendingTeachers.length > 0 && (
+                            <span className="bg-amber-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
+                                {pendingTeachers.length}
+                            </span>
+                        )}
+                    </button>
                     <button
                         onClick={() => { setActiveTab('ativos'); setSearchTerm(''); setSelectedTeacher(null); }}
                         className={`px-4 py-2 text-[11px] font-bold uppercase tracking-wider transition-all border-b-2 -mb-[2px] ${
@@ -315,6 +395,11 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                                                             NOVO
                                                         </span>
                                                     )}
+                                                    {activeTab === 'pendentes' && (
+                                                        <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-[9px] font-bold uppercase rounded border border-amber-300">
+                                                            AGUARDANDO
+                                                        </span>
+                                                    )}
                                                     {activeTab === 'banidos' && (
                                                         <span className="px-2 py-0.5 bg-red-100 text-red-700 text-[9px] font-bold uppercase rounded border border-red-300">
                                                             BANIDO
@@ -350,7 +435,7 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                             }
                         </h2>
                         <p className="text-[10px] font-bold !text-[#1D5F31] uppercase tracking-widest mt-1">
-                            {activeTab === 'ativos' ? 'Auditória de Alunos' : 'Informações do Banido'}
+                            {activeTab === 'ativos' ? 'Auditória de Alunos' : activeTab === 'pendentes' ? 'Revisão de Cadastro' : 'Informações do Banido'}
                         </p>
                     </div>
                 </div>
@@ -362,75 +447,460 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                             <span className="text-[11px] font-bold uppercase tracking-widest text-[#000000]">Buscando na base...</span>
                         </div>
                     ) : selectedTeacher ? (
-                        activeTab === 'ativos' ? (
+                        activeTab === 'pendentes' ? (
                             <div className="space-y-6 max-h-[650px] overflow-y-auto pr-2 custom-scrollbar">
+                                <div className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl p-4">
+                                    <Clock className="text-amber-500 flex-shrink-0" size={24} />
+                                    <p className="text-[12px] font-semibold text-amber-800 leading-snug">
+                                        Cadastro aguardando revisão. Confira os dados e a aplicação antes de aprovar.
+                                    </p>
+                                </div>
+
                                 {teacherFullDetails && (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-xl border border-slate-200">
-                                        <div className="space-y-4">
+                                    <div className="space-y-6">
+                                        {/* Bloco de Contato Rápido no Topo */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b border-slate-100 pb-6">
                                             <div>
-                                                <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Identificação</label>
-                                                <p className="text-sm font-semibold text-slate-900">{formatDocument(teacherFullDetails.cpfCnpj)}</p>
+                                                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">E-mail</label>
+                                                <div className="text-sm font-semibold text-slate-900 break-all">{teacherFullDetails.email}</div>
                                             </div>
                                             <div>
-                                                <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">WhatsApp / Telefone</label>
-                                                <p className="text-sm font-semibold text-slate-900">{teacherFullDetails.phone}</p>
-                                            </div>
-                                            <div>
-                                                <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">E-mail de Contato</label>
-                                                <p className="text-sm font-semibold text-slate-900 break-all">{teacherFullDetails.email}</p>
-                                            </div>
-                                        </div>
-                                        <div className="space-y-4">
-                                            <div>
-                                                <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Status de Segurança</label>
-                                                <div className="flex items-center gap-2">
-                                                    <div className={`w-2 h-2 rounded-full ${teacherFullDetails.security?.mfaEnabled ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                                                    <p className="text-sm font-semibold text-slate-900">
-                                                        {teacherFullDetails.security?.mfaEnabled ? '2FA ATIVO' : '2FA DESATIVADO'}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Último Acesso</label>
-                                                <p className="text-sm font-semibold text-slate-900">{formatDate(teacherFullDetails.security?.lastLogin)}</p>
-                                            </div>
-                                            <div>
-                                                <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Localização</label>
-                                                <p className="text-sm font-semibold text-slate-900 uppercase">
-                                                    {teacherFullDetails.address?.cidade} - {teacherFullDetails.address?.uf}
-                                                </p>
+                                                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">WhatsApp / Telefone</label>
+                                                <div className="text-sm font-semibold text-slate-900">{teacherFullDetails.phone}</div>
                                             </div>
                                         </div>
 
-                                        <div className="md:col-span-2 pt-4 border-t border-slate-200">
-                                            <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#1D5F31] mb-4">Dados Financeiros</h4>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {/* Bloco de Identificação */}
+                                        <div>
+                                            <h4 className="text-[11px] font-bold uppercase tracking-wider !text-[#1D5F31] mb-3 ml-1">Identificação</h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 border border-slate-100 p-4 rounded-xl">
                                                 <div>
-                                                    <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Chave PIX</label>
-                                                    <p className="text-sm font-semibold text-slate-900 break-all">{teacherFullDetails.pix_key || 'NÃO INFORMADA'}</p>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Nome Completo</label>
+                                                    <div className="text-sm font-semibold text-slate-900">{teacherFullDetails.fullName}</div>
                                                 </div>
-                                                {teacherFullDetails.bank?.name && (
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Data de Nascimento</label>
+                                                    <div className="text-sm font-semibold text-slate-900">{teacherFullDetails.birthDate ? formatDate(teacherFullDetails.birthDate) : 'N/A'}</div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">{(teacherFullDetails.personType || '').toLowerCase() === 'cnpj' ? 'CNPJ' : 'CPF'}</label>
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="text-sm font-semibold text-slate-900">{revealCpf ? formatDocument(teacherFullDetails.cpfCnpj) : maskDocument(teacherFullDetails.cpfCnpj, (teacherFullDetails.personType || '').toLowerCase() === 'cnpj' ? 'cnpj' : 'cpf')}</div>
+                                                        <button onClick={() => setRevealCpf(!revealCpf)} className="p-1 text-slate-400 hover:text-slate-700 transition-colors">
+                                                            {revealCpf ? <EyeOff size={14} /> : <Eye size={14} />}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">RG</label>
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="text-sm font-semibold text-slate-900">{revealRg ? (teacherFullDetails.rg || 'N/A') : maskDocument(teacherFullDetails.rg, 'rg')}</div>
+                                                        {teacherFullDetails.rg && (
+                                                            <button onClick={() => setRevealRg(!revealRg)} className="p-1 text-slate-400 hover:text-slate-700 transition-colors">
+                                                                {revealRg ? <EyeOff size={14} /> : <Eye size={14} />}
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Tipo de Pessoa</label>
+                                                    <div className="text-sm font-semibold text-slate-900 uppercase">{(teacherFullDetails.personType || '').toLowerCase() === 'cnpj' ? 'CNPJ' : (teacherFullDetails.personType || '').toLowerCase() === 'cpf' ? 'CPF' : 'N/A'}</div>
+                                                </div>
+                                                {(teacherFullDetails.personType || '').toLowerCase() === 'cnpj' && (
                                                     <div>
-                                                        <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Conta Bancária</label>
-                                                        <p className="text-sm font-semibold text-slate-900">
+                                                        <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Razão Social</label>
+                                                        <div className="text-sm font-semibold text-slate-900">{teacherFullDetails.razaoSocial || 'N/A'}</div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Bloco de Redes Sociais */}
+                                        {(teacherFullDetails.instagram || teacherFullDetails.linkedin || teacherFullDetails.youtube || teacherFullDetails.website) && (
+                                            <div>
+                                                <h4 className="text-[11px] font-bold uppercase tracking-wider !text-[#1D5F31] mb-3 ml-1">Redes e Links</h4>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 border border-slate-100 p-4 rounded-xl">
+                                                    {teacherFullDetails.instagram && (
+                                                        <div>
+                                                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Instagram</label>
+                                                            <div className="text-sm font-semibold text-slate-900">{teacherFullDetails.instagram}</div>
+                                                        </div>
+                                                    )}
+                                                    {teacherFullDetails.linkedin && (
+                                                        <div>
+                                                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">LinkedIn</label>
+                                                            <div className="text-sm font-semibold text-slate-900">{teacherFullDetails.linkedin}</div>
+                                                        </div>
+                                                    )}
+                                                    {teacherFullDetails.youtube && (
+                                                        <div>
+                                                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">YouTube</label>
+                                                            <div className="text-sm font-semibold text-slate-900">{teacherFullDetails.youtube}</div>
+                                                        </div>
+                                                    )}
+                                                    {teacherFullDetails.website && (
+                                                        <div>
+                                                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Website</label>
+                                                            <div className="text-sm font-semibold text-slate-900">{teacherFullDetails.website}</div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Bloco de Endereço */}
+                                        <div>
+                                            <h4 className="text-[11px] font-bold uppercase tracking-wider !text-[#1D5F31] mb-3 ml-1">Endereço</h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-slate-50 border border-slate-100 p-4 rounded-xl">
+                                                <div className="md:col-span-2 lg:col-span-1">
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Logradouro</label>
+                                                    <div className="text-sm font-semibold text-slate-900">{teacherFullDetails.address?.logradouro || 'N/A'}</div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Número</label>
+                                                    <div className="text-sm font-semibold text-slate-900">{teacherFullDetails.address?.numero || 'N/A'}</div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Complemento</label>
+                                                    <div className="text-sm font-semibold text-slate-900">{teacherFullDetails.address?.complemento || 'N/A'}</div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Bairro</label>
+                                                    <div className="text-sm font-semibold text-slate-900">{teacherFullDetails.address?.bairro || 'N/A'}</div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Cidade</label>
+                                                    <div className="text-sm font-semibold text-slate-900 uppercase">{teacherFullDetails.address?.cidade || 'N/A'}</div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Estado</label>
+                                                    <div className="text-sm font-semibold text-slate-900 uppercase">{teacherFullDetails.address?.uf || 'N/A'}</div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">CEP</label>
+                                                    <div className="text-sm font-semibold text-slate-900">{teacherFullDetails.address?.cep || 'N/A'}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Bloco do Questionário/Aplicação */}
+                                {selectedTeacher.teacher_application_data && (
+                                    <div className="bg-emerald-50/20 border border-emerald-100/50 p-4 rounded-xl mt-6">
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <ShieldCheck size={16} className="text-emerald-700" />
+                                            <h4 className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">Dados da Aplicação</h4>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                            <div className="flex items-start gap-3">
+                                                <Briefcase size={18} className="text-emerald-600 mt-0.5" />
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Área</label>
+                                                    <div className="text-sm font-semibold text-slate-900">{TOPIC_MAP[selectedTeacher.teacher_application_data.primary_topic || ''] || selectedTeacher.teacher_application_data.primary_topic || '-'}</div>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-start gap-3">
+                                                <Clock size={18} className="text-emerald-600 mt-0.5" />
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Experiência</label>
+                                                    <div className="text-sm font-semibold text-slate-900">{EXPERIENCE_MAP[selectedTeacher.teacher_application_data.experience_level || ''] || selectedTeacher.teacher_application_data.experience_level || '-'}</div>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-start gap-3">
+                                                <Monitor size={18} className="text-emerald-600 mt-0.5" />
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Equipamento</label>
+                                                    <div className="text-sm font-semibold text-slate-900">{HARDWARE_MAP[selectedTeacher.teacher_application_data.hardware_check || ''] || selectedTeacher.teacher_application_data.hardware_check || '-'}</div>
+                                                </div>
+                                            </div>
+                                            {selectedTeacher.teacher_application_data.qualification_summary && (
+                                                <div className="col-span-full pt-4 border-t border-emerald-100/50 mt-2">
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-2">Resumo / Qualificações</label>
+                                                    <div className="text-sm font-medium text-emerald-950 leading-relaxed whitespace-pre-line bg-white/60 p-4 rounded-lg border border-emerald-50">{selectedTeacher.teacher_application_data.qualification_summary}</div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="mt-2">
+                                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block mb-1.5 ml-1">
+                                        Motivo da Reprovação <span className="text-red-500">*</span>
+                                    </label>
+                                    <textarea
+                                        value={rejectionReason}
+                                        onChange={(e) => setRejectionReason(e.target.value)}
+                                        placeholder="Descreva o que o professor precisa melhorar..."
+                                        rows={3}
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-[12px] text-slate-900 focus:border-red-400 focus:bg-white outline-none transition-all placeholder:text-slate-400 resize-none"
+                                    />
+                                </div>
+
+                                <div className="mt-6 pt-6 border-t border-slate-100 grid grid-cols-2 gap-4">
+                                    <button
+                                        onClick={() => handleApproval(selectedTeacher.id, 'reject')}
+                                        disabled={processingId === selectedTeacher.id}
+                                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-white border border-red-200 text-red-600 rounded-xl hover:bg-red-50 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-bold text-sm uppercase shadow-sm"
+                                    >
+                                        <X size={16} />
+                                        Reprovar
+                                    </button>
+                                    <button
+                                        onClick={() => handleApproval(selectedTeacher.id, 'approve')}
+                                        disabled={processingId === selectedTeacher.id}
+                                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#1D5F31] text-white rounded-xl hover:bg-[#164b26] transition-all disabled:opacity-50 disabled:cursor-not-allowed font-bold text-sm uppercase shadow-sm hover:shadow-md"
+                                    >
+                                        {processingId === selectedTeacher.id ? (
+                                            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        ) : (
+                                            <Check size={16} />
+                                        )}
+                                        Aprovar
+                                    </button>
+                                </div>
+                            </div>
+                        ) : activeTab === 'ativos' ? (
+                            <div className="space-y-6 max-h-[650px] overflow-y-auto pr-2 custom-scrollbar">
+                                {teacherFullDetails && (
+                                    <div className="space-y-6">
+                                        {/* Bloco de Contato Rápido no Topo */}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border-b border-slate-100 pb-6">
+                                            <div>
+                                                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">E-mail</label>
+                                                <div className="text-sm font-semibold text-slate-900 break-all">{teacherFullDetails.email}</div>
+                                            </div>
+                                            <div>
+                                                <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">WhatsApp / Telefone</label>
+                                                <div className="text-sm font-semibold text-slate-900">{teacherFullDetails.phone}</div>
+                                            </div>
+                                        </div>
+
+                                        {/* Identificação */}
+                                        <div>
+                                            <h4 className="text-[11px] font-bold uppercase tracking-wider !text-[#1D5F31] mb-3 ml-1 flex items-center gap-2">
+                                                <User size={14} /> Identificação
+                                            </h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-50 border border-slate-100 p-4 rounded-xl">
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Nome Completo</label>
+                                                    <div className="text-sm font-semibold text-slate-900">{teacherFullDetails.fullName}</div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Data de Nascimento</label>
+                                                    <div className="text-sm font-semibold text-slate-900">{teacherFullDetails.birthDate ? formatDate(teacherFullDetails.birthDate) : 'N/A'}</div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">{(teacherFullDetails.personType || '').toLowerCase() === 'cnpj' ? 'CNPJ' : 'CPF'}</label>
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="text-sm font-semibold text-slate-900">{revealCpf ? formatDocument(teacherFullDetails.cpfCnpj) : maskDocument(teacherFullDetails.cpfCnpj, (teacherFullDetails.personType || '').toLowerCase() === 'cnpj' ? 'cnpj' : 'cpf')}</div>
+                                                        <button onClick={() => setRevealCpf(!revealCpf)} className="p-1 text-slate-400 hover:text-slate-700 transition-colors">
+                                                            {revealCpf ? <EyeOff size={14} /> : <Eye size={14} />}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">RG</label>
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="text-sm font-semibold text-slate-900">{revealRg ? (teacherFullDetails.rg || 'N/A') : maskDocument(teacherFullDetails.rg, 'rg')}</div>
+                                                        {teacherFullDetails.rg && (
+                                                            <button onClick={() => setRevealRg(!revealRg)} className="p-1 text-slate-400 hover:text-slate-700 transition-colors">
+                                                                {revealRg ? <EyeOff size={14} /> : <Eye size={14} />}
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Tipo de Pessoa</label>
+                                                    <div className="text-sm font-semibold text-slate-900 uppercase">{(teacherFullDetails.personType || '').toLowerCase() === 'cnpj' ? 'CNPJ' : (teacherFullDetails.personType || '').toLowerCase() === 'cpf' ? 'CPF' : 'N/A'}</div>
+                                                </div>
+                                                {(teacherFullDetails.personType || '').toLowerCase() === 'cnpj' && (
+                                                    <div>
+                                                        <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Razão Social</label>
+                                                        <div className="text-sm font-semibold text-slate-900">{teacherFullDetails.razaoSocial || 'N/A'}</div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Redes Sociais */}
+                                        {(teacherFullDetails.instagram || teacherFullDetails.linkedin || teacherFullDetails.youtube || teacherFullDetails.website) && (
+                                            <div>
+                                                <h4 className="text-[11px] font-bold uppercase tracking-wider !text-[#1D5F31] mb-3 ml-1">
+                                                    Redes Sociais
+                                                </h4>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 border border-slate-100 p-4 rounded-xl">
+                                                    {teacherFullDetails.instagram && (
+                                                        <div>
+                                                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Instagram</label>
+                                                            <div className="text-sm font-semibold text-slate-900">{teacherFullDetails.instagram}</div>
+                                                        </div>
+                                                    )}
+                                                    {teacherFullDetails.linkedin && (
+                                                        <div>
+                                                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">LinkedIn</label>
+                                                            <div className="text-sm font-semibold text-slate-900">{teacherFullDetails.linkedin}</div>
+                                                        </div>
+                                                    )}
+                                                    {teacherFullDetails.youtube && (
+                                                        <div>
+                                                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">YouTube</label>
+                                                            <div className="text-sm font-semibold text-slate-900">{teacherFullDetails.youtube}</div>
+                                                        </div>
+                                                    )}
+                                                    {teacherFullDetails.website && (
+                                                        <div>
+                                                            <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Website</label>
+                                                            <div className="text-sm font-semibold text-slate-900">{teacherFullDetails.website}</div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Endereço */}
+                                        <div>
+                                            <h4 className="text-[11px] font-bold uppercase tracking-wider !text-[#1D5F31] mb-3 ml-1 flex items-center gap-2">
+                                                <MapPin size={14} /> Endereço
+                                            </h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-slate-50 border border-slate-100 p-4 rounded-xl">
+                                                <div className="md:col-span-2 lg:col-span-1">
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Logradouro</label>
+                                                    <div className="text-sm font-semibold text-slate-900">{teacherFullDetails.address?.logradouro || 'N/A'}</div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Número</label>
+                                                    <div className="text-sm font-semibold text-slate-900">{teacherFullDetails.address?.numero || 'N/A'}</div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Complemento</label>
+                                                    <div className="text-sm font-semibold text-slate-900">{teacherFullDetails.address?.complemento || 'N/A'}</div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Bairro</label>
+                                                    <div className="text-sm font-semibold text-slate-900">{teacherFullDetails.address?.bairro || 'N/A'}</div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Cidade</label>
+                                                    <div className="text-sm font-semibold text-slate-900 uppercase">{teacherFullDetails.address?.cidade || 'N/A'}</div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Estado</label>
+                                                    <div className="text-sm font-semibold text-slate-900 uppercase">{teacherFullDetails.address?.uf || 'N/A'}</div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">CEP</label>
+                                                    <div className="text-sm font-semibold text-slate-900">{teacherFullDetails.address?.cep || 'N/A'}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Financeiro */}
+                                        <div>
+                                            <h4 className="text-[11px] font-bold uppercase tracking-wider !text-[#1D5F31] mb-3 ml-1 flex items-center gap-2">
+                                                <CreditCard size={14} /> Financeiro
+                                            </h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 border border-slate-100 p-4 rounded-xl">
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Chave PIX</label>
+                                                    <div className="text-sm font-semibold text-slate-900 break-all">{teacherFullDetails.pix_key || 'NÃO INFORMADA'}</div>
+                                                </div>
+                                                {teacherFullDetails.bank?.name ? (
+                                                    <div>
+                                                        <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Conta Bancária</label>
+                                                        <div className="text-sm font-semibold text-slate-900">
                                                             {teacherFullDetails.bank.name} - Ag: {teacherFullDetails.bank.agency} / Cc: {teacherFullDetails.bank.account}
-                                                            <span className="block text-[10px] text-slate-500 uppercase">Tipo: {teacherFullDetails.bank.type || 'N/A'}</span>
-                                                        </p>
+                                                            <div className="block text-[11px] font-bold text-slate-500 uppercase mt-1">Tipo: {teacherFullDetails.bank.type || 'N/A'}</div>
+                                                        </div>
                                                     </div>
-                                                )}
-                                                {!teacherFullDetails.bank?.name && (
+                                                ) : (
                                                     <div>
-                                                        <label className="text-[10px] font-semibold uppercase tracking-wider text-slate-900 block mb-1">Conta Bancária</label>
-                                                        <p className="text-sm font-semibold text-slate-500 uppercase italic">Não informada</p>
+                                                        <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Conta Bancária</label>
+                                                        <div className="text-sm font-semibold text-slate-500 uppercase italic">Não informada</div>
                                                     </div>
                                                 )}
+                                                <div className="md:col-span-2">
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Asaas ID</label>
+                                                    <div className="text-sm font-semibold text-slate-900 break-all">{teacherFullDetails.asaasCustomerId || 'N/A'}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Perfil Profissional */}
+                                        <div>
+                                            <h4 className="text-[11px] font-bold uppercase tracking-wider !text-[#1D5F31] mb-3 ml-1 flex items-center gap-2">
+                                                <Briefcase size={14} /> Perfil Profissional
+                                            </h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-50 border border-slate-100 p-4 rounded-xl">
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Especialidade</label>
+                                                    <div className="text-sm font-semibold text-slate-900">{teacherFullDetails.specialty || 'N/A'}</div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Área de Atuação</label>
+                                                    <div className="text-sm font-semibold text-slate-900">{TOPIC_MAP[teacherFullDetails.teacherApplicationData?.primary_topic || ''] || teacherFullDetails.teacherApplicationData?.primary_topic || 'N/A'}</div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Nível de Experiência</label>
+                                                    <div className="text-sm font-semibold text-slate-900">{EXPERIENCE_MAP[teacherFullDetails.teacherApplicationData?.experience_level || ''] || teacherFullDetails.teacherApplicationData?.experience_level || 'N/A'}</div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Equipamento</label>
+                                                    <div className="text-sm font-semibold text-slate-900">{HARDWARE_MAP[teacherFullDetails.teacherApplicationData?.hardware_check || ''] || teacherFullDetails.teacherApplicationData?.hardware_check || 'N/A'}</div>
+                                                </div>
+                                                {teacherFullDetails.bio && (
+                                                    <div className="md:col-span-2 pt-2 border-t border-slate-200/60 mt-1">
+                                                        <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-2">Bio</label>
+                                                        <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-line bg-white/60 p-4 rounded-lg border border-slate-100">{teacherFullDetails.bio}</div>
+                                                    </div>
+                                                )}
+                                                {teacherFullDetails.teacherApplicationData?.qualification_summary && (
+                                                    <div className="md:col-span-2 pt-2 border-t border-slate-200/60 mt-1">
+                                                        <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-2">Qualificações</label>
+                                                        <div className="text-sm text-slate-700 leading-relaxed whitespace-pre-line bg-white/60 p-4 rounded-lg border border-slate-100">{teacherFullDetails.teacherApplicationData.qualification_summary}</div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Status */}
+                                        <div>
+                                            <h4 className="text-[11px] font-bold uppercase tracking-wider !text-[#1D5F31] mb-3 ml-1 flex items-center gap-2">
+                                                <ShieldCheck size={14} /> Status
+                                            </h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 bg-slate-50 border border-slate-100 p-4 rounded-xl">
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Status do Professor</label>
+                                                    <div className="text-sm font-semibold text-slate-900 uppercase">{teacherFullDetails.teacherStatus || 'N/A'}</div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Segurança</label>
+                                                    <div className="flex items-center gap-2">
+                                                        <div className={`w-2 h-2 rounded-full ${teacherFullDetails.security?.mfaEnabled ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                                                        <div className="text-sm font-semibold text-slate-900">
+                                                            {teacherFullDetails.security?.mfaEnabled ? '2FA ATIVO' : '2FA DESATIVADO'}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Último Acesso</label>
+                                                    <div className="text-sm font-semibold text-slate-900">{formatDate(teacherFullDetails.security?.lastLogin)}</div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Data de Cadastro</label>
+                                                    <div className="text-sm font-semibold text-slate-900">{formatDate(teacherFullDetails.createdAt)}</div>
+                                                </div>
+                                                <div>
+                                                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-1">Data de Atualização</label>
+                                                    <div className="text-sm font-semibold text-slate-900">{formatDate(teacherFullDetails.updatedAt)}</div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                 )}
 
                                 <div className="space-y-3">
-                                    <h4 className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#1D5F31] border-b border-slate-200 pb-2 mb-4">
+                                    <h4 className="text-[11px] font-bold uppercase tracking-[0.2em] !text-[#1D5F31] border-b border-slate-200 pb-2 mb-4">
                                         Alunos Matriculados ({students.length})
                                     </h4>
                                     {students.length > 0 ? (
@@ -457,22 +927,22 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                                     )}
                                 </div>
 
-                                <div className="mt-6 pt-6 border-t border-slate-200 space-y-4">
-
-
-                                    <button
-                                        onClick={() => handleBan(selectedTeacher.id)}
-                                        disabled={processingId === selectedTeacher.id}
-                                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-bold text-sm uppercase"
-                                    >
-                                        {processingId === selectedTeacher.id ? (
-                                            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                        ) : (
-                                            <X size={16} />
-                                        )}
-                                        Banir Professor
-                                    </button>
-                                </div>
+                                {(!selectedTeacher.teacher_status || selectedTeacher.teacher_status === 'approved' || selectedTeacher.teacher_status === 'active') && (
+                                    <div className="mt-6 pt-6 border-t border-slate-200 space-y-4">
+                                        <button
+                                            onClick={() => handleBan(selectedTeacher.id)}
+                                            disabled={processingId === selectedTeacher.id}
+                                            className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-bold text-sm uppercase"
+                                        >
+                                            {processingId === selectedTeacher.id ? (
+                                                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            ) : (
+                                                <X size={16} />
+                                            )}
+                                            Banir Professor
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <div className="space-y-6">

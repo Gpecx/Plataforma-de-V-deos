@@ -5,6 +5,22 @@ import { revalidatePath } from 'next/cache'
 import { getSessionUser } from '@/app/actions/auth'
 import { parseFirebaseDate } from '@/lib/date-utils'
 import { deleteMuxAsset } from '@/app/actions/mux'
+import { sendTeacherStatusEmail } from '@/lib/mail'
+import { createTeacherWallet } from '@/app/admin/teachers/teacherOnboarding'
+import { logError } from '@/lib/logger'
+
+async function logAuditAccess(adminId: string, targetId: string, action: string) {
+  try {
+    await adminDb.collection('audit_log').add({
+      adminId,
+      targetId,
+      action,
+      timestamp: new Date().toISOString(),
+    })
+  } catch {
+    // audit failure must never block the main operation
+  }
+}
 
 /**
  * Busca todas as configurações globais da plataforma.
@@ -59,6 +75,49 @@ export async function updatePlatformTax(tax: number) {
 }
 
 /**
+ * Lê a validade configurada (em meses) para acesso a cursos.
+ * Sem auth guard intencional — chamado internamente pelo checkout e webhook.
+ * Sempre fresh (sem cache) para garantir valor atual no momento da compra.
+ */
+export async function getCourseValidityMonths(): Promise<number> {
+    try {
+        const doc = await adminDb.collection('config').doc('platform_settings').get()
+        const val = doc.exists ? doc.data()?.course_validity_months : null
+        const parsed = parseInt(String(val))
+        return (!isNaN(parsed) && parsed >= 1 && parsed <= 60) ? parsed : 12
+    } catch (error) {
+        console.error('Error reading course_validity_months:', error)
+        return 12
+    }
+}
+
+/**
+ * Atualiza a validade de acesso aos cursos (em meses).
+ * Requer autenticação como admin.
+ */
+export async function updateCourseValidityMonths(months: number) {
+    const session = await getSessionUser()
+    if (!session || session.role !== 'admin') {
+        return { success: false, error: 'Não autorizado' }
+    }
+    const parsed = parseInt(String(months))
+    if (isNaN(parsed) || parsed < 1 || parsed > 60) {
+        return { success: false, error: 'Valor inválido. Use entre 1 e 60 meses.' }
+    }
+    try {
+        await adminDb.collection('config').doc('platform_settings').set(
+            { course_validity_months: parsed },
+            { merge: true }
+        )
+        revalidatePath('/admin/dashboard')
+        return { success: true }
+    } catch (error) {
+        console.error('Error updating course_validity_months:', error)
+        return { success: false, error: 'Falha ao atualizar validade.' }
+    }
+}
+
+/**
  * Lista todos os usuários que são professores.
  */
 export async function getAllTeachers() {
@@ -72,12 +131,22 @@ export async function getAllTeachers() {
             .where('role', '==', 'teacher')
             .get()
             
+        // LGPD (minimização): a listagem só exibe nome/e-mail/status. NÃO fazer
+        // spread completo — isso carregaria CPF/CNPJ, endereço, asaas_customer_id
+        // e consent_log (com IP) no navegador do admin sem necessidade. Dados
+        // sensíveis ficam sob demanda em getTeacherDetails (carregado ao clicar).
         const teachers = teachersSnap.docs.map(doc => {
             const data = doc.data()
             return {
                 id: doc.id,
-                ...data,
-                created_at: data.created_at?.toDate ? data.created_at.toDate().toISOString() : null
+                full_name: data.full_name || '',
+                email: data.email || '',
+                avatar_url: data.avatar_url || '',
+                teacher_status: data.teacher_status || 'pending',
+                created_at: data.created_at?.toDate ? data.created_at.toDate().toISOString() : null,
+                teacher_application_data: data.teacher_application_data || null,
+                specialty: data.specialty || '',
+                role: data.role || 'teacher',
             }
         })
 
@@ -172,7 +241,7 @@ export async function getFinancialData() {
                 platformShare,
                 teacherShare,
                 date: parseFirebaseDate(e.created_at)?.toISOString(),
-                commissionStatus: e.commissionStatus || 'pending'
+                commissionStatus: e.payment_confirmed === true ? 'paid' : 'pending'
             }
         }).sort((a, b) => {
             const dateA = a.date ? new Date(a.date).getTime() : 0
@@ -276,10 +345,24 @@ export async function getAllStudents() {
             .where('role', 'in', ['student', 'user'])
             .get()
         
-        const students = studentsSnap.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        })) as any[]
+        const students = studentsSnap.docs.map(doc => {
+            const data = doc.data()
+            return {
+                id: doc.id,
+                uid: data.uid || doc.id,
+                full_name: data.full_name || 'Sem nome',
+                email: data.email || '',
+                role: data.role || 'user',
+                ativo: data.ativo !== false,
+                avatar_url: data.avatar_url || '',
+                username: data.username || '',
+                concluded_courses: data.concluded_courses || [],
+                totalStudyTime: data.totalStudyTime || 0,
+                totalStudyTimeSeconds: data.totalStudyTimeSeconds || 0,
+                last_access: data.last_access || null,
+                created_at: data.created_at || null,
+            }
+        })
         
         // Busca todas as matrículas para contar cursos e somar tempo assistido
         const enrollmentsSnap = await adminDb.collection('enrollments').get()
@@ -316,10 +399,101 @@ export async function getAllStudents() {
 
         return JSON.parse(JSON.stringify(studentsWithData))
     } catch (error) {
-        console.error("Error getting students:", error)
+        logError("Error getting students:", error)
         return []
     }
 }
+
+/**
+ * Busca alunos paginados com filtro opcional por person_type.
+ * Não requer composite indexes — usa offset para paginação.
+ */
+export async function getStudentsPaginated(params: {
+    personType?: 'CPF' | 'CNPJ'
+    page?: number
+    pageSize?: number
+}) {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        return { students: [], hasMore: false }
+    }
+    try {
+        const { personType, page = 0, pageSize = 15 } = params
+
+        let query: FirebaseFirestore.Query = adminDb.collection('profiles')
+            .where('role', 'in', ['student', 'user'])
+
+        if (personType) {
+            query = query.where('person_type', '==', personType)
+        }
+
+        const snap = await query.offset(page * pageSize).limit(pageSize + 1).get()
+        const hasMore = snap.docs.length > pageSize
+        const docs = snap.docs.slice(0, pageSize)
+
+        const rawDocs = docs.map(doc => ({ id: doc.id, data: doc.data() }))
+
+        const studentDocs = rawDocs.map(({ id, data }) => ({
+            id,
+            uid: data.uid || id,
+            full_name: data.full_name || 'Sem nome',
+            email: data.email || 'Sem e-mail',
+            role: data.role || 'user',
+            ativo: data.ativo !== false,
+            person_type: data.person_type || null,
+            cpf_cnpj: data.cpf_cnpj || null,
+            razao_social: data.razao_social || null,
+            lastAccess: data.last_access || null,
+            createdAt: data.created_at || null,
+            certificatesCount: data.concluded_courses?.length || 0,
+        }))
+
+        const uids = studentDocs.map(s => s.uid).filter(Boolean)
+        const enrollmentsMap = new Map<string, any[]>()
+
+        if (uids.length > 0) {
+            const uidChunks: string[][] = []
+            for (let i = 0; i < uids.length; i += 30) {
+                uidChunks.push(uids.slice(i, i + 30))
+            }
+            const enrollmentSnaps = await Promise.all(
+                uidChunks.map(chunk =>
+                    adminDb.collection('enrollments')
+                        .where('user_id', 'in', chunk)
+                        .get()
+                )
+            )
+            enrollmentSnaps.forEach(snap =>
+                snap.docs.forEach(doc => {
+                    const d = doc.data()
+                    const userId = d.user_id
+                    if (!enrollmentsMap.has(userId)) enrollmentsMap.set(userId, [])
+                    enrollmentsMap.get(userId)!.push(d)
+                })
+            )
+        }
+
+        const students = studentDocs.map(s => {
+            const userEnrollments = enrollmentsMap.get(s.uid) || []
+            const coursesCount = userEnrollments.length
+            const certificatesCount = s.certificatesCount || 0
+            const watchedTime = userEnrollments.reduce((acc, e: any) => acc + (Number(e.last_timestamp) || 0), 0)
+
+            return {
+                ...s,
+                coursesCount,
+                certificatesCount,
+                watchedTime,
+            }
+        })
+
+        return JSON.parse(JSON.stringify({ students, hasMore }))
+    } catch (error) {
+        logError("Error getting paginated students:", error)
+        return { students: [], hasMore: false }
+    }
+}
+
 /**
  * Lista todos os cursos com status PENDENTE.
  */
@@ -686,7 +860,7 @@ export async function toggleUserStatus(uid: string, currentStatus: boolean) {
         revalidatePath('/admin/teachers')
         return { success: true }
     } catch (error) {
-        console.error("Error toggling user status:", error)
+        logError("Error toggling user status:", error)
         return { success: false, error: "Falha ao atualizar status do usuário." }
     }
 }
@@ -1030,7 +1204,8 @@ export async function suspendLesson(lessonId: string) {
  */
 export async function handleTeacherApproval(
     teacherId: string,
-    action: 'approve' | 'reject'
+    action: 'approve' | 'reject',
+    rejectionReason?: string
 ): Promise<{ success: boolean; message: string; error?: string }> {
     const session = await getSessionUser();
     if (!session || session.role !== 'admin') {
@@ -1039,22 +1214,64 @@ export async function handleTeacherApproval(
     }
     try {
         const newStatus = action === 'approve' ? 'approved' : 'rejected'
-        await adminDb.collection('profiles').doc(teacherId).update({
+
+        const updateData: any = {
             teacher_status: newStatus,
             updated_at: new Date()
-        })
+        }
+        if (action === 'reject' && rejectionReason) {
+            updateData.rejection_reason = rejectionReason
+        }
+
+        await adminDb.collection('profiles').doc(teacherId).update(updateData)
+
+        const notificationMsg = action === 'approve'
+            ? 'Sua solicitação para ser professor foi aprovada! Você já pode criar cursos.'
+            : `Sua solicitação para ser professor foi rejeitada.${rejectionReason ? ` Motivo: ${rejectionReason}` : ' Entre em contato para mais informações.'}`
 
         await adminDb.collection('notifications').add({
             user_id: teacherId,
             type: action === 'approve' ? 'teacher_approved' : 'teacher_rejected',
             title: action === 'approve' ? 'Solicitação Aprovada' : 'Solicitação Rejeitada',
-            message: action === 'approve'
-                ? 'Sua solicitação para ser professor foi aprovada! Você já pode criar cursos.'
-                : 'Sua solicitação para ser professor foi rejeitada. Entre em contato para mais informações.',
+            message: notificationMsg,
             read: false,
             created_at: new Date()
         })
 
+        // Busca dados do professor para enviar e-mail
+        try {
+            const profileDoc = await adminDb.collection('profiles').doc(teacherId).get()
+            const profileData = profileDoc.data()
+            if (profileData?.email && profileData?.full_name) {
+                await sendTeacherStatusEmail({
+                    teacherEmail: profileData.email,
+                    teacherName: profileData.full_name,
+                    status: action === 'approve' ? 'approved' : 'rejected',
+                    rejectionReason: action === 'reject' ? rejectionReason : undefined,
+                })
+            }
+        } catch (emailErr) {
+            console.error('[TeacherApproval] Falha ao enviar e-mail:', emailErr)
+        }
+
+        // Cria subconta Asaas automaticamente ao aprovar professor
+        if (action === 'approve') {
+            try {
+                const profileDoc = await adminDb.collection('profiles').doc(teacherId).get()
+                const profileData = profileDoc.data()
+                if (profileData && !profileData.asaas_wallet_id) {
+                    await createTeacherWallet({
+                        teacherUid: teacherId,
+                        name: profileData.full_name || profileData.displayName || 'Professor',
+                        email: profileData.email || '',
+                        cpfCnpj: profileData.cpfCnpj || profileData.cpf || '',
+                        mobilePhone: profileData.mobilePhone || profileData.phone || '',
+                    })
+                }
+            } catch (walletErr) {
+                console.error('[TeacherApproval] Falha ao criar wallet Asaas:', walletErr)
+            }
+        }
         revalidatePath('/admin/teachers')
 
         return {
@@ -1095,6 +1312,46 @@ export async function banTeacher(teacherId: string): Promise<{ success: boolean;
             updated_at: new Date()
         })
 
+        // ====== LÓGICA DE CURSOS DO PROFESSOR BANIDO ======
+        const coursesSnapshot = await adminDb.collection('courses')
+            .where('teacher_id', '==', teacherId)
+            .get()
+
+        if (!coursesSnapshot.empty) {
+            const batch = adminDb.batch()
+            const now = new Date()
+
+            for (const courseDoc of coursesSnapshot.docs) {
+                const courseId = courseDoc.id
+
+                const courseEnrollmentsSnap = await adminDb.collection('enrollments')
+                    .where('course_id', '==', courseId)
+                    .where('payment_confirmed', '==', true)
+                    .get()
+
+                const hasValidEnrollment = courseEnrollmentsSnap.docs.some(eDoc => {
+                    const eData = eDoc.data()
+                    if (!eData.expiresAt) return false
+                    const expiresAt = eData.expiresAt.toDate ? eData.expiresAt.toDate() : new Date(eData.expiresAt)
+                    return expiresAt > now
+                })
+
+                if (hasValidEnrollment) {
+                    batch.update(courseDoc.ref, {
+                        status: 'ARCHIVED',
+                        updated_at: new Date()
+                    })
+                } else {
+                    batch.update(courseDoc.ref, {
+                        status: 'SUSPENSO',
+                        updated_at: new Date()
+                    })
+                }
+            }
+            await batch.commit()
+        }
+        // ====== FIM LÓGICA DE CURSOS ======
+
         // BUG-11 FIX: Revoga sessão Firebase imediatamente — sem isso o cookie
         // permanece válido por até 1h mesmo após o ban.
         try {
@@ -1113,6 +1370,8 @@ export async function banTeacher(teacherId: string): Promise<{ success: boolean;
         })
 
         revalidatePath('/admin/teachers')
+        revalidatePath('/admin/all-courses')
+        revalidatePath('/course')
         return { success: true, message: "Professor banido com sucesso.", error: "" }
     } catch (error) {
         console.error("[banTeacher] Erro ao banir professor:", error)
@@ -1168,13 +1427,15 @@ export async function getStudentDetails(uid: string) {
     try {
         const userSession = await getSessionUser()
         if (!userSession || userSession.role !== 'admin') {
-            throw new Error('Acesso negado: Apenas administradores podem ver detalhes de alunos.')
+            return { success: false, error: 'Acesso negado: Apenas administradores podem ver detalhes de alunos.' } // B3
         }
+
+        await logAuditAccess(userSession.uid, uid, 'view_student_details') // LGPD
 
         // 1. Dados de Perfil do Firestore
         const profileDoc = await adminDb.collection('profiles').doc(uid).get()
         if (!profileDoc.exists) {
-            throw new Error('Perfil não encontrado.')
+            return { success: false, error: 'Perfil não encontrado.' } // B3
         }
         const profileData = profileDoc.data() as any
 
@@ -1259,6 +1520,8 @@ export async function getStudentDetails(uid: string) {
                 fullName: profileData.full_name || 'N/A',
                 email: profileData.email,
                 phone: profileData.phone || profileData.mobilePhone || 'N/A',
+                cpfCnpj: profileData.cpf_cnpj || null,
+                rg: profileData.rg || null,
                 role: profileData.role,
                 ativo: profileData.ativo !== false,
                 createdAt: profileData.created_at ? parseFirebaseDate(profileData.created_at)?.toISOString() : null,
@@ -1280,7 +1543,7 @@ export async function getStudentDetails(uid: string) {
             }
         }))
     } catch (error: any) {
-        console.error('Error fetching student details:', error)
+        logError('Error fetching student details:', error)
         return { success: false, error: error.message || 'Falha ao buscar detalhes do aluno.' }
     }
 }
@@ -1292,8 +1555,10 @@ export async function getTeacherDetails(uid: string) {
     try {
         const userSession = await getSessionUser()
         if (!userSession || userSession.role !== 'admin') {
-            throw new Error('Acesso negado: Apenas administradores podem ver detalhes de professores.')
+            return { success: false, error: 'Acesso negado: Apenas administradores podem ver detalhes de professores.' } // B3
         }
+
+        await logAuditAccess(userSession.uid, uid, 'view_teacher_details') // LGPD
 
         // Helper para mascaramento de dados sensíveis (A-05)
         const maskSensitiveData = (value: any) => {
@@ -1306,7 +1571,7 @@ export async function getTeacherDetails(uid: string) {
         // 1. Dados de Perfil do Firestore
         const profileDoc = await adminDb.collection('profiles').doc(uid).get()
         if (!profileDoc.exists) {
-            throw new Error('Perfil não encontrado.')
+            return { success: false, error: 'Perfil não encontrado.' } // B3
         }
         const profileData = profileDoc.data() as any
 
@@ -1335,11 +1600,15 @@ export async function getTeacherDetails(uid: string) {
                 fullName: profileData.full_name || 'N/A',
                 email: profileData.email,
                 phone: profileData.phone || profileData.mobilePhone || 'N/A',
-                cpfCnpj: maskSensitiveData(profileData.cpf_cnpj),
+                cpfCnpj: profileData.cpf_cnpj || null,
+                rg: profileData.rg || null,
                 role: profileData.role,
                 ativo: profileData.ativo !== false,
                 teacherStatus: profileData.teacher_status || 'active',
                 createdAt: profileData.created_at ? parseFirebaseDate(profileData.created_at)?.toISOString() : null,
+                birthDate: profileData.birth_date || null,
+                personType: profileData.person_type || null,
+                razaoSocial: profileData.razao_social || null,
                 address: {
                     cep: profileData.cep || profileData.postalCode || null,
                     logradouro: profileData.logradouro || profileData.address || profileData.rua || null,
@@ -1349,6 +1618,12 @@ export async function getTeacherDetails(uid: string) {
                     cidade: profileData.cidade || profileData.city || null,
                     uf: profileData.uf || profileData.state || profileData.estado || null,
                 },
+                bio: profileData.bio || null,
+                specialty: profileData.specialty || null,
+                instagram: profileData.instagram || null,
+                linkedin: profileData.linkedin || null,
+                youtube: profileData.youtube || null,
+                website: profileData.website || null,
                 pix_key: maskSensitiveData(profileData.pix_key),
                 bank: {
                     name: profileData.bank_name || null,
@@ -1356,16 +1631,21 @@ export async function getTeacherDetails(uid: string) {
                     account: maskSensitiveData(profileData.bank_account),
                     type: profileData.bank_account_type || null,
                 },
+                asaasCustomerId: profileData.asaas_customer_id
+                    ? '*'.repeat(Math.max(0, String(profileData.asaas_customer_id).length - 6)) + String(profileData.asaas_customer_id).slice(-6)
+                    : null,
+                teacherApplicationData: profileData.teacher_application_data || null,
                 security: {
                     mfaEnabled: mfaStatus,
                     lastLogin: lastLogin,
                     emailVerified: authUser.emailVerified
                 },
+                updatedAt: profileData.updated_at ? parseFirebaseDate(profileData.updated_at)?.toISOString() : null,
                 courses: courses
             }
         }))
     } catch (error: any) {
-        console.error('Error fetching teacher details:', error)
+        logError('Error fetching teacher details:', error)
         return { success: false, error: error.message || 'Falha ao buscar detalhes do professor.' }
     }
 }
@@ -1628,5 +1908,79 @@ export async function getCourseFullDetailsAdmin(courseId: string, page: number =
     } catch (error) {
         console.error("Error getting course full details:", error)
         return { success: false, error: "Falha ao buscar detalhes do curso." }
+    }
+}
+
+// NOVO: Server actions for vitrine categories (settings/vitrine.categorias)
+export async function getVitrineCategorias() {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        return { success: false, error: 'Não autorizado', categorias: [], cursosFixados: {} };
+    }
+    try {
+        const vitrineDoc = await adminDb.collection('settings').doc('vitrine').get();
+        const categorias: string[] = vitrineDoc.exists ? (vitrineDoc.data()?.categorias || []) : [];
+        const cursosFixados: Record<string, string[]> = vitrineDoc.exists ? (vitrineDoc.data()?.cursosFixados || {}) : {};
+        return { success: true, categorias, cursosFixados };
+    } catch (error) {
+        console.error("Error getting vitrine categorias:", error);
+        return { success: false, error: 'Erro ao buscar categorias', categorias: [], cursosFixados: {} };
+    }
+}
+
+export async function addVitrineCategoria(categoria: string) {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        return { success: false, error: 'Não autorizado' };
+    }
+    try {
+        const vitrineRef = adminDb.collection('settings').doc('vitrine');
+        const vitrineDoc = await vitrineRef.get();
+        const categorias: string[] = vitrineDoc.exists ? (vitrineDoc.data()?.categorias || []) : [];
+        if (!categorias.includes(categoria)) {
+            categorias.push(categoria);
+            await vitrineRef.set({ categorias }, { merge: true });
+        }
+        return { success: true };
+    } catch (error) {
+        console.error("Error adding vitrine categoria:", error);
+        return { success: false, error: 'Erro ao adicionar categoria' };
+    }
+}
+
+export async function removeVitrineCategoria(categoria: string) {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        return { success: false, error: 'Não autorizado' };
+    }
+    try {
+        const vitrineRef = adminDb.collection('settings').doc('vitrine');
+        const vitrineDoc = await vitrineRef.get();
+        const categorias: string[] = vitrineDoc.exists ? (vitrineDoc.data()?.categorias || []) : [];
+        const filtered = categorias.filter(c => c !== categoria);
+        await vitrineRef.set({ categorias: filtered }, { merge: true });
+        return { success: true };
+    } catch (error) {
+        console.error("Error removing vitrine categoria:", error);
+        return { success: false, error: 'Erro ao remover categoria' };
+    }
+}
+
+// NOVO: Save cursosFixados for a vitrine category
+export async function saveVitrineCursosSelecionados(categoria: string, courseIds: string[]) {
+    const session = await getSessionUser();
+    if (!session || session.role !== 'admin') {
+        return { success: false, error: 'Não autorizado' };
+    }
+    try {
+        const vitrineRef = adminDb.collection('settings').doc('vitrine');
+        const vitrineDoc = await vitrineRef.get();
+        const cursosFixados: Record<string, string[]> = vitrineDoc.exists ? (vitrineDoc.data()?.cursosFixados || {}) : {};
+        cursosFixados[categoria] = courseIds;
+        await vitrineRef.set({ cursosFixados }, { merge: true });
+        return { success: true };
+    } catch (error) {
+        console.error("Error saving cursosFixados:", error);
+        return { success: false, error: 'Erro ao salvar seleção de cursos' };
     }
 }

@@ -12,13 +12,14 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { ArrowRight, Eye, EyeOff } from "lucide-react"
 import { auth, db } from "@/lib/firebase"
 import { signInWithEmailAndPassword, reload } from "firebase/auth"
-import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore"
+import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore"
 import Logo from "@/components/Logo"
 import { ConversionBridge } from "@/components/ConversionBridge"
 import MFAChallenge from "@/components/MFAChallenge"
 import { useAuth } from "@/context/AuthProvider"
-import { updateDoc } from "firebase/firestore"
 import { toast } from "sonner"
+import { checkMfaTrusted } from "@/app/actions/mfa"
+import { GoogleSignInButton } from "@/components/auth/GoogleSignInButton"
 
 const loginSchema = z.object({
     email: z.string().email("E-mail inválido"),
@@ -77,6 +78,15 @@ function LoginContent() {
             }
 
             if (profileData?.mfaEnabled) {
+                // Verificar se o dispositivo já é confiável (cookie de 30 dias vinculado ao e-mail)
+                const isTrusted = await checkMfaTrusted(user.email || '')
+                if (isTrusted) {
+                    console.log("Dispositivo confiável reconhecido. Pulando desafio MFA...");
+                    setMfaPending(false);
+                    await handleLoginSuccess(user);
+                    return;
+                }
+
                 console.log("MFA Habilitado! Garantindo transição false → true no gatilho...");
                 
                 // CORREÇÃO: Resetar para false ANTES de ativar.
@@ -308,10 +318,19 @@ function LoginContent() {
                             </Form>
                         )}
 
+                        {/* Google Sign-In Divider */}
+                        <div className="relative flex items-center gap-4 my-8">
+                            <div className="flex-1 h-px bg-slate-700/30" />
+                            <span className="text-[10px] font-bold uppercase tracking-[4px] text-green-200">ou</span>
+                            <div className="flex-1 h-px bg-slate-700/30" />
+                        </div>
+
+                        <GoogleSignInButton />
+
                         {/* Footer Links (Closer) */}
                         <div className="mt-12 pt-8 border-t border-slate-100 text-center">
-                            <p className="text-[11px] text-green-200 font-bold uppercase tracking-widest">
-                                Não tem uma conta? <Link href="/register" className="font-bold text-[#1D5F31] hover:underline underline-offset-8 ml-2">Crie agora</Link>
+                            <p className="text-[11px] text-slate-300 font-bold uppercase tracking-widest">
+                                Não tem uma conta? <Link href="/register" className="font-bold text-emerald-400 hover:text-emerald-300 hover:underline underline-offset-8 ml-2">Crie agora</Link>
                             </p>
                         </div>
                     </div>

@@ -7,6 +7,7 @@ import Logo from '@/components/Logo'
 import { Question } from '@/lib/types/quiz'
 import SecureMuxPlayer from '@/components/SecureMuxPlayer'
 
+
 import { toast } from 'sonner'
 
 interface Lesson {
@@ -37,26 +38,6 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
     const [loadingId, setLoadingId] = useState<string | null>(null)
     const [reviewingLesson, setReviewingLesson] = useState<Lesson | null>(null)
     const [rejectionReason, setRejectionReason] = useState('')
-
-    const isExternalVideo = (url: string | null | undefined) => {
-        if (!url) return false
-        return url.includes('youtube.com') || url.includes('youtu.be') || url.includes('vimeo.com')
-    }
-
-    const getEmbedUrl = (url: string) => {
-        if (!url) return ''
-        if (url.includes('youtube.com') || url.includes('youtu.be')) {
-            const videoId = url.includes('v=')
-                ? url.split('v=')[1].split('&')[0]
-                : url.split('/').pop()?.split('?')[0]
-            return `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1&mute=1`
-        }
-        if (url.includes('vimeo.com')) {
-            const videoId = url.split('/').pop()?.split('?')[0]
-            return `https://player.vimeo.com/video/${videoId}?autoplay=1&muted=1&title=0&byline=0&portrait=0`
-        }
-        return url
-    }
 
     const handleApprove = async (id: string) => {
         setLoadingId(id)
@@ -244,13 +225,6 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
                                                 className="w-full h-full aspect-video border-0 rounded-md"
                                             />
                                         </div>
-                                    ) : isExternalVideo(reviewingLesson.video_url || '') ? (
-                                        <iframe
-                                            src={getEmbedUrl(reviewingLesson.video_url || '')}
-                                            className="w-full h-full aspect-video border-0"
-                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-                                            allowFullScreen
-                                        ></iframe>
                                     ) : reviewingLesson.video_url ? (
                                         <video
                                             src={reviewingLesson.video_url}

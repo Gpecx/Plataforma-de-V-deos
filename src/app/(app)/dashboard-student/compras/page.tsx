@@ -133,7 +133,7 @@ export default function ComprasPage() {
     }
 
     return (
-        <div className="p-8 md:p-12 min-h-screen font-montserrat text-slate-800 animate-in fade-in duration-500 bg-[#F4F7F9]">
+        <div className="p-4 sm:p-8 md:p-12 min-h-screen font-montserrat text-slate-800 animate-in fade-in duration-500 bg-[#F4F7F9]">
             <header className="mb-12">
                 <div className="flex items-center gap-3 mb-2">
                     <span className="text-[10px] font-bold uppercase tracking-[5px] text-[#1D5F31]">FINANCEIRO</span>
@@ -147,7 +147,7 @@ export default function ComprasPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
                 {/* Tabela de Transações */}
                 <div className="lg:col-span-2 space-y-8">
-                    <div className="bg-white rounded-[40px] border border-slate-100 p-8 md:p-10 shadow-sm relative overflow-hidden h-full flex flex-col">
+                    <div className="bg-white rounded-[24px] md:rounded-[40px] border border-slate-100 p-6 sm:p-8 md:p-10 shadow-sm relative overflow-hidden h-full flex flex-col">
                         <div className="flex items-center justify-between mb-10">
                             <h2 className="text-lg font-bold uppercase tracking-tighter text-slate-800">Histórico de Transações</h2>
                             <button className="text-[10px] font-bold uppercase tracking-widest text-[#1D5F31] hover:text-slate-900 transition-colors">
@@ -210,7 +210,7 @@ export default function ComprasPage() {
                 {/* Métodos de Pagamento Sidebar */}
                 <div className="space-y-8">
                     {/* Cartão Salvo */}
-                    <div className="bg-slate-900 rounded-[40px] p-10 text-white shadow-2xl relative overflow-hidden group">
+                    <div className="bg-slate-900 rounded-[24px] md:rounded-[40px] p-6 md:p-10 text-white shadow-2xl relative overflow-hidden group">
                         <div className="absolute -top-10 -right-10 w-40 h-40 bg-[#1D5F31]/20 blur-[100px] pointer-events-none"></div>
 
                         <div className="relative z-10">
@@ -241,7 +241,7 @@ export default function ComprasPage() {
 
                     {/* Formulário Novo Cartão */}
                     {showNewCardForm && (
-                        <div className="bg-white rounded-[32px] border border-slate-100 p-8 shadow-sm animate-in zoom-in-95 duration-300 relative overflow-hidden">
+                        <div className="bg-white rounded-[24px] md:rounded-[32px] border border-slate-100 p-6 md:p-8 shadow-sm animate-in zoom-in-95 duration-300 relative overflow-hidden">
                             <h4 className="text-[12px] font-bold uppercase tracking-widest text-slate-800 mb-6">Novo Método de Pagamento</h4>
 
                             <form onSubmit={handleSaveCard} className="space-y-4">

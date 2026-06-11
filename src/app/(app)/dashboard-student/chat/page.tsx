@@ -1,13 +1,14 @@
 "use client"
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { ArrowLeft, Send, Paperclip, BookOpen, GraduationCap, MessageSquare, Users } from 'lucide-react'
+import { ArrowLeft, Send, Paperclip, MessageSquare, Users } from 'lucide-react'
 import Link from 'next/link'
 import { auth, db } from '@/lib/firebase'
 import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp, getDocs, doc, getDoc } from 'firebase/firestore'
 import { onAuthStateChanged } from 'firebase/auth'
 import { getPublicProfile } from '@/app/actions/profile'
 import { parseFirebaseDate } from '@/lib/date-utils'
+import { toast } from 'sonner'
 
 interface ChatMessage {
     id: string
@@ -16,6 +17,8 @@ interface ChatMessage {
     time: string
     user_id: string
     teacher_id: string
+    created_at?: any
+    status?: 'sending' | 'sent' | 'error'
 }
 
 interface Teacher {
@@ -111,17 +114,36 @@ export default function StudentChatPage() {
         const q = query(
             collection(db, 'messages'),
             where('user_id', '==', user.uid),
-            where('teacher_id', '==', selectedTeacher.id),
-            orderBy('created_at', 'asc')
         )
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
-            const msgs = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-                time: formatTime(doc.data().created_at)
-            })) as any[]
-            setMessages(msgs)
+            const serverMsgs = snapshot.docs
+                .map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    time: formatTime(doc.data().created_at),
+                    status: 'sent' as const,
+                } as ChatMessage))
+                .filter(msg => msg.teacher_id === selectedTeacher.id)
+                .sort((a, b) => {
+                    const aTime = parseFirebaseDate(a.created_at)?.getTime() || 0
+                    const bTime = parseFirebaseDate(b.created_at)?.getTime() || 0
+                    return aTime - bTime
+                })
+
+            setMessages(prev => {
+                const optimistic = prev.filter(m => m.id.startsWith('temp_'))
+                const remainingOptimistic = optimistic.filter(opt =>
+                    !serverMsgs.some(sm =>
+                        sm.content === opt.content &&
+                        sm.user_id === opt.user_id &&
+                        sm.teacher_id === opt.teacher_id
+                    )
+                )
+                return [...serverMsgs, ...remainingOptimistic]
+            })
+        }, (error) => {
+            console.error('Erro no listener de mensagens:', error)
         })
 
         return () => unsubscribe()
@@ -131,17 +153,52 @@ export default function StudentChatPage() {
         const text = input.trim()
         if (!text || !user || !selectedTeacher) return
 
+        const tempId = `temp_${Date.now()}`
+        const optimisticMessage: ChatMessage = {
+            id: tempId,
+            role: 'student',
+            content: text,
+            time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+            user_id: user.uid,
+            teacher_id: selectedTeacher.id,
+            status: 'sending',
+        }
+
+        setMessages(prev => [...prev, optimisticMessage])
+        setInput('')
+
         try {
             await addDoc(collection(db, 'messages'), {
                 user_id: user.uid,
                 teacher_id: selectedTeacher.id,
                 role: 'student',
                 content: text,
-                created_at: serverTimestamp()
+                // LGPD: nome de EXIBIÇÃO (não o nome legal do perfil). Usa o
+                // displayName do Auth ou o local-part do e-mail (sem domínio).
+                // Removido na exclusão de conta (direito ao esquecimento).
+                display_name: user.displayName || user.email?.split('@')[0] || 'Aluno',
+                created_at: serverTimestamp(),
             })
-            setInput('')
+
+            // Notifica o professor por e-mail (side-effect, não bloqueante)
+            fetch('/api/notify/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: 'student',
+                    teacherId: selectedTeacher.id,
+                    studentId: user.uid,
+                    courseName: selectedTeacher.course,
+                    messageContent: text,
+                }),
+            }).catch(() => {})
         } catch (error) {
             console.error('Erro ao enviar:', error)
+            setMessages(prev => prev.map(m =>
+                m.id === tempId ? { ...m, status: 'error' } : m
+            ))
+            setInput(text)
+            toast.error('Erro ao enviar mensagem. Tente novamente.')
         }
     }
 
@@ -164,8 +221,8 @@ export default function StudentChatPage() {
     }
 
     return (
-        <div className="h-[calc(100vh-120px)] bg-white flex flex-col overflow-hidden font-sans">
-            <div className="max-w-full w-full mx-auto flex flex-col flex-1 pt-4 pb-4 px-6 gap-6 overflow-hidden">
+        <div className="h-[calc(100vh-120px)] bg-white text-slate-900 flex flex-col overflow-hidden font-sans">
+            <div className="max-w-full w-full mx-auto flex flex-col flex-1 pt-4 pb-4 px-4 md:px-6 gap-4 md:gap-6 overflow-hidden">
 
                 {/* Header Simples */}
                 <div className="flex items-center justify-between">
@@ -178,7 +235,7 @@ export default function StudentChatPage() {
                         </Link>
                         <div>
                             <h1 className="text-xl font-bold text-[#061629]">Suporte ao Aluno</h1>
-                            <p className="text-sm text-gray-500 font-normal">Fale diretamente com seus mentores</p>
+                            <p className="text-sm !text-black font-normal">Fale diretamente com seus mentores</p>
                         </div>
                     </div>
                 </div>
@@ -186,7 +243,7 @@ export default function StudentChatPage() {
                 <div className="flex flex-1 gap-6 overflow-hidden">
                     {/* Sidebar de Mentores */}
                     <aside className="w-80 shrink-0 hidden md:flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar-premium">
-                        <div className="text-[11px] font-bold uppercase tracking-wider text-gray-400 px-2">Meus Mentores</div>
+                        <div className="text-[11px] font-bold uppercase tracking-wider !text-black px-2">Meus Mentores</div>
                         {teachers.length > 0 ? (
                             teachers.map(teacher => (
                                 <button
@@ -204,7 +261,7 @@ export default function StudentChatPage() {
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <h4 className="font-bold text-sm text-[#061629] truncate">{teacher.name}</h4>
-                                        <p className="text-xs text-gray-500 truncate mt-0.5">{teacher.course}</p>
+                                        <p className="text-xs !text-black truncate mt-0.5">{teacher.course}</p>
                                     </div>
                                 </button>
                             ))
@@ -221,7 +278,7 @@ export default function StudentChatPage() {
                         {selectedTeacher ? (
                             <>
                                 {/* Chat Header */}
-                                <div className="flex items-center gap-4 px-8 py-4 border-b border-[#D1D7DC] bg-white">
+                                <div className="flex items-center gap-4 px-4 md:px-8 py-4 border-b border-[#D1D7DC] bg-white">
                                     <div className="relative">
                                         <div className="w-10 h-10 rounded-full bg-[#F1F3F4] flex items-center justify-center text-[#1d5f31] font-bold text-sm border border-[#D1D7DC]">
                                             {selectedTeacher.initials}
@@ -240,7 +297,7 @@ export default function StudentChatPage() {
                                 </div>
 
                                 {/* Mensagens */}
-                                <div className="flex-1 overflow-y-auto px-8 py-10 space-y-6 bg-white custom-scrollbar-premium">
+                                <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6 md:py-10 space-y-6 bg-white custom-scrollbar-premium">
                                     {messages.length > 0 ? (
                                         messages.map(msg => (
                                             <div
@@ -255,7 +312,13 @@ export default function StudentChatPage() {
                                                     }`}>
                                                         {msg.content}
                                                     </div>
-                                                    <span className={`text-[10px] text-gray-400 mt-1 font-medium ${msg.role === 'student' ? 'text-right mr-2' : 'ml-2'}`}>
+                                                    <span className={`text-[10px] text-gray-400 mt-1 font-medium flex items-center gap-1 ${msg.role === 'student' ? 'text-right mr-2 justify-end' : 'ml-2'}`}>
+                                                        {msg.id.startsWith('temp_') && msg.status === 'sending' && (
+                                                            <span className="text-gray-400 italic">Enviando...</span>
+                                                        )}
+                                                        {msg.status === 'error' && (
+                                                            <span className="text-red-500">Erro</span>
+                                                        )}
                                                         {msg.time}
                                                     </span>
                                                 </div>
@@ -274,7 +337,7 @@ export default function StudentChatPage() {
                                 </div>
 
                                 {/* Input de Mensagem */}
-                                <div className="px-8 py-6 border-t border-[#D1D7DC] bg-white">
+                                <div className="px-4 md:px-8 py-4 md:py-6 border-t border-[#D1D7DC] bg-white">
                                     <div className="flex items-center gap-4">
                                         <button className="p-2 text-[#1d5f31] hover:bg-[#F1F3F4] rounded-full transition-colors shrink-0">
                                             <Paperclip size={20} />

@@ -84,7 +84,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     try {
         const cnpj = request.nextUrl.searchParams.get("cnpj") || ""
 
-        const cleanCnpj = cnpj.replace(/\D/g, "")
+        const cleanCnpj = cnpj.toUpperCase().replace(/[^A-Z0-9]/g, "")
 
         if (cleanCnpj.length !== 14) {
             return NextResponse.json(
@@ -103,7 +103,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     } catch (error) {
         try {
             const cnpj = request.nextUrl.searchParams.get("cnpj") || ""
-            const cleanCnpj = cnpj.replace(/\D/g, "")
+            const cleanCnpj = cnpj.toUpperCase().replace(/[^A-Z0-9]/g, "")
             const fallback = await fetchReceitaWs(cleanCnpj)
             return NextResponse.json(fallback, { status: fallback.success ? 200 : 404 })
         } catch (fallbackError) {

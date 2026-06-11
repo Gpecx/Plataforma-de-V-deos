@@ -51,24 +51,29 @@ export default async function CourseDetailPage({ params }: { params: { slug: str
     const isAdmin = profile?.role === 'admin'
     const isTeacher = course.teacher_id === sessionUser?.uid
 
-    // Verifica se o curso está aprovado ou se o usuário tem permissão
-    if (course.status !== 'APROVADO' && !isAdmin && !isTeacher) {
-        return notFound()
-    }
-
-    // Busca na coleção de enrollments (fonte de verdade)
+    // 3. Busca na coleção de enrollments (fonte de verdade)
     let hasEnrollment = false
     if (sessionUser?.uid) {
         const enrollSnap = await adminDb.collection('enrollments')
             .where('user_id', '==', sessionUser.uid)
             .where('course_id', '==', course.id)
             .get()
-        hasEnrollment = !enrollSnap.empty && enrollSnap.docs[0].data().status !== 'pending'
+        if (!enrollSnap.empty) {
+            const data = enrollSnap.docs[0].data();
+            const isNotExpired = data.expiresAt ? (data.expiresAt.toDate() > new Date()) : true;
+            hasEnrollment = data.status !== 'pending' && isNotExpired;
+        }
     }
 
     const hasAccess = isAdmin || hasEnrollment || (profile?.cursos_comprados && profile.cursos_comprados.includes(course.id))
 
-    // 4. Verifica se está na wishlist
+    // 4. Verifica permissão de acesso baseado no status
+    // ARCHIVED courses never appear for non-enrolled students
+    if (course.status !== 'APROVADO' && !isAdmin && !isTeacher && !hasEnrollment) {
+        return notFound()
+    }
+
+    // 5. Verifica se está na wishlist
     const isInWishlist = await isCourseInWishlist(course.id)
 
     // 3. Busca as lições e mais 

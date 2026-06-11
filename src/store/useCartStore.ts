@@ -7,6 +7,8 @@ export interface CartItem {
     title: string
     price: number
     image_url?: string
+    bundle_id?: string
+    course_ids?: string[]
 }
 
 interface CartStore {

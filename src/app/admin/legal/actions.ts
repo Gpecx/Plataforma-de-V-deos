@@ -26,6 +26,10 @@ export interface LegalDocsSettings {
 
 export async function getLegalDocuments() {
     try {
+        const user = await getSessionUser() // SEC
+        if (!user || user.role !== 'admin') { // SEC
+            return [] // SEC
+        } // SEC
         const snapshot = await adminDb.collection(COLLECTION).orderBy('title', 'asc').get()
         return snapshot.docs.map(doc => ({
             id: doc.id,
@@ -40,6 +44,10 @@ export async function getLegalDocuments() {
 
 export async function getLegalDocumentBySlug(slug: string) {
     try {
+        const user = await getSessionUser() // SEC
+        if (!user || user.role !== 'admin') { // SEC
+            return null // SEC
+        } // SEC
         const snapshot = await adminDb.collection(COLLECTION).where('slug', '==', slug).limit(1).get()
         if (snapshot.empty) return null
         
@@ -80,12 +88,30 @@ export async function saveLegalDocument(data: Partial<LegalDocument>) {
 }
 export async function getLegalDocsSettings(): Promise<LegalDocsSettings> {
     try {
+        const user = await getSessionUser() // SEC
+        if (!user || user.role !== 'admin') { // SEC
+            return getLegalDocsDefaults() // SEC
+        } // SEC
         const doc = await adminDb.collection(SETTINGS_COLLECTION).doc(LEGAL_DOCS_ID).get()
         const defaults = await getLegalDocsDefaults()
         if (!doc.exists) {
             return defaults
         }
         // Merge with defaults to ensure no field is undefined if document is partial
+        return { ...defaults, ...(doc.data() as Partial<LegalDocsSettings>) }
+    } catch (error) {
+        console.error("Erro ao buscar configurações legais:", error)
+        return getLegalDocsDefaults()
+    }
+}
+
+export async function getPublicLegalDocsSettings(): Promise<LegalDocsSettings> {
+    try {
+        const doc = await adminDb.collection(SETTINGS_COLLECTION).doc(LEGAL_DOCS_ID).get()
+        const defaults = await getLegalDocsDefaults()
+        if (!doc.exists) {
+            return defaults
+        }
         return { ...defaults, ...(doc.data() as Partial<LegalDocsSettings>) }
     } catch (error) {
         console.error("Erro ao buscar configurações legais:", error)
@@ -245,7 +271,7 @@ export async function getLegalDocsDefaults(): Promise<LegalDocsSettings> {
 <li>Direito de informação sobre compartilhamento de dados</li>
 <li>Direito de revogação do consentimento</li>
 </ul>
-<p>Para exercer seus direitos, acessar o painel de configurações do aluno ou entrar em contato com nosso DPO (Encarregado de Proteção de Dados).</p>`
+<p>Para exercer seus direitos como titular, envie solicitação para <strong>dpo@powerplaycursos.com.br</strong> — Encarregado de Dados (DPO) da PowerPlay Cursos. Você também pode acessar o painel de configurações do aluno.</p>`
     }
 }
 
@@ -399,7 +425,7 @@ export async function initializeLegalDocuments() {
 <li>Direito de informação sobre compartilhamento de dados</li>
 <li>Direito de revogação do consentimento</li>
 </ul>
-<p>Para exercer seus direitos, acessar o painel de configurações do aluno ou entrar em contato com nosso DPO (Encarregado de Proteção de Dados).</p>`
+<p>Para exercer seus direitos como titular, envie solicitação para <strong>dpo@powerplaycursos.com.br</strong> — Encarregado de Dados (DPO) da PowerPlay Cursos. Você também pode acessar o painel de configurações do aluno.</p>`
         }
     ]
 

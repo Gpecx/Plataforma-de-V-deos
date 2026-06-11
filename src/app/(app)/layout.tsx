@@ -10,22 +10,27 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname()
     const isClassroom = useMemo(() => pathname?.startsWith('/classroom'), [pathname])
     const isBrandedPage = useMemo(() => 
+        pathname === '/course' ||
         pathname?.startsWith('/course/') || 
         pathname?.startsWith('/classroom') || 
         pathname?.startsWith('/checkout') ||
-        pathname?.startsWith('/professor')
+        pathname?.startsWith('/cart') ||
+        pathname?.startsWith('/professor') ||
+        pathname?.startsWith('/dashboard-student')
     , [pathname])
+
+    const isStudentPage = useMemo(() => pathname?.startsWith('/dashboard-student'), [pathname])
 
     return (
         <AuthProvider>
-            <div className={`min-h-screen flex flex-col ${isBrandedPage ? '' : 'theme-clean-white'}`}>
+            <div className={`min-h-screen flex flex-col ${isBrandedPage ? (isStudentPage ? 'student-theme' : '') : 'theme-clean-white'}`}>
                 <Suspense fallback={null}>
                     {!isClassroom && <Navbar light={!isBrandedPage} />}
                 </Suspense>
-                <main className={`flex-grow ${isClassroom ? '' : 'pt-24'}`}>
+                <main className={`flex-grow ${isClassroom || (isBrandedPage && !isStudentPage) ? '' : 'pt-24'}`}>
                     {children}
                 </main>
-                {!isClassroom && <Footer />}
+                {!isClassroom && <Footer variant={isBrandedPage ? 'dark' : 'light'} />}
             </div>
         </AuthProvider>
     )

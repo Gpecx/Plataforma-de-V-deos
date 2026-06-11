@@ -67,7 +67,7 @@ export default function StudentMessagesPage() {
     const unread = messages.filter(m => !m.read).length
 
     return (
-        <div className="min-h-screen bg-transparent text-white">
+        <div className="min-h-screen bg-[#0B1215] text-white">
             <div className="max-w-6xl mx-auto p-8 md:p-12">
                 {/* Header */}
                 <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -130,7 +130,7 @@ export default function StudentMessagesPage() {
                                         {selected.avatarInitials}
                                     </div>
                                     <div className="flex-1">
-                                        <h2 className="text-xl font-bold uppercase  tracking-tighter">{selected.from}</h2>
+                                        <h2 className="text-xl font-bold uppercase tracking-tighter text-white">{selected.from}</h2>
                                         <div className="flex flex-wrap gap-4 mt-2">
                                             <span className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-[2px] text-gray-500">
                                                 <BookOpen size={11} className="text-[#1D5F31]" />

@@ -64,6 +64,7 @@ export default async function FinancialDashboardPage() {
     const enrollmentPromises = courseChunks.map(chunk =>
         adminDb.collection('enrollments')
             .where('course_id', 'in', chunk)
+            .where('payment_confirmed', '==', true)
             .get()
     )
 

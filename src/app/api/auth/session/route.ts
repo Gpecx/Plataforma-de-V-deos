@@ -32,7 +32,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const profileData = profileDoc.data();
     
     if (profileData?.role === 'teacher' && profileData?.teacher_status === 'banned') {
-      console.warn(`[/api/auth/session] Tentativa de login bloqueada: Usuário ${uid} banido.`);
+      console.warn(`[/api/auth/session] Login bloqueado: conta de professor banida.`);
       return NextResponse.json(
         { error: "ACCOUNT_BANNED" },
         { status: 403 }

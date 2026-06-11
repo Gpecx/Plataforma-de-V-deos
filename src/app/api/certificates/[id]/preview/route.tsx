@@ -40,7 +40,8 @@ export async function GET(
     const renderUrl = `${protocol}://${host}/certificate-render/${courseId}?secret=${secret}`
     
     // A-02: Secure logging - do not log the full URL (contains secret)
-    console.log('Gerando PDF para curso:', courseId, 'usuário:', user.uid)
+    // LGPD: não logar o uid do usuário (dado pessoal).
+    console.log('[certificates] gerando PDF (preview)')
     
     // Pass session cookie to Playwright so it can authenticate as the user
     const domain = host.split(':')[0]

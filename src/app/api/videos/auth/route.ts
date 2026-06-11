@@ -63,9 +63,9 @@ export async function POST(request: NextRequest) {
         }
 
         // ── 3. Validação de Acesso (Admin, Autor ou Aluno com Compra) ─────────
-        // Esta é a trava de segurança: admin sempre acessa, autor sempre acessa seu curso, 
+        // Esta é a trava de segurança: admin sempre acessa, autor sempre acessa seu curso,
         // e alunos só acessam se tiverem comprado.
-        
+
         // a) Busca o perfil do usuário para checar a ROLE
         const profileDoc = await adminDb.collection('profiles').doc(uid).get()
         if (!profileDoc.exists) {
@@ -75,9 +75,9 @@ export async function POST(request: NextRequest) {
 
         // M-01: Bloqueia acesso se o usuário estiver inativo ou banido
         if (profileData?.ativo === false) {
-            console.warn(`[MUX AUTH] ACESSO NEGADO: Usuário ${uid} está inativo ou banido.`)
+            console.warn(`[MUX AUTH] ACESSO NEGADO: conta inativa ou suspensa.`)
             return NextResponse.json(
-                { error: 'Acesso negado: sua conta está inativa ou suspensa.' }, 
+                { error: 'Acesso negado: sua conta está inativa ou suspensa.' },
                 { status: 403 }
             )
         }
@@ -104,13 +104,59 @@ export async function POST(request: NextRequest) {
                 .where('course_id', '==', cursoId)
                 .limit(1) // Otimização para busca rápida
                 .get()
-            hasEnrollment = !enrollmentsSnapshot.empty && enrollmentsSnapshot.docs[0].data().status !== 'pending'
+
+            // FIX: Verifica também se a matrícula não expirou (expiresAt).
+            // Antes só checava status !== 'pending', o que deixava matrículas
+            // com status 'active' mas expiresAt no passado passarem livremente.
+            if (!enrollmentsSnapshot.empty) {
+                const enrollmentData = enrollmentsSnapshot.docs[0].data()
+                const rawExpiry = enrollmentData.expiresAt
+                const expiresAt: Date | null = rawExpiry?.toDate?.() ?? (rawExpiry ? new Date(rawExpiry) : null)
+
+                hasEnrollment =
+                    enrollmentData.status !== 'pending'
+                    && (!expiresAt || new Date() < expiresAt)
+
+                if (!hasEnrollment) {
+                    console.warn(
+                        `[MUX AUTH] ACESSO NEGADO: matrícula expirada ou pendente`,
+                        { uid, cursoId, status: enrollmentData.status, expiresAt }
+                    )
+                }
+            }
         }
 
         if (!isAdmin && !isAuthor && !hasPurchased && !hasEnrollment) {
-            console.warn(`[MUX AUTH] ACESSO NEGADO: Usuário ${uid} tentou acessar curso ${cursoId} sem permissão (Perfil ou Enrollment).`)
+            console.warn(`[MUX AUTH] ACESSO NEGADO: curso ${cursoId} não autorizado (sem compra/matrícula).`)
             return NextResponse.json(
                 { error: 'Acesso negado: você não tem permissão para ver este conteúdo' },
+                { status: 403 }
+            )
+        }
+
+        // ── 3.5. O playbackId PERTENCE a este curso? ──────────────────────────
+        // Ter acesso ao curso A não pode liberar um vídeo do curso B. Confirmamos
+        // que o playbackId é de uma aula deste cursoId OU do trailer do curso,
+        // antes de assinar qualquer token. Caso contrário, um aluno legítimo de A
+        // poderia obter token para vídeos de cursos que não comprou.
+        const isTrailer =
+            courseData?.intro_video_playback_id === playbackId
+            || courseData?.pendingTrailerPlaybackId === playbackId
+
+        let belongsToCourse = isTrailer
+        if (!belongsToCourse) {
+            const lessonSnap = await adminDb.collection('lessons')
+                .where('course_id', '==', cursoId)
+                .where('mux_playback_id', '==', playbackId)
+                .limit(1)
+                .get()
+            belongsToCourse = !lessonSnap.empty
+        }
+
+        if (!belongsToCourse) {
+            console.warn(`[MUX AUTH] ACESSO NEGADO: vídeo não pertence ao curso ${cursoId}.`)
+            return NextResponse.json(
+                { error: 'Acesso negado: vídeo não pertence a este curso' },
                 { status: 403 }
             )
         }

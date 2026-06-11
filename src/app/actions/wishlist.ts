@@ -4,11 +4,12 @@ import { adminDb } from '@/lib/firebase-admin'
 import { FieldValue } from 'firebase-admin/firestore'
 import { getServerSession } from '@/lib/auth-utils'
 import { revalidatePath } from 'next/cache'
+import { logError } from '@/lib/logger'
 
 export async function toggleWishlist(courseId: string) {
     const session = await getServerSession()
     if (!session?.uid) {
-        throw new Error('Usuário não autenticado')
+        return { action: 'none', courseId, message: 'Usuário não autenticado' } // B5
     }
 
     const userId = session.uid
@@ -50,8 +51,8 @@ export async function toggleWishlist(courseId: string) {
             return { action: 'added', courseId }
         }
     } catch (error) {
-        console.error('Erro ao toggle wishlist:', error)
-        throw new Error('Erro ao atualizar wishlist')
+        logError('toggleWishlist', error)
+        return { action: 'none', courseId, message: 'Erro ao atualizar wishlist' } // B5
     }
 }
 

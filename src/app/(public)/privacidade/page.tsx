@@ -1,7 +1,7 @@
-import { getLegalDocsSettings } from "@/app/admin/legal/actions"
+import { getPublicLegalDocsSettings } from "@/app/admin/legal/actions"
 
 export default async function PrivacidadePage() {
-    const settings = await getLegalDocsSettings()
+    const settings = await getPublicLegalDocsSettings()
     const content = settings.privacy
     
     if (!content) {

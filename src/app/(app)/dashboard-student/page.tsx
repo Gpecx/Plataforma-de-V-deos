@@ -1,10 +1,8 @@
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { PlayCircle, BookOpen, Sparkles, Trophy, Users, Clock, Lock } from 'lucide-react'
+import { PlayCircle, BookOpen, Sparkles, Trophy, Clock, Lock } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import Link from 'next/link'
-import { AddToCartButton } from '@/components/AddToCartButton'
 import { StudentCarousel } from '@/components/dashboard/StudentCarousel'
 import { StoreInitializer } from '@/components/dashboard/StoreInitializer'
 import { parseFirebaseDate } from '@/lib/date-utils'
@@ -12,7 +10,6 @@ import { getBanners } from '@/app/admin/settings/actions'
 import { ContinueLessonButton } from '@/components/dashboard/ContinueLessonButton'
 import { BannerWrapper } from '@/components/ui/BannerWrapper'
 import { CourseProgressBar } from '@/components/dashboard/CourseProgressBar'
-import WishlistButton from '@/components/WishlistButton'
 import { ProgressInitializer } from '@/components/dashboard/ProgressInitializer'
 import { getStudentStats } from './actions'
 
@@ -58,17 +55,31 @@ export default async function StudentDashboard() {
         };
     }) as any[]
     const allLessons = lessonsSnapshot.docs.map(doc => doc.data()) as any[]
-    const purchasedCourseIds = enrollmentsSnapshot.docs.map(doc => doc.data().course_id)
+
+    const now = new Date()
+    const activeEnrollments = enrollmentsSnapshot.docs.filter(doc => {
+        const data = doc.data()
+        if (!data.expiresAt) return true
+        const expiresAt = data.expiresAt.toDate ? data.expiresAt.toDate() : new Date(data.expiresAt)
+        return expiresAt > now
+    })
+
+    const purchasedCourseIds = activeEnrollments.map(doc => doc.data().course_id)
     const enrollmentStatusMap: Record<string, string> = {}
-    enrollmentsSnapshot.docs.forEach(doc => {
+    const expiresAtMap: Record<string, string> = {}
+    activeEnrollments.forEach(doc => {
         const data = doc.data()
         if (data.course_id) {
             enrollmentStatusMap[data.course_id] = data.status || 'active'
+            if (data.expiresAt) {
+                const d = data.expiresAt.toDate ? data.expiresAt.toDate() : new Date(data.expiresAt)
+                expiresAtMap[data.course_id] = d.toLocaleDateString('pt-BR')
+            }
         }
     })
     
     const userProgressMap: Record<string, { completedLessons: string[], totalLessons: number }> = {}
-    enrollmentsSnapshot.docs.forEach(doc => {
+    activeEnrollments.forEach(doc => {
         const data = doc.data()
         const courseId = data.course_id
         if (courseId) {
@@ -91,7 +102,7 @@ export default async function StudentDashboard() {
     const cursosDisponiveis = allCourses.filter(c => !purchasedCourseIds.includes(c.id) && c.status === 'APROVADO')
 
     return (
-        <div className="min-h-screen bg-white font-montserrat relative pb-16">
+        <div className="bg-white text-slate-900 font-montserrat min-h-full flex flex-col">
             <StoreInitializer purchasedCourseIds={purchasedCourseIds} />
             <ProgressInitializer 
                 purchasedCourseIds={purchasedCourseIds}
@@ -100,7 +111,7 @@ export default async function StudentDashboard() {
 
             <BannerWrapper>
                 <div className="absolute top-10 left-8 md:left-20 z-20 pointer-events-none">
-                    <h1 className="text-2xl md:text-3xl font-bold tracking-tighter !text-white uppercase shadow-lg max-w-xl">
+                    <h1 className="text-2xl md:text-3xl font-bold tracking-tighter !text-white uppercase max-w-xl">
                         Olá, <span className="!text-white bg-[#1D5F31] px-2 py-0.5 rounded-md">{profile?.full_name?.split(' ')[0] || 'Daniel'}!</span>
                     </h1>
                 </div>
@@ -108,17 +119,17 @@ export default async function StudentDashboard() {
             </BannerWrapper>
 
             {/* 2. CONTEÚDO COM PADDING LATERAL E GRID FORTE */}
-            <div className="px-6 md:px-12 mt-16 space-y-16 max-w-[1600px] mx-auto">
+            <div className="px-4 md:px-12 mt-10 md:mt-16 space-y-10 md:space-y-16 max-w-[1600px] mx-auto">
 
                 {/* Seção: Meus Cursos (Seu Aprendizado) */}
                 {meusCursos.length > 0 && (
                     <section>
                         <div className="flex items-center justify-between mb-10 pb-4 border-b-2 border-slate-900/5">
-                            <h2 className="text-xl font-bold uppercase tracking-tight flex items-center gap-3 !text-black">
+                            <h2 className="text-xl font-bold uppercase tracking-tight flex items-center gap-3">
                                 <BookOpen size={22} className="text-[#1D5F31]" />
                                 Seu Aprendizado
                             </h2>
-                            <span className="text-sm font-bold uppercase tracking-tight !text-black bg-white border border-black px-4 py-2 rounded-xl shadow-sm">
+                            <span className="text-sm font-bold uppercase tracking-tight bg-white border border-black px-4 py-2 rounded-xl shadow-sm">
                                 {meusCursos.length} TREINAMENTOS
                             </span>
                         </div>
@@ -161,15 +172,15 @@ export default async function StudentDashboard() {
                                             </div>
                                         )}
                                     </div>
-                                    <div className="p-8 flex-1 flex flex-col">
-                                        <h3 className={`font-bold text-lg mb-4 !text-black line-clamp-2 leading-tight uppercase transition-colors ${isPending ? '' : 'group-hover:text-[#1D5F31]'}`}>{curso.title}</h3>
+                                    <div className="p-6 md:p-8 flex-1 flex flex-col">
+                                        <h3 className={`font-bold text-lg mb-4 line-clamp-2 leading-tight uppercase transition-colors ${isPending ? '' : 'group-hover:text-[#1D5F31]'}`}>{curso.title}</h3>
                                         <div className="mt-auto space-y-4">
                                             {isPending ? (
                                                 <>
                                                     <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
                                                         <div className="h-full bg-slate-300 rounded-full" style={{ width: '0%' }}></div>
                                                     </div>
-                                                    <button disabled className="w-full bg-slate-200 text-slate-400 font-bold uppercase text-[11px] tracking-widest py-4 rounded-xl cursor-not-allowed shadow-none">
+                                                    <button disabled className="w-full bg-slate-200 !text-slate-700 font-bold uppercase text-[11px] tracking-widest py-4 rounded-xl cursor-not-allowed shadow-none">
                                                         Aguardando Pagamento
                                                     </button>
                                                 </>
@@ -180,6 +191,11 @@ export default async function StudentDashboard() {
                                                         totalLessons={totalLessons} 
                                                     />
                                                     <ContinueLessonButton courseId={curso.id} lessonId={nextLessonId} />
+                                                    {expiresAtMap[curso.id] && (
+                                                        <p className="text-[10px] font-mono text-slate-400 uppercase tracking-wider text-center">
+                                                            Acesso válido até: {expiresAtMap[curso.id]}
+                                                        </p>
+                                                    )}
                                                 </>
                                             )}
                                         </div>
@@ -192,16 +208,16 @@ export default async function StudentDashboard() {
                 )}
 
                 {/* Seção Founders (Banner Centralizado) */}
-                <section className="bg-white rounded-[32px] p-10 md:p-14 overflow-hidden relative shadow-xl border border-black">
+                <section className="bg-white rounded-[32px] p-6 sm:p-10 md:p-14 overflow-hidden relative shadow-xl border border-black">
                     <div className="relative z-10">
                         <div className="inline-flex items-center gap-3 px-4 py-2 bg-slate-100 rounded-xl mb-6 border border-black/10">
                             <Trophy size={18} className="text-[#1D5F31]" />
                             <span className="text-sm font-bold text-[#1D5F31] uppercase tracking-tight">Excelência PowerPlay</span>
                         </div>
-                        <h2 className="text-3xl md:text-4xl font-bold uppercase tracking-tighter !text-black mb-4">
+                        <h2 className="text-3xl md:text-4xl font-bold uppercase tracking-tighter mb-4">
                             Conteúdo <span className="opacity-60">Inovador</span>
                         </h2>
-                        <p className="!text-black font-medium text-sm md:text-base leading-relaxed max-w-2xl opacity-90">
+                        <p className="font-medium text-sm md:text-base leading-relaxed max-w-2xl !text-slate-600">
                             "Transformando a precisão técnica em resultados estratégicos para sua carreira."
                         </p>
                     </div>
@@ -210,7 +226,7 @@ export default async function StudentDashboard() {
                 {/* Seção: Metas de Acessos e Estudos */}
                 <section className="pb-20">
                     <div className="flex items-center justify-between mb-10 pb-4 border-b-2 border-slate-900/5">
-                        <h2 className="text-xl font-bold uppercase tracking-tight flex items-center gap-3 !text-black">
+                        <h2 className="text-xl font-bold uppercase tracking-tight flex items-center gap-3">
                             <Trophy size={22} className="text-[#1D5F31]" />
                             Metas de Acessos e Estudos
                         </h2>
@@ -218,9 +234,8 @@ export default async function StudentDashboard() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        {/* Placeholder: Horas de Estudo */}
-                        <Card className="border-black rounded-[24px] overflow-hidden transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 flex flex-col bg-white">
-                            <CardHeader className="p-8 pb-0">
+                        <Card className="border-black rounded-[24px] transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 flex flex-col bg-white">
+                            <CardHeader className="p-6 md:p-8 pb-0">
                                 <div className="flex items-center gap-4 mb-2">
                                     <div className="p-3 bg-[#1D5F31]/10 rounded-xl">
                                         <Clock size={24} className="text-[#1D5F31]" />
@@ -228,11 +243,11 @@ export default async function StudentDashboard() {
                                     <CardTitle className="text-sm font-bold text-black uppercase tracking-tight">Tempo de Estudo</CardTitle>
                                 </div>
                             </CardHeader>
-                            <CardContent className="p-8 pt-4 flex-grow flex flex-col justify-end">
-                                <div className="text-4xl font-black text-black mb-2">
+                            <CardContent className="p-6 md:p-8 pt-4 flex-grow flex flex-col justify-end">
+                                <div className="text-4xl font-black text-black mb-2 leading-none">
                                     {stats?.studyTime?.hours ?? 0}h {stats?.studyTime?.minutes ?? 0}m
                                 </div>
-                                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Total acumulado na plataforma</p>
+                                <p className="text-xs font-bold !text-slate-600 uppercase tracking-widest leading-relaxed">Total acumulado na plataforma</p>
                                 <div className="mt-6 w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                                     <div 
                                         className="h-full bg-[#1D5F31] rounded-full opacity-30" 
@@ -242,8 +257,7 @@ export default async function StudentDashboard() {
                             </CardContent>
                         </Card>
 
-                        {/* Placeholder: Cursos Concluídos */}
-                        <Card className="border-black rounded-[24px] overflow-hidden transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 flex flex-col bg-white">
+                        <Card className="border-black rounded-[24px] transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 flex flex-col bg-white">
                             <CardHeader className="p-8 pb-0">
                                 <div className="flex items-center gap-4 mb-2">
                                     <div className="p-3 bg-[#1D5F31]/10 rounded-xl">
@@ -253,8 +267,8 @@ export default async function StudentDashboard() {
                                 </div>
                             </CardHeader>
                             <CardContent className="p-8 pt-4 flex-grow flex flex-col justify-end">
-                                <div className="text-4xl font-black text-black mb-2">{stats?.concludedCount ?? 0}/{stats?.totalEnrollments ?? 0}</div>
-                                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Treinamentos finalizados</p>
+                                <div className="text-4xl font-black text-black mb-2 leading-none">{stats?.concludedCount ?? 0}/{stats?.totalEnrollments ?? 0}</div>
+                                <p className="text-xs font-bold !text-slate-600 uppercase tracking-widest leading-relaxed">Treinamentos finalizados</p>
                                 <div className="mt-6 w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
                                     <div 
                                         className="h-full bg-[#1D5F31] rounded-full transition-all duration-1000" 
@@ -264,8 +278,7 @@ export default async function StudentDashboard() {
                             </CardContent>
                         </Card>
 
-                        {/* Placeholder: Streak */}
-                        <Card className="border-black rounded-[24px] overflow-hidden transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 flex flex-col bg-white">
+                        <Card className="border-black rounded-[24px] transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 flex flex-col bg-white">
                             <CardHeader className="p-8 pb-0">
                                 <div className="flex items-center gap-4 mb-2">
                                     <div className="p-3 bg-[#1D5F31]/10 rounded-xl">
@@ -275,8 +288,8 @@ export default async function StudentDashboard() {
                                 </div>
                             </CardHeader>
                             <CardContent className="p-8 pt-4 flex-grow flex flex-col justify-end">
-                                <div className="text-4xl font-black text-black mb-2">{stats?.streak ?? 0} {(stats?.streak ?? 0) === 1 ? 'dia' : 'dias'}</div>
-                                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Frequência de acesso consecutiva</p>
+                                <div className="text-4xl font-black text-black mb-2 leading-none">{stats?.streak ?? 0} {(stats?.streak ?? 0) === 1 ? 'dia' : 'dias'}</div>
+                                <p className="text-xs font-bold !text-slate-600 uppercase tracking-widest leading-relaxed">Frequência de acesso consecutiva</p>
                                 <div className="mt-6 flex gap-1">
                                     {[1, 2, 3, 4, 5, 6, 7].map((d) => (
                                         <div 

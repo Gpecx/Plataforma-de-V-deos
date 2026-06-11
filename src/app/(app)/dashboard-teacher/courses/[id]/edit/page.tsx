@@ -595,7 +595,7 @@ export default function CourseBuilder() {
     const [courseIntroVideoMuxId, setCourseIntroVideoMuxId] = useState('')
     const [courseIntroVideoAssetId, setCourseIntroVideoAssetId] = useState('')
     const [courseIntroVideoPlaybackId, setCourseIntroVideoPlaybackId] = useState('')
-    const [coursePricingType, setCoursePricingType] = useState<'premium' | 'free' | 'standard'>('standard')
+    const [coursePricingType, setCoursePricingType] = useState<'free' | 'standard'>('standard')
     const [courseCurriculum, setCourseCurriculum] = useState<string[]>([])
     const [isUploadingIntro, setIsUploadingIntro] = useState(false)
     const [introUploadProgress, setIntroUploadProgress] = useState(0)
@@ -874,8 +874,8 @@ export default function CourseBuilder() {
             formattedPrice = 0
         }
 
-        if (coursePricingType === 'premium' && formattedPrice <= 0) {
-            toast.error("O curso Premium deve ter um valor maior que zero.")
+        if (coursePricingType !== 'free' && formattedPrice <= 0) {
+            toast.error("O curso Pago deve ter um valor maior que zero.")
             setIsSaving(false)
             return
         }
@@ -998,7 +998,7 @@ export default function CourseBuilder() {
                         onClick={() => router.push('/dashboard-teacher/courses')}
                         className="px-8 py-4 bg-[#061629] border-none rounded-md text-[10px] font-bold uppercase tracking-[4px] text-white hover:bg-[#061629]/90 transition-all font-montserrat"
                     >
-                        Cancelar
+                        SAIR
                     </button>
                     <button
                         onClick={handleSave}
@@ -1439,9 +1439,8 @@ export default function CourseBuilder() {
                                 <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Tipo de Precificação</label>
                                  <div className="grid grid-cols-3 gap-2">
                                      {[
-                                         { id: 'standard', label: 'Padrão' },
-                                         { id: 'free', label: 'Gratuito' },
-                                         { id: 'premium', label: 'Premium' }
+                                         { id: 'standard', label: 'Pago' },
+                                          { id: 'free', label: 'Gratuito' }
                                      ].map((type) => {
                                          const isLocked = course?.pricing_type === 'free' && type.id !== 'free';
                                          return (

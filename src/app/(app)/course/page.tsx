@@ -10,13 +10,21 @@ export default async function CoursesPage() {
     let courses: any[] = [];
     let teachers: any[] = [];
     let heroBanners: string[] = [];
+    let vitrineCategorias: string[] = []; // NOVO
+    let vitrineCursosFixados: Record<string, string[]> = {}; // NOVO
 
     try {
-        const [snapshot, teachersSnapshot, banners] = await Promise.all([
+        const [snapshot, teachersSnapshot, banners, vitrineSnap] = await Promise.all([
             adminDb.collection('courses').where('status', '==', 'APROVADO').get(),
             adminDb.collection('profiles').where('role', '==', 'teacher').get(),
-            getBanners()
+            getBanners(),
+            adminDb.collection('settings').doc('vitrine').get() // NOVO
         ]);
+
+        // NOVO: Load vitrine categories
+        const vitrineData = vitrineSnap.data() || {};
+        vitrineCategorias = vitrineSnap.exists ? (vitrineData.categorias || []) : [];
+        vitrineCursosFixados = vitrineSnap.exists ? (vitrineData.cursosFixados || {}) : {}; // NOVO
 
         heroBanners = banners.hero_course
             .sort((a, b) => a.order - b.order)
@@ -57,5 +65,5 @@ export default async function CoursesPage() {
         console.error("Erro ao buscar cursos no servidor:", error);
     }
 
-    return <CoursesClient initialCourses={courses} initialTeachers={teachers} heroBanners={heroBanners} />;
+    return <CoursesClient initialCourses={courses} initialTeachers={teachers} heroBanners={heroBanners} vitrineCategorias={vitrineCategorias} vitrineCursosFixados={vitrineCursosFixados} />;
 }

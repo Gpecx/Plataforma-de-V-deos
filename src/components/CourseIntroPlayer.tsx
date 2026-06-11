@@ -3,6 +3,7 @@
 import { PlayCircle } from "lucide-react"
 import { useState } from "react"
 
+
 interface CourseIntroPlayerProps {
     videoUrl: string
     thumbnail: string
@@ -28,27 +29,6 @@ export function CourseIntroPlayer({ videoUrl, thumbnail }: CourseIntroPlayerProp
             </div>
         )
     }
-
-    // Lógica para detectar e formatar URLs de embed
-    const getEmbedUrl = (url: string) => {
-        if (url.includes('youtube.com') || url.includes('youtu.be')) {
-            const videoId = url.includes('v=')
-                ? url.split('v=')[1].split('&')[0]
-                : url.split('/').pop()?.split('?')[0]
-            // rel=0: Sem vídeos relacionados de outros canais
-            // modestbranding=1: Menos logos do YouTube
-            return `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&autoplay=1`
-        }
-
-        if (url.includes('vimeo.com')) {
-            const videoId = url.split('/').pop()?.split('?')[0]
-            return `https://player.vimeo.com/video/${videoId}?autoplay=1&title=0&byline=0&portrait=0`
-        }
-
-        return url // Retorna original para <video>
-    }
-
-    const isExternal = videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be') || videoUrl.includes('vimeo.com')
 
     if (!isPlaying) {
         return (
@@ -78,22 +58,13 @@ export function CourseIntroPlayer({ videoUrl, thumbnail }: CourseIntroPlayerProp
 
     return (
         <div className="relative aspect-video w-full bg-black overflow-hidden shadow-2xl border-b border-white/10">
-            {isExternal ? (
-                <iframe
-                    src={getEmbedUrl(videoUrl)}
-                    className="w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                ></iframe>
-            ) : (
-                <video
-                    src={videoUrl}
-                    controls
-                    autoPlay
-                    className="w-full h-full"
-                    controlsList="nodownload"
-                />
-            )}
+            <video
+                src={videoUrl}
+                controls
+                autoPlay
+                className="w-full h-full"
+                controlsList="nodownload"
+            />
             <button
                 onClick={() => setIsPlaying(false)}
                 className="absolute top-4 right-4 bg-black/50 hover:bg-black p-2 text-white transition-colors border border-white/10"

@@ -2,18 +2,21 @@
 
 import { headers } from 'next/headers'
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
+import { sendTeacherStatusEmail } from '@/lib/mail'
 
 interface CreateProfileData {
+    idToken: string
     uid: string
     email: string
     full_name: string
     phone: string // Novo campo
     cpf_cnpj: string
+    rg?: string
     person_type: 'CPF' | 'CNPJ'
     birth_date: string
     role: 'student' | 'teacher'
     cep?: string
-    rua?: string
+    logradouro?: string
     numero?: string
     complemento?: string
     bairro?: string
@@ -53,7 +56,7 @@ export async function getAddressByCep(cep: string) {
         return {
             success: true,
             data: {
-                rua: data.logradouro,
+                logradouro: data.logradouro,
                 bairro: data.bairro,
                 cidade: data.localidade,
                 estado: data.uf
@@ -66,7 +69,7 @@ export async function getAddressByCep(cep: string) {
 }
 
 export async function getDataByCnpj(cnpj: string) {
-    const cleanCnpj = sanitize(cnpj)
+    const cleanCnpj = cnpj.toUpperCase().replace(/[^A-Z0-9]/g, '')
     if (cleanCnpj.length !== 14) return { success: false, error: 'CNPJ inválido' }
 
     try {
@@ -116,7 +119,38 @@ export async function checkUsernameAvailability(username: string) {
 }
 
 export async function createProfile(data: CreateProfileData) {
+    // ── 1. Autenticação: amarra a criação ao próprio usuário ──────────────────
+    // O perfil ainda não tem sessão (o cookie só é criado depois, em
+    // /api/auth/session). Verificamos o ID Token do Firebase Auth — emitido no
+    // ato do registro client-side — para provar que quem chama é o dono do uid.
+    if (!data.idToken || typeof data.idToken !== 'string') {
+        return { success: false, error: 'Não autorizado' }
+    }
+
+    let uid: string
+    let verifiedEmail: string | undefined
     try {
+        const decoded = await adminAuth.verifyIdToken(data.idToken)
+        uid = decoded.uid
+        verifiedEmail = decoded.email
+    } catch (authError) {
+        console.warn('createProfile: ID Token inválido.', authError)
+        return { success: false, error: 'Não autorizado' }
+    }
+
+    // O uid efetivo vem SEMPRE do token verificado, nunca do corpo enviado pelo cliente.
+    if (data.uid && data.uid !== uid) {
+        console.warn(`createProfile: uid do corpo (${data.uid}) difere do token (${uid}).`)
+        return { success: false, error: 'Não autorizado' }
+    }
+
+    try {
+        // ── 2. Impede sobrescrever um perfil já existente ─────────────────────
+        const ref = adminDb.collection('profiles').doc(uid)
+        if ((await ref.get()).exists) {
+            return { success: false, error: 'Perfil já existe.' }
+        }
+
         const sanitizedCpfCnpj = sanitize(data.cpf_cnpj)
         const sanitizedCep = data.cep ? sanitize(data.cep) : undefined
         const sanitizedPhone = sanitize(data.phone)
@@ -128,21 +162,50 @@ export async function createProfile(data: CreateProfileData) {
                 .where('username', '==', usernameLower)
                 .limit(1)
                 .get()
-            
+
             if (!existing.empty) {
                 return { success: false, error: 'Este ID público já está em uso.' }
             }
         }
 
+        // ── 3. NUNCA confie no role do cliente. Só 'student' ou 'teacher'. ────
+        // 'admin' jamais pode ser concedido pelo auto-cadastro: o role é a fonte
+        // de verdade copiada para os custom claims e lida pelas firestore.rules.
+        const role: 'student' | 'teacher' = data.role === 'teacher' ? 'teacher' : 'student'
+
+        // ── 4. Whitelist explícita de campos — sem spread de { ...data } ──────
+        // Campos sensíveis (role, teacher_status, cursos_comprados, mfaEnabled,
+        // active_session_id, ativo, asaas_customer_id) são derivados no servidor.
         const payload: any = {
-            ...data,
-            cpf_cnpj: sanitizedCpfCnpj,
-            cep: sanitizedCep,
+            id: uid,
+            email: verifiedEmail || data.email,
+            full_name: data.full_name,
             phone: sanitizedPhone,
-            id: data.uid,
+            cpf_cnpj: sanitizedCpfCnpj,
+            person_type: data.person_type,
+            birth_date: data.birth_date,
+            role,
+            // Professor nasce 'pending' — só vira 'approved' após o admin revisar
+            // (handleTeacherApproval). Antes disso o dashboard mostra o
+            // TeacherStatusGuard e as actions de curso são bloqueadas no servidor.
+            teacher_status: role === 'teacher' ? 'pending' : undefined,
+            cursos_comprados: [],
             mfaEnabled: true,
             created_at: new Date(),
-            teacher_status: data.role === 'teacher' ? 'active' : undefined
+        }
+
+        if (data.rg !== undefined) payload.rg = data.rg
+        if (data.cep !== undefined) payload.cep = sanitizedCep
+        if (data.logradouro !== undefined) payload.logradouro = data.logradouro
+        if (data.numero !== undefined) payload.numero = data.numero
+        if (data.complemento !== undefined) payload.complemento = data.complemento
+        if (data.bairro !== undefined) payload.bairro = data.bairro
+        if (data.cidade !== undefined) payload.cidade = data.cidade
+        if (data.estado !== undefined) payload.estado = data.estado
+        if (data.razao_social !== undefined) payload.razao_social = data.razao_social
+        if (data.username !== undefined) payload.username = data.username.toLowerCase()
+        if (role === 'teacher' && data.teacher_application_data !== undefined) {
+            payload.teacher_application_data = data.teacher_application_data
         }
 
         // Consent Log (LGPD)
@@ -152,7 +215,10 @@ export async function createProfile(data: CreateProfileData) {
                 accepted_at: new Date().toISOString(),
                 ip_address: ipAddress,
                 version: 'v1.0',
-                form_source: 'registration_page'
+                form_source: 'registration_page',
+                // LGPD: retenção de 24 meses para o IP. Após esta data o
+                // /api/admin/cleanup-consent remove o campo ip_address.
+                consent_expires_at: new Date(Date.now() + 24 * 30 * 24 * 60 * 60 * 1000)
             }
         }
 
@@ -163,13 +229,23 @@ export async function createProfile(data: CreateProfileData) {
             }
         })
 
-        await adminDb.collection('profiles').doc(data.uid).set(payload)
+        await ref.set(payload)
+
+        // Notifica o professor por e-mail que o cadastro foi recebido
+        if (role === 'teacher') {
+            sendTeacherStatusEmail({
+                teacherEmail: verifiedEmail || data.email,
+                teacherName: data.full_name,
+                status: 'pending',
+            }).catch(err => console.error('[createProfile] Erro ao enviar e-mail de pending:', err))
+        }
+
         return { success: true }
     } catch (error) {
         console.error('Error creating profile:', error)
         try {
-            await adminAuth.deleteUser(data.uid)
-            console.log(`User ${data.uid} deleted from Auth due to profile creation failure.`)
+            await adminAuth.deleteUser(uid)
+            console.log(`User ${uid} deleted from Auth due to profile creation failure.`)
         } catch (authError) {
             console.error('Failed to delete orphaned user from Auth:', authError)
         }

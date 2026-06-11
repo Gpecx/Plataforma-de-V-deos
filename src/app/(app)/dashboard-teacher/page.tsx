@@ -2,7 +2,7 @@ import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Plus, DollarSign, TrendingUp, Edit, MessageSquare } from 'lucide-react'
+import { Plus, DollarSign, TrendingUp, Edit } from 'lucide-react'
 import { SalesChart } from './components/SalesChart'
 import { parseFirebaseDate } from '@/lib/date-utils'
 import { InstructorStats } from './components/InstructorStats'
@@ -15,6 +15,7 @@ interface CourseData {
     category?: string
     tag?: string
     teacher_id: string
+    custom_fee_platform?: number | null
 }
 
 interface EnrollmentData {
@@ -40,21 +41,29 @@ export default async function TeacherDashboard() {
         redirect('/login')
     }
 
-    const [profileDoc, coursesSnapshot] = await Promise.all([
+    const [profileDoc, coursesSnapshot, settingsDoc] = await Promise.all([
         adminDb.collection('profiles').doc(user.uid).get(),
-        adminDb.collection('courses').where('teacher_id', '==', user.uid).get()
+        adminDb.collection('courses').where('teacher_id', '==', user.uid).get(),
+        adminDb.collection('config').doc('platform_settings').get()
     ])
 
     const profile = profileDoc.data()
-    const courses = coursesSnapshot.docs.map(doc => ({
-        id: doc.id,
-        title: doc.data().title || '',
-        price: doc.data().price,
-        image_url: doc.data().image_url,
-        category: doc.data().category,
-        tag: doc.data().tag,
-        teacher_id: doc.data().teacher_id || ''
-    })) as CourseData[]
+    const platformTax = settingsDoc.exists ? (settingsDoc.data()?.platform_tax ?? 20) : 20
+    const courses = coursesSnapshot.docs.map(doc => {
+        const data = doc.data()
+        const effectiveFee = data.custom_fee_platform ?? platformTax
+        return {
+            id: doc.id,
+            title: data.title || '',
+            price: data.price,
+            image_url: data.image_url,
+            category: data.category,
+            tag: data.tag,
+            teacher_id: data.teacher_id || '',
+            teacherSharePercent: 100 - effectiveFee,
+            custom_fee_platform: data.custom_fee_platform ?? null,
+        }
+    }) as (CourseData & { teacherSharePercent: number })[]
 
     const courseIds = courses.map(c => c.id)
     const coursesPriceMap = new Map(courses.map(c => [c.id, Number(c.price) || 0]))
@@ -68,6 +77,7 @@ export default async function TeacherDashboard() {
     if (courseIds.length > 0) {
         const enrollmentsSnapshot = await adminDb.collection('enrollments')
             .where('course_id', 'in', courseIds)
+            .where('payment_confirmed', '==', true)
             .get()
         enrollments = enrollmentsSnapshot.docs.map(doc => ({
             id: doc.id,
@@ -100,7 +110,7 @@ export default async function TeacherDashboard() {
 
 
     return (
-        <div className="min-h-screen bg-transparent font-montserrat pb-24 pt-12 relative animate-in fade-in duration-500">
+        <div className="bg-transparent font-montserrat pb-24 pt-12 relative animate-in fade-in duration-500">
             <header className="flex flex-col md:flex-row justify-between items-start md:items-center px-8 mb-12 gap-6">
                 <div>
                     <h1 className="text-2xl md:text-3xl font-bold tracking-tighter text-slate-900 uppercase leading-none max-w-xl">
@@ -183,6 +193,9 @@ export default async function TeacherDashboard() {
                             <div key={curso.id} className="group bg-white rounded-[28px] border border-black/20 flex flex-col hover:border-black transition-all duration-500 shadow-sm hover:shadow-xl overflow-hidden">
                                 <div className="h-44 bg-slate-100 overflow-hidden relative">
                                     <img src={curso.image_url} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={curso.title} />
+                                    <div className="absolute top-4 left-4 bg-emerald-100 px-2.5 py-1 rounded-none border border-emerald-300 shadow-sm">
+                                        <span className="text-[10px] font-bold text-emerald-800 tracking-wider">Repasse: {curso.teacherSharePercent}%</span>
+                                    </div>
                                     <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-white/20 shadow-sm">
                                         <span className="text-[8px] font-bold text-slate-900 tracking-widest uppercase">Ativo</span>
                                     </div>
@@ -192,9 +205,6 @@ export default async function TeacherDashboard() {
                                     <div className="mt-auto flex items-center gap-3">
                                         <Link href={`/dashboard-teacher/courses/${curso.id}/edit`} className="flex-1">
                                             <button className="w-full bg-slate-900 text-white font-bold uppercase text-[10px] tracking-widest py-4 rounded-xl hover:bg-[#1D5F31] transition-all shadow-md active:scale-95">Editar</button>
-                                        </Link>
-                                        <Link href={`/dashboard-teacher/chat?course=${curso.id}`} className="p-4 bg-slate-50 text-slate-900 hover:text-[#1D5F31] hover:bg-white border border-black/20 rounded-xl transition-all shadow-sm">
-                                            <MessageSquare size={16} />
                                         </Link>
                                     </div>
                                 </div>

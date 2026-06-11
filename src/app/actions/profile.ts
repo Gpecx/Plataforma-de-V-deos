@@ -2,6 +2,7 @@
 
 import { adminDb } from '@/lib/firebase-admin'
 import { getSessionUser } from '@/app/actions/auth'
+import { logError } from '@/lib/logger'
 
 export async function getPublicProfile(userId: string) {
     if (!userId) return null
@@ -63,7 +64,8 @@ export async function getStudentPurchasedCoursesForAdmin(studentId: string): Pro
     try {
         const session = await getSessionUser()
         if (!session || (session.role !== 'admin' && session.role !== 'teacher')) {
-            throw new Error('UNAUTHORIZED: Apenas administradores ou instrutores podem consultar compras de terceiros.')
+            logError('UNAUTHORIZED', 'Apenas administradores ou instrutores podem consultar compras de terceiros.') // B4
+            return [] // B4
         }
 
         if (!studentId) return []

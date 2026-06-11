@@ -22,7 +22,7 @@ interface ExpandableCardProps {
     isPurchased?: boolean
     teacherId?: string
     teacherName?: string
-    pricing_type?: 'premium' | 'free' | 'standard'
+    pricing_type?: 'free' | 'standard'
     created_at?: any
 }
 
@@ -97,9 +97,6 @@ export function ExpandableCard({
     const getBadge = () => {
         if (isPurchased) {
             return { label: 'ADQUIRIDO', className: 'bg-[#1D5F31] !text-white no-theme-override' }
-        }
-        if (pricing_type === 'premium') {
-            return { label: 'PREMIUM', className: 'bg-[#1D5F31] !text-white no-theme-override' }
         }
         if (pricing_type === 'free') {
             return { label: 'GRATUITO', className: 'bg-black !text-white no-theme-override' }

@@ -1,11 +1,14 @@
 'use server'
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
+import { getCourseValidityMonths } from '@/app/actions/admin'
 import { FieldValue } from 'firebase-admin/firestore'
 import { cookies, headers } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { removeSessionCookie } from '@/app/actions/auth'
 import { createPayment, payWithCreditCard, BillingType, getStudentAsaasId, createCustomer, getPaymentQrCode, withRetry, getPayment, getPaymentIdentification, getTeacherWalletInfo, calculateSplitValues } from '@/services/asaasService'
 import { sanitizeCpfCnpj } from '@/lib/utils'
+import { sendCourseReleasedEmail, sendNewSaleEmail } from '@/lib/mail'
 
 async function getClientIp(): Promise<string> {
     const headersList = await headers()
@@ -37,15 +40,23 @@ export async function getProfile() {
         const data = profileDoc.data()
         if (!data) return { success: true, data: null }
 
-        // Converte todos os Timestamp do Firestore em strings ISO serializáveis
-        // E enriquece cursos concluídos com nome do professor se faltar
-        const plainData = { ...data }
-        
-        for (const [key, value] of Object.entries(plainData)) {
-            if (value && typeof value === 'object' && typeof (value as any).toDate === 'function') {
-                plainData[key] = (value as any).toDate().toISOString()
+        function serializeFirestoreData(input: Record<string, any>): Record<string, any> {
+            const result: Record<string, any> = {}
+            for (const [key, value] of Object.entries(input)) {
+                if (value && typeof value === 'object' && '_seconds' in value && '_nanoseconds' in value) {
+                    result[key] = new Date((value as any)._seconds * 1000).toISOString()
+                } else if (value && typeof value === 'object' && typeof (value as any).toDate === 'function') {
+                    result[key] = (value as any).toDate().toISOString()
+                } else if (value && typeof value === 'object' && !Array.isArray(value)) {
+                    result[key] = serializeFirestoreData(value)
+                } else {
+                    result[key] = value
+                }
             }
+            return result
         }
+
+        const plainData = serializeFirestoreData(data as Record<string, any>)
 
         // Soft Migration: Enriquece concluded_courses se teacherName estiver ausente
         if (plainData.concluded_courses && Array.isArray(plainData.concluded_courses)) {
@@ -86,7 +97,8 @@ export async function processCheckoutAction(
     cardData?: {
         creditCard: { holderName: string; number: string; expiryMonth: string; expiryYear: string; ccv: string };
         creditCardHolderInfo: { name: string; email: string; cpfCnpj: string; postalCode: string; addressNumber: string; phone?: string };
-    }
+    },
+    bundleData?: { bundle_id: string; course_ids: string[]; bundle_price: number } | null
 ): Promise<
     | { success: true; isFree: true; data?: undefined; error?: undefined }
     | { success: true; isFree?: undefined; data: { invoiceUrl: string; paymentId: string; billingType: string; status?: string; pixQrCode?: string; payload?: string }; error?: undefined }
@@ -102,6 +114,7 @@ export async function processCheckoutAction(
     try {
         const settingsDoc = await adminDb.collection('config').doc('platform_settings').get()
         const platformTaxPercent = settingsDoc.exists ? settingsDoc.data()?.platform_tax : 20
+        const validityMonths = await getCourseValidityMonths()
 
         // Busca todos os cursos e calcula o total
         const courseDocs = await Promise.all(
@@ -119,20 +132,25 @@ export async function processCheckoutAction(
         const buildBatch = (paymentId?: string, asaasStatus?: string, invoiceUrl?: string) => {
             const isInstantlyConfirmed = billingType === 'CREDIT_CARD' && (asaasStatus === 'CONFIRMED' || asaasStatus === 'RECEIVED')
             const isFree = totalAmount === 0
+            const now = new Date()
+            const isConfirmed = isInstantlyConfirmed || isFree
             const batch = adminDb.batch()
             for (const courseData of coursesData) {
                 const enrollRef = adminDb.collection('enrollments').doc()
                 batch.set(enrollRef, {
                     user_id: user.uid,
                     course_id: courseData.id,
-                    created_at: new Date(),
+                    created_at: now,
                     ...(paymentId ? { payment_id: paymentId } : {}),
-                    ...(isInstantlyConfirmed || isFree ? {
+                    ...(isConfirmed ? {
                         payment_confirmed: true,
-                        ...(isInstantlyConfirmed ? { updated_at: new Date() } : {})
+                        purchasedAt: now,
+                        expiresAt: (() => { const d = new Date(now); d.setMonth(d.getMonth() + validityMonths); return d; })(),
+                        ...(isInstantlyConfirmed ? { updated_at: now } : {})
                     } : {
                         status: 'pending',
-                    })
+                    }),
+                    ...(bundleData ? { bundle_id: bundleData.bundle_id } : {}),
                 })
 
                 const { platformAmount: platformShare, teacherAmount: teacherShare } = calculateSplitValues(Number(courseData.price) || 0, platformTaxPercent)
@@ -153,7 +171,8 @@ export async function processCheckoutAction(
                     statusPagamento: totalAmount === 0 || isInstantlyConfirmed ? 'pago' : 'pendente',
                     billingType: billingType,
                     dataCriacao: new Date(),
-                    ...(isInstantlyConfirmed ? { paymentDate: new Date() } : {})
+                    ...(isInstantlyConfirmed ? { paymentDate: new Date() } : {}),
+                    ...(bundleData ? { bundle_id: bundleData.bundle_id, course_ids: bundleData.course_ids, is_bundle_purchase: true } : {}),
                 })
 
                 if (isInstantlyConfirmed) {
@@ -186,13 +205,42 @@ export async function processCheckoutAction(
             form_source: 'checkout_page',
             course_ids: courseIds,
             total_amount: totalAmount,
-            billing_type: billingType
+            billing_type: billingType,
+            // LGPD: retenção de 24 meses. Após esta data o
+            // /api/admin/cleanup-consent deleta o log de auditoria.
+            consent_expires_at: new Date(Date.now() + 24 * 30 * 24 * 60 * 60 * 1000)
         })
 
         revalidatePath('/dashboard-student')
 
         // Curso gratuito: matrícula já commitada acima
         if (totalAmount === 0) {
+            // Dispara e-mails em background (free courses)
+            const studentProfile = await adminDb.collection('profiles').doc(user.uid).get()
+            const studentData = studentProfile.data()
+            const studentName = studentData?.full_name || studentData?.name || studentData?.displayName || 'Aluno'
+            for (const course of coursesData) {
+                if (studentData?.email) {
+                    sendCourseReleasedEmail({
+                        studentEmail: studentData.email,
+                        studentName,
+                        courseName: course.title || 'Curso',
+                        courseId: course.id,
+                    })
+                }
+                if (course.teacher_id) {
+                    const teacherProfile = await adminDb.collection('profiles').doc(course.teacher_id).get()
+                    const teacherData = teacherProfile.data()
+                    if (teacherData?.email) {
+                        sendNewSaleEmail({
+                            teacherEmail: teacherData.email,
+                            teacherName: teacherData.full_name || teacherData.name || teacherData.displayName || 'Professor',
+                            studentName,
+                            courseName: course.title || 'Curso',
+                        })
+                    }
+                }
+            }
             return { success: true, isFree: true }
         }
 
@@ -251,6 +299,7 @@ export async function processCheckoutAction(
                     course_id: courseData.id,
                     status: 'pending',
                     created_at: new Date(),
+                    ...(bundleData ? { bundle_id: bundleData.bundle_id } : {}),
                 })
                 enrollRefs.push({ ref: enrollRef, courseData })
             }
@@ -310,9 +359,12 @@ export async function processCheckoutAction(
                     payment_id: asaasResponse.id
                 }
                 if (isInstantlyConfirmed) {
+                    const now = new Date()
                     updateData.payment_confirmed = true
                     updateData.status = 'active'
-                    updateData.updated_at = new Date()
+                    updateData.updated_at = now
+                    updateData.purchasedAt = now
+                    updateData.expiresAt = (() => { const d = new Date(now); d.setMonth(d.getMonth() + validityMonths); return d; })()
                 }
                 await ref.update(updateData)
             }
@@ -334,8 +386,38 @@ export async function processCheckoutAction(
                     statusPagamento: isInstantlyConfirmed ? 'pago' : 'pendente',
                     billingType: billingType,
                     dataCriacao: new Date(),
-                    ...(isInstantlyConfirmed ? { paymentDate: new Date() } : {})
+                    ...(isInstantlyConfirmed ? { paymentDate: new Date() } : {}),
+                    ...(bundleData ? { bundle_id: bundleData.bundle_id, course_ids: bundleData.course_ids, is_bundle_purchase: true } : {}),
                 })
+            }
+
+            // Dispara e-mails se pagamento foi confirmado instantaneamente
+            if (isInstantlyConfirmed) {
+                const studentProfile = await adminDb.collection('profiles').doc(user.uid).get()
+                const studentData = studentProfile.data()
+                const studentName = studentData?.full_name || studentData?.name || studentData?.displayName || 'Aluno'
+                for (const { courseData } of enrollRefs) {
+                    if (studentData?.email) {
+                        sendCourseReleasedEmail({
+                            studentEmail: studentData.email,
+                            studentName,
+                            courseName: courseData.title || 'Curso',
+                            courseId: courseData.id,
+                        })
+                    }
+                    if (courseData.teacher_id) {
+                        const teacherProfile = await adminDb.collection('profiles').doc(courseData.teacher_id).get()
+                        const teacherData = teacherProfile.data()
+                        if (teacherData?.email) {
+                            sendNewSaleEmail({
+                                teacherEmail: teacherData.email,
+                                teacherName: teacherData.full_name || teacherData.name || teacherData.displayName || 'Professor',
+                                studentName,
+                                courseName: courseData.title || 'Curso',
+                            })
+                        }
+                    }
+                }
             }
 
             // Para PIX: busca QR Code via API (não usa pixTransaction do createPayment)
@@ -441,6 +523,7 @@ export async function updateSettings(prevState: any, formData: FormData) {
     const user = await getAuthUser()
     if (!user) throw new Error('Não autorizado')
 
+    const phone = formData.get('phone') as string
     const pixKey = formData.get('pix_key') as string
     const bankName = formData.get('bank_name') as string
     const logradouro = formData.get('logradouro') as string
@@ -455,6 +538,7 @@ export async function updateSettings(prevState: any, formData: FormData) {
             updated_at: new Date()
         }
 
+        if (phone) updateData.phone = phone
         if (pixKey) updateData.pix_key = pixKey
         if (bankName) updateData.bank_name = bankName
         if (logradouro) updateData.logradouro = logradouro
@@ -507,16 +591,12 @@ export async function deleteAccount() {
             console.error('Erro ao deletar conta:', error)
         }
     }
-    const cookieStore = cookies()
-        ; (await cookieStore).delete('session')
-        ; (await cookieStore).delete('active_session_id')
+    await removeSessionCookie()
     redirect('/')
 }
 
 export async function signOut() {
-    const cookieStore = cookies()
-        ; (await cookieStore).delete('session')
-        ; (await cookieStore).delete('active_session_id')
+    await removeSessionCookie()
     redirect('/')
 }
 
@@ -668,6 +748,7 @@ export async function payPendingCreditCardAction(
         const asaasResponse = await payWithCreditCard(paymentId, cardData)
 
         if (asaasResponse.status === 'CONFIRMED' || asaasResponse.status === 'RECEIVED') {
+            const validityMonths = await getCourseValidityMonths()
             const vendasSnapshot = await adminDb.collection('vendas_logs')
                 .where('paymentId', '==', paymentId)
                 .where('userId', '==', user.uid)
@@ -694,10 +775,13 @@ export async function payPendingCreditCardAction(
                         e => e.data().course_id === cursoId
                     )
                     if (matchEnrollment) {
+                        const now = new Date()
                         batch.update(matchEnrollment.ref, {
                             payment_confirmed: true,
+                            purchasedAt: now,
+                            expiresAt: (() => { const d = new Date(now); d.setMonth(d.getMonth() + validityMonths); return d; })(),
                             payment_id: paymentId,
-                            updated_at: new Date(),
+                            updated_at: now,
                             status: FieldValue.delete(),
                         })
 
@@ -709,6 +793,45 @@ export async function payPendingCreditCardAction(
             })
 
             await batch.commit()
+
+            // Dispara e-mails em background
+            const studentProfile = await adminDb.collection('profiles').doc(user.uid).get()
+            const studentData = studentProfile.data()
+            const studentName = studentData?.full_name || studentData?.name || studentData?.displayName || 'Aluno'
+            const processedCourseIds = new Set<string>()
+            vendasSnapshot.forEach(vendaDoc => {
+                const vendaData = vendaDoc.data()
+                const cursoId = vendaData.cursoId
+                const professorId = vendaData.professorId
+                if (cursoId && !processedCourseIds.has(cursoId)) {
+                    processedCourseIds.add(cursoId)
+                    adminDb.collection('courses').doc(cursoId).get().then(courseDoc => {
+                        const courseTitle = courseDoc.data()?.title || 'Curso'
+                        if (studentData?.email) {
+                            sendCourseReleasedEmail({
+                                studentEmail: studentData.email,
+                                studentName,
+                                courseName: courseTitle,
+                                courseId: cursoId,
+                            })
+                        }
+                        if (professorId) {
+                            adminDb.collection('profiles').doc(professorId).get().then(teacherDoc => {
+                                const teacherData = teacherDoc.data()
+                                if (teacherData?.email) {
+                                    sendNewSaleEmail({
+                                        teacherEmail: teacherData.email,
+                                        teacherName: teacherData.full_name || teacherData.name || teacherData.displayName || 'Professor',
+                                        studentName,
+                                        courseName: courseTitle,
+                                    })
+                                }
+                            })
+                        }
+                    })
+                }
+            })
+
             revalidatePath('/dashboard-student/payments')
         }
 
@@ -771,6 +894,7 @@ export async function syncPaymentStatusAction(paymentId: string) {
             .where('user_id', '==', user.uid)
             .get()
 
+        const validityMonths = await getCourseValidityMonths()
         // 2. Monta o batch com TODAS as operações
         const batch = adminDb.batch()
 
@@ -803,6 +927,8 @@ export async function syncPaymentStatusAction(paymentId: string) {
 
             batch.update(matchEnrollment.ref, {
                 payment_confirmed: true,
+                purchasedAt: new Date(),
+                expiresAt: (() => { const d = new Date(); d.setMonth(d.getMonth() + validityMonths); return d; })(),
                 payment_id: paymentId,
                 updated_at: new Date(),
                 status: FieldValue.delete(),
@@ -811,6 +937,43 @@ export async function syncPaymentStatusAction(paymentId: string) {
 
         // 3. Commit único — tudo ou nada
         await batch.commit()
+
+        // Dispara e-mails em background
+        const studentProfile = await adminDb.collection('profiles').doc(user.uid).get()
+        const studentData = studentProfile.data()
+        const studentName = studentData?.full_name || studentData?.name || studentData?.displayName || 'Aluno'
+        const processedCourseIds = new Set<string>()
+        for (const vendaDoc of vendaDocs) {
+            const vendaData = vendaDoc.data()
+            const cursoId = vendaData.cursoId
+            const professorId = vendaData.professorId
+            if (cursoId && !processedCourseIds.has(cursoId)) {
+                processedCourseIds.add(cursoId)
+                const courseDoc = await adminDb.collection('courses').doc(cursoId).get()
+                const courseTitle = courseDoc.data()?.title || 'Curso'
+                if (studentData?.email) {
+                    sendCourseReleasedEmail({
+                        studentEmail: studentData.email,
+                        studentName,
+                        courseName: courseTitle,
+                        courseId: cursoId,
+                    })
+                }
+                if (professorId) {
+                    const teacherDoc = await adminDb.collection('profiles').doc(professorId).get()
+                    const teacherData = teacherDoc.data()
+                    if (teacherData?.email) {
+                        sendNewSaleEmail({
+                            teacherEmail: teacherData.email,
+                            teacherName: teacherData.full_name || teacherData.name || teacherData.displayName || 'Professor',
+                            studentName,
+                            courseName: courseTitle,
+                        })
+                    }
+                }
+            }
+        }
+
         revalidatePath('/dashboard-student/payments')
         return { success: true }
     } catch (error: any) {

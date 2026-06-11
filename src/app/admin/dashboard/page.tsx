@@ -1,4 +1,4 @@
-import { getFinancialData } from '@/app/actions/admin'
+import { getFinancialData, getCourseValidityMonths } from '@/app/actions/admin'
 import {
     DollarSign,
     TrendingUp,
@@ -7,12 +7,15 @@ import {
     Search
 } from 'lucide-react'
 import RevenueChart from './components/RevenueChart'
-import TaxSettings from './components/TaxSettings'
+import CourseValiditySettings from './components/CourseValiditySettings'
 import { AdminFinanceExportButton } from './components/AdminFinanceExportButton'
 import { FinancialTable } from './components/FinancialTable'
 
 export default async function AdminDashboardPage() {
-    const data = await getFinancialData()
+    const [data, validityMonths] = await Promise.all([
+        getFinancialData(),
+        getCourseValidityMonths(),
+    ])
 
     const metrics = [
         { label: 'Faturamento Bruto', value: data.totalGross, icon: DollarSign, color: 'text-[#1D5F31]' },
@@ -83,7 +86,7 @@ export default async function AdminDashboardPage() {
                         </div>
                     </div>
 
-                    <TaxSettings currentTax={data.platformTaxPercent} />
+                    <CourseValiditySettings initialMonths={validityMonths} />
                 </div>
             </div>
         </div>

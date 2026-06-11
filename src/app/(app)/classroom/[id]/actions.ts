@@ -193,7 +193,8 @@ export async function getClassroomData(courseId: string, userId: string) {
             .get()
 
         const enrollmentData = !enrollmentsSnapshot.empty ? enrollmentsSnapshot.docs[0].data() : null
-        const hasEnrollment = !!enrollmentData && (
+        const isNotExpired = enrollmentData?.expiresAt ? (enrollmentData.expiresAt.toDate() > new Date()) : true;
+        const hasEnrollment = !!enrollmentData && isNotExpired && (
             enrollmentData.payment_confirmed === true   // Cartão/PIX confirmado instantaneamente
             || enrollmentData.status === 'active'       // Boleto: webhook atualizou o status
             || enrollmentData.payment_id == null        // Curso gratuito (sem payment_id)

@@ -37,16 +37,23 @@ export default async function TeacherLayout({
         console.error('Error fetching teacher status:', error)
     }
 
-    // Se pending ou rejected, mostrar tela de status
+    // Se pending ou rejected, mostrar tela de status sem header/navbar
     if (teacherStatus === 'pending' || teacherStatus === 'rejected') {
         return (
-            <div className="flex flex-col">
-                <ScrollToTop />
-                <TeacherStatusGuard 
-                    status={teacherStatus} 
-                    userName={profileData?.full_name || profileData?.name || ''}
-                />
-            </div>
+            <>
+                <style>{`
+                    header, nav, [class*="navbar"], [class*="Navbar"] {
+                        display: none !important;
+                    }
+                `}</style>
+                <div className="fixed inset-0 z-[9999] bg-slate-50 overflow-y-auto">
+                    <ScrollToTop />
+                    <TeacherStatusGuard 
+                        status={teacherStatus} 
+                        userName={profileData?.full_name || profileData?.name || ''}
+                    />
+                </div>
+            </>
         )
     }
 

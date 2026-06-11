@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Search, User as UserIcon, Loader2, ShieldCheck, ShieldAlert, ChevronRight, BookOpen, Clock, Medal } from 'lucide-react'
-import { toggleUserStatus } from '@/app/actions/admin'
+import { toggleUserStatus, getStudentsPaginated } from '@/app/actions/admin'
 import StudentDetailsDrawer from './StudentDetailsDrawer'
 import {
   AlertDialog,
@@ -27,11 +27,12 @@ interface Student {
     watchedTime: number
     lastAccess?: string
     createdAt?: string
+    person_type?: string | null
+    cpf_cnpj?: string | null
+    razao_social?: string | null
 }
 
-interface StudentManagementProps {
-    initialStudents: Student[]
-}
+type TabType = 'cpf' | 'cnpj'
 
 function SkeletonRow() {
     return (
@@ -64,14 +65,66 @@ function SkeletonRow() {
     )
 }
 
-export default function StudentManagement({ initialStudents }: StudentManagementProps) {
-    const [students, setStudents] = useState<Student[]>(initialStudents)
+function maskDoc(value: string | null | undefined, isCnpj: boolean): string {
+    if (!value) return ''
+    const v = value.toUpperCase().replace(/[^A-Z0-9]/g, '')
+    if (isCnpj && v.length === 14) {
+        return v.replace(/^([A-Z0-9]{2})([A-Z0-9]{3})([A-Z0-9]{3})([A-Z0-9]{4})(\d{2})$/, '$1.***.***/****-$5')
+    }
+    if (!isCnpj && v.length === 11) {
+        return v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.***.***-$4')
+    }
+    return value
+}
+
+export default function StudentManagement() {
+    const [activeTab, setActiveTab] = useState<TabType>('cpf')
+    const [studentsByTab, setStudentsByTab] = useState<Record<TabType, Student[]>>({ cpf: [], cnpj: [] })
+    const [pagesByTab, setPagesByTab] = useState<Record<TabType, number>>({ cpf: 0, cnpj: 0 })
+    const [hasMoreByTab, setHasMoreByTab] = useState<Record<TabType, boolean>>({ cpf: true, cnpj: true })
+    const [loadingTab, setLoadingTab] = useState<TabType | null>(null)
+    const [initialLoading, setInitialLoading] = useState(true)
     const [searchTerm, setSearchTerm] = useState('')
     const [loadingId, setLoadingId] = useState<string | null>(null)
-    const [isLoading, setIsLoading] = useState(false)
     const [selectedStudentUid, setSelectedStudentUid] = useState<string | null>(null)
     const [alertOpen, setAlertOpen] = useState(false)
     const [pendingToggle, setPendingToggle] = useState<{ uid: string; currentStatus: boolean } | null>(null)
+
+    const fetchTab = async (tab: TabType, page: number, append: boolean) => {
+        setLoadingTab(tab)
+        try {
+            const personType = tab === 'cpf' ? 'CPF' : 'CNPJ'
+            const res = await getStudentsPaginated({ personType, page, pageSize: 15 })
+            setStudentsByTab(prev => ({
+                ...prev,
+                [tab]: append ? [...prev[tab], ...res.students] : res.students
+            }))
+            setHasMoreByTab(prev => ({ ...prev, [tab]: res.hasMore }))
+            setPagesByTab(prev => ({ ...prev, [tab]: page }))
+        } catch (error) {
+            console.error('Error fetching tab:', error)
+        } finally {
+            setLoadingTab(null)
+            setInitialLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        fetchTab('cpf', 0, false)
+    }, [])
+
+    const handleTabChange = (tab: TabType) => {
+        setActiveTab(tab)
+        setSearchTerm('')
+        if (studentsByTab[tab].length === 0 && hasMoreByTab[tab]) {
+            fetchTab(tab, 0, false)
+        }
+    }
+
+    const handleLoadMore = () => {
+        const nextPage = pagesByTab[activeTab] + 1
+        fetchTab(activeTab, nextPage, true)
+    }
 
     const handleToggleStatus = (uid: string, currentStatus: boolean) => {
         setPendingToggle({ uid, currentStatus })
@@ -87,7 +140,13 @@ export default function StudentManagement({ initialStudents }: StudentManagement
         try {
             const res = await toggleUserStatus(uid, currentStatus)
             if (res.success) {
-                setStudents(students.map(s => s.uid === uid ? { ...s, ativo: !currentStatus } : s))
+                setStudentsByTab(prev => {
+                    const updated = { ...prev }
+                    ;(['cpf', 'cnpj'] as TabType[]).forEach(tab => {
+                        updated[tab] = updated[tab].map(s => s.uid === uid ? { ...s, ativo: !currentStatus } : s)
+                    })
+                    return updated
+                })
             } else {
                 alert(res.error)
             }
@@ -98,19 +157,45 @@ export default function StudentManagement({ initialStudents }: StudentManagement
         }
     }
 
-    const filteredStudents = students.filter(s => 
+    const currentStudents = studentsByTab[activeTab]
+    const filteredStudents = currentStudents.filter(s =>
         s.full_name && normalizeString(s.full_name).includes(normalizeString(searchTerm)) ||
-        s.email && normalizeString(s.email).includes(normalizeString(searchTerm))
+        s.email && normalizeString(s.email).includes(normalizeString(searchTerm)) ||
+        activeTab === 'cnpj' && s.razao_social && normalizeString(s.razao_social).includes(normalizeString(searchTerm))
     )
 
     return (
         <div className="space-y-6 font-montserrat">
+            {/* Tabs */}
+            <div className="flex gap-0 border-b-2" style={{ borderColor: '#e2e8f0' }}>
+                <button
+                    onClick={() => handleTabChange('cpf')}
+                    className="px-6 py-3 text-[10px] font-bold uppercase tracking-wider transition-all border-b-2 -mb-[2px]"
+                    style={{
+                        color: activeTab === 'cpf' ? '#1D5F31' : '#64748b',
+                        borderColor: activeTab === 'cpf' ? '#1D5F31' : 'transparent',
+                    }}
+                >
+                    Pessoa Física (CPF)
+                </button>
+                <button
+                    onClick={() => handleTabChange('cnpj')}
+                    className="px-6 py-3 text-[10px] font-bold uppercase tracking-wider transition-all border-b-2 -mb-[2px]"
+                    style={{
+                        color: activeTab === 'cnpj' ? '#1D5F31' : '#64748b',
+                        borderColor: activeTab === 'cnpj' ? '#1D5F31' : 'transparent',
+                    }}
+                >
+                    Empresas / PJ (CNPJ)
+                </button>
+            </div>
+
             {/* Search Card */}
             <div className="p-6 rounded-none border-2" style={{ backgroundColor: '#ffffff', borderColor: '#e2e8f0' }}>
                 <div className="relative max-w-xl">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2" size={18} style={{ color: '#64748b' }} />
                     <input
-                        placeholder="BUSCAR ALUNO POR NOME OU E-MAIL..."
+                        placeholder={activeTab === 'cpf' ? 'BUSCAR ALUNO POR NOME OU E-MAIL...' : 'BUSCAR EMPRESA POR RAZÃO SOCIAL, NOME OU E-MAIL...'}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full border rounded-none px-12 py-4 text-[10px] outline-none transition-all font-bold uppercase tracking-wider"
@@ -128,7 +213,9 @@ export default function StudentManagement({ initialStudents }: StudentManagement
                 <table className="w-full text-left border-collapse">
                     <thead>
                         <tr style={{ backgroundColor: '#0f172a' }}>
-                            <th className="p-6 text-[10px] font-bold uppercase tracking-wider text-left" style={{ color: '#fff' }}>Institucional</th>
+                            <th className="p-6 text-[10px] font-bold uppercase tracking-wider text-left" style={{ color: '#fff' }}>
+                                {activeTab === 'cnpj' ? 'INSTITUCIONAL (CNPJ)' : 'INSTITUCIONAL'}
+                            </th>
                             <th className="p-6 text-[10px] font-bold uppercase tracking-wider text-left" style={{ color: '#fff' }}>
                                 <div className="flex items-center gap-2">
                                     <BookOpen size={14} />
@@ -152,7 +239,7 @@ export default function StudentManagement({ initialStudents }: StudentManagement
                         </tr>
                     </thead>
                     <tbody>
-                        {isLoading ? (
+                        {initialLoading ? (
                             Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
                         ) : filteredStudents.length === 0 ? (
                             <tr>
@@ -160,7 +247,9 @@ export default function StudentManagement({ initialStudents }: StudentManagement
                                     <div className="flex flex-col items-center gap-4">
                                         <Search size={48} style={{ color: '#cbd5e1' }} />
                                         <p className="font-bold uppercase tracking-wider text-[10px]" style={{ color: '#64748b' }}>
-                                            Nenhum registro localizado
+                                            {currentStudents.length === 0 && loadingTab === activeTab
+                                                ? 'Carregando...'
+                                                : 'Nenhum registro localizado'}
                                         </p>
                                     </div>
                                 </td>
@@ -185,10 +274,15 @@ export default function StudentManagement({ initialStudents }: StudentManagement
                                             </button>
                                             <div className="flex flex-col cursor-pointer" onClick={() => setSelectedStudentUid(student.uid)}>
                                                 <span className="font-bold uppercase tracking-tight text-sm hover:text-[#1D5F31] transition-colors" style={{ color: '#0f172a' }}>
-                                                    {student.full_name || 'N/A'}
+                                                    {activeTab === 'cnpj' && student.razao_social ? student.razao_social : student.full_name || 'N/A'}
                                                 </span>
                                                 <span className="text-[10px] font-bold uppercase tracking-wider mt-1" style={{ color: '#64748b' }}>
-                                                    {student.email}
+                                                    {activeTab === 'cnpj' && student.cpf_cnpj
+                                                        ? maskDoc(student.cpf_cnpj, true)
+                                                        : activeTab === 'cpf' && student.cpf_cnpj
+                                                            ? maskDoc(student.cpf_cnpj, false)
+                                                            : student.email
+                                                    }
                                                 </span>
                                             </div>
                                         </div>
@@ -265,6 +359,31 @@ export default function StudentManagement({ initialStudents }: StudentManagement
                     </tbody>
                 </table>
             </div>
+
+            {/* Load More */}
+            {hasMoreByTab[activeTab] && !initialLoading && filteredStudents.length > 0 && (
+                <div className="flex justify-center pt-2 pb-4">
+                    <button
+                        onClick={handleLoadMore}
+                        disabled={loadingTab === activeTab}
+                        className="px-8 py-3 text-[10px] font-bold uppercase tracking-wider border-2 transition-all active:scale-95 disabled:opacity-50"
+                        style={{
+                            backgroundColor: '#ffffff',
+                            borderColor: '#e2e8f0',
+                            color: '#0f172a',
+                        }}
+                    >
+                        {loadingTab === activeTab ? (
+                            <span className="flex items-center gap-2">
+                                <Loader2 size={14} className="animate-spin" />
+                                CARREGANDO...
+                            </span>
+                        ) : (
+                            'CARREGAR MAIS ALUNOS'
+                        )}
+                    </button>
+                </div>
+            )}
 
             <StudentDetailsDrawer 
                 uid={selectedStudentUid} 

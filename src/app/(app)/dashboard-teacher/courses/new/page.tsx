@@ -322,8 +322,7 @@ export default function NewCoursePage() {
         }
         if (step === 2) {
             if (formData.pricing_type === 'free') return true
-            if (formData.pricing_type === 'premium') return formData.price > 0
-            return formData.price >= 0
+            return formData.price > 0
         }
         if (step === 3) {
             return true // Grade opcional na validação simples, ou adicione sua lógica
@@ -737,9 +736,8 @@ export default function NewCoursePage() {
                                     <Label className="text-[10px] font-bold uppercase tracking-widest text-black text-center block ">Tipo de Precificação</Label>
                                     <div className="flex justify-center gap-4">
                                         {[
-                                            { id: 'standard', label: 'Padrão' },
-                                            { id: 'free', label: 'Gratuito' },
-                                            { id: 'premium', label: 'Premium' }
+                                            { id: 'standard', label: 'Pago' },
+                                            { id: 'free', label: 'Gratuito' }
                                         ].map((type) => (
                                             <button
                                                 key={type.id}
@@ -1179,9 +1177,8 @@ export default function NewCoursePage() {
                                                 <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Tipo de Precificação</label>
                                                 <div className="flex gap-2">
                                                     {[
-                                                        { id: 'standard' as const, label: 'Padrão' },
-                                                        { id: 'free' as const, label: 'Gratuito' },
-                                                        { id: 'premium' as const, label: 'Premium' }
+                                                        { id: 'standard' as const, label: 'Pago' },
+                                                        { id: 'free' as const, label: 'Gratuito' }
                                                     ].map((type) => (
                                                         <button
                                                             key={type.id}

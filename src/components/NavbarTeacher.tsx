@@ -7,6 +7,7 @@ import { doc, getDoc } from 'firebase/firestore'
 import { formatDateBR } from '@/lib/date-utils'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
+import { removeSessionCookie } from '@/app/actions/auth'
 import {
     Search,
     User,
@@ -69,7 +70,9 @@ export default function NavbarTeacher() {
     const handleSignOut = async () => {
         try {
             await firebaseSignOut(auth);
+            await removeSessionCookie();
             router.push('/');
+            router.refresh();
         } catch (error) {
             console.error("Error signing out:", error);
         }
@@ -184,7 +187,7 @@ export default function NavbarTeacher() {
                                     {(userProfile?.photoURL || userProfile?.avatar_url) ? (
                                         <img src={userProfile?.photoURL || userProfile?.avatar_url} alt="Profile" className="w-full h-full object-cover" />
                                     ) : (
-                                        <span className="text-xs font-bold uppercase tracking-widest">
+                                        <span className="text-xs font-bold uppercase tracking-widest text-white">
                                             {getInitials(userProfile?.full_name || '')}
                                         </span>
                                     )}

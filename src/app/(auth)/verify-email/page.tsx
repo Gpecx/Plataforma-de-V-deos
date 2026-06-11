@@ -10,6 +10,7 @@ import { reload, sendEmailVerification } from "firebase/auth"
 import { doc, getDoc, updateDoc } from "firebase/firestore"
 import { toast } from "sonner"
 import MFAChallenge from "@/components/MFAChallenge"
+import { checkMfaTrusted } from "@/app/actions/mfa"
 
 export default function VerifyEmailPage() {
     const router = useRouter()
@@ -63,6 +64,14 @@ export default function VerifyEmailPage() {
 
                 // 2. Verificar se MFA é necessário
                 if (profileData?.mfaEnabled) {
+                    // Verificar se o dispositivo já é confiável (vinculado ao e-mail)
+                    const isTrusted = await checkMfaTrusted(auth.currentUser.email || '')
+                    if (isTrusted) {
+                        console.log("[VerifyEmail] Dispositivo confiável. Pulando MFA...");
+                        await finalizeSessionAndRedirect(profileData);
+                        return;
+                    }
+
                     console.log("[VerifyEmail] MFA Habilitado. Iniciando desafio...");
                     
                     // Resetar gatilho e ativar

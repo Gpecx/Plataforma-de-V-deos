@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { timingSafeEqual } from 'crypto'
 import { adminDb } from '@/lib/firebase-admin'
+import { getCourseValidityMonths } from '@/app/actions/admin'
 import { FieldValue } from 'firebase-admin/firestore'
 import { getPayment } from '@/services/asaasService'
+import { sendCourseReleasedEmail, sendNewSaleEmail } from '@/lib/mail'
 
 interface AsaasWebhookPayload {
     event: string
@@ -17,9 +20,15 @@ interface AsaasWebhookPayload {
 
 export async function POST(request: NextRequest) {
     try {
-        const token = request.headers.get('asaas-access-token')
+        // Comparação constant-time para evitar timing attack na descoberta do token.
+        // timingSafeEqual exige buffers do mesmo tamanho — daí a checagem de length antes.
+        const receivedToken = request.headers.get('asaas-access-token') || ''
+        const expectedToken = process.env.ASAAS_WEBHOOK_TOKEN || ''
+        const tokensMatch = expectedToken.length > 0
+            && receivedToken.length === expectedToken.length
+            && timingSafeEqual(Buffer.from(receivedToken), Buffer.from(expectedToken))
 
-        if (!token || token !== process.env.ASAAS_WEBHOOK_TOKEN) {
+        if (!tokensMatch) {
             console.error('Webhook Asaas: Token inválido ou ausente')
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
@@ -27,7 +36,8 @@ export async function POST(request: NextRequest) {
         const payload: AsaasWebhookPayload = await request.json()
 
         if (!payload.event || !payload.payment?.id) {
-            console.error('Webhook Asaas: Payload inválido', payload)
+            // LGPD: não logar o payload inteiro (contém customer e externalReference). Só campos não-PII.
+            console.error('Webhook Asaas: Payload inválido', { event: payload?.event, paymentId: payload?.payment?.id, status: payload?.payment?.status })
             return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
         }
 
@@ -71,12 +81,18 @@ export async function POST(request: NextRequest) {
             }
 
             // 3. Confirma cada venda e atualiza o enrollment correspondente
+            const validityMonths = await getCourseValidityMonths()
+            if (!validityMonths || isNaN(validityMonths)) {
+                throw new Error('[webhook] course_validity_months inválido — abortando gravação de expiresAt')
+            }
             const batch = adminDb.batch()
+            const emailQueue: { userId: string; cursoId: string; professorId: string }[] = []
 
             for (const saleDoc of vendasLogsQuery.docs) {
                 const saleData = saleDoc.data()
                 const userId: string = saleData.userId || saleData.alunoId
                 const cursoId: string = saleData.cursoId
+                const professorId: string = saleData.professorId
 
                 // Marca a venda como paga
                 batch.update(saleDoc.ref, {
@@ -104,23 +120,80 @@ export async function POST(request: NextRequest) {
 
                 if (!enrollmentQuery.empty) {
                     const enrollmentRef = enrollmentQuery.docs[0].ref
+                    const now = new Date()
+                    const expiresAt = new Date(now)
+                    expiresAt.setMonth(expiresAt.getMonth() + validityMonths)
                     batch.update(enrollmentRef, {
                         payment_confirmed: true,
                         payment_id: payment.id,
+                        purchasedAt: now,
+                        expiresAt,
                         updated_at: FieldValue.serverTimestamp(),
-                        paid_at: new Date(),
+                        paid_at: now,
                         status: 'active'
                     })
 
                     // Remove da lista de desejos, se existir
                     const wishlistRef = adminDb.collection('profiles').doc(userId).collection('wishlist').doc(cursoId)
                     batch.delete(wishlistRef)
+
+                    emailQueue.push({ userId, cursoId, professorId })
                 } else {
-                    console.warn(`Webhook Asaas: Tentativa de confirmar matrícula inexistente para user ${userId} e curso ${cursoId}`)
+                    console.warn(`Webhook Asaas: Tentativa de confirmar matrícula inexistente (curso ${cursoId})`)
                 }
             }
 
             await batch.commit()
+
+            // Dispara e-mails após o commit
+            if (emailQueue.length > 0) {
+                const uniqueStudentIds = [...new Set(emailQueue.map(e => e.userId))]
+                const uniqueStudentId = uniqueStudentIds[0]
+                const firstEntry = emailQueue[0]
+
+                const [studentProfile, courseDoc] = await Promise.all([
+                    adminDb.collection('profiles').doc(uniqueStudentId).get(),
+                    adminDb.collection('courses').doc(firstEntry.cursoId).get(),
+                ])
+
+                const studentData = studentProfile.data()
+                const courseData = courseDoc.data()
+                const studentName = studentData?.full_name || studentData?.name || studentData?.displayName || 'Aluno'
+                const courseName = courseData?.title || 'Curso'
+
+                if (studentData?.email) {
+                    await sendCourseReleasedEmail({
+                        studentEmail: studentData.email,
+                        studentName,
+                        courseName,
+                        courseId: firstEntry.cursoId,
+                    })
+                }
+
+                // Notifica cada professor envolvido
+                const uniqueTeacherIds = [...new Set(emailQueue.map(e => e.professorId).filter(Boolean))]
+                for (const teacherId of uniqueTeacherIds) {
+                    const teacherProfile = await adminDb.collection('profiles').doc(teacherId).get()
+                    const teacherData = teacherProfile.data()
+                    if (teacherData?.email) {
+                        const teacherName = teacherData.full_name || teacherData.name || teacherData.displayName || 'Professor'
+                        const teacherCourses = emailQueue.filter(e => e.professorId === teacherId)
+                        const courseNames = await Promise.all(
+                            teacherCourses.map(e =>
+                                adminDb.collection('courses').doc(e.cursoId).get()
+                                    .then(d => d.data()?.title || 'Curso')
+                            )
+                        )
+                        // Para simplificar, notifica sobre o primeiro curso da venda
+                        await sendNewSaleEmail({
+                            teacherEmail: teacherData.email,
+                            teacherName,
+                            studentName,
+                            courseName: courseNames[0] || courseName,
+                        })
+                    }
+                }
+            }
 
         } else {
             // Eventos ignorados não precisam ser logados em produção
@@ -129,7 +202,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true }, { status: 200 })
 
     } catch (error) {
-        console.error('Webhook Asaas: Erro ao processar webhook:', error)
+        // LGPD: logar só a mensagem — o objeto de erro pode carregar PII do payload.
+        console.error('Webhook Asaas: Erro ao processar webhook:', error instanceof Error ? error.message : error)
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
     }
 }

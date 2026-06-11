@@ -121,6 +121,10 @@ export interface SearchedCourse {
 
 export async function searchCourses(term: string): Promise<SearchedCourse[]> {
     try {
+        const user = await getSessionUser() // SEC
+        if (!user || user.role !== 'admin') { // SEC
+            return [] // SEC
+        } // SEC
         const normalizedTerm = normalizeString(term)
         const coursesRef = adminDb.collection('courses')
         const snapshot = await coursesRef
@@ -148,6 +152,10 @@ export async function searchCourses(term: string): Promise<SearchedCourse[]> {
 
 export async function getCoursesByIds(ids: string[]): Promise<SearchedCourse[]> {
     if (!ids || ids.length === 0) return []
+    const user = await getSessionUser() // SEC
+    if (!user || user.role !== 'admin') { // SEC
+        return [] // SEC
+    } // SEC
     try {
         const courses: SearchedCourse[] = []
         for (const id of ids) {

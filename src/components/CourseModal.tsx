@@ -68,13 +68,6 @@ export default function CourseModal({ course, isOpen, onClose }: CourseModalProp
 
                     <div className="absolute top-8 left-8 z-20">
                         {(() => {
-                            if (course.pricing_type === 'premium') {
-                                return (
-                                    <div className="bg-[#1D5F31] !text-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[3px] rounded-sm shadow-xl no-theme-override">
-                                        PREMIUM
-                                    </div>
-                                )
-                            }
                             if (course.pricing_type === 'free') {
                                 return (
                                     <div className="bg-black !text-white px-3 py-1.5 text-[10px] font-bold uppercase tracking-[3px] rounded-sm shadow-xl no-theme-override">
