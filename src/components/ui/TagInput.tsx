@@ -48,23 +48,6 @@ export default function TagInput({ tags, onChange, maxTags = 5, placeholder = "D
 
     return (
         <div className="space-y-3">
-            <div className="flex flex-wrap gap-2 min-h-[40px] p-2 border-2 border-black rounded-md bg-white">
-                {tags.map((tag, index) => (
-                    <span
-                        key={index}
-                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#1D5F31] text-white text-[10px] font-bold uppercase tracking-widest rounded-md"
-                    >
-                        {tag}
-                        <button
-                            type="button"
-                            onClick={() => removeTag(index)}
-                            className="hover:text-red-300 transition-colors ml-1"
-                        >
-                            <X size={12} />
-                        </button>
-                    </span>
-                ))}
-            </div>
             <Input
                 type="text"
                 value={inputValue}
@@ -75,6 +58,25 @@ export default function TagInput({ tags, onChange, maxTags = 5, placeholder = "D
                 disabled={tags.length >= maxTags}
                 className="bg-white border-2 border-black focus:border-[#1D5F31] focus-visible:ring-0 focus-visible:border-[#1D5F31] h-12 rounded-md text-sm font-medium transition-all text-black placeholder:text-black/50"
             />
+            {tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 p-2 border-2 border-black rounded-md bg-white">
+                    {tags.map((tag, index) => (
+                        <span
+                            key={index}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-[#1D5F31] text-white text-[10px] font-bold uppercase tracking-widest rounded-md"
+                        >
+                            {tag}
+                            <button
+                                type="button"
+                                onClick={() => removeTag(index)}
+                                className="hover:text-red-300 transition-colors ml-1"
+                            >
+                                <X size={12} />
+                            </button>
+                        </span>
+                    ))}
+                </div>
+            )}
             <p className="text-[9px] text-black/60 font-bold uppercase tracking-widest">
                 {tags.length}/{maxTags} tags • Pressione Enter ou vírgula para adicionar
             </p>

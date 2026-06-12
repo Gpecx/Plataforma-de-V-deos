@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { auth, db } from '@/lib/firebase'
-import { onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth'
+import { signOut as firebaseSignOut } from 'firebase/auth'
 import { collection, query, where, getDocs } from 'firebase/firestore'
-import { getPublicProfile } from '@/app/actions/profile'
 import { normalizeString } from '@/lib/utils'
 import { removeSessionCookie } from '@/app/actions/auth'
 import Link from 'next/link'
@@ -60,7 +59,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
     const pathname = usePathname()
     const router = useRouter()
     const searchParams = useSearchParams()
-    const { isMfaPending } = useAuth()
+    const { user, profile: authProfile, loading: authLoading, isMfaPending } = useAuth()
     
     const isTeacherMode = pathname.startsWith('/dashboard-teacher') ||
         pathname.startsWith('/instructor') ||
@@ -156,37 +155,23 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
 
     useEffect(() => {
         setMounted(true)
-
-        async function getProfile(userId: string) {
-            try {
-                const data = await getPublicProfile(userId)
-                if (data) {
-                    setUserProfile({
-                        full_name: data.full_name || null,
-                        role: (data.role as 'student' | 'teacher' | 'admin') || null,
-                        created_at: data.created_at || null,
-                        photoURL: data.photoURL || null
-                    })
-                }
-            } catch (error) {
-                console.error("Erro ao buscar perfil:", error)
-            }
-        }
-
-        const unsubscribe = onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                setIsLoggedIn(true)
-                await getProfile(user.uid)
-            } else {
-                setIsLoggedIn(false)
-                setUserProfile(null)
-            }
-        })
-
-        return () => {
-            unsubscribe()
-        }
     }, [])
+
+    // Sync auth state from AuthProvider (single source of truth)
+    useEffect(() => {
+        const loggedIn = !!user && !authLoading
+        setIsLoggedIn(loggedIn)
+        if (loggedIn && authProfile) {
+            setUserProfile({
+                full_name: authProfile.full_name || null,
+                role: authProfile.role || null,
+                created_at: authProfile.created_at || null,
+                photoURL: authProfile.photoURL || authProfile.avatar_url || null,
+            })
+        } else if (!loggedIn) {
+            setUserProfile(null)
+        }
+    }, [user, authProfile, authLoading])
 
     // Fetch teacher courses for live search
     useEffect(() => {

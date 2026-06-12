@@ -101,6 +101,16 @@ export async function getDataByCnpj(cnpj: string) {
     }
 }
 
+export async function checkProfileExists(uid: string): Promise<boolean> {
+    try {
+        const doc = await adminDb.collection('profiles').doc(uid).get()
+        return doc.exists
+    } catch (error) {
+        console.error('checkProfileExists error:', error)
+        return false
+    }
+}
+
 export async function checkUsernameAvailability(username: string) {
     try {
         const snapshot = await adminDb.collection('profiles')

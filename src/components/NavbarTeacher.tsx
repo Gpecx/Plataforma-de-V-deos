@@ -1,9 +1,8 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { auth, db } from '@/lib/firebase'
-import { onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth'
-import { doc, getDoc } from 'firebase/firestore'
+import { auth } from '@/lib/firebase'
+import { signOut as firebaseSignOut } from 'firebase/auth'
 import { formatDateBR } from '@/lib/date-utils'
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
@@ -42,30 +41,27 @@ export default function NavbarTeacher() {
     const [mounted, setMounted] = useState(false)
     const [isSearchOpen, setIsSearchOpen] = useState(false)
     const [searchQuery, setSearchQuery] = useState('')
-    const { isMfaPending } = useAuth()
+    const { user, profile: authProfile, loading: authLoading, isMfaPending } = useAuth()
     const isEffectivelyLoggedIn = isLoggedIn && !isMfaPending
 
     useEffect(() => {
         setMounted(true)
-        const unsubscribe = onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                setIsLoggedIn(true)
-                try {
-                    const docRef = doc(db, 'profiles', user.uid);
-                    const docSnap = await getDoc(docRef);
-                    if (docSnap.exists()) {
-                        setUserProfile(docSnap.data() as any);
-                    }
-                } catch (error) {
-                    console.error("Error fetching profile:", error);
-                }
-            } else {
-                setIsLoggedIn(false)
-                setUserProfile(null)
-            }
-        });
-        return () => unsubscribe();
     }, [])
+
+    useEffect(() => {
+        const loggedIn = !!user && !authLoading
+        setIsLoggedIn(loggedIn)
+        if (loggedIn && authProfile) {
+            setUserProfile({
+                full_name: authProfile.full_name || null,
+                role: authProfile.role || null,
+                created_at: authProfile.created_at || null,
+                photoURL: authProfile.photoURL || authProfile.avatar_url || null,
+            })
+        } else if (!loggedIn) {
+            setUserProfile(null)
+        }
+    }, [user, authProfile, authLoading])
 
     const handleSignOut = async () => {
         try {
