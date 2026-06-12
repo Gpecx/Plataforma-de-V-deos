@@ -753,6 +753,7 @@ export async function getInstructorStatsAction() {
             const chunk = courseIds.slice(i, i + 30)
             const enrollmentsSnap = await adminDb.collection('enrollments')
                 .where('course_id', 'in', chunk)
+                .where('payment_confirmed', '==', true)
                 .count()
                 .get()
             totalStudents += enrollmentsSnap.data().count

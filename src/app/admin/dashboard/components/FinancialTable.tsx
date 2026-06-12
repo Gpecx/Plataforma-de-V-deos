@@ -68,7 +68,7 @@ export function FinancialTable({ payments }: FinancialTableProps) {
 
     return (
         <>
-            <div className="bg-white p-10 rounded-[32px] border border-black/20">
+            <div className="bg-[#FAFAFA] p-10 rounded-[32px] border border-black/20">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
                     <h2 className="text-xl font-bold uppercase tracking-tighter !text-[#000000]">Histórico de Pagamentos</h2>
                     <div className="flex items-center gap-4">

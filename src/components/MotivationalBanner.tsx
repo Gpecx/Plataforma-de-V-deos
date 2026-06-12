@@ -62,7 +62,7 @@ export function MotivationalBanner() {
                     {IMAGES.map((_, idx) => (
                         <div
                             key={idx}
-                            className={`h-1.5 rounded-full transition-all duration-700 ${idx === currentIndex
+                            className={`h-1.5 rounded-full transition-[width] duration-700 ${idx === currentIndex
                                 ? 'w-10 bg-[#22c55e]'
                                 : 'w-3 bg-white/40'
                                 }`}

@@ -138,14 +138,6 @@ function LoginContent() {
     async function handleLoginSuccess(user: any) {
         try {
             await reload(user)
-            console.log('Email verified:', user.emailVerified)
-
-            if (!user.emailVerified) {
-                await auth.signOut()
-                router.push('/verify-email')
-                return
-            }
-
             console.log('Redirecting to dashboard...')
 
             const idToken = await user.getIdToken(true)
@@ -158,11 +150,6 @@ function LoginContent() {
 
             if (!sessionRes.ok) {
                 const errorData = await sessionRes.json()
-                if (errorData.error === "EMAIL_NOT_VERIFIED") {
-                    await auth.signOut()
-                    router.push('/verify-email')
-                    return
-                }
                 throw new Error("session_creation_failed");
             }
 

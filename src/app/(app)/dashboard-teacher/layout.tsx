@@ -17,10 +17,6 @@ export default async function TeacherLayout({
         redirect('/login')
     }
 
-    if (!session.emailVerified) {
-        redirect('/verify-email')
-    }
-
     // Apenas professores ou admins podem acessar esta área
     if (session.role !== 'teacher' && session.role !== 'admin') {
         redirect('/dashboard-student')

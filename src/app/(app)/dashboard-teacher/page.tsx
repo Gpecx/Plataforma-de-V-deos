@@ -1,6 +1,7 @@
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import Image from 'next/image'
 import Link from 'next/link'
 import { Plus, DollarSign, TrendingUp, Edit } from 'lucide-react'
 import { SalesChart } from './components/SalesChart'
@@ -192,7 +193,7 @@ export default async function TeacherDashboard() {
                         {courses.length > 0 ? courses.map((curso) => (
                             <div key={curso.id} className="group bg-white rounded-[28px] border border-black/20 flex flex-col hover:border-black transition-all duration-500 shadow-sm hover:shadow-xl overflow-hidden">
                                 <div className="h-44 bg-slate-100 overflow-hidden relative">
-                                    <img src={curso.image_url} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={curso.title} />
+                                    <Image src={curso.image_url || "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400"} fill sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw" className="object-cover group-hover:scale-110 transition-transform duration-700" alt={curso.title} />
                                     <div className="absolute top-4 left-4 bg-emerald-100 px-2.5 py-1 rounded-none border border-emerald-300 shadow-sm">
                                         <span className="text-[10px] font-bold text-emerald-800 tracking-wider">Repasse: {curso.teacherSharePercent}%</span>
                                     </div>

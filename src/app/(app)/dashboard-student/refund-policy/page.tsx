@@ -13,9 +13,9 @@ export default async function RefundPolicy() {
     }
 
     return (
-        <div className="min-h-screen bg-white text-black font-montserrat animate-in fade-in duration-500 pb-20">
+        <div className="min-h-screen bg-[#F5F5F7] text-black font-montserrat animate-in fade-in duration-500 pb-20">
             {/* Header / Hero Section */}
-            <header className="bg-white border-b border-slate-100 py-16">
+            <header className="bg-[#F5F5F7] border-b border-slate-100 py-16">
                 <div className="max-w-4xl mx-auto px-6">
                     <Link 
                         href="/dashboard-student" 

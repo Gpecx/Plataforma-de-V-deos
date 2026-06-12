@@ -3,10 +3,12 @@
 import { useState, useMemo, Suspense, useRef, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { auth } from '@/lib/firebase'
-import { createUserWithEmailAndPassword, updateProfile as firebaseUpdateProfile, sendEmailVerification } from 'firebase/auth'
+import { auth, db } from '@/lib/firebase'
+import { createUserWithEmailAndPassword, updateProfile as firebaseUpdateProfile } from 'firebase/auth'
 import { createProfile, getDataByCnpj, checkUsernameAvailability } from './actions'
 import Logo from '@/components/Logo'
+import { doc, updateDoc } from 'firebase/firestore'
+import MFAChallenge from "@/components/MFAChallenge"
 import { ArrowRight, AlertCircle, Eye, EyeOff, ChevronLeft, Building2, User } from 'lucide-react'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import { RegisterSchema, Step1Schema, Step2Schema, Step3Schema } from '@/lib/validations/register'
@@ -111,6 +113,8 @@ function RegisterForm() {
     const [username, setUsername] = useState('')
     const [isCheckingUsername, setIsCheckingUsername] = useState(false)
     const [usernameError, setUsernameError] = useState<string | null>(null)
+    const [isMFAStep, setIsMFAStep] = useState(false)
+    const [mfaEmail, setMfaEmail] = useState('')
     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
     const clearFieldError = (field: string) => {
@@ -460,14 +464,6 @@ function RegisterForm() {
                 throw new Error(result.error)
             }
 
-            // 2. Tentar enviar e-mail de verificação (Não bloqueante)
-            try {
-                await sendEmailVerification(user)
-            } catch (verifyError: any) {
-                console.warn('Falha ao enviar e-mail de verificação (provável limite de cota):', verifyError)
-                // Não lançamos erro aqui para não interromper o fluxo do usuário
-            }
-
             const idToken = await user.getIdToken(true)
             const sessionRes = await fetch('/api/auth/session', {
                 method: 'POST',
@@ -480,13 +476,12 @@ function RegisterForm() {
                 throw new Error('session_creation_failed')
             }
 
-            router.refresh()
+            await updateDoc(doc(db, 'profiles', user.uid), { mfaCodeRequested: false })
+            await new Promise(resolve => setTimeout(resolve, 300))
+            await updateDoc(doc(db, 'profiles', user.uid), { mfaCodeRequested: true })
 
-            if (teacherData) {
-                localStorage.removeItem('powerplay_teacher_quiz')
-            }
-
-            router.push('/verify-email')
+            setMfaEmail(user.email || '')
+            setIsMFAStep(true)
         } catch (error: any) {
             console.error('Erro no cadastro:', error)
             const isEmailConflict = error?.code === 'auth/email-already-in-use'
@@ -498,6 +493,16 @@ function RegisterForm() {
             })
         } finally {
             setLoading(false)
+        }
+    }
+
+    async function handleVerifyMFA() {
+        router.refresh()
+        if (teacherData) {
+            localStorage.removeItem('powerplay_teacher_quiz')
+            router.push('/dashboard-teacher/courses')
+        } else {
+            router.push('/course')
         }
     }
 
@@ -564,17 +569,23 @@ function RegisterForm() {
                         ))}
                     </div>
 
-                    {/* Form Container */}
-                    <div className="bg-transparent p-0">
-                        <form onSubmit={handleSubmit} className="space-y-6">
+                    {isMFAStep ? (
+                        <MFAChallenge
+                            email={mfaEmail}
+                            onVerify={handleVerifyMFA}
+                            onCancel={() => setIsMFAStep(false)}
+                        />
+                    ) : (
+                        <div className="bg-transparent p-0">
+                            <form onSubmit={handleSubmit} className="space-y-6">
                             {/* Banner de Erro Inline */}
                             <AnimatePresence mode="wait">
                                 {formError && (
                                     <motion.div
                                         key="form-error"
-                                        initial={{ opacity: 0, y: -8, height: 0 }}
-                                        animate={{ opacity: 1, y: 0, height: 'auto' }}
-                                        exit={{ opacity: 0, y: -8, height: 0 }}
+                                        initial={{ opacity: 0, y: -8, maxHeight: 0 }}
+                                        animate={{ opacity: 1, y: 0, maxHeight: 300 }}
+                                        exit={{ opacity: 0, y: -8, maxHeight: 0 }}
                                         transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
                                         className="overflow-hidden mb-6"
                                     >
@@ -1085,8 +1096,9 @@ function RegisterForm() {
                                 </button>
                             )}
 
-                        </form>
-                    </div>
+                            </form>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

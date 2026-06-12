@@ -4,6 +4,78 @@ import * as nodemailer from "nodemailer";
 
 admin.initializeApp();
 
+function generateMfaEmailHTML(pin: string): string {
+  return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seu código PowerPlay</title>
+</head>
+<body style="margin:0;padding:0;background-color:#0D1117;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+  <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">
+    ⚡ Seu código de acesso PowerPlay está pronto. Use-o em até 5 minutos.
+  </div>
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0D1117;padding:40px 16px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background-color:#161B22;border-radius:12px;border:1px solid #21262D;border-top:3px solid #22c55e;overflow:hidden;">
+          <tr>
+            <td style="padding:32px 40px 24px;">
+              <table cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding-right:12px;vertical-align:middle;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="36" height="36">
+                      <rect width="32" height="32" rx="4" fill="#0D1117"/>
+                      <path d="M4 4L28 16L4 28Z" fill="#22c55e" fill-opacity="0.15" stroke="#22c55e" stroke-width="2.5" stroke-linejoin="round"/>
+                      <path d="M13.5 9L9 17H12L11 23L16 15H13L13.5 9Z" fill="#22c55e"/>
+                    </svg>
+                  </td>
+                  <td style="font-size:20px;font-weight:700;color:#FFFFFF;letter-spacing:1px;vertical-align:middle;">POWERPLAY</td>
+                </tr>
+              </table>
+              <p style="margin:8px 0 0;font-size:13px;color:#8B949E;letter-spacing:0.5px;">Verificação de Identidade</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 40px;">
+              <div style="height:1px;background-color:#21262D;"></div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:32px 40px;">
+              <p style="margin:0 0 24px;font-size:15px;color:#E6EDF3;line-height:1.6;">
+                Use o código abaixo para confirmar seu login:
+              </p>
+              <div style="background-color:#0D2818;border:1px solid #22c55e;border-radius:8px;padding:24px;text-align:center;margin-bottom:24px;">
+                <span style="font-size:36px;font-weight:700;color:#22c55e;letter-spacing:12px;font-family:'Courier New',Courier,monospace;">
+                  ${pin}
+                </span>
+              </div>
+              <p style="margin:0 0 8px;font-size:13px;color:#8B949E;line-height:1.5;">
+                Este código expira em <strong style="color:#E6EDF3;">5 minutos</strong>.
+              </p>
+              <p style="margin:0;font-size:12px;color:#6E7681;line-height:1.5;">
+                Se você não solicitou este código, ignore este e-mail.
+              </p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 40px 32px;">
+              <div style="height:1px;background-color:#22c55e;opacity:0.2;margin-bottom:20px;"></div>
+              <p style="margin:0;font-size:11px;color:#6E7681;text-align:center;">
+                © 2026 POWERPLAY – VoltsMind Holding. Todos os direitos reservados.
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`
+}
+
 interface VendaLog {
     alunoId: string
     cursoId: string
@@ -147,22 +219,25 @@ export const sendMfaEmail = functions
             const mailOptions = {
                 from: `"PowerPlay" <${gmailEmail}>`,
                 to: email,
-                subject: "Seu código de verificação PowerPlay",
-                text: `Seu código de verificação PowerPlay é: ${pin}. Este código expira em 5 minutos.`,
+                subject: "⚡ Seu código de verificação PowerPlay",
+                html: generateMfaEmailHTML(pin),
+                text: `Seu código PowerPlay: ${pin}. Expira em 5 minutos.`,
             };
 
             try {
                 await transporter.sendMail(mailOptions);
                 console.log(`[Success] MFA email sent to ${email}`);
 
-                // 3. Salvar em coleção isolada temp_mfa_codes (não no perfil do usuário)
-                await admin.firestore().collection("temp_mfa_codes").doc(userId).set({
-                    code: pin,
-                    expiresAt: Date.now() + 300000, // 5 minutos
-                    createdAt: admin.firestore.FieldValue.serverTimestamp()
+                // 3. Salvar no perfil do usuário (campo mfa_auth_temp)
+                // As Firestore Rules permitem que o dono leia seu próprio perfil.
+                await admin.firestore().collection("profiles").doc(userId).update({
+                    mfa_auth_temp: {
+                        code: pin,
+                        expiresAt: Date.now() + 300000, // 5 minutos
+                    }
                 });
 
-                console.log(`[MFA] PIN salvo em temp_mfa_codes para: ${userId}`);
+                console.log(`[MFA] PIN salvo em profiles/${userId}.mfa_auth_temp`);
             } catch (error) {
                 console.error("[MFA] Falha no processo de envio/salvamento:", error);
             }

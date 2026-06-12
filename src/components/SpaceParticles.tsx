@@ -75,9 +75,9 @@ export default function SpaceParticles() {
       mouse.current.y = -1000
     }
 
-    window.addEventListener('resize', handleResize)
-    window.addEventListener('mousemove', handleMouseMove)
-    window.addEventListener('mouseleave', handleMouseLeave)
+    window.addEventListener('resize', handleResize, { passive: true })
+    window.addEventListener('mousemove', handleMouseMove, { passive: true })
+    window.addEventListener('mouseleave', handleMouseLeave, { passive: true })
 
     const draw = () => {
       ctx.clearRect(0, 0, w, h)

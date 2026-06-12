@@ -102,9 +102,26 @@ export default function TeacherChatPage() {
                     }
                 }
 
-                setStudents(mappedStudents)
-                if (mappedStudents.length > 0 && !selectedStudent) {
-                    setSelectedStudent(mappedStudents[0])
+                // Filtra apenas alunos com matrícula confirmada
+                const coursesSnap = await getDocs(query(
+                    collection(db, 'courses'),
+                    where('teacher_id', '==', user.uid)
+                ))
+                const teacherCourseIds = coursesSnap.docs.map(d => d.id)
+                const confirmedStudentIds = new Set<string>()
+                for (let i = 0; i < teacherCourseIds.length; i += 10) {
+                    const chunk = teacherCourseIds.slice(i, i + 10)
+                    const enrollSnap = await getDocs(query(
+                        collection(db, 'enrollments'),
+                        where('course_id', 'in', chunk),
+                        where('payment_confirmed', '==', true)
+                    ))
+                    enrollSnap.forEach(d => confirmedStudentIds.add(d.data().user_id))
+                }
+                const filteredStudents = mappedStudents.filter(s => confirmedStudentIds.has(s.id))
+                setStudents(filteredStudents)
+                if (filteredStudents.length > 0 && !selectedStudent) {
+                    setSelectedStudent(filteredStudents[0])
                 }
             } catch (error) {
                 console.error("Erro ao carregar alunos:", error)
@@ -217,7 +234,7 @@ export default function TeacherChatPage() {
 
     if (loading && students.length === 0) {
         return (
-            <div className="h-screen flex items-center justify-center bg-white">
+            <div className="h-screen flex items-center justify-center bg-[#F5F5F7]">
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-12 h-12 border-4 border-[#1d5f31] border-t-transparent rounded-full animate-spin"></div>
                     <p className="text-xs font-medium text-[#061629] animate-pulse">Carregando Conversas...</p>
@@ -227,7 +244,7 @@ export default function TeacherChatPage() {
     }
 
     return (
-        <div className="h-[calc(100vh-120px)] bg-white text-slate-900 flex flex-col overflow-hidden font-sans animate-in fade-in duration-500">
+        <div className="h-[calc(100vh-120px)] bg-[#F5F5F7] text-slate-900 flex flex-col overflow-hidden font-sans animate-in fade-in duration-500">
             <div className="max-w-full w-full mx-auto flex flex-col flex-1 pt-4 pb-4 px-6 gap-6 overflow-hidden">
 
                 {/* Header Simples */}
@@ -279,7 +296,7 @@ export default function TeacherChatPage() {
                     </aside>
 
                     {/* Área de Chat Principal */}
-                    <section className="flex-1 flex flex-col bg-white border border-[#D1D7DC] rounded-xl overflow-hidden shadow-none">
+                    <section className="flex-1 flex flex-col bg-[#F5F5F7] border border-[#D1D7DC] rounded-xl overflow-hidden shadow-none">
                         {selectedStudent ? (
                             <>
                                 {/* Chat Header */}
@@ -304,7 +321,7 @@ export default function TeacherChatPage() {
                                 </div>
 
                                 {/* Mensagens */}
-                                <div className="flex-1 overflow-y-auto px-8 py-10 space-y-6 bg-white custom-scrollbar-premium">
+                                <div className="flex-1 overflow-y-auto px-8 py-10 space-y-6 bg-[#F5F5F7] custom-scrollbar-premium">
                                     {messages.length > 0 ? (
                                         messages.map(msg => (
                                             <div
@@ -346,7 +363,7 @@ export default function TeacherChatPage() {
                                 {/* Input de Mensagem */}
                                 <div className="px-8 py-6 border-t border-[#D1D7DC] bg-white">
                                     <div className="flex items-center gap-4">
-                                        <div className="flex-1 flex items-center bg-white border border-[#D1D7DC] rounded-lg px-4 py-3 focus-within:border-[#1d5f31] transition-all group ring-offset-2">
+                                        <div className="flex-1 flex items-center bg-[#F5F5F7] border border-[#D1D7DC] rounded-lg px-4 py-3 focus-within:border-[#1d5f31] transition-all group ring-offset-2">
                                             <input
                                                 type="text"
                                                 value={input}

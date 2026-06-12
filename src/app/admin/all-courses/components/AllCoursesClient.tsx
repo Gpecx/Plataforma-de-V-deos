@@ -379,7 +379,7 @@ export default function AllCoursesClient({ courses, teachers }: AllCoursesClient
                         value={newCategoria}
                         onChange={(e) => setNewCategoria(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddCategoria() } }}
-                        className="flex-1 max-w-xs px-4 py-2 bg-white border-2 border-slate-200 rounded-lg text-xs font-medium uppercase focus:border-[#1D5F31] focus:ring-2 focus:ring-green-700/20 focus:outline-none transition-colors"
+                        className="flex-1 max-w-xs px-4 py-2 bg-[#F5F5F7] border-2 border-slate-200 rounded-lg text-xs font-medium uppercase focus:border-[#1D5F31] focus:ring-2 focus:ring-green-700/20 focus:outline-none transition-colors"
                     />
                     <button
                         onClick={handleAddCategoria}
@@ -961,7 +961,7 @@ export default function AllCoursesClient({ courses, teachers }: AllCoursesClient
                                         value={rejectReason}
                                         onChange={e => setRejectReason(e.target.value)}
                                         placeholder="Descreva o motivo da rejeição para o professor..."
-                                        className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none resize-none min-h-[80px]"
+                                        className="w-full bg-[#F5F5F7] border border-slate-300 rounded-lg px-4 py-3 text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none resize-none min-h-[80px]"
                                     />
                                     <button
                                         onClick={() => handleRejectTrailer(auditCourse.id)}

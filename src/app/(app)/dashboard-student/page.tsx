@@ -1,6 +1,7 @@
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import Image from 'next/image'
 import { PlayCircle, BookOpen, Sparkles, Trophy, Clock, Lock } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { StudentCarousel } from '@/components/dashboard/StudentCarousel'
@@ -102,7 +103,7 @@ export default async function StudentDashboard() {
     const cursosDisponiveis = allCourses.filter(c => !purchasedCourseIds.includes(c.id) && c.status === 'APROVADO')
 
     return (
-        <div className="bg-white text-slate-900 font-montserrat min-h-full flex flex-col">
+        <div className="bg-[#F5F5F7] text-slate-900 font-montserrat min-h-full flex flex-col">
             <StoreInitializer purchasedCourseIds={purchasedCourseIds} />
             <ProgressInitializer 
                 purchasedCourseIds={purchasedCourseIds}
@@ -149,9 +150,11 @@ export default async function StudentDashboard() {
                                 return (
                                 <div key={curso.id} className={`group bg-white rounded-[24px] overflow-hidden border border-black transition-all duration-300 shadow-sm flex flex-col ${isPending ? 'opacity-85 saturate-50' : 'hover:shadow-xl hover:-translate-y-1'}`}>
                                     <div className="relative h-48 bg-slate-100 overflow-hidden">
-                                        <img
+                                        <Image
                                             src={curso.image_url || "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400"}
-                                            className="w-full h-full object-cover transition-transform duration-700"
+                                            fill
+                                            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                                            className="object-cover transition-transform duration-700"
                                             alt={curso.title}
                                         />
                                         {isPending ? (

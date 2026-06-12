@@ -1098,18 +1098,37 @@ export default function CourseBuilder() {
                                         if (selectedLesson?.id === lessonId) setSelectedLesson(prev => prev ? { ...prev, title: newTitle } : null)
                                     }}
                                     onDeleteModule={() => {
-                                        toast("Confirmar Exclusão", {
-                                            description: "Tem certeza que deseja excluir este módulo? Todas as aulas dentro dele serão removidas.",
-                                            action: {
-                                                label: "Excluir",
-                                                onClick: () => {
-                                                    setModules(prev => prev.filter(m => m.id !== module.id))
-                                                    if (selectedLesson && module.lessons.some(l => l.id === selectedLesson.id)) {
-                                                        setSelectedLesson(null)
+                                        const approvedLessons = module.lessons.filter(l => l.status === 'APROVADO')
+                                        if (approvedLessons.length > 0) {
+                                            forceImmediateAutosaveRef.current = true
+                                            setModules(prev => prev.map(m =>
+                                                m.id === module.id
+                                                    ? {
+                                                        ...m,
+                                                        lessons: m.lessons
+                                                            .filter(l => l.status === 'APROVADO')
+                                                            .map(l => ({ ...l, status: 'SOLICITADO_EXCLUSAO' }))
+                                                    }
+                                                    : m
+                                            ))
+                                            if (selectedLesson && !module.lessons.some(l => l.id === selectedLesson.id && l.status === 'APROVADO')) {
+                                                setSelectedLesson(null)
+                                            }
+                                            toast.info(`${approvedLessons.length} aula(s) aprovada(s) enviada(s) para análise de exclusão. Salve o projeto para confirmar.`)
+                                        } else {
+                                            toast("Confirmar Exclusão", {
+                                                description: "Tem certeza que deseja excluir este módulo? Todas as aulas dentro dele serão removidas.",
+                                                action: {
+                                                    label: "Excluir",
+                                                    onClick: () => {
+                                                        setModules(prev => prev.filter(m => m.id !== module.id))
+                                                        if (selectedLesson && module.lessons.some(l => l.id === selectedLesson.id)) {
+                                                            setSelectedLesson(null)
+                                                        }
                                                     }
                                                 }
-                                            }
-                                        })
+                                            })
+                                        }
                                     }}
                                     canDeleteModule={modules.length > 1}
                                     onResubmitLesson={(lessonId) => {

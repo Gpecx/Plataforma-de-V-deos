@@ -159,7 +159,7 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
                         <textarea
                             value={bio}
                             onChange={(e) => setBio(e.target.value)}
-                            className="w-full min-h-[160px] bg-white border border-black/20 rounded-xl p-6 text-sm font-medium focus:outline-none focus:border-black focus:ring-1 focus:ring-black/20 transition-all resize-none text-black leading-relaxed placeholder:text-slate-400"
+                            className="w-full min-h-[160px] bg-[#F5F5F7] border border-black/20 rounded-xl p-6 text-sm font-medium focus:outline-none focus:border-black focus:ring-1 focus:ring-black/20 transition-all resize-none text-black leading-relaxed placeholder:text-slate-400"
                             placeholder="Descreva sua jornada e o valor que você entrega aos seus alunos..."
                         />
                     </div>

@@ -1,0 +1,2091 @@
+diff --git a/src/app/(app)/classroom/[id]/page.tsx b/src/app/(app)/classroom/[id]/page.tsx
+index a1b1615..b30a866 100644
+--- a/src/app/(app)/classroom/[id]/page.tsx
++++ b/src/app/(app)/classroom/[id]/page.tsx
+@@ -2,6 +2,7 @@
+ 
+ import { useState, useEffect, useRef, useMemo } from 'react'
+ import Link from 'next/link'
++import dynamic from 'next/dynamic'
+ import {
+     CheckCircle2,
+     ChevronLeft,
+@@ -16,14 +17,30 @@ import {
+     Award
+ } from 'lucide-react'
+ import { useParams, useRouter, useSearchParams } from 'next/navigation'
+-import { ClassroomTabs } from './ClassroomTabs'
+ import { auth } from '@/lib/firebase'
+ import Logo from '@/components/Logo'
+ import { onAuthStateChanged } from 'firebase/auth'
+ import { getClassroomData, toggleLessonCompletion, processCertificateIssuance, saveLessonProgress } from './actions'
+-import { QuizPlayer } from './QuizPlayer'
+ import { useProgressStore } from '@/store/useProgressStore'
+-import SecureMuxPlayer from '@/components/SecureMuxPlayer'
++
++const SecureMuxPlayer = dynamic(() => import('@/components/SecureMuxPlayer'), {
++    ssr: false,
++    loading: () => <div className="w-full h-full bg-slate-800 animate-pulse rounded-2xl" />
++})
++
++const QuizPlayer = dynamic(() => import('./QuizPlayer').then(mod => ({ default: mod.QuizPlayer })), {
++    ssr: false,
++    loading: () => (
++        <div className="w-full h-full bg-slate-800 animate-pulse rounded-2xl flex items-center justify-center">
++            <Loader2 className="animate-spin text-slate-400" size={32} />
++        </div>
++    )
++})
++
++const ClassroomTabs = dynamic(() => import('./ClassroomTabs').then(mod => ({ default: mod.ClassroomTabs })), {
++    ssr: false,
++    loading: () => <div className="h-64 bg-slate-100 animate-pulse rounded-2xl" />
++})
+ 
+ 
+ const scrollbarHideStyle = {
+diff --git a/src/app/(app)/classroom/layout.tsx b/src/app/(app)/classroom/layout.tsx
+index 7d9c94b..57372e2 100644
+--- a/src/app/(app)/classroom/layout.tsx
++++ b/src/app/(app)/classroom/layout.tsx
+@@ -13,10 +13,6 @@ export default async function ClassroomLayout({
+         redirect('/login')
+     }
+ 
+-    if (!user.emailVerified) {
+-        redirect('/verify-email')
+-    }
+-
+     return (
+         <AuthProvider>
+             <div className="classroom-theme">
+diff --git a/src/app/(app)/course/CoursesClient.tsx b/src/app/(app)/course/CoursesClient.tsx
+index bdec629..12257c3 100644
+--- a/src/app/(app)/course/CoursesClient.tsx
++++ b/src/app/(app)/course/CoursesClient.tsx
+@@ -1,6 +1,6 @@
+ "use client";
+ 
+-import { useState, Suspense, useEffect } from "react";
++import { useState, Suspense, useEffect, useMemo } from "react";
+ import Link from "next/link";
+ import { Button } from "@/components/ui/button";
+ import { useSearchParams, useRouter } from "next/navigation";
+@@ -102,7 +102,7 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners, vitri
+         return () => clearInterval(timer);
+     }, [displaySlides.length]);
+ 
+-    const filteredResults = (() => {
++    const filteredResults = useMemo(() => {
+         const query = normalizeString((localSearch || searchQuery).toLowerCase().trim());
+         
+         const courses = initialCourses.filter(c => {
+@@ -116,36 +116,34 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners, vitri
+             if (!matchesSearch) return false;
+             if (activeFilter === 'free') return c.pricing_type === 'free';
+             if (activeFilter === 'new') return isNewCourse(c.created_at);
+-            // CORRIGIDO: case-insensitive comparison
+             if (vitrineCategorias.some(cat => cat.toUpperCase() === activeFilter.toUpperCase())) {
+-                const fixados = vitrineCursosFixados[activeFilter]; // NOVO: cursosFixados
++                const fixados = vitrineCursosFixados[activeFilter];
+                 if (fixados && fixados.length > 0) {
+                     return fixados.includes(c.id);
+                 }
+-                return c.category?.toUpperCase() === activeFilter.toUpperCase(); // CORRIGIDO
++                return c.category?.toUpperCase() === activeFilter.toUpperCase();
+             }
+             return true;
+         }).map(c => ({ data: c, type: 'course' as const }));
+ 
+         const teachers = initialTeachers.filter(t => {
+-            // Professores só aparecem se houver uma busca ativa ou se não houver filtros de preço/novidade
+             if (!query) return false;
+             return t.full_name && normalizeString(t.full_name).includes(query) || 
+                    t.specialty && normalizeString(t.specialty).includes(query);
+         }).map(t => ({ data: t, type: 'teacher' as const }));
+ 
+         return [...courses, ...teachers];
+-    })();
++    }, [localSearch, searchQuery, initialCourses, initialTeachers, activeFilter, vitrineCategorias, vitrineCursosFixados]);
+ 
+-    const filteredCourses = filteredResults.filter(r => r.type === 'course').map(r => r.data as Course);
+-    const filteredTeachers = filteredResults.filter(r => r.type === 'teacher').map(r => r.data as Teacher);
++    const filteredCourses = useMemo(() => filteredResults.filter(r => r.type === 'course').map(r => r.data as Course), [filteredResults]);
++    const filteredTeachers = useMemo(() => filteredResults.filter(r => r.type === 'teacher').map(r => r.data as Teacher), [filteredResults]);
+ 
+     const handleCourseClick = (course: Course) => {
+         setSelectedCourse(course);
+         setIsModalOpen(true);
+     };
+ 
+-    const dynamicCategories = Array.from(new Set(filteredCourses.map(c => c.category || "Lançamentos"))).sort();
++    const dynamicCategories = useMemo(() => Array.from(new Set(filteredCourses.map(c => c.category || "Lançamentos"))).sort(), [filteredCourses]);
+ 
+     return (
+         <div className="min-h-screen bg-[#0B1215] text-white font-montserrat pt-24">
+@@ -218,7 +216,7 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners, vitri
+                                 <button
+                                     key={i}
+                                     onClick={() => setCurrentSlide(i)}
+-                                    className={`w-2 h-2 transition-all ${i === currentSlide ? 'bg-[#1D5F31] w-6' : 'bg-white/40'}`}
++                                    className={`w-2 h-2 transition-[width] duration-300 ${i === currentSlide ? 'bg-[#1D5F31] w-6' : 'bg-white/40'}`}
+                                 />
+                             ))}
+                         </div>
+diff --git a/src/app/(app)/dashboard-student/certificates/page.tsx b/src/app/(app)/dashboard-student/certificates/page.tsx
+index 04e82c8..a1c30b6 100644
+--- a/src/app/(app)/dashboard-student/certificates/page.tsx
++++ b/src/app/(app)/dashboard-student/certificates/page.tsx
+@@ -6,8 +6,6 @@ import Link from 'next/link'
+ import { toast } from 'sonner'
+ import { ICertificate } from '@/lib/types/certificate'
+ import { CertificateTemplate } from '@/components/certificates/CertificateTemplate'
+-import html2canvas from 'html2canvas'
+-import { jsPDF } from 'jspdf'
+ import { getProfile } from '../actions'
+ 
+ export default function CertificatesPage() {
+@@ -82,6 +80,9 @@ export default function CertificatesPage() {
+         
+         toast.promise(async () => {
+             try {
++                const html2canvas = (await import('html2canvas')).default
++                const { jsPDF } = await import('jspdf')
++
+                 // Pequeno delay para garantir que imagens remotas (QR Code) e fontes carreguem
+                 await new Promise(resolve => setTimeout(resolve, 800));
+ 
+@@ -176,7 +177,7 @@ export default function CertificatesPage() {
+     }
+ 
+     return (
+-        <div className="p-4 sm:p-8 md:p-12 min-h-screen font-montserrat text-black bg-white animate-in fade-in duration-500">
++        <div className="p-4 sm:p-8 md:p-12 min-h-screen font-montserrat text-black bg-[#F5F5F7] animate-in fade-in duration-500">
+             <style jsx global>{`
+                 @media print {
+                     body {
+diff --git a/src/app/(app)/dashboard-student/chat/page.tsx b/src/app/(app)/dashboard-student/chat/page.tsx
+index b447952..92e29cb 100644
+--- a/src/app/(app)/dashboard-student/chat/page.tsx
++++ b/src/app/(app)/dashboard-student/chat/page.tsx
+@@ -72,6 +72,7 @@ export default function StudentChatPage() {
+ 
+                 for (const enrollDoc of enrollSnapshot.docs) {
+                     const enrollData = enrollDoc.data()
++                    if (enrollData.payment_confirmed !== true) continue
+                     const courseId = enrollData.course_id
+ 
+                     const courseDoc = await getDoc(doc(db, 'courses', courseId))
+@@ -211,7 +212,7 @@ export default function StudentChatPage() {
+ 
+     if (loading) {
+         return (
+-            <div className="h-screen flex items-center justify-center bg-white">
++            <div className="h-screen flex items-center justify-center bg-[#F5F5F7]">
+                 <div className="flex flex-col items-center gap-4">
+                     <div className="w-12 h-12 border-4 border-[#1d5f31] border-t-transparent rounded-full animate-spin"></div>
+                     <p className="text-xs font-medium text-[#061629] animate-pulse">Carregando suporte...</p>
+@@ -221,7 +222,7 @@ export default function StudentChatPage() {
+     }
+ 
+     return (
+-        <div className="h-[calc(100vh-120px)] bg-white text-slate-900 flex flex-col overflow-hidden font-sans">
++        <div className="h-[calc(100vh-120px)] bg-[#F5F5F7] text-slate-900 flex flex-col overflow-hidden font-sans">
+             <div className="max-w-full w-full mx-auto flex flex-col flex-1 pt-4 pb-4 px-4 md:px-6 gap-4 md:gap-6 overflow-hidden">
+ 
+                 {/* Header Simples */}
+@@ -274,7 +275,7 @@ export default function StudentChatPage() {
+                     </aside>
+ 
+                     {/* Área de Chat Principal */}
+-                    <section className="flex-1 flex flex-col bg-white border border-[#D1D7DC] rounded-xl overflow-hidden shadow-none">
++                    <section className="flex-1 flex flex-col bg-[#F5F5F7] border border-[#D1D7DC] rounded-xl overflow-hidden shadow-none">
+                         {selectedTeacher ? (
+                             <>
+                                 {/* Chat Header */}
+@@ -297,7 +298,7 @@ export default function StudentChatPage() {
+                                 </div>
+ 
+                                 {/* Mensagens */}
+-                                <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6 md:py-10 space-y-6 bg-white custom-scrollbar-premium">
++                                <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6 md:py-10 space-y-6 bg-[#F5F5F7] custom-scrollbar-premium">
+                                     {messages.length > 0 ? (
+                                         messages.map(msg => (
+                                             <div
+@@ -342,7 +343,7 @@ export default function StudentChatPage() {
+                                         <button className="p-2 text-[#1d5f31] hover:bg-[#F1F3F4] rounded-full transition-colors shrink-0">
+                                             <Paperclip size={20} />
+                                         </button>
+-                                        <div className="flex-1 flex items-center bg-white border border-[#D1D7DC] rounded-lg px-4 py-3 focus-within:border-[#1d5f31] transition-all group ring-offset-2">
++                                        <div className="flex-1 flex items-center bg-[#F5F5F7] border border-[#D1D7DC] rounded-lg px-4 py-3 focus-within:border-[#1d5f31] transition-all group ring-offset-2">
+                                             <input
+                                                 type="text"
+                                                 value={input}
+diff --git a/src/app/(app)/dashboard-student/compras/page.tsx b/src/app/(app)/dashboard-student/compras/page.tsx
+index c3e9042..a0c11fd 100644
+--- a/src/app/(app)/dashboard-student/compras/page.tsx
++++ b/src/app/(app)/dashboard-student/compras/page.tsx
+@@ -147,7 +147,7 @@ export default function ComprasPage() {
+             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                 {/* Tabela de Transações */}
+                 <div className="lg:col-span-2 space-y-8">
+-                    <div className="bg-white rounded-[24px] md:rounded-[40px] border border-slate-100 p-6 sm:p-8 md:p-10 shadow-sm relative overflow-hidden h-full flex flex-col">
++                    <div className="bg-[#F5F5F7] rounded-[24px] md:rounded-[40px] border border-slate-100 p-6 sm:p-8 md:p-10 shadow-sm relative overflow-hidden h-full flex flex-col">
+                         <div className="flex items-center justify-between mb-10">
+                             <h2 className="text-lg font-bold uppercase tracking-tighter text-slate-800">Histórico de Transações</h2>
+                             <button className="text-[10px] font-bold uppercase tracking-widest text-[#1D5F31] hover:text-slate-900 transition-colors">
+diff --git a/src/app/(app)/dashboard-student/layout.tsx b/src/app/(app)/dashboard-student/layout.tsx
+index 32ef872..335c4e3 100644
+--- a/src/app/(app)/dashboard-student/layout.tsx
++++ b/src/app/(app)/dashboard-student/layout.tsx
+@@ -17,10 +17,6 @@ export default async function StudentLayout({
+         redirect('/login')
+     }
+ 
+-    if (!session.emailVerified) {
+-        redirect('/verify-email')
+-    }
+-
+     // Se for professor, redireciona para o dashboard de professor
+     if (session.role === 'teacher') {
+         redirect('/dashboard-teacher')
+diff --git a/src/app/(app)/dashboard-student/messages/page.tsx b/src/app/(app)/dashboard-student/messages/page.tsx
+index 8d83c6f..b267464 100644
+--- a/src/app/(app)/dashboard-student/messages/page.tsx
++++ b/src/app/(app)/dashboard-student/messages/page.tsx
+@@ -165,7 +165,7 @@ export default function StudentMessagesPage() {
+                                 </div>
+                             </div>
+                         ) : (
+-                            <div className="h-full flex items-center justify-center py-24 bg-white/[0.02] border border-white/5 rounded-[32px]">
++                            <div className="h-full flex items-center justify-center py-24 bg-[#F5F5F7]/[0.02] border border-white/5 rounded-[32px]">
+                                 <div className="text-center">
+                                     <MessageSquare size={40} className="mx-auto text-gray-700 mb-4 opacity-30" />
+                                     <p className="text-xs font-bold uppercase tracking-widest text-gray-600 ">Selecione uma mensagem</p>
+diff --git a/src/app/(app)/dashboard-student/my-list/page.tsx b/src/app/(app)/dashboard-student/my-list/page.tsx
+index a6a8349..6653761 100644
+--- a/src/app/(app)/dashboard-student/my-list/page.tsx
++++ b/src/app/(app)/dashboard-student/my-list/page.tsx
+@@ -1,6 +1,7 @@
+ import { cookies } from 'next/headers'
+ import { redirect } from 'next/navigation'
+ import { adminAuth, adminDb } from '@/lib/firebase-admin'
++import Image from 'next/image'
+ import { Heart, ArrowLeft, GraduationCap, BookOpen } from 'lucide-react'
+ import Link from 'next/link'
+ import { AddToCartButton } from '@/components/AddToCartButton'
+@@ -59,10 +60,13 @@ export default async function MyListPage() {
+         <div className="min-h-screen bg-slate-50 text-slate-900 font-montserrat relative flex flex-col">
+             <div className="px-6 md:px-12 pt-6 w-full">
+                 <div className="relative max-w-[1600px] mx-auto rounded-3xl overflow-hidden shadow-xl min-h-[300px] md:min-h-[350px] flex items-center">
+-                    <img
++                    <Image
+                         src={wishlistBannerUrl}
+                         alt="Minha Lista Banner"
+-                        className="absolute inset-0 w-full h-full object-cover"
++                        fill
++                        sizes="100vw"
++                        className="object-cover"
++                        priority
+                     />
+ 
+                     <div className="relative z-20 w-full px-8 md:px-16 py-12">
+@@ -127,11 +131,13 @@ export default async function MyListPage() {
+                             {wishlistCourses.map((curso) => {
+                                 const hasPurchased = purchasedCourseIds.includes(curso.id)
+                                 return (
+-                                    <div key={curso.id} className="group w-full max-w-[320px] bg-white rounded-[24px] overflow-hidden border border-black shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col h-full">
++                                    <div key={curso.id} className="group w-full max-w-[320px] bg-[#F5F5F7] rounded-[24px] overflow-hidden border border-black shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col h-full">
+                                         <div className="relative h-48 overflow-hidden bg-slate-100">
+-                                            <img
++                                            <Image
+                                                 src={curso.image_url || "https://images.unsplash.com/photo-1558655146-d09347e92766?w=400"}
+-                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
++                                                fill
++                                                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
++                                                className="object-cover group-hover:scale-110 transition-transform duration-700"
+                                                 alt={curso.title}
+                                             />
+                                             {hasPurchased ? (
+diff --git a/src/app/(app)/dashboard-student/page.tsx b/src/app/(app)/dashboard-student/page.tsx
+index 36a4075..9a8fa91 100644
+--- a/src/app/(app)/dashboard-student/page.tsx
++++ b/src/app/(app)/dashboard-student/page.tsx
+@@ -1,6 +1,7 @@
+ import { adminAuth, adminDb } from '@/lib/firebase-admin'
+ import { cookies } from 'next/headers'
+ import { redirect } from 'next/navigation'
++import Image from 'next/image'
+ import { PlayCircle, BookOpen, Sparkles, Trophy, Clock, Lock } from 'lucide-react'
+ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+ import { StudentCarousel } from '@/components/dashboard/StudentCarousel'
+@@ -102,7 +103,7 @@ export default async function StudentDashboard() {
+     const cursosDisponiveis = allCourses.filter(c => !purchasedCourseIds.includes(c.id) && c.status === 'APROVADO')
+ 
+     return (
+-        <div className="bg-white text-slate-900 font-montserrat min-h-full flex flex-col">
++        <div className="bg-[#F5F5F7] text-slate-900 font-montserrat min-h-full flex flex-col">
+             <StoreInitializer purchasedCourseIds={purchasedCourseIds} />
+             <ProgressInitializer 
+                 purchasedCourseIds={purchasedCourseIds}
+@@ -149,9 +150,11 @@ export default async function StudentDashboard() {
+                                 return (
+                                 <div key={curso.id} className={`group bg-white rounded-[24px] overflow-hidden border border-black transition-all duration-300 shadow-sm flex flex-col ${isPending ? 'opacity-85 saturate-50' : 'hover:shadow-xl hover:-translate-y-1'}`}>
+                                     <div className="relative h-48 bg-slate-100 overflow-hidden">
+-                                        <img
++                                        <Image
+                                             src={curso.image_url || "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400"}
+-                                            className="w-full h-full object-cover transition-transform duration-700"
++                                            fill
++                                            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
++                                            className="object-cover transition-transform duration-700"
+                                             alt={curso.title}
+                                         />
+                                         {isPending ? (
+diff --git a/src/app/(app)/dashboard-student/payments/page.tsx b/src/app/(app)/dashboard-student/payments/page.tsx
+index b5aa829..1e29c39 100644
+--- a/src/app/(app)/dashboard-student/payments/page.tsx
++++ b/src/app/(app)/dashboard-student/payments/page.tsx
+@@ -296,7 +296,7 @@ export default function PaymentsPage() {
+ 
+ 
+     return (
+-        <div className="p-8 md:p-12 min-h-screen font-montserrat bg-white text-[#1a1a1a] animate-in fade-in duration-500">
++        <div className="p-8 md:p-12 min-h-screen font-montserrat bg-[#F5F5F7] text-[#1a1a1a] animate-in fade-in duration-500">
+             <header className="mb-12">
+                 <div className="flex items-center gap-3 mb-2">
+                     <span className="text-[10px] font-bold uppercase tracking-[5px] text-[#1D5F31]">FINANCEIRO</span>
+diff --git a/src/app/(app)/dashboard-student/profile/ProfileForm.tsx b/src/app/(app)/dashboard-student/profile/ProfileForm.tsx
+index 26d529a..465b0cd 100644
+--- a/src/app/(app)/dashboard-student/profile/ProfileForm.tsx
++++ b/src/app/(app)/dashboard-student/profile/ProfileForm.tsx
+@@ -133,7 +133,7 @@ export function ProfileForm({ initialFullName, initialPhotoURL, uid }: ProfileFo
+ 
+                             {/* Overlay de Upload */}
+                             {!isUploading && (
+-                                <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300">
++                                <div className="absolute inset-0 bg-[#F5F5F7]/80 flex flex-col items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300">
+                                     <Camera size={24} className="text-[#1a1a1a] mb-1" />
+                                     <span className="text-[8px] font-bold uppercase tracking-widest text-[#1a1a1a]">Alterar</span>
+                                 </div>
+diff --git a/src/app/(app)/dashboard-student/refund-policy/page.tsx b/src/app/(app)/dashboard-student/refund-policy/page.tsx
+index 1d29582..cb8c936 100644
+--- a/src/app/(app)/dashboard-student/refund-policy/page.tsx
++++ b/src/app/(app)/dashboard-student/refund-policy/page.tsx
+@@ -13,9 +13,9 @@ export default async function RefundPolicy() {
+     }
+ 
+     return (
+-        <div className="min-h-screen bg-white text-black font-montserrat animate-in fade-in duration-500 pb-20">
++        <div className="min-h-screen bg-[#F5F5F7] text-black font-montserrat animate-in fade-in duration-500 pb-20">
+             {/* Header / Hero Section */}
+-            <header className="bg-white border-b border-slate-100 py-16">
++            <header className="bg-[#F5F5F7] border-b border-slate-100 py-16">
+                 <div className="max-w-4xl mx-auto px-6">
+                     <Link 
+                         href="/dashboard-student" 
+diff --git a/src/app/(app)/dashboard-student/settings/page.tsx b/src/app/(app)/dashboard-student/settings/page.tsx
+index 67fc2c6..904aecd 100644
+--- a/src/app/(app)/dashboard-student/settings/page.tsx
++++ b/src/app/(app)/dashboard-student/settings/page.tsx
+@@ -193,14 +193,14 @@ export default function SettingsPage() {
+ 
+     if (loading) {
+         return (
+-            <div className="min-h-screen flex items-center justify-center bg-white text-slate-900">
++            <div className="min-h-screen flex items-center justify-center bg-[#F5F5F7] text-slate-900">
+                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1D5F31]"></div>
+             </div>
+         )
+     }
+ 
+     return (
+-        <div className="min-h-screen bg-white text-slate-900 font-montserrat p-4 md:p-8 lg:p-12">
++        <div className="min-h-screen bg-[#F5F5F7] text-slate-900 font-montserrat p-4 md:p-8 lg:p-12">
+             <div className="max-w-4xl mx-auto space-y-10">
+ 
+                 {/* Header da Página */}
+diff --git a/src/app/(app)/dashboard-teacher/chat/page.tsx b/src/app/(app)/dashboard-teacher/chat/page.tsx
+index 9e43954..ae40566 100644
+--- a/src/app/(app)/dashboard-teacher/chat/page.tsx
++++ b/src/app/(app)/dashboard-teacher/chat/page.tsx
+@@ -102,9 +102,26 @@ export default function TeacherChatPage() {
+                     }
+                 }
+ 
+-                setStudents(mappedStudents)
+-                if (mappedStudents.length > 0 && !selectedStudent) {
+-                    setSelectedStudent(mappedStudents[0])
++                // Filtra apenas alunos com matrícula confirmada
++                const coursesSnap = await getDocs(query(
++                    collection(db, 'courses'),
++                    where('teacher_id', '==', user.uid)
++                ))
++                const teacherCourseIds = coursesSnap.docs.map(d => d.id)
++                const confirmedStudentIds = new Set<string>()
++                for (let i = 0; i < teacherCourseIds.length; i += 10) {
++                    const chunk = teacherCourseIds.slice(i, i + 10)
++                    const enrollSnap = await getDocs(query(
++                        collection(db, 'enrollments'),
++                        where('course_id', 'in', chunk),
++                        where('payment_confirmed', '==', true)
++                    ))
++                    enrollSnap.forEach(d => confirmedStudentIds.add(d.data().user_id))
++                }
++                const filteredStudents = mappedStudents.filter(s => confirmedStudentIds.has(s.id))
++                setStudents(filteredStudents)
++                if (filteredStudents.length > 0 && !selectedStudent) {
++                    setSelectedStudent(filteredStudents[0])
+                 }
+             } catch (error) {
+                 console.error("Erro ao carregar alunos:", error)
+@@ -217,7 +234,7 @@ export default function TeacherChatPage() {
+ 
+     if (loading && students.length === 0) {
+         return (
+-            <div className="h-screen flex items-center justify-center bg-white">
++            <div className="h-screen flex items-center justify-center bg-[#F5F5F7]">
+                 <div className="flex flex-col items-center gap-4">
+                     <div className="w-12 h-12 border-4 border-[#1d5f31] border-t-transparent rounded-full animate-spin"></div>
+                     <p className="text-xs font-medium text-[#061629] animate-pulse">Carregando Conversas...</p>
+@@ -227,7 +244,7 @@ export default function TeacherChatPage() {
+     }
+ 
+     return (
+-        <div className="h-[calc(100vh-120px)] bg-white text-slate-900 flex flex-col overflow-hidden font-sans animate-in fade-in duration-500">
++        <div className="h-[calc(100vh-120px)] bg-[#F5F5F7] text-slate-900 flex flex-col overflow-hidden font-sans animate-in fade-in duration-500">
+             <div className="max-w-full w-full mx-auto flex flex-col flex-1 pt-4 pb-4 px-6 gap-6 overflow-hidden">
+ 
+                 {/* Header Simples */}
+@@ -279,7 +296,7 @@ export default function TeacherChatPage() {
+                     </aside>
+ 
+                     {/* Área de Chat Principal */}
+-                    <section className="flex-1 flex flex-col bg-white border border-[#D1D7DC] rounded-xl overflow-hidden shadow-none">
++                    <section className="flex-1 flex flex-col bg-[#F5F5F7] border border-[#D1D7DC] rounded-xl overflow-hidden shadow-none">
+                         {selectedStudent ? (
+                             <>
+                                 {/* Chat Header */}
+@@ -304,7 +321,7 @@ export default function TeacherChatPage() {
+                                 </div>
+ 
+                                 {/* Mensagens */}
+-                                <div className="flex-1 overflow-y-auto px-8 py-10 space-y-6 bg-white custom-scrollbar-premium">
++                                <div className="flex-1 overflow-y-auto px-8 py-10 space-y-6 bg-[#F5F5F7] custom-scrollbar-premium">
+                                     {messages.length > 0 ? (
+                                         messages.map(msg => (
+                                             <div
+@@ -346,7 +363,7 @@ export default function TeacherChatPage() {
+                                 {/* Input de Mensagem */}
+                                 <div className="px-8 py-6 border-t border-[#D1D7DC] bg-white">
+                                     <div className="flex items-center gap-4">
+-                                        <div className="flex-1 flex items-center bg-white border border-[#D1D7DC] rounded-lg px-4 py-3 focus-within:border-[#1d5f31] transition-all group ring-offset-2">
++                                        <div className="flex-1 flex items-center bg-[#F5F5F7] border border-[#D1D7DC] rounded-lg px-4 py-3 focus-within:border-[#1d5f31] transition-all group ring-offset-2">
+                                             <input
+                                                 type="text"
+                                                 value={input}
+diff --git a/src/app/(app)/dashboard-teacher/courses/[id]/edit/page.tsx b/src/app/(app)/dashboard-teacher/courses/[id]/edit/page.tsx
+index 5267bc5..009834a 100644
+--- a/src/app/(app)/dashboard-teacher/courses/[id]/edit/page.tsx
++++ b/src/app/(app)/dashboard-teacher/courses/[id]/edit/page.tsx
+@@ -1098,18 +1098,37 @@ export default function CourseBuilder() {
+                                         if (selectedLesson?.id === lessonId) setSelectedLesson(prev => prev ? { ...prev, title: newTitle } : null)
+                                     }}
+                                     onDeleteModule={() => {
+-                                        toast("Confirmar Exclusão", {
+-                                            description: "Tem certeza que deseja excluir este módulo? Todas as aulas dentro dele serão removidas.",
+-                                            action: {
+-                                                label: "Excluir",
+-                                                onClick: () => {
+-                                                    setModules(prev => prev.filter(m => m.id !== module.id))
+-                                                    if (selectedLesson && module.lessons.some(l => l.id === selectedLesson.id)) {
+-                                                        setSelectedLesson(null)
++                                        const approvedLessons = module.lessons.filter(l => l.status === 'APROVADO')
++                                        if (approvedLessons.length > 0) {
++                                            forceImmediateAutosaveRef.current = true
++                                            setModules(prev => prev.map(m =>
++                                                m.id === module.id
++                                                    ? {
++                                                        ...m,
++                                                        lessons: m.lessons
++                                                            .filter(l => l.status === 'APROVADO')
++                                                            .map(l => ({ ...l, status: 'SOLICITADO_EXCLUSAO' }))
+                                                     }
+-                                                }
++                                                    : m
++                                            ))
++                                            if (selectedLesson && !module.lessons.some(l => l.id === selectedLesson.id && l.status === 'APROVADO')) {
++                                                setSelectedLesson(null)
+                                             }
+-                                        })
++                                            toast.info(`${approvedLessons.length} aula(s) aprovada(s) enviada(s) para análise de exclusão. Salve o projeto para confirmar.`)
++                                        } else {
++                                            toast("Confirmar Exclusão", {
++                                                description: "Tem certeza que deseja excluir este módulo? Todas as aulas dentro dele serão removidas.",
++                                                action: {
++                                                    label: "Excluir",
++                                                    onClick: () => {
++                                                        setModules(prev => prev.filter(m => m.id !== module.id))
++                                                        if (selectedLesson && module.lessons.some(l => l.id === selectedLesson.id)) {
++                                                            setSelectedLesson(null)
++                                                        }
++                                                    }
++                                                }
++                                            })
++                                        }
+                                     }}
+                                     canDeleteModule={modules.length > 1}
+                                     onResubmitLesson={(lessonId) => {
+diff --git a/src/app/(app)/dashboard-teacher/courses/actions.ts b/src/app/(app)/dashboard-teacher/courses/actions.ts
+index ae68f5d..1ae4bfe 100644
+--- a/src/app/(app)/dashboard-teacher/courses/actions.ts
++++ b/src/app/(app)/dashboard-teacher/courses/actions.ts
+@@ -753,6 +753,7 @@ export async function getInstructorStatsAction() {
+             const chunk = courseIds.slice(i, i + 30)
+             const enrollmentsSnap = await adminDb.collection('enrollments')
+                 .where('course_id', 'in', chunk)
++                .where('payment_confirmed', '==', true)
+                 .count()
+                 .get()
+             totalStudents += enrollmentsSnap.data().count
+diff --git a/src/app/(app)/dashboard-teacher/courses/new/page.tsx b/src/app/(app)/dashboard-teacher/courses/new/page.tsx
+index f409891..5fb1397 100644
+--- a/src/app/(app)/dashboard-teacher/courses/new/page.tsx
++++ b/src/app/(app)/dashboard-teacher/courses/new/page.tsx
+@@ -545,7 +545,7 @@ export default function NewCoursePage() {
+                                 <div className="space-y-2">
+                                     <Label className="text-[10px] font-bold uppercase tracking-widest text-black px-1">Descrição Completa</Label>
+                                     <textarea
+-                                        className="w-full bg-white border-2 border-black rounded-md p-6 min-h-[180px] focus:border-[#1D5F31] focus-visible:ring-0 outline-none text-sm font-medium transition-all leading-relaxed text-black placeholder:text-black/50"
++                                        className="w-full bg-[#F5F5F7] border-2 border-black rounded-md p-6 min-h-[180px] focus:border-[#1D5F31] focus-visible:ring-0 outline-none text-sm font-medium transition-all leading-relaxed text-black placeholder:text-black/50"
+                                         placeholder="Descreva os benefícios e o que o aluno vai aprender..."
+                                         value={formData.description}
+                                         onChange={(e) => setStepData({ description: e.target.value })}
+@@ -1001,7 +1001,7 @@ export default function NewCoursePage() {
+                                                             <div className="space-y-2">
+                                                                 <label className="text-[10px] font-bold uppercase tracking-widest text-black/60">Notas da Aula (Markdown ou Texto)</label>
+                                                                 <textarea
+-                                                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-md px-6 py-4 focus:border-[#1D5F31] focus-visible:ring-0 outline-none text-sm font-medium text-black transition-all min-h-[120px]"
++                                                                    className="w-full bg-[#F5F5F7] border border-[#1D5F31]/20 rounded-md px-6 py-4 focus:border-[#1D5F31] focus-visible:ring-0 outline-none text-sm font-medium text-black transition-all min-h-[120px]"
+                                                                     placeholder="Escreva aqui o roteiro, referências ou instruções internas para esta aula..."
+                                                                     value={selectedLessonNotas}
+                                                                     onChange={(e) => {
+@@ -1129,7 +1129,7 @@ export default function NewCoursePage() {
+                                             <div className="space-y-4">
+                                                 <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Descrição Completa</label>
+                                                 <textarea
+-                                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-md px-6 py-4 focus:border-[#1D5F31] focus-visible:ring-0 outline-none text-sm text-black transition-all min-h-[120px]"
++                                                    className="w-full bg-[#F5F5F7] border border-[#1D5F31]/20 rounded-md px-6 py-4 focus:border-[#1D5F31] focus-visible:ring-0 outline-none text-sm text-black transition-all min-h-[120px]"
+                                                     placeholder="Descreva o curso em detalhes..."
+                                                     value={formData.description || ''}
+                                                     onChange={(e) => setStepData({ description: e.target.value })}
+@@ -1190,7 +1190,7 @@ export default function NewCoursePage() {
+                                                             }}
+                                                             className={`flex-1 px-3 py-3 rounded-md text-[9px] font-bold uppercase tracking-widest transition-all border-2 ${formData.pricing_type === type.id
+                                                                     ? 'bg-[#1D5F31] border-[#1D5F31] text-white'
+-                                                                    : 'bg-white border-[#1D5F31]/20 text-black/60 hover:border-[#1D5F31]'
++                                                                    : 'bg-[#F5F5F7] border-[#1D5F31]/20 text-black/60 hover:border-[#1D5F31]'
+                                                                 }`}
+                                                         >
+                                                             {type.label}
+diff --git a/src/app/(app)/dashboard-teacher/courses/page.tsx b/src/app/(app)/dashboard-teacher/courses/page.tsx
+index 9d31146..a2a4347 100644
+--- a/src/app/(app)/dashboard-teacher/courses/page.tsx
++++ b/src/app/(app)/dashboard-teacher/courses/page.tsx
+@@ -1,6 +1,6 @@
+ "use client"
+ 
+-import { useEffect, useState, Suspense } from 'react'
++import { useEffect, useState, Suspense, useMemo } from 'react'
+ import { useSearchParams } from 'next/navigation'
+ import { auth, db } from '@/lib/firebase'
+ import { collection, query, where, orderBy, getDocs, addDoc, doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore'
+@@ -295,9 +295,9 @@ function CoursesContent() {
+     };
+     // ---------------------------------------------------
+ 
+-    const filteredCourses = courses.filter(curso =>
++    const filteredCourses = useMemo(() => courses.filter(curso =>
+         curso.title ? normalizeString(curso.title).includes(normalizeString(searchTerm)) : false
+-    )
++    ), [courses, searchTerm])
+ 
+     if (loading) {
+         return (
+diff --git a/src/app/(app)/dashboard-teacher/layout.tsx b/src/app/(app)/dashboard-teacher/layout.tsx
+index 1a59718..7f2aca2 100644
+--- a/src/app/(app)/dashboard-teacher/layout.tsx
++++ b/src/app/(app)/dashboard-teacher/layout.tsx
+@@ -17,10 +17,6 @@ export default async function TeacherLayout({
+         redirect('/login')
+     }
+ 
+-    if (!session.emailVerified) {
+-        redirect('/verify-email')
+-    }
+-
+     // Apenas professores ou admins podem acessar esta área
+     if (session.role !== 'teacher' && session.role !== 'admin') {
+         redirect('/dashboard-student')
+diff --git a/src/app/(app)/dashboard-teacher/page.tsx b/src/app/(app)/dashboard-teacher/page.tsx
+index 837da11..22f21a0 100644
+--- a/src/app/(app)/dashboard-teacher/page.tsx
++++ b/src/app/(app)/dashboard-teacher/page.tsx
+@@ -1,6 +1,7 @@
+ import { adminAuth, adminDb } from '@/lib/firebase-admin'
+ import { cookies } from 'next/headers'
+ import { redirect } from 'next/navigation'
++import Image from 'next/image'
+ import Link from 'next/link'
+ import { Plus, DollarSign, TrendingUp, Edit } from 'lucide-react'
+ import { SalesChart } from './components/SalesChart'
+@@ -192,7 +193,7 @@ export default async function TeacherDashboard() {
+                         {courses.length > 0 ? courses.map((curso) => (
+                             <div key={curso.id} className="group bg-white rounded-[28px] border border-black/20 flex flex-col hover:border-black transition-all duration-500 shadow-sm hover:shadow-xl overflow-hidden">
+                                 <div className="h-44 bg-slate-100 overflow-hidden relative">
+-                                    <img src={curso.image_url} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={curso.title} />
++                                    <Image src={curso.image_url || "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400"} fill sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw" className="object-cover group-hover:scale-110 transition-transform duration-700" alt={curso.title} />
+                                     <div className="absolute top-4 left-4 bg-emerald-100 px-2.5 py-1 rounded-none border border-emerald-300 shadow-sm">
+                                         <span className="text-[10px] font-bold text-emerald-800 tracking-wider">Repasse: {curso.teacherSharePercent}%</span>
+                                     </div>
+diff --git a/src/app/(app)/dashboard-teacher/profile/ClientProfileForm.tsx b/src/app/(app)/dashboard-teacher/profile/ClientProfileForm.tsx
+index 6b5c86f..5b36ef8 100644
+--- a/src/app/(app)/dashboard-teacher/profile/ClientProfileForm.tsx
++++ b/src/app/(app)/dashboard-teacher/profile/ClientProfileForm.tsx
+@@ -159,7 +159,7 @@ export default function ClientProfileForm({ initialData, email }: { initialData:
+                         <textarea
+                             value={bio}
+                             onChange={(e) => setBio(e.target.value)}
+-                            className="w-full min-h-[160px] bg-white border border-black/20 rounded-xl p-6 text-sm font-medium focus:outline-none focus:border-black focus:ring-1 focus:ring-black/20 transition-all resize-none text-black leading-relaxed placeholder:text-slate-400"
++                            className="w-full min-h-[160px] bg-[#F5F5F7] border border-black/20 rounded-xl p-6 text-sm font-medium focus:outline-none focus:border-black focus:ring-1 focus:ring-black/20 transition-all resize-none text-black leading-relaxed placeholder:text-slate-400"
+                             placeholder="Descreva sua jornada e o valor que você entrega aos seus alunos..."
+                         />
+                     </div>
+diff --git a/src/app/(app)/dashboard-teacher/profile/actions.ts b/src/app/(app)/dashboard-teacher/profile/actions.ts
+index e030975..9e332f1 100644
+--- a/src/app/(app)/dashboard-teacher/profile/actions.ts
++++ b/src/app/(app)/dashboard-teacher/profile/actions.ts
+@@ -170,7 +170,7 @@ export async function getTeacherNotificationsAction() {
+             adminDb.collection('enrollments')
+                 .where('course_id', 'in', chunk)
+                 .orderBy('created_at', 'desc')
+-                .limit(10)
++                .limit(50)
+                 .get()
+         )
+ 
+@@ -180,6 +180,7 @@ export async function getTeacherNotificationsAction() {
+         enrollmentSnapshots.forEach(snapshot => {
+             snapshot.forEach(doc => {
+                 const data = doc.data()
++                if (data.payment_confirmed !== true) return
+                 enrollments.push({
+                     id: doc.id,
+                     course_id: data.course_id,
+diff --git a/src/app/(auth)/login/page.tsx b/src/app/(auth)/login/page.tsx
+index 1d53985..b902df3 100644
+--- a/src/app/(auth)/login/page.tsx
++++ b/src/app/(auth)/login/page.tsx
+@@ -138,14 +138,6 @@ function LoginContent() {
+     async function handleLoginSuccess(user: any) {
+         try {
+             await reload(user)
+-            console.log('Email verified:', user.emailVerified)
+-
+-            if (!user.emailVerified) {
+-                await auth.signOut()
+-                router.push('/verify-email')
+-                return
+-            }
+-
+             console.log('Redirecting to dashboard...')
+ 
+             const idToken = await user.getIdToken(true)
+@@ -158,11 +150,6 @@ function LoginContent() {
+ 
+             if (!sessionRes.ok) {
+                 const errorData = await sessionRes.json()
+-                if (errorData.error === "EMAIL_NOT_VERIFIED") {
+-                    await auth.signOut()
+-                    router.push('/verify-email')
+-                    return
+-                }
+                 throw new Error("session_creation_failed");
+             }
+ 
+diff --git a/src/app/(auth)/register/page.tsx b/src/app/(auth)/register/page.tsx
+index 9f15cc1..a30371e 100644
+--- a/src/app/(auth)/register/page.tsx
++++ b/src/app/(auth)/register/page.tsx
+@@ -3,10 +3,12 @@
+ import { useState, useMemo, Suspense, useRef, useEffect } from 'react'
+ import { useRouter, useSearchParams } from 'next/navigation'
+ import Link from 'next/link'
+-import { auth } from '@/lib/firebase'
+-import { createUserWithEmailAndPassword, updateProfile as firebaseUpdateProfile, sendEmailVerification } from 'firebase/auth'
++import { auth, db } from '@/lib/firebase'
++import { createUserWithEmailAndPassword, updateProfile as firebaseUpdateProfile } from 'firebase/auth'
+ import { createProfile, getDataByCnpj, checkUsernameAvailability } from './actions'
+ import Logo from '@/components/Logo'
++import { doc, updateDoc } from 'firebase/firestore'
++import MFAChallenge from "@/components/MFAChallenge"
+ import { ArrowRight, AlertCircle, Eye, EyeOff, ChevronLeft, Building2, User } from 'lucide-react'
+ import { motion, AnimatePresence, type Variants } from 'framer-motion'
+ import { RegisterSchema, Step1Schema, Step2Schema, Step3Schema } from '@/lib/validations/register'
+@@ -111,6 +113,8 @@ function RegisterForm() {
+     const [username, setUsername] = useState('')
+     const [isCheckingUsername, setIsCheckingUsername] = useState(false)
+     const [usernameError, setUsernameError] = useState<string | null>(null)
++    const [isMFAStep, setIsMFAStep] = useState(false)
++    const [mfaEmail, setMfaEmail] = useState('')
+     const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+ 
+     const clearFieldError = (field: string) => {
+@@ -460,14 +464,6 @@ function RegisterForm() {
+                 throw new Error(result.error)
+             }
+ 
+-            // 2. Tentar enviar e-mail de verificação (Não bloqueante)
+-            try {
+-                await sendEmailVerification(user)
+-            } catch (verifyError: any) {
+-                console.warn('Falha ao enviar e-mail de verificação (provável limite de cota):', verifyError)
+-                // Não lançamos erro aqui para não interromper o fluxo do usuário
+-            }
+-
+             const idToken = await user.getIdToken(true)
+             const sessionRes = await fetch('/api/auth/session', {
+                 method: 'POST',
+@@ -480,13 +476,12 @@ function RegisterForm() {
+                 throw new Error('session_creation_failed')
+             }
+ 
+-            router.refresh()
++            await updateDoc(doc(db, 'profiles', user.uid), { mfaCodeRequested: false })
++            await new Promise(resolve => setTimeout(resolve, 300))
++            await updateDoc(doc(db, 'profiles', user.uid), { mfaCodeRequested: true })
+ 
+-            if (teacherData) {
+-                localStorage.removeItem('powerplay_teacher_quiz')
+-            }
+-
+-            router.push('/verify-email')
++            setMfaEmail(user.email || '')
++            setIsMFAStep(true)
+         } catch (error: any) {
+             console.error('Erro no cadastro:', error)
+             const isEmailConflict = error?.code === 'auth/email-already-in-use'
+@@ -501,6 +496,16 @@ function RegisterForm() {
+         }
+     }
+ 
++    async function handleVerifyMFA() {
++        router.refresh()
++        if (teacherData) {
++            localStorage.removeItem('powerplay_teacher_quiz')
++            router.push('/dashboard-teacher/courses')
++        } else {
++            router.push('/course')
++        }
++    }
++
+     const errorInputStyle: React.CSSProperties = {
+         border: '1.5px solid #e53e3e',
+         backgroundColor: 'rgba(229, 62, 62, 0.06)',
+@@ -564,17 +569,23 @@ function RegisterForm() {
+                         ))}
+                     </div>
+ 
+-                    {/* Form Container */}
+-                    <div className="bg-transparent p-0">
+-                        <form onSubmit={handleSubmit} className="space-y-6">
++                    {isMFAStep ? (
++                        <MFAChallenge
++                            email={mfaEmail}
++                            onVerify={handleVerifyMFA}
++                            onCancel={() => setIsMFAStep(false)}
++                        />
++                    ) : (
++                        <div className="bg-transparent p-0">
++                            <form onSubmit={handleSubmit} className="space-y-6">
+                             {/* Banner de Erro Inline */}
+                             <AnimatePresence mode="wait">
+                                 {formError && (
+                                     <motion.div
+                                         key="form-error"
+-                                        initial={{ opacity: 0, y: -8, height: 0 }}
+-                                        animate={{ opacity: 1, y: 0, height: 'auto' }}
+-                                        exit={{ opacity: 0, y: -8, height: 0 }}
++                                        initial={{ opacity: 0, y: -8, maxHeight: 0 }}
++                                        animate={{ opacity: 1, y: 0, maxHeight: 300 }}
++                                        exit={{ opacity: 0, y: -8, maxHeight: 0 }}
+                                         transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
+                                         className="overflow-hidden mb-6"
+                                     >
+@@ -1085,8 +1096,9 @@ function RegisterForm() {
+                                 </button>
+                             )}
+ 
+-                        </form>
+-                    </div>
++                            </form>
++                        </div>
++                    )}
+                 </div>
+             </div>
+         </div>
+diff --git a/src/app/(auth)/verify-email/actions.ts b/src/app/(auth)/verify-email/actions.ts
+deleted file mode 100644
+index 0c899c6..0000000
+--- a/src/app/(auth)/verify-email/actions.ts
++++ /dev/null
+@@ -1,25 +0,0 @@
+-'use server'
+-
+-import { cookies } from 'next/headers'
+-import { adminAuth } from '@/lib/firebase-admin'
+-
+-export async function refreshSession() {
+-    const cookieStore = await cookies()
+-    const token = cookieStore.get('session')?.value
+-
+-    if (!token) {
+-        return { success: false, error: 'Sessão não encontrada' }
+-    }
+-
+-    try {
+-        const decodedToken = await adminAuth.verifySessionCookie(token, true)
+-        
+-        return {
+-            success: true,
+-            emailVerified: decodedToken.emailVerified
+-        }
+-    } catch (error) {
+-        console.error('refreshSession error:', error)
+-        return { success: false, error: 'Erro ao atualizar sessão' }
+-    }
+-}
+\ No newline at end of file
+diff --git a/src/app/(auth)/verify-email/page.tsx b/src/app/(auth)/verify-email/page.tsx
+deleted file mode 100644
+index 3ca2fc3..0000000
+--- a/src/app/(auth)/verify-email/page.tsx
++++ /dev/null
+@@ -1,211 +0,0 @@
+-"use client"
+-
+-import { useState } from "react"
+-import Link from "next/link"
+-import { useRouter } from "next/navigation"
+-import { Button } from "@/components/ui/button"
+-import { ArrowLeft, Mail, Loader2, CheckCircle2, RefreshCw } from "lucide-react"
+-import { auth, db } from "@/lib/firebase"
+-import { reload, sendEmailVerification } from "firebase/auth"
+-import { doc, getDoc, updateDoc } from "firebase/firestore"
+-import { toast } from "sonner"
+-import MFAChallenge from "@/components/MFAChallenge"
+-import { checkMfaTrusted } from "@/app/actions/mfa"
+-
+-export default function VerifyEmailPage() {
+-    const router = useRouter()
+-    const [loading, setLoading] = useState(false)
+-    const [checking, setChecking] = useState(false)
+-    const [emailSent, setEmailSent] = useState(false)
+-    const [isMFAStep, setIsMFAStep] = useState(false)
+-    const [mfaEmail, setMfaEmail] = useState("")
+-
+-    const handleResend = async () => {
+-        setLoading(true)
+-        try {
+-            if (!auth.currentUser) {
+-                toast.error("Sessão não encontrada. Faça login novamente.")
+-                return
+-            }
+-            await sendEmailVerification(auth.currentUser)
+-            setEmailSent(true)
+-            toast.success("E-mail de verificação reenviado! Verifique sua caixa de entrada.")
+-        } catch (error: any) {
+-            console.error(error)
+-            const isQuotaExceeded = error?.message?.includes('-26') || error?.code === 'auth/quota-exceeded';
+-            
+-            if (isQuotaExceeded) {
+-                toast.error("Limite de e-mails atingido para hoje. Tente novamente amanhã ou entre em contato com o suporte.")
+-            } else {
+-                toast.error("Erro ao enviar e-mail. Tente novamente em alguns minutos.")
+-            }
+-        } finally {
+-            setLoading(false)
+-        }
+-    }
+-
+-    const handleCheckVerification = async () => {
+-        if (!auth.currentUser) {
+-            toast.error("Sessão não encontrada. Faça login novamente.")
+-            router.push('/login')
+-            return
+-        }
+-
+-        setChecking(true)
+-        
+-        try {
+-            await reload(auth.currentUser)
+-            
+-            if (auth.currentUser.emailVerified) {
+-                // 1. Buscar Perfil para verificar MFA e Role
+-                const profileRef = doc(db, 'profiles', auth.currentUser.uid);
+-                const profileDoc = await getDoc(profileRef);
+-                const profileData = profileDoc.data();
+-
+-                // 2. Verificar se MFA é necessário
+-                if (profileData?.mfaEnabled) {
+-                    // Verificar se o dispositivo já é confiável (vinculado ao e-mail)
+-                    const isTrusted = await checkMfaTrusted(auth.currentUser.email || '')
+-                    if (isTrusted) {
+-                        console.log("[VerifyEmail] Dispositivo confiável. Pulando MFA...");
+-                        await finalizeSessionAndRedirect(profileData);
+-                        return;
+-                    }
+-
+-                    console.log("[VerifyEmail] MFA Habilitado. Iniciando desafio...");
+-                    
+-                    // Resetar gatilho e ativar
+-                    await updateDoc(profileRef, { mfaCodeRequested: false });
+-                    await new Promise(resolve => setTimeout(resolve, 300));
+-                    await updateDoc(profileRef, { mfaCodeRequested: true });
+-
+-                    setMfaEmail(auth.currentUser.email || "");
+-                    setIsMFAStep(true);
+-                    return;
+-                }
+-
+-                // 3. Se não houver MFA, atualizar sessão e redirecionar
+-                await finalizeSessionAndRedirect(profileData);
+-            } else {
+-                toast.error("E-mail ainda não verificado. Clique no link enviado para seu e-mail.")
+-            }
+-        } catch (error) {
+-            console.error("Erro ao verificar:", error)
+-            toast.error("Erro ao verificar. Tente novamente.")
+-        } finally {
+-            setChecking(false)
+-        }
+-    }
+-    const finalizeSessionAndRedirect = async (profileData: any) => {
+-        if (!auth.currentUser) return;
+-
+-        try {
+-            // Sincronizar cookie de sessão com o estado de email_verified: true
+-            const idToken = await auth.currentUser.getIdToken(true);
+-            const sessionRes = await fetch("/api/auth/session", {
+-                method: "POST",
+-                headers: { "Content-Type": "application/json" },
+-                body: JSON.stringify({ idToken }),
+-                credentials: 'include',
+-            });
+-
+-            if (!sessionRes.ok) {
+-                throw new Error("Falha ao sincronizar sessão servidor.");
+-            }
+-
+-            router.refresh();
+-            
+-            // Redirecionamento baseado no papel (role)
+-            if (profileData?.role === 'teacher' || profileData?.role === 'admin') {
+-                router.push('/dashboard-teacher/courses');
+-            } else {
+-                router.push('/dashboard-student');
+-            }
+-        } catch (error) {
+-            console.error("Erro ao finalizar sessão:", error);
+-            toast.error("Erro ao sincronizar acesso. Tente entrar novamente.");
+-        }
+-    }
+-
+-    const onVerifyMFA = async () => {
+-        // Callback quando o MFAChallenge finaliza com sucesso
+-        const user = auth.currentUser;
+-        if (!user) return;
+-        
+-        const profileRef = doc(db, 'profiles', user.uid);
+-        const profileDoc = await getDoc(profileRef);
+-        await finalizeSessionAndRedirect(profileDoc.data());
+-    }
+-
+-    if (isMFAStep) {
+-        return (
+-            <div className="min-h-screen bg-[var(--background-color)] flex items-center justify-center px-6">
+-                <MFAChallenge 
+-                    email={mfaEmail}
+-                    onVerify={onVerifyMFA}
+-                    onCancel={() => setIsMFAStep(false)}
+-                />
+-            </div>
+-        )
+-    }
+-
+-    return (
+-        <div className="min-h-screen bg-transparent flex items-center justify-center px-6 font-montserrat">
+-            <div className="w-full max-w-xl bg-[#061629] p-12 md:p-16 border-2 border-[#1D5F31] rounded-2xl relative overflow-hidden">
+-                <div className="text-center space-y-6 relative z-10">
+-                    <div className="inline-flex p-5 bg-[#061629] text-[#1D5F31] border-2 border-[#1D5F31] rounded-2xl mb-4">
+-                        <Mail size={40} strokeWidth={2.5} />
+-                    </div>
+-                    <h2 className="text-4xl font-bold text-white tracking-tighter uppercase leading-none">
+-                        VERIFICAR <span className="text-[#1D5F31]">E-MAIL</span>
+-                    </h2>
+-                    <p className="text-slate-400 text-xs font-bold uppercase tracking-[2px] max-w-sm mx-auto">
+-                        Enviamos um link de confirmação para seu e-mail. Acesse sua caixa de entrada e clique no link.
+-                    </p>
+-                </div>
+-
+-                <div className="space-y-6 mt-12 relative z-10">
+-                    <Button
+-                        onClick={handleResend}
+-                        disabled={loading}
+-                        variant="outline"
+-                        className="w-full border-2 border-[#1D5F31] text-[#1D5F31] hover:bg-[#1D5F31] hover:text-white font-bold uppercase tracking-[4px] h-14 rounded-xl transition-all flex items-center justify-center gap-3"
+-                    >
+-                        {loading ? (
+-                            <Loader2 className="animate-spin" />
+-                        ) : (
+-                            <>
+-                                <RefreshCw size={18} />
+-                                REENVIAR E-MAIL
+-                            </>
+-                        )}
+-                    </Button>
+-
+-                    <Button
+-                        onClick={handleCheckVerification}
+-                        disabled={checking}
+-                        className="w-full bg-[#1D5F31] hover:bg-[#00e602] text-white font-bold uppercase tracking-[4px] h-14 rounded-xl transition-all flex items-center justify-center gap-3"
+-                    >
+-                        {checking ? (
+-                            <>
+-                                <Loader2 className="animate-spin" />
+-                                VERIFICANDO...
+-                            </>
+-                        ) : (
+-                            <>
+-                                <CheckCircle2 size={18} />
+-                                JÁ VERIFIQUEI MEU E-MAIL
+-                            </>
+-                        )}
+-                    </Button>
+-                </div>
+-
+-                <div className="text-center mt-12 pt-8 border-t border-[#1D5F31]">
+-                    <Link href="/login" className="inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[4px] text-slate-500 hover:text-white transition-colors">
+-                        <ArrowLeft size={16} /> VOLTAR PARA O LOGIN
+-                    </Link>
+-                </div>
+-            </div>
+-        </div>
+-    )
+-}
+\ No newline at end of file
+diff --git a/src/app/(public)/layout.tsx b/src/app/(public)/layout.tsx
+index 64a5e62..7e04de2 100644
+--- a/src/app/(public)/layout.tsx
++++ b/src/app/(public)/layout.tsx
+@@ -28,7 +28,7 @@ export default function PublicLayout({
+       </main>
+       <footer className="w-full border-t border-slate-100 bg-slate-50 mt-auto">
+          <div className="max-w-4xl mx-auto px-6 py-8 text-center">
+-             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">© {new Date().getFullYear()} POWERPLAY. TODOS OS DIREITOS RESERVADOS.</p>
++             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">© {new Date().getFullYear()} POWERPLAY – VoltsMind Holding. Todos os direitos reservados.</p>
+          </div>
+       </footer>
+     </div>
+diff --git a/src/app/admin/all-courses/components/AllCoursesClient.tsx b/src/app/admin/all-courses/components/AllCoursesClient.tsx
+index f76c98b..181d3eb 100644
+--- a/src/app/admin/all-courses/components/AllCoursesClient.tsx
++++ b/src/app/admin/all-courses/components/AllCoursesClient.tsx
+@@ -379,7 +379,7 @@ export default function AllCoursesClient({ courses, teachers }: AllCoursesClient
+                         value={newCategoria}
+                         onChange={(e) => setNewCategoria(e.target.value)}
+                         onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddCategoria() } }}
+-                        className="flex-1 max-w-xs px-4 py-2 bg-white border-2 border-slate-200 rounded-lg text-xs font-medium uppercase focus:border-[#1D5F31] focus:ring-2 focus:ring-green-700/20 focus:outline-none transition-colors"
++                        className="flex-1 max-w-xs px-4 py-2 bg-[#F5F5F7] border-2 border-slate-200 rounded-lg text-xs font-medium uppercase focus:border-[#1D5F31] focus:ring-2 focus:ring-green-700/20 focus:outline-none transition-colors"
+                     />
+                     <button
+                         onClick={handleAddCategoria}
+@@ -961,7 +961,7 @@ export default function AllCoursesClient({ courses, teachers }: AllCoursesClient
+                                         value={rejectReason}
+                                         onChange={e => setRejectReason(e.target.value)}
+                                         placeholder="Descreva o motivo da rejeição para o professor..."
+-                                        className="w-full bg-white border border-slate-300 rounded-lg px-4 py-3 text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none resize-none min-h-[80px]"
++                                        className="w-full bg-[#F5F5F7] border border-slate-300 rounded-lg px-4 py-3 text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none resize-none min-h-[80px]"
+                                     />
+                                     <button
+                                         onClick={() => handleRejectTrailer(auditCourse.id)}
+diff --git a/src/app/admin/approvals/components/CourseApprovalList.tsx b/src/app/admin/approvals/components/CourseApprovalList.tsx
+index 76a2b20..2bd177a 100644
+--- a/src/app/admin/approvals/components/CourseApprovalList.tsx
++++ b/src/app/admin/approvals/components/CourseApprovalList.tsx
+@@ -110,7 +110,7 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
+                                 />
+                             ) : (
+                                 <div className="scale-75 origin-center">
+-                                    <Logo light />
++                                    <Logo light href={null} />
+                                 </div>
+                             )}
+                             <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent pointer-events-none" />
+@@ -187,7 +187,7 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
+                                     ) : (
+                                         <div className="flex flex-col items-center gap-6 text-white text-center px-10">
+                                             <div className="scale-125 origin-center mb-4">
+-                                                <Logo />
++                                                <Logo href={null} />
+                                             </div>
+                                             <p className="text-[10px] font-bold uppercase tracking-wider text-white/60">NENHUM VÍDEO DISPONÍVEL PARA AUDITORIA</p>
+                                         </div>
+@@ -196,7 +196,7 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
+                             </div>
+ 
+                             {/* Moderation Column */}
+-                            <div className="w-full lg:w-[450px] flex flex-col bg-white">
++                            <div className="w-full lg:w-[450px] flex flex-col bg-[#F5F5F7]">
+                                 <div className="flex-1 overflow-y-auto custom-scrollbar p-10 lg:p-12 pb-0">
+                                     <div className="mb-8">
+                                         <div className="flex items-center gap-2 mb-4">
+diff --git a/src/app/admin/approvals/components/DeletionApprovalList.tsx b/src/app/admin/approvals/components/DeletionApprovalList.tsx
+index c0f438d..0dbdf8b 100644
+--- a/src/app/admin/approvals/components/DeletionApprovalList.tsx
++++ b/src/app/admin/approvals/components/DeletionApprovalList.tsx
+@@ -185,7 +185,7 @@ export default function DeletionApprovalList({ pendingCourses, pendingLessons, t
+                                         />
+                                     ) : (
+                                         <div className="scale-75 origin-center">
+-                                            <Logo light />
++                                            <Logo light href={null} />
+                                         </div>
+                                     )}
+                                     <div className="absolute inset-0 bg-gradient-to-t from-red-900/30 to-transparent pointer-events-none" />
+@@ -223,7 +223,7 @@ export default function DeletionApprovalList({ pendingCourses, pendingLessons, t
+                                         <button
+                                             onClick={() => handleRejectCourse(course.id)}
+                                             disabled={loadingId === course.id && loadingType === 'course'}
+-                                            className="flex-1 py-3 bg-white border border-green-600 text-green-700 text-[9px] font-bold uppercase tracking-wider hover:bg-green-50 transition-all duration-300 rounded-lg shadow-sm active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
++                                            className="flex-1 py-3 bg-[#F5F5F7] border border-green-600 text-green-700 text-[9px] font-bold uppercase tracking-wider hover:bg-green-50 transition-all duration-300 rounded-lg shadow-sm active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                                         >
+                                             {loadingId === course.id && loadingType === 'course' ? (
+                                                 <Loader2 size={14} className="animate-spin" />
+@@ -274,7 +274,7 @@ export default function DeletionApprovalList({ pendingCourses, pendingLessons, t
+                                         />
+                                     ) : (
+                                         <div className="scale-75 origin-center">
+-                                            <Logo light />
++                                            <Logo light href={null} />
+                                         </div>
+                                     )}
+                                     <div className="absolute inset-0 bg-black/20 group-hover/video:bg-black/40 transition-colors duration-300 pointer-events-none" />
+@@ -318,7 +318,7 @@ export default function DeletionApprovalList({ pendingCourses, pendingLessons, t
+                                         <button
+                                             onClick={() => handleRejectLesson(lesson.id)}
+                                             disabled={loadingId === lesson.id && loadingType === 'lesson'}
+-                                            className="flex-1 py-3 bg-white border border-green-600 text-green-700 text-[9px] font-bold uppercase tracking-wider hover:bg-green-50 transition-all duration-300 rounded-lg shadow-sm active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
++                                            className="flex-1 py-3 bg-[#F5F5F7] border border-green-600 text-green-700 text-[9px] font-bold uppercase tracking-wider hover:bg-green-50 transition-all duration-300 rounded-lg shadow-sm active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                                         >
+                                             {loadingId === lesson.id && loadingType === 'lesson' ? (
+                                                 <Loader2 size={14} className="animate-spin" />
+diff --git a/src/app/admin/approvals/components/LessonApprovalList.tsx b/src/app/admin/approvals/components/LessonApprovalList.tsx
+index a4b0d5a..8438754 100644
+--- a/src/app/admin/approvals/components/LessonApprovalList.tsx
++++ b/src/app/admin/approvals/components/LessonApprovalList.tsx
+@@ -183,7 +183,7 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
+ 
+                                 <div className="flex-1 flex items-center justify-center bg-slate-900 p-0 relative group overflow-y-auto" key={reviewingLesson.id}>
+                                     {reviewingLesson.type === 'quiz' && reviewingLesson.quizData?.questions ? (
+-                                        <div className="w-full h-full p-8 overflow-y-auto bg-white">
++                                        <div className="w-full h-full p-8 overflow-y-auto bg-[#F5F5F7]">
+                                             <div className="max-w-2xl mx-auto space-y-6">
+                                                 <h3 className="text-xl font-bold uppercase tracking-tighter !text-[#000000] mb-6">
+                                                     {reviewingLesson.quizData.title || reviewingLesson.title}
+@@ -243,7 +243,7 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
+                             </div>
+ 
+                             {/* Moderation Column */}
+-                            <div className="w-full lg:w-[450px] p-10 lg:p-12 flex flex-col bg-white overflow-y-auto custom-scrollbar">
++                            <div className="w-full lg:w-[450px] p-10 lg:p-12 flex flex-col bg-[#F5F5F7] overflow-y-auto custom-scrollbar">
+                                 <div className="mb-10">
+                                     <div className="flex items-center gap-2 mb-4">
+                                         <div className="w-1 h-1 rounded-full bg-[#1D5F31]"></div>
+diff --git a/src/app/admin/approvals/page.tsx b/src/app/admin/approvals/page.tsx
+index 3221967..6880444 100644
+--- a/src/app/admin/approvals/page.tsx
++++ b/src/app/admin/approvals/page.tsx
+@@ -18,7 +18,7 @@ export default async function ApprovalsPage() {
+     const lessonsInActiveCourses = pendingLessons
+ 
+     return (
+-        <div className="flex flex-col animate-in fadeIn duration-700 font-montserrat bg-white min-h-screen">
++        <div className="flex flex-col animate-in fadeIn duration-700 font-montserrat bg-[#F5F5F7] min-h-screen">
+             {/* Header Clean e Profissional */}
+             <header className="w-full pt-12 pb-10 px-6 border-b border-black/20">
+                 <div className="max-w-6xl mx-auto flex flex-col items-start text-left">
+diff --git a/src/app/admin/dashboard/components/FinancialTable.tsx b/src/app/admin/dashboard/components/FinancialTable.tsx
+index 30ac258..4adac92 100644
+--- a/src/app/admin/dashboard/components/FinancialTable.tsx
++++ b/src/app/admin/dashboard/components/FinancialTable.tsx
+@@ -68,7 +68,7 @@ export function FinancialTable({ payments }: FinancialTableProps) {
+ 
+     return (
+         <>
+-            <div className="bg-white p-10 rounded-[32px] border border-black/20">
++            <div className="bg-[#FAFAFA] p-10 rounded-[32px] border border-black/20">
+                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+                     <h2 className="text-xl font-bold uppercase tracking-tighter !text-[#000000]">Histórico de Pagamentos</h2>
+                     <div className="flex items-center gap-4">
+diff --git a/src/app/admin/dashboard/page.tsx b/src/app/admin/dashboard/page.tsx
+index 3faeceb..11671b7 100644
+--- a/src/app/admin/dashboard/page.tsx
++++ b/src/app/admin/dashboard/page.tsx
+@@ -24,7 +24,7 @@ export default async function AdminDashboardPage() {
+     ]
+ 
+     return (
+-        <div className="min-h-screen bg-white space-y-12 animate-in fade-in duration-700 font-montserrat p-8 md:p-12">
++        <div className="min-h-screen bg-[#F5F5F7] space-y-12 animate-in fade-in duration-700 font-montserrat p-8 md:p-12">
+             {/* Header com Textos em Preto Puro */}
+             <header className="relative z-10">
+                 <div className="flex items-center gap-3 mb-2">
+@@ -41,7 +41,7 @@ export default async function AdminDashboardPage() {
+             {/* Metrics Grid com Contornos Definidos */}
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                 {metrics.map((m, i) => (
+-                    <div key={i} className="bg-white p-10 rounded-[24px] border border-black/20 hover:border-black/50 transition-all group">
++                    <div key={i} className="bg-white p-10 rounded-[24px] border border-black/20 hover:border-black/50 transition-all group shadow-sm">
+                         <div className="flex justify-between items-start mb-8">
+                             <div className={`p-5 bg-slate-50 rounded-2xl border border-black/20 ${m.color} group-hover:scale-105 transition-transform`}>
+                                 <m.icon size={28} strokeWidth={2.5} />
+@@ -66,7 +66,7 @@ export default async function AdminDashboardPage() {
+ 
+                 {/* Sidebar com Contornos e Textos Pretos */}
+                 <div className="space-y-10">
+-                    <div className="bg-white p-10 rounded-[32px] border border-black/20">
++                    <div className="bg-[#FAFAFA] p-10 rounded-[32px] border border-black/20">
+                         <div className="flex items-center gap-4 mb-10">
+                             <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center border border-black/20">
+                                 <TrendingUp className="text-[#1D5F31]" size={20} strokeWidth={2.5} />
+diff --git a/src/app/admin/dev-mode/page.tsx b/src/app/admin/dev-mode/page.tsx
+index e1be5ee..5e70865 100644
+--- a/src/app/admin/dev-mode/page.tsx
++++ b/src/app/admin/dev-mode/page.tsx
+@@ -51,7 +51,7 @@ export default async function DevModePage() {
+         </p>
+       </header>
+ 
+-      <div className="border-2 border-slate-200 bg-white">
++      <div className="border border-slate-200 bg-white rounded-2xl shadow-sm">
+         <div className="border-b border-slate-200 px-6 py-4 flex items-center gap-3">
+           <Monitor size={18} style={{ color: '#1D5F31' }} />
+           <span className="text-xs font-bold uppercase tracking-widest text-slate-800">
+@@ -69,7 +69,7 @@ export default async function DevModePage() {
+                 target={link.href ? '_blank' : undefined}
+                 rel={link.href ? 'noopener noreferrer' : undefined}
+                 className={`flex items-center gap-4 px-6 py-5 transition-colors group ${
+-                  isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-50'
++                  isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-50'
+                 }`}
+                 onClick={isDisabled ? (e) => e.preventDefault() : undefined}
+               >
+@@ -103,8 +103,8 @@ export default async function DevModePage() {
+         </div>
+       </div>
+ 
+-      <div className="border-2 border-amber-200 bg-amber-50 px-6 py-4">
+-        <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700">
++      <div className="border border-yellow-200 bg-amber-50 px-6 py-4 rounded-xl">
++        <p className="text-[10px] font-bold uppercase tracking-wider text-yellow-800">
+           Acesso somente visual. Nenhuma permissão ou função de usuário é alterada.
+         </p>
+       </div>
+diff --git a/src/app/admin/layout.tsx b/src/app/admin/layout.tsx
+index 0b47007..8ce124b 100644
+--- a/src/app/admin/layout.tsx
++++ b/src/app/admin/layout.tsx
+@@ -15,14 +15,10 @@ export default async function AdminLayout({
+         redirect('/dashboard-student')
+     }
+ 
+-    if (!user.emailVerified) {
+-        redirect('/verify-email')
+-    }
+-
+     return (
+         <AuthProvider>
+-            <div className="min-h-screen relative overflow-hidden text-slate-900" style={{ background: '#ffffff' }}>
+-                <div className="fixed inset-0 bg-white -z-10" />
++            <div className="min-h-screen relative overflow-hidden text-slate-900" style={{ background: '#F5F5F7' }}>
++                <div className="fixed inset-0 bg-[#F5F5F7] -z-10" />
+                 <AdminSidebar />
+ 
+                 <AdminMainWrapper>
+diff --git a/src/app/admin/management/ManagementClient.tsx b/src/app/admin/management/ManagementClient.tsx
+index a9654a6..5394362 100644
+--- a/src/app/admin/management/ManagementClient.tsx
++++ b/src/app/admin/management/ManagementClient.tsx
+@@ -103,7 +103,7 @@ export default function ManagementClient({ initialAdmins }: ManagementClientProp
+                         {admins.map((admin) => (
+                             <div key={admin.id} className="space-y-3">
+                                 <div 
+-                                    className="group border border-slate-100 p-4 rounded-xl hover:border-[#1D5F31] hover:bg-[#1D5F31]/5 transition-all flex items-center justify-between bg-slate-50/50"
++                                    className="group border border-slate-100 p-4 rounded-xl hover:border-[#1D5F31] hover:bg-[#1D5F31]/5 transition-colors flex items-center justify-between bg-slate-50/50"
+                                 >
+                                     <div className="flex items-center gap-4">
+                                         <div className="w-10 h-10 bg-[#1D5F31]/10 flex items-center justify-center text-[#1D5F31] rounded-lg font-black text-sm">
+@@ -136,9 +136,9 @@ export default function ManagementClient({ initialAdmins }: ManagementClientProp
+                                 <AnimatePresence>
+                                     {updatingPasswordId === admin.id && (
+                                         <motion.div
+-                                            initial={{ height: 0, opacity: 0 }}
+-                                            animate={{ height: 'auto', opacity: 1 }}
+-                                            exit={{ height: 0, opacity: 0 }}
++                                            initial={{ maxHeight: 0, opacity: 0 }}
++                                            animate={{ maxHeight: 300, opacity: 1 }}
++                                            exit={{ maxHeight: 0, opacity: 0 }}
+                                             className="overflow-hidden"
+                                         >
+                                             <div className="p-6 bg-slate-100 rounded-xl border-2 border-[#1D5F31] flex items-center gap-4">
+@@ -149,13 +149,13 @@ export default function ManagementClient({ initialAdmins }: ManagementClientProp
+                                                         placeholder="NOVA SENHA DO OPERADOR"
+                                                         value={newAdminPassword}
+                                                         onChange={(e) => setNewAdminPassword(e.target.value)}
+-                                                        className="w-full bg-white border border-slate-200 rounded-lg p-3 pl-10 text-black text-[10px] font-black uppercase tracking-wider focus:border-[#1D5F31] focus:outline-none transition-all placeholder:text-black/40"
++                                                        className="w-full bg-white border border-slate-200 rounded-lg p-3 pl-10 text-black text-[10px] font-black uppercase tracking-wider focus:border-[#1D5F31] focus:outline-none transition-colors placeholder:text-black/40"
+                                                     />
+                                                 </div>
+                                                 <button
+                                                     onClick={() => handleUpdatePassword(admin.id)}
+                                                     disabled={isUpdating}
+-                                                    className="bg-[#1D5F31] text-white px-6 py-3 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all disabled:opacity-50"
++                                                    className="bg-[#1D5F31] text-white px-6 py-3 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-black transition-colors disabled:opacity-50"
+                                                 >
+                                                     {isUpdating ? <Loader2 className="animate-spin" size={14} /> : 'Salvar'}
+                                                 </button>
+@@ -201,7 +201,7 @@ export default function ManagementClient({ initialAdmins }: ManagementClientProp
+                                         placeholder="EX: JOÃO DA SILVA"
+                                         value={fullName}
+                                         onChange={(e) => setFullName(e.target.value.toUpperCase())}
+-                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 pl-12 text-black text-xs font-bold uppercase tracking-wider focus:border-[#1D5F31] focus:bg-white focus:outline-none transition-all placeholder:text-black/40"
++                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 pl-12 text-black text-xs font-bold uppercase tracking-wider focus:border-[#1D5F31] focus:bg-white focus:outline-none transition-colors placeholder:text-black/40"
+                                     />
+                                 </div>
+                             </div>
+@@ -218,7 +218,7 @@ export default function ManagementClient({ initialAdmins }: ManagementClientProp
+                                         placeholder="EX: ADMIN@GPECX.COM"
+                                         value={email}
+                                         onChange={(e) => setEmail(e.target.value)}
+-                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 pl-12 text-slate-900 text-xs font-bold tracking-wider focus:border-[#1D5F31] focus:bg-white focus:outline-none transition-all"
++                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 pl-12 text-slate-900 text-xs font-bold tracking-wider focus:border-[#1D5F31] focus:bg-white focus:outline-none transition-colors"
+                                     />
+                                 </div>
+                             </div>
+@@ -235,7 +235,7 @@ export default function ManagementClient({ initialAdmins }: ManagementClientProp
+                                         placeholder="MÍN. 8 CARACTERES (LETRAS E NÚMEROS)"
+                                         value={password}
+                                         onChange={(e) => setPassword(e.target.value)}
+-                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 pl-12 text-slate-900 text-xs font-bold tracking-wider focus:border-[#1D5F31] focus:bg-white focus:outline-none transition-all"
++                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 pl-12 text-slate-900 text-xs font-bold tracking-wider focus:border-[#1D5F31] focus:bg-white focus:outline-none transition-colors"
+                                     />
+                                 </div>
+                             </div>
+@@ -243,7 +243,7 @@ export default function ManagementClient({ initialAdmins }: ManagementClientProp
+                             <button
+                                 type="submit"
+                                 disabled={loading}
+-                                className="w-full bg-[#1D5F31] hover:bg-[#257a3f] text-white py-5 rounded-xl font-black text-xs uppercase tracking-[0.3em] transition-all shadow-lg shadow-[#1D5F31]/20 flex items-center justify-center gap-3 disabled:opacity-50 group"
++                                className="w-full bg-[#1D5F31] hover:bg-[#257a3f] text-white py-5 rounded-xl font-black text-xs uppercase tracking-[0.3em] transition-colors shadow-lg shadow-[#1D5F31]/20 flex items-center justify-center gap-3 disabled:opacity-50 group"
+                             >
+                                 {loading ? (
+                                     <Loader2 className="animate-spin" size={18} />
+diff --git a/src/app/admin/quizzes/components/AdminQuizManagement.tsx b/src/app/admin/quizzes/components/AdminQuizManagement.tsx
+index 7ad1681..127fbbd 100644
+--- a/src/app/admin/quizzes/components/AdminQuizManagement.tsx
++++ b/src/app/admin/quizzes/components/AdminQuizManagement.tsx
+@@ -133,7 +133,7 @@ export default function AdminQuizManagement() {
+                 initial={{ opacity: 0, x: -20 }}
+                 animate={{ opacity: 1, x: 0 }}
+                 exit={{ opacity: 0, scale: 0.95 }}
+-                className="bg-white border border-slate-200 p-6 rounded-none flex flex-col md:flex-row items-center justify-between gap-6 group hover:border-[#1D5F31] transition-all"
++                className="bg-[#FAFAFA] border border-slate-200 p-6 rounded-none flex flex-col md:flex-row items-center justify-between gap-6 group hover:border-[#1D5F31] transition-all"
+               >
+                 <div className="flex items-center gap-6 flex-1">
+                   <div className={cn(
+@@ -218,7 +218,7 @@ export default function AdminQuizManagement() {
+               {/* Modal Content */}
+               <div className="p-8 overflow-y-auto space-y-8 bg-slate-50">
+                 {selectedQuiz.questions.map((q, idx) => (
+-                  <div key={q.id} className="bg-white p-6 border border-slate-200">
++                  <div key={q.id} className="bg-[#FAFAFA] p-6 border border-slate-200">
+                     <div className="flex gap-4 mb-4">
+                       <span className="w-8 h-8 shrink-0 bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
+                         {idx + 1}
+@@ -246,7 +246,7 @@ export default function AdminQuizManagement() {
+               </div>
+ 
+               {/* Modal Footer */}
+-              <div className="p-6 bg-white border-t border-slate-200 flex justify-end gap-4">
++              <div className="p-6 bg-[#FAFAFA] border-t border-slate-200 flex justify-end gap-4">
+                 <button
+                   onClick={() => setSelectedQuiz(null)}
+                   className="px-8 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50 transition-all border border-slate-200"
+diff --git a/src/app/admin/sales/components/SalesLogList.tsx b/src/app/admin/sales/components/SalesLogList.tsx
+index 70ea7c5..feb29b9 100644
+--- a/src/app/admin/sales/components/SalesLogList.tsx
++++ b/src/app/admin/sales/components/SalesLogList.tsx
+@@ -143,7 +143,7 @@ export default function SalesLogList({ initialSales, teachers }: SalesLogListPro
+                 </div>
+ 
+                 {sales.length === 0 && (
+-                    <div className="flex flex-col items-center justify-center py-24 bg-white">
++                    <div className="flex flex-col items-center justify-center py-24 bg-[#F5F5F7]">
+                         <div className="w-16 h-16 bg-black/5 rounded-full flex items-center justify-center mb-6 border border-black/10">
+                             <Search size={32} className="text-slate-200" />
+                         </div>
+diff --git a/src/app/admin/settings/page.tsx b/src/app/admin/settings/page.tsx
+index f81c177..bfe0b47 100644
+--- a/src/app/admin/settings/page.tsx
++++ b/src/app/admin/settings/page.tsx
+@@ -402,7 +402,7 @@ export default function AdminSettingsPage() {
+                                             {...getRootProps()}
+                                             className={`
+                                                 border-2 border-dashed rounded-xl p-8 transition-all cursor-pointer flex flex-col items-center justify-center gap-4 text-center min-h-[160px]
+-                                                ${isDragActive ? 'border-black bg-[#1D5F31]/5' : 'border-black border-dashed hover:border-black/50 bg-slate-50/50 hover:bg-white shadow-inner hover:shadow-md'}
++                                                ${isDragActive ? 'border-black bg-[#1D5F31]/5' : 'border-black border-dashed hover:border-black/50 bg-slate-50/50 hover:bg-[#F5F5F7] shadow-inner hover:shadow-md'}
+                                             `}
+                                         >
+                                             <input {...getInputProps()} />
+diff --git a/src/app/admin/students/components/StudentManagement.tsx b/src/app/admin/students/components/StudentManagement.tsx
+index 3640d45..4796130 100644
+--- a/src/app/admin/students/components/StudentManagement.tsx
++++ b/src/app/admin/students/components/StudentManagement.tsx
+@@ -157,12 +157,12 @@ export default function StudentManagement() {
+         }
+     }
+ 
+-    const currentStudents = studentsByTab[activeTab]
+-    const filteredStudents = currentStudents.filter(s =>
++    const currentStudents = useMemo(() => studentsByTab[activeTab], [studentsByTab, activeTab])
++    const filteredStudents = useMemo(() => currentStudents.filter(s =>
+         s.full_name && normalizeString(s.full_name).includes(normalizeString(searchTerm)) ||
+         s.email && normalizeString(s.email).includes(normalizeString(searchTerm)) ||
+         activeTab === 'cnpj' && s.razao_social && normalizeString(s.razao_social).includes(normalizeString(searchTerm))
+-    )
++    ), [currentStudents, searchTerm, activeTab])
+ 
+     return (
+         <div className="space-y-6 font-montserrat">
+diff --git a/src/app/admin/teachers/components/TeacherManagement.tsx b/src/app/admin/teachers/components/TeacherManagement.tsx
+index 5a6f806..dccb963 100644
+--- a/src/app/admin/teachers/components/TeacherManagement.tsx
++++ b/src/app/admin/teachers/components/TeacherManagement.tsx
+@@ -422,7 +422,7 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
+                 </div>
+             </div>
+ 
+-            <div className="bg-white p-8 rounded-2xl border border-slate-300 shadow-sm flex flex-col min-h-[600px]">
++            <div className="bg-[#F5F5F7] p-8 rounded-2xl border border-slate-300 shadow-sm flex flex-col min-h-[600px]">
+                 <div className="flex items-center gap-4 mb-10 border-b border-slate-200 pb-6">
+                     <div className="w-12 h-12 rounded-xl bg-[#1D5F31] flex items-center justify-center shadow-lg">
+                         <Users className="text-white" size={24} strokeWidth={2} />
+diff --git a/src/app/globals.css b/src/app/globals.css
+index 9926aac..c0b3501 100644
+--- a/src/app/globals.css
++++ b/src/app/globals.css
+@@ -7,10 +7,22 @@
+ }
+ 
+ @keyframes spinGlow {
+-  to { --angle: 360deg; }
++  to {
++    --angle: 360deg;
++  }
+ }
+ 
+ :root {
++  /* === LIGHT THEME VARIABLES === */
++  --color-bg-primary: #F5F5F7;
++  /* fundo principal de páginas */
++  --color-bg-secondary: #FAFAFA;
++  /* sidebars e painéis secundários */
++  --color-bg-card: #FFFFFF;
++  /* cards, modais — único lugar com branco puro */
++  --color-bg-section: #F0F0F2;
++  /* seções alternadas */
++
+   /* === IDENTIDADE: Deep Premium === */
+   --background-color: #061629;
+   --accent-green: #1D5F31;
+@@ -43,6 +55,29 @@
+ }
+ 
+ 
++html {
++  scroll-behavior: smooth;
++  overflow-x: hidden;
++  overscroll-behavior-x: none;
++}
++
++*,
++*::before,
++*::after {
++  -webkit-overflow-scrolling: touch;
++}
++
++/* Containers com scroll próprio — scroll suave + overscroll isolado */
++main,
++[class*="overflow-y-auto"],
++[class*="overflow-y-scroll"],
++.content-area,
++.page-wrapper {
++  scroll-behavior: smooth;
++  -webkit-overflow-scrolling: touch;
++  overscroll-behavior: contain;
++}
++
+ html,
+ body {
+   font-family: var(--font-montserrat);
+@@ -52,27 +87,28 @@ body {
+   margin: 0;
+   background: var(--global-bg-gradient);
+   color: var(--foreground);
++  overscroll-behavior-y: none;
+ }
+ 
+ /* White Clean Theme Utility */
+ .theme-clean-white {
+-  background: #FFFFFF !important;
++  background: var(--color-bg-primary) !important;
+   color: #000000;
+   position: relative;
+   z-index: 10;
+ }
+ 
+-.theme-clean-white h1, 
+-.theme-clean-white h2, 
+-.theme-clean-white h3, 
+-.theme-clean-white h4, 
+-.theme-clean-white h5, 
++.theme-clean-white h1,
++.theme-clean-white h2,
++.theme-clean-white h3,
++.theme-clean-white h4,
++.theme-clean-white h5,
+ .theme-clean-white h6 {
+   color: #000000 !important;
+ }
+ 
+-.theme-clean-white p, 
+-.theme-clean-white span:not(.no-theme-override), 
++.theme-clean-white p,
++.theme-clean-white span:not(.no-theme-override),
+ .theme-clean-white div:not(.no-theme-override) {
+   color: #000000 !important;
+ }
+@@ -100,7 +136,12 @@ body {
+ }
+ 
+ /* Header titles */
+-h1,h2,h3,h4,h5,h6 {
++h1,
++h2,
++h3,
++h4,
++h5,
++h6 {
+   color: #f8fafc;
+   font-weight: 700;
+   letter-spacing: -0.04em;
+@@ -166,7 +207,8 @@ p {
+   backdrop-filter: blur(10px);
+   border: 1px solid rgba(29, 95, 49, 0.4);
+   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+-  transition: all 0.3s ease;
++  transition: border-color 0.3s ease, box-shadow 0.3s ease;
++  will-change: transform;
+ }
+ 
+ .dark-card:hover {
+@@ -215,8 +257,9 @@ p {
+   border: 1px solid rgba(255, 255, 255, 0.15);
+   border-radius: 0.75rem;
+   padding: 2rem;
+-  transition: all 0.3s ease;
++  transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+   cursor: default;
++  will-change: transform;
+ }
+ 
+ .benefit-card:hover {
+@@ -232,8 +275,9 @@ p {
+   border: 1px solid rgba(29, 95, 49, 0.3);
+   border-radius: 0.75rem;
+   overflow: hidden;
+-  transition: all 0.3s ease;
++  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
++  will-change: transform;
+ }
+ 
+ .course-card-dark:hover {
+@@ -253,7 +297,7 @@ p {
+   border: 1px solid var(--accent-green);
+   border-radius: 0.75rem;
+   cursor: pointer;
+-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
++  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), filter 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+   font-size: 1rem;
+   position: relative;
+   overflow: hidden;
+@@ -274,6 +318,7 @@ p {
+   isolation: isolate;
+ }
+ 
++/* CORRIGIDO: adicionado mask padrão (era alerta linha ~310) */
+ .btn-cta.glow-ring::before {
+   content: '';
+   position: absolute;
+@@ -283,6 +328,7 @@ p {
+   background: conic-gradient(from var(--angle), #1D5F31, #00ff88, #22d3ee, #4ade80, #1D5F31);
+   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+   -webkit-mask-composite: xor;
++  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+   mask-composite: exclude;
+   animation: spinGlow 4s linear infinite;
+   pointer-events: none;
+@@ -299,6 +345,7 @@ p {
+   isolation: isolate;
+ }
+ 
++/* CORRIGIDO: adicionado mask padrão (era alerta linha ~335) */
+ .hero-badge::before {
+   content: '';
+   position: absolute;
+@@ -308,6 +355,7 @@ p {
+   background: conic-gradient(from var(--angle), #1D5F31, #00ff88, #22d3ee, #4ade80, #1D5F31);
+   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+   -webkit-mask-composite: xor;
++  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+   mask-composite: exclude;
+   animation: spinGlow 6s linear infinite;
+   pointer-events: none;
+@@ -325,6 +373,7 @@ p {
+   overflow: hidden;
+ }
+ 
++/* CORRIGIDO: adicionado mask padrão (era alerta linha ~361) */
+ .glow-card::before {
+   content: '';
+   position: absolute;
+@@ -334,6 +383,7 @@ p {
+   background: conic-gradient(from var(--angle), transparent 20%, #1D5F31, #00ff88, #22d3ee, transparent 80%);
+   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+   -webkit-mask-composite: xor;
++  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+   mask-composite: exclude;
+   animation: spinGlow 8s linear infinite;
+   pointer-events: none;
+@@ -358,7 +408,7 @@ p {
+   width: 100%;
+   max-width: 420px;
+   outline: none;
+-  transition: all 0.2s;
++  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+   backdrop-filter: blur(6px);
+ }
+ 
+@@ -372,12 +422,16 @@ p {
+   background: rgba(255, 255, 255, 0.06);
+   box-shadow: 0 0 0 4px rgba(29, 95, 49, 0.1);
+ }
++
+ .no-scrollbar::-webkit-scrollbar {
+   display: none;
+ }
++
+ .no-scrollbar {
+-  -ms-overflow-style: none;  /* IE and Edge */
+-  scrollbar-width: none;  /* Firefox */
++  -ms-overflow-style: none;
++  /* IE and Edge */
++  scrollbar-width: none;
++  /* Firefox */
+ }
+ 
+ /* === Mux Player Customization === */
+diff --git a/src/app/layout.tsx b/src/app/layout.tsx
+index 25d4152..db21beb 100644
+--- a/src/app/layout.tsx
++++ b/src/app/layout.tsx
+@@ -6,6 +6,8 @@ import { BrandingData, getSettings } from '@/app/admin/settings/actions'
+ import { CartStoreSynchronizer } from '@/components/CartStoreSynchronizer'
+ import { Toaster } from '@/components/ui/sonner'
+ 
++import type { Metadata } from 'next'
++
+ const exo = Exo({
+   subsets: ['latin'],
+   weight: ['400', '700', '900'],
+@@ -18,6 +20,16 @@ const montserrat = Montserrat({
+   variable: '--font-montserrat'
+ })
+ 
++export const metadata: Metadata = {
++  title: 'POWERPLAY',
++  icons: {
++    icon: [
++      { url: '/icon.svg', type: 'image/svg+xml' },
++    ],
++    apple: '/icon.svg',
++  },
++}
++
+ export default async function RootLayout({
+   children,
+ }: {
+diff --git a/src/components/AdminMainWrapper.tsx b/src/components/AdminMainWrapper.tsx
+index a5a93fd..7465a68 100644
+--- a/src/components/AdminMainWrapper.tsx
++++ b/src/components/AdminMainWrapper.tsx
+@@ -17,7 +17,7 @@ export default function AdminMainWrapper({ children }: { children: React.ReactNo
+     }
+ 
+     return (
+-        <main className="relative z-10 pl-72 min-h-screen" style={{ backgroundColor: '#ffffff' }}>
++        <main className="relative z-10 pl-72 min-h-screen" style={{ backgroundColor: '#F5F5F7' }}>
+             <div className="p-8 md:p-12">
+                 {children}
+             </div>
+diff --git a/src/components/EvaluationForm.tsx b/src/components/EvaluationForm.tsx
+index 96a8c1c..a201162 100644
+--- a/src/components/EvaluationForm.tsx
++++ b/src/components/EvaluationForm.tsx
+@@ -188,9 +188,9 @@ export function EvaluationForm({ courseId }: EvaluationFormProps) {
+ 
+             {rating > 0 && (
+                 <motion.div
+-                    initial={{ opacity: 0, height: 0 }}
+-                    animate={{ opacity: 1, height: 'auto' }}
+-                    className="mb-6"
++                    initial={{ opacity: 0, maxHeight: 0 }}
++                    animate={{ opacity: 1, maxHeight: 300 }}
++                    className="mb-6 overflow-hidden"
+                 >
+                     <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-2">
+                         Comentário (opcional)
+diff --git a/src/components/Footer.tsx b/src/components/Footer.tsx
+index 4c6e833..c056d93 100644
+--- a/src/components/Footer.tsx
++++ b/src/components/Footer.tsx
+@@ -3,11 +3,9 @@
+ import Link from 'next/link'
+ import { usePathname } from 'next/navigation'
+ import Logo from '@/components/Logo'
+-import { useBranding } from '@/context/BrandingContext'
+ import { Mail, Phone, MapPin, Instagram, Youtube, Linkedin } from 'lucide-react'
+ 
+ export default function Footer({ variant = 'light' }: { variant?: 'light' | 'dark' }) {
+-    const { siteName } = useBranding()
+     const pathname = usePathname()
+     const year = new Date().getFullYear()
+ 
+@@ -24,7 +22,7 @@ export default function Footer({ variant = 'light' }: { variant?: 'light' | 'dar
+                     ? 'bg-transparent border-none'
+                 : isHomePage
+                     ? 'bg-transparent border-none' 
+-                    : isDark ? 'bg-[#061629] border-t border-white/5' : 'bg-white border-t border-slate-100'
++                    : isDark ? 'bg-[#061629] border-t border-white/5' : 'bg-[#F5F5F7] border-t border-transparent'
+         }`}>
+             <div className="max-w-[1600px] mx-auto px-6 md:px-12">
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+@@ -108,7 +106,7 @@ export default function Footer({ variant = 'light' }: { variant?: 'light' | 'dar
+                         : isDark ? 'text-white/50' : 'text-slate-700'
+                 } ${isHomePage ? 'text-center' : 'md:flex-row md:justify-between'}`}>
+                     <div className="text-[10px] font-bold uppercase tracking-[0.2em]">
+-                        © {year} {siteName} - GPECx Tecnologia. Todos os direitos reservados.
++                        © {year} POWERPLAY – VoltsMind Holding. Todos os direitos reservados.
+                     </div>
+                 </div>
+             </div>
+diff --git a/src/components/MFAChallenge.tsx b/src/components/MFAChallenge.tsx
+index c15e553..2405102 100644
+--- a/src/components/MFAChallenge.tsx
++++ b/src/components/MFAChallenge.tsx
+@@ -58,7 +58,7 @@ export default function MFAChallenge({ email, onVerify, onCancel }: MFAChallenge
+                 return
+             }
+ 
+-            // Validar PIN via Documento de Perfil (Manobra Técnica para evitar erro de permissão)
++            // Validar PIN via perfil do usuário (mfa_auth_temp)
+             const profileRef = doc(db, 'profiles', user.uid);
+             const profileDoc = await getDoc(profileRef);
+             const profileData = profileDoc.data();
+@@ -84,7 +84,7 @@ export default function MFAChallenge({ email, onVerify, onCancel }: MFAChallenge
+                 return;
+             }
+ 
+-            // Sucesso na validação: Limpar dados sensíveis no Firestore
++            // Sucesso na validação: Limpar dados sensíveis no perfil
+             await updateDoc(profileRef, {
+                 mfa_auth_temp: null,
+                 mfaCodeRequested: false
+diff --git a/src/components/MotivationalBanner.tsx b/src/components/MotivationalBanner.tsx
+index 9fd730f..b6c7482 100644
+--- a/src/components/MotivationalBanner.tsx
++++ b/src/components/MotivationalBanner.tsx
+@@ -62,7 +62,7 @@ export function MotivationalBanner() {
+                     {IMAGES.map((_, idx) => (
+                         <div
+                             key={idx}
+-                            className={`h-1.5 rounded-full transition-all duration-700 ${idx === currentIndex
++                            className={`h-1.5 rounded-full transition-[width] duration-700 ${idx === currentIndex
+                                 ? 'w-10 bg-[#22c55e]'
+                                 : 'w-3 bg-white/40'
+                                 }`}
+diff --git a/src/components/Navbar.tsx b/src/components/Navbar.tsx
+index afe5468..c13187d 100644
+--- a/src/components/Navbar.tsx
++++ b/src/components/Navbar.tsx
+@@ -149,7 +149,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp
+                 setShowSearchDropdown(false)
+             }
+         }
+-        document.addEventListener('mousedown', handleClickOutside)
++        document.addEventListener('mousedown', handleClickOutside, { passive: true })
+         return () => document.removeEventListener('mousedown', handleClickOutside)
+     }, [])
+ 
+@@ -323,7 +323,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp
+                         {/* Search */}
+                         <div className={cn("flex items-center gap-2 relative search-container", isHomePage && !isLoggedIn && "!hidden")}>
+                             <div className={cn(
+-                                "flex items-center rounded-xl px-3 py-1.5 transition-all duration-300",
++                                "flex items-center rounded-xl px-3 py-1.5 transition-[width,opacity] duration-300 overflow-hidden",
+                                 effectiveLight ? "bg-slate-100 border border-slate-200" : "bg-white/5 border border-white/10 focus-within:border-[#22c55e]/50 focus-within:shadow-[0_0_15px_rgba(34,197,94,0.3)]",
+                                 isSearchOpen ? 'w-40 md:w-64 opacity-100' : 'w-0 opacity-0 pointer-events-none border-none'
+                             )}>
+diff --git a/src/components/NavbarTeacher.tsx b/src/components/NavbarTeacher.tsx
+index a2a5539..e562e45 100644
+--- a/src/components/NavbarTeacher.tsx
++++ b/src/components/NavbarTeacher.tsx
+@@ -145,7 +145,7 @@ export default function NavbarTeacher() {
+ 
+                     {/* Search Component */}
+                     <div className="flex items-center gap-2 relative">
+-                        <div className={`flex items-center bg-slate-50 border border-slate-100 rounded-xl px-3 py-1.5 transition-all duration-300 ${isSearchOpen ? 'w-36 sm:w-48 md:w-64 opacity-100' : 'w-0 opacity-0 pointer-events-none border-none'}`}>
++                        <div className={`flex items-center bg-slate-50 border border-slate-100 rounded-xl px-3 py-1.5 transition-[width,opacity] duration-300 overflow-hidden ${isSearchOpen ? 'w-36 sm:w-48 md:w-64 opacity-100' : 'w-0 opacity-0 pointer-events-none border-none'}`}>
+                             <Search size={16} className="text-slate-400 mr-2" />
+                             <input
+                                 type="text"
+diff --git a/src/components/NotificationBell.tsx b/src/components/NotificationBell.tsx
+index 9c9f097..87ad954 100644
+--- a/src/components/NotificationBell.tsx
++++ b/src/components/NotificationBell.tsx
+@@ -61,7 +61,7 @@ export function NotificationBell({
+         }
+ 
+         if (open) {
+-            document.addEventListener('mousedown', handleClickOutside)
++            document.addEventListener('mousedown', handleClickOutside, { passive: true })
+         }
+ 
+         return () => {
+diff --git a/src/components/SpaceParticles.tsx b/src/components/SpaceParticles.tsx
+index 456e215..d8802b5 100644
+--- a/src/components/SpaceParticles.tsx
++++ b/src/components/SpaceParticles.tsx
+@@ -75,9 +75,9 @@ export default function SpaceParticles() {
+       mouse.current.y = -1000
+     }
+ 
+-    window.addEventListener('resize', handleResize)
+-    window.addEventListener('mousemove', handleMouseMove)
+-    window.addEventListener('mouseleave', handleMouseLeave)
++    window.addEventListener('resize', handleResize, { passive: true })
++    window.addEventListener('mousemove', handleMouseMove, { passive: true })
++    window.addEventListener('mouseleave', handleMouseLeave, { passive: true })
+ 
+     const draw = () => {
+       ctx.clearRect(0, 0, w, h)
+diff --git a/src/components/auth/GoogleCompleteProfileModal.tsx b/src/components/auth/GoogleCompleteProfileModal.tsx
+index dccef10..053c99d 100644
+--- a/src/components/auth/GoogleCompleteProfileModal.tsx
++++ b/src/components/auth/GoogleCompleteProfileModal.tsx
+@@ -391,9 +391,9 @@ export function GoogleCompleteProfileModal({ isOpen, user, onSuccess, onClose }:
+                             {formError && (
+                                 <motion.div
+                                     key="form-error"
+-                                    initial={{ opacity: 0, y: -8, height: 0 }}
+-                                    animate={{ opacity: 1, y: 0, height: 'auto' }}
+-                                    exit={{ opacity: 0, y: -8, height: 0 }}
++                                    initial={{ opacity: 0, y: -8, maxHeight: 0 }}
++                                    animate={{ opacity: 1, y: 0, maxHeight: 300 }}
++                                    exit={{ opacity: 0, y: -8, maxHeight: 0 }}
+                                     className="overflow-hidden mb-6"
+                                 >
+                                     <div className="flex items-start gap-3 p-4 rounded-lg border bg-red-500/10 border-red-500/30 text-red-300">
+diff --git a/src/components/auth/GoogleSignInButton.tsx b/src/components/auth/GoogleSignInButton.tsx
+index b9d8364..bfc021d 100644
+--- a/src/components/auth/GoogleSignInButton.tsx
++++ b/src/components/auth/GoogleSignInButton.tsx
+@@ -61,11 +61,6 @@ export function GoogleSignInButton() {
+ 
+             if (!sessionRes.ok) {
+                 const errorData = await sessionRes.json()
+-                if (errorData.error === 'EMAIL_NOT_VERIFIED') {
+-                    await auth.signOut()
+-                    router.push('/verify-email')
+-                    return
+-                }
+                 throw new Error('session_creation_failed')
+             }
+ 
+diff --git a/src/components/auth/RegistrationGuard.tsx b/src/components/auth/RegistrationGuard.tsx
+index a2a5201..3e5cf29 100644
+--- a/src/components/auth/RegistrationGuard.tsx
++++ b/src/components/auth/RegistrationGuard.tsx
+@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react'
+ import { useRouter, usePathname } from 'next/navigation'
+ import { useAuth } from '@/context/AuthProvider'
+ 
+-const EXCLUDED_PATHS = ['/login', '/register', '/verify-email', '/auth']
++const EXCLUDED_PATHS = ['/login', '/register', '/auth']
+ 
+ export function RegistrationGuard({ children }: { children: React.ReactNode }) {
+     const router = useRouter()
+diff --git a/src/components/dashboard/MyLearningSidebar.tsx b/src/components/dashboard/MyLearningSidebar.tsx
+index 6c472a4..a1c939e 100644
+--- a/src/components/dashboard/MyLearningSidebar.tsx
++++ b/src/components/dashboard/MyLearningSidebar.tsx
+@@ -33,7 +33,7 @@ export function MyLearningSidebar({ recentCourses }: MyLearningSidebarProps) {
+                             key={curso.id}
+                             onMouseEnter={() => setIsHovered(curso.id)}
+                             onMouseLeave={() => setIsHovered(null)}
+-                            className="relative group transition-all duration-300"
++                            className="relative group"
+                         >
+                             <div className="flex items-start gap-4">
+                                 <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-50 shadow-sm transition-transform duration-300 group-hover:scale-105">
+@@ -51,7 +51,7 @@ export function MyLearningSidebar({ recentCourses }: MyLearningSidebarProps) {
+                                     {/* Barra de Progresso Linear */}
+                                     <div className="w-full bg-slate-50 h-1.5 rounded-full overflow-hidden border border-slate-100">
+                                         <div
+-                                            className="bg-[#1D5F31] h-full transition-all duration-1000"
++                                            className="bg-[#1D5F31] h-full transition-[width] duration-1000"
+                                             style={{ width: `65%` }}
+                                         ></div>
+                                     </div>
+@@ -59,8 +59,9 @@ export function MyLearningSidebar({ recentCourses }: MyLearningSidebarProps) {
+                             </div>
+ 
+                             {/* Detalhes ao passar o mouse */}
+-                            <div className={`mt-4 overflow-hidden transition-all duration-300 ease-in-out ${isHovered === curso.id ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'}`}>
+-                                <div className="flex items-center justify-between text-[8px] font-bold tracking-widest text-[#1D5F31] mb-4">
++                            <div className={`mt-4 grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${isHovered === curso.id ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
++                                <div className="overflow-hidden">
++                                    <div className="flex items-center justify-between text-[8px] font-bold tracking-widest text-[#1D5F31] mb-4">
+                                     <span className="flex items-center gap-1"><Clock size={10} /> 4h restantes</span>
+                                     <span>65% CONCLUÍDO</span>
+                                 </div>
+@@ -70,6 +71,7 @@ export function MyLearningSidebar({ recentCourses }: MyLearningSidebarProps) {
+                                     </button>
+                                 </Link>
+                             </div>
++                            </div>
+                         </div>
+                     ))}
+                 </div>
+diff --git a/src/components/dashboard/StudentCarousel.tsx b/src/components/dashboard/StudentCarousel.tsx
+index c13e0dc..4c37603 100644
+--- a/src/components/dashboard/StudentCarousel.tsx
++++ b/src/components/dashboard/StudentCarousel.tsx
+@@ -112,7 +112,7 @@ export function StudentCarousel({ heroBanners }: { heroBanners?: BannerItem[] })
+                         <button
+                             key={i}
+                             onClick={() => setCurrentIndex(i)}
+-                            className={`h-1.5 rounded-full transition-all ${currentIndex === i ? 'w-8 bg-white' : 'w-2 bg-white/40 hover:bg-white/60'}`}
++                            className={`h-1.5 rounded-full transition-[width] duration-300 ${currentIndex === i ? 'w-8 bg-white' : 'w-2 bg-white/40 hover:bg-white/60'}`}
+                         />
+                     ))}
+                 </div>
+diff --git a/src/context/AuthProvider.tsx b/src/context/AuthProvider.tsx
+index f94882a..5f3f5ab 100644
+--- a/src/context/AuthProvider.tsx
++++ b/src/context/AuthProvider.tsx
+@@ -25,12 +25,16 @@ const AuthContext = createContext<AuthContextType>({
+     role: null,
+     loading: true,
+     isMfaPending: false,
+-    setMfaPending: () => {},
++    setMfaPending: () => { },
+     registrationIncomplete: false,
+ })
+ 
+ export const useAuth = () => useContext(AuthContext)
+ 
++// Fora do componente: persiste entre re-renders e mudanças de isMfaPending.
++// Só é resetado em full page reload (navegação hard), nunca por remount do componente.
++let _hasInitialized = false
++
+ export function AuthProvider({ children }: { children: React.ReactNode }) {
+     const router = useRouter()
+     const [user, setUser] = useState<User | null>(null)
+@@ -40,7 +44,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
+     const [isMfaPending, setIsMfaPending] = useState(false)
+     const [registrationIncomplete, setRegistrationIncomplete] = useState(false)
+ 
+-    const hasInitialized = useRef(false)
+     const incompleteTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+ 
+     const setMfaPending = async (pending: boolean) => {
+@@ -59,8 +62,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
+                 unsubscribeProfile();
+                 unsubscribeProfile = undefined;
+             }
+-            await signOut(auth).catch(() => {})
+-            await fetch('/api/auth/signout').catch(() => {})
++            await signOut(auth).catch(() => { })
++            await fetch('/api/auth/signout').catch(() => { })
+             setUser(null)
+             setProfile(null)
+             setRole(null)
+@@ -69,12 +72,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
+         const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
+             if (!mounted) return;
+ 
+-            // isFirstCall é true apenas na primeira invocação deste callback.
+-            // Se o primeiro callback tiver currentUser = null (página carregada sem sessão),
+-            // e um callback subsequente tiver currentUser = user (sign-in fresco),
+-            // isFirstCall já será false, pulando a validação de sessão abaixo.
+-            const isFirstCall = !hasInitialized.current
+-            hasInitialized.current = true
++            // isFirstCall é true apenas na primeira invocação após um full page load.
++            // Como _hasInitialized vive fora do componente, mudanças em isMfaPending
++            // que causam re-execução deste useEffect NÃO resetam a flag —
++            // evitando re-validação de sessão e falso redirect para /login.
++            const isFirstCall = !_hasInitialized
++            _hasInitialized = true
+ 
+             if (currentUser && !isMfaPending) {
+                 // Server-side session validation only on initial boot (cold start),
+@@ -163,7 +166,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
+ 
+         return () => {
+             mounted = false;
+-            hasInitialized.current = false  // Reset so session is re-validated on remount
++            // NÃO resetar _hasInitialized aqui — ela vive fora do componente
++            // e só deve ser resetada em full page reload (pelo próprio módulo JS).
+             unsubscribeAuth();
+             if (unsubscribeProfile) {
+                 unsubscribeProfile();
+@@ -181,4 +185,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
+             {children}
+         </AuthContext.Provider>
+     )
+-}
++}
+\ No newline at end of file

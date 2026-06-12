@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from 'react'
 import Link from 'next/link'
+import dynamic from 'next/dynamic'
 import {
     CheckCircle2,
     ChevronLeft,
@@ -16,14 +17,30 @@ import {
     Award
 } from 'lucide-react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
-import { ClassroomTabs } from './ClassroomTabs'
 import { auth } from '@/lib/firebase'
 import Logo from '@/components/Logo'
 import { onAuthStateChanged } from 'firebase/auth'
 import { getClassroomData, toggleLessonCompletion, processCertificateIssuance, saveLessonProgress } from './actions'
-import { QuizPlayer } from './QuizPlayer'
 import { useProgressStore } from '@/store/useProgressStore'
-import SecureMuxPlayer from '@/components/SecureMuxPlayer'
+
+const SecureMuxPlayer = dynamic(() => import('@/components/SecureMuxPlayer'), {
+    ssr: false,
+    loading: () => <div className="w-full h-full bg-slate-800 animate-pulse rounded-2xl" />
+})
+
+const QuizPlayer = dynamic(() => import('./QuizPlayer').then(mod => ({ default: mod.QuizPlayer })), {
+    ssr: false,
+    loading: () => (
+        <div className="w-full h-full bg-slate-800 animate-pulse rounded-2xl flex items-center justify-center">
+            <Loader2 className="animate-spin text-slate-400" size={32} />
+        </div>
+    )
+})
+
+const ClassroomTabs = dynamic(() => import('./ClassroomTabs').then(mod => ({ default: mod.ClassroomTabs })), {
+    ssr: false,
+    loading: () => <div className="h-64 bg-slate-100 animate-pulse rounded-2xl" />
+})
 
 
 const scrollbarHideStyle = {

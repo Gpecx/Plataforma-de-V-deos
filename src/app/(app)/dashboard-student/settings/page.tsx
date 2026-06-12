@@ -193,14 +193,14 @@ export default function SettingsPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-white text-slate-900">
+            <div className="min-h-screen flex items-center justify-center bg-[#F5F5F7] text-slate-900">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1D5F31]"></div>
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen bg-white text-slate-900 font-montserrat p-4 md:p-8 lg:p-12">
+        <div className="min-h-screen bg-[#F5F5F7] text-slate-900 font-montserrat p-4 md:p-8 lg:p-12">
             <div className="max-w-4xl mx-auto space-y-10">
 
                 {/* Header da Página */}

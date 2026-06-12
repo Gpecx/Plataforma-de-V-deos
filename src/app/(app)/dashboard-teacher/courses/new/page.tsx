@@ -545,7 +545,7 @@ export default function NewCoursePage() {
                                 <div className="space-y-2">
                                     <Label className="text-[10px] font-bold uppercase tracking-widest text-black px-1">Descrição Completa</Label>
                                     <textarea
-                                        className="w-full bg-white border-2 border-black rounded-md p-6 min-h-[180px] focus:border-[#1D5F31] focus-visible:ring-0 outline-none text-sm font-medium transition-all leading-relaxed text-black placeholder:text-black/50"
+                                        className="w-full bg-[#F5F5F7] border-2 border-black rounded-md p-6 min-h-[180px] focus:border-[#1D5F31] focus-visible:ring-0 outline-none text-sm font-medium transition-all leading-relaxed text-black placeholder:text-black/50"
                                         placeholder="Descreva os benefícios e o que o aluno vai aprender..."
                                         value={formData.description}
                                         onChange={(e) => setStepData({ description: e.target.value })}
@@ -1001,7 +1001,7 @@ export default function NewCoursePage() {
                                                             <div className="space-y-2">
                                                                 <label className="text-[10px] font-bold uppercase tracking-widest text-black/60">Notas da Aula (Markdown ou Texto)</label>
                                                                 <textarea
-                                                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-md px-6 py-4 focus:border-[#1D5F31] focus-visible:ring-0 outline-none text-sm font-medium text-black transition-all min-h-[120px]"
+                                                                    className="w-full bg-[#F5F5F7] border border-[#1D5F31]/20 rounded-md px-6 py-4 focus:border-[#1D5F31] focus-visible:ring-0 outline-none text-sm font-medium text-black transition-all min-h-[120px]"
                                                                     placeholder="Escreva aqui o roteiro, referências ou instruções internas para esta aula..."
                                                                     value={selectedLessonNotas}
                                                                     onChange={(e) => {
@@ -1129,7 +1129,7 @@ export default function NewCoursePage() {
                                             <div className="space-y-4">
                                                 <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Descrição Completa</label>
                                                 <textarea
-                                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-md px-6 py-4 focus:border-[#1D5F31] focus-visible:ring-0 outline-none text-sm text-black transition-all min-h-[120px]"
+                                                    className="w-full bg-[#F5F5F7] border border-[#1D5F31]/20 rounded-md px-6 py-4 focus:border-[#1D5F31] focus-visible:ring-0 outline-none text-sm text-black transition-all min-h-[120px]"
                                                     placeholder="Descreva o curso em detalhes..."
                                                     value={formData.description || ''}
                                                     onChange={(e) => setStepData({ description: e.target.value })}
@@ -1190,7 +1190,7 @@ export default function NewCoursePage() {
                                                             }}
                                                             className={`flex-1 px-3 py-3 rounded-md text-[9px] font-bold uppercase tracking-widest transition-all border-2 ${formData.pricing_type === type.id
                                                                     ? 'bg-[#1D5F31] border-[#1D5F31] text-white'
-                                                                    : 'bg-white border-[#1D5F31]/20 text-black/60 hover:border-[#1D5F31]'
+                                                                    : 'bg-[#F5F5F7] border-[#1D5F31]/20 text-black/60 hover:border-[#1D5F31]'
                                                                 }`}
                                                         >
                                                             {type.label}

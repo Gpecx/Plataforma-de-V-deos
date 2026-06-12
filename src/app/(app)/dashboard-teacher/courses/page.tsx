@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, Suspense, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { auth, db } from '@/lib/firebase'
 import { collection, query, where, orderBy, getDocs, addDoc, doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore'
@@ -295,9 +295,9 @@ function CoursesContent() {
     };
     // ---------------------------------------------------
 
-    const filteredCourses = courses.filter(curso =>
+    const filteredCourses = useMemo(() => courses.filter(curso =>
         curso.title ? normalizeString(curso.title).includes(normalizeString(searchTerm)) : false
-    )
+    ), [courses, searchTerm])
 
     if (loading) {
         return (

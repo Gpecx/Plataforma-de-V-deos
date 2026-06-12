@@ -153,7 +153,9 @@ export async function POST(request: NextRequest) {
             belongsToCourse = !lessonSnap.empty
         }
 
-        if (!belongsToCourse) {
+        // Se for admin ou o autor do curso, permitimos o acesso MESMO que o vídeo ainda
+        // não esteja na coleção 'lessons' (ex: upload recém concluído antes de salvar o rascunho)
+        if (!belongsToCourse && !isAdmin && !isAuthor) {
             console.warn(`[MUX AUTH] ACESSO NEGADO: vídeo não pertence ao curso ${cursoId}.`)
             return NextResponse.json(
                 { error: 'Acesso negado: vídeo não pertence a este curso' },

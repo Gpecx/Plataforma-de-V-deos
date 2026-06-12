@@ -61,7 +61,7 @@ export function NotificationBell({
         }
 
         if (open) {
-            document.addEventListener('mousedown', handleClickOutside)
+            document.addEventListener('mousedown', handleClickOutside, { passive: true })
         }
 
         return () => {

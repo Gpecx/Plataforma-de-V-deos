@@ -133,7 +133,7 @@ export function ProfileForm({ initialFullName, initialPhotoURL, uid }: ProfileFo
 
                             {/* Overlay de Upload */}
                             {!isUploading && (
-                                <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300">
+                                <div className="absolute inset-0 bg-[#F5F5F7]/80 flex flex-col items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity duration-300">
                                     <Camera size={24} className="text-[#1a1a1a] mb-1" />
                                     <span className="text-[8px] font-bold uppercase tracking-widest text-[#1a1a1a]">Alterar</span>
                                 </div>

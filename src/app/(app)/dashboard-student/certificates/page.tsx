@@ -6,8 +6,6 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 import { ICertificate } from '@/lib/types/certificate'
 import { CertificateTemplate } from '@/components/certificates/CertificateTemplate'
-import html2canvas from 'html2canvas'
-import { jsPDF } from 'jspdf'
 import { getProfile } from '../actions'
 
 export default function CertificatesPage() {
@@ -82,6 +80,9 @@ export default function CertificatesPage() {
         
         toast.promise(async () => {
             try {
+                const html2canvas = (await import('html2canvas')).default
+                const { jsPDF } = await import('jspdf')
+
                 // Pequeno delay para garantir que imagens remotas (QR Code) e fontes carreguem
                 await new Promise(resolve => setTimeout(resolve, 800));
 
@@ -176,7 +177,7 @@ export default function CertificatesPage() {
     }
 
     return (
-        <div className="p-4 sm:p-8 md:p-12 min-h-screen font-montserrat text-black bg-white animate-in fade-in duration-500">
+        <div className="p-4 sm:p-8 md:p-12 min-h-screen font-montserrat text-black bg-[#F5F5F7] animate-in fade-in duration-500">
             <style jsx global>{`
                 @media print {
                     body {

@@ -15,14 +15,10 @@ export default async function AdminLayout({
         redirect('/dashboard-student')
     }
 
-    if (!user.emailVerified) {
-        redirect('/verify-email')
-    }
-
     return (
         <AuthProvider>
-            <div className="min-h-screen relative overflow-hidden text-slate-900" style={{ background: '#ffffff' }}>
-                <div className="fixed inset-0 bg-white -z-10" />
+            <div className="min-h-screen relative overflow-hidden text-slate-900" style={{ background: '#F5F5F7' }}>
+                <div className="fixed inset-0 bg-[#F5F5F7] -z-10" />
                 <AdminSidebar />
 
                 <AdminMainWrapper>

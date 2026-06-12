@@ -72,6 +72,7 @@ export default function StudentChatPage() {
 
                 for (const enrollDoc of enrollSnapshot.docs) {
                     const enrollData = enrollDoc.data()
+                    if (enrollData.payment_confirmed !== true) continue
                     const courseId = enrollData.course_id
 
                     const courseDoc = await getDoc(doc(db, 'courses', courseId))
@@ -211,7 +212,7 @@ export default function StudentChatPage() {
 
     if (loading) {
         return (
-            <div className="h-screen flex items-center justify-center bg-white">
+            <div className="h-screen flex items-center justify-center bg-[#F5F5F7]">
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-12 h-12 border-4 border-[#1d5f31] border-t-transparent rounded-full animate-spin"></div>
                     <p className="text-xs font-medium text-[#061629] animate-pulse">Carregando suporte...</p>
@@ -221,7 +222,7 @@ export default function StudentChatPage() {
     }
 
     return (
-        <div className="h-[calc(100vh-120px)] bg-white text-slate-900 flex flex-col overflow-hidden font-sans">
+        <div className="h-[calc(100vh-120px)] bg-[#F5F5F7] text-slate-900 flex flex-col overflow-hidden font-sans">
             <div className="max-w-full w-full mx-auto flex flex-col flex-1 pt-4 pb-4 px-4 md:px-6 gap-4 md:gap-6 overflow-hidden">
 
                 {/* Header Simples */}
@@ -274,7 +275,7 @@ export default function StudentChatPage() {
                     </aside>
 
                     {/* Área de Chat Principal */}
-                    <section className="flex-1 flex flex-col bg-white border border-[#D1D7DC] rounded-xl overflow-hidden shadow-none">
+                    <section className="flex-1 flex flex-col bg-[#F5F5F7] border border-[#D1D7DC] rounded-xl overflow-hidden shadow-none">
                         {selectedTeacher ? (
                             <>
                                 {/* Chat Header */}
@@ -297,7 +298,7 @@ export default function StudentChatPage() {
                                 </div>
 
                                 {/* Mensagens */}
-                                <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6 md:py-10 space-y-6 bg-white custom-scrollbar-premium">
+                                <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6 md:py-10 space-y-6 bg-[#F5F5F7] custom-scrollbar-premium">
                                     {messages.length > 0 ? (
                                         messages.map(msg => (
                                             <div
@@ -342,7 +343,7 @@ export default function StudentChatPage() {
                                         <button className="p-2 text-[#1d5f31] hover:bg-[#F1F3F4] rounded-full transition-colors shrink-0">
                                             <Paperclip size={20} />
                                         </button>
-                                        <div className="flex-1 flex items-center bg-white border border-[#D1D7DC] rounded-lg px-4 py-3 focus-within:border-[#1d5f31] transition-all group ring-offset-2">
+                                        <div className="flex-1 flex items-center bg-[#F5F5F7] border border-[#D1D7DC] rounded-lg px-4 py-3 focus-within:border-[#1d5f31] transition-all group ring-offset-2">
                                             <input
                                                 type="text"
                                                 value={input}

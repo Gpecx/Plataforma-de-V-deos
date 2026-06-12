@@ -110,7 +110,7 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
                                 />
                             ) : (
                                 <div className="scale-75 origin-center">
-                                    <Logo light />
+                                    <Logo light href={null} />
                                 </div>
                             )}
                             <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 to-transparent pointer-events-none" />
@@ -187,7 +187,7 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
                                     ) : (
                                         <div className="flex flex-col items-center gap-6 text-white text-center px-10">
                                             <div className="scale-125 origin-center mb-4">
-                                                <Logo />
+                                                <Logo href={null} />
                                             </div>
                                             <p className="text-[10px] font-bold uppercase tracking-wider text-white/60">NENHUM VÍDEO DISPONÍVEL PARA AUDITORIA</p>
                                         </div>
@@ -196,7 +196,7 @@ export default function CourseApprovalList({ initialCourses, teachersMap }: Cour
                             </div>
 
                             {/* Moderation Column */}
-                            <div className="w-full lg:w-[450px] flex flex-col bg-white">
+                            <div className="w-full lg:w-[450px] flex flex-col bg-[#F5F5F7]">
                                 <div className="flex-1 overflow-y-auto custom-scrollbar p-10 lg:p-12 pb-0">
                                     <div className="mb-8">
                                         <div className="flex items-center gap-2 mb-4">

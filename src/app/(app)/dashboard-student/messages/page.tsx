@@ -165,7 +165,7 @@ export default function StudentMessagesPage() {
                                 </div>
                             </div>
                         ) : (
-                            <div className="h-full flex items-center justify-center py-24 bg-white/[0.02] border border-white/5 rounded-[32px]">
+                            <div className="h-full flex items-center justify-center py-24 bg-[#F5F5F7]/[0.02] border border-white/5 rounded-[32px]">
                                 <div className="text-center">
                                     <MessageSquare size={40} className="mx-auto text-gray-700 mb-4 opacity-30" />
                                     <p className="text-xs font-bold uppercase tracking-widest text-gray-600 ">Selecione uma mensagem</p>

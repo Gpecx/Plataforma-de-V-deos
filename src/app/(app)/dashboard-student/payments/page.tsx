@@ -296,7 +296,7 @@ export default function PaymentsPage() {
 
 
     return (
-        <div className="p-8 md:p-12 min-h-screen font-montserrat bg-white text-[#1a1a1a] animate-in fade-in duration-500">
+        <div className="p-8 md:p-12 min-h-screen font-montserrat bg-[#F5F5F7] text-[#1a1a1a] animate-in fade-in duration-500">
             <header className="mb-12">
                 <div className="flex items-center gap-3 mb-2">
                     <span className="text-[10px] font-bold uppercase tracking-[5px] text-[#1D5F31]">FINANCEIRO</span>

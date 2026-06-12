@@ -149,7 +149,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                 setShowSearchDropdown(false)
             }
         }
-        document.addEventListener('mousedown', handleClickOutside)
+        document.addEventListener('mousedown', handleClickOutside, { passive: true })
         return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [])
 
@@ -323,7 +323,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                         {/* Search */}
                         <div className={cn("flex items-center gap-2 relative search-container", isHomePage && !isLoggedIn && "!hidden")}>
                             <div className={cn(
-                                "flex items-center rounded-xl px-3 py-1.5 transition-all duration-300",
+                                "flex items-center rounded-xl px-3 py-1.5 transition-[width,opacity] duration-300 overflow-hidden",
                                 effectiveLight ? "bg-slate-100 border border-slate-200" : "bg-white/5 border border-white/10 focus-within:border-[#22c55e]/50 focus-within:shadow-[0_0_15px_rgba(34,197,94,0.3)]",
                                 isSearchOpen ? 'w-40 md:w-64 opacity-100' : 'w-0 opacity-0 pointer-events-none border-none'
                             )}>

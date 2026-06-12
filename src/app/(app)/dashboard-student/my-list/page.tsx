@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
+import Image from 'next/image'
 import { Heart, ArrowLeft, GraduationCap, BookOpen } from 'lucide-react'
 import Link from 'next/link'
 import { AddToCartButton } from '@/components/AddToCartButton'
@@ -59,10 +60,13 @@ export default async function MyListPage() {
         <div className="min-h-screen bg-slate-50 text-slate-900 font-montserrat relative flex flex-col">
             <div className="px-6 md:px-12 pt-6 w-full">
                 <div className="relative max-w-[1600px] mx-auto rounded-3xl overflow-hidden shadow-xl min-h-[300px] md:min-h-[350px] flex items-center">
-                    <img
+                    <Image
                         src={wishlistBannerUrl}
                         alt="Minha Lista Banner"
-                        className="absolute inset-0 w-full h-full object-cover"
+                        fill
+                        sizes="100vw"
+                        className="object-cover"
+                        priority
                     />
 
                     <div className="relative z-20 w-full px-8 md:px-16 py-12">
@@ -127,11 +131,13 @@ export default async function MyListPage() {
                             {wishlistCourses.map((curso) => {
                                 const hasPurchased = purchasedCourseIds.includes(curso.id)
                                 return (
-                                    <div key={curso.id} className="group w-full max-w-[320px] bg-white rounded-[24px] overflow-hidden border border-black shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col h-full">
+                                    <div key={curso.id} className="group w-full max-w-[320px] bg-[#F5F5F7] rounded-[24px] overflow-hidden border border-black shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col h-full">
                                         <div className="relative h-48 overflow-hidden bg-slate-100">
-                                            <img
+                                            <Image
                                                 src={curso.image_url || "https://images.unsplash.com/photo-1558655146-d09347e92766?w=400"}
-                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                                fill
+                                                sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                                                className="object-cover group-hover:scale-110 transition-transform duration-700"
                                                 alt={curso.title}
                                             />
                                             {hasPurchased ? (

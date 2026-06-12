@@ -7,10 +7,22 @@
 }
 
 @keyframes spinGlow {
-  to { --angle: 360deg; }
+  to {
+    --angle: 360deg;
+  }
 }
 
 :root {
+  /* === LIGHT THEME VARIABLES === */
+  --color-bg-primary: #F5F5F7;
+  /* fundo principal de páginas */
+  --color-bg-secondary: #FAFAFA;
+  /* sidebars e painéis secundários */
+  --color-bg-card: #FFFFFF;
+  /* cards, modais — único lugar com branco puro */
+  --color-bg-section: #F0F0F2;
+  /* seções alternadas */
+
   /* === IDENTIDADE: Deep Premium === */
   --background-color: #061629;
   --accent-green: #1D5F31;
@@ -43,6 +55,29 @@
 }
 
 
+html {
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+}
+
+*,
+*::before,
+*::after {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Containers com scroll próprio — scroll suave + overscroll isolado */
+main,
+[class*="overflow-y-auto"],
+[class*="overflow-y-scroll"],
+.content-area,
+.page-wrapper {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
 html,
 body {
   font-family: var(--font-montserrat);
@@ -52,27 +87,28 @@ body {
   margin: 0;
   background: var(--global-bg-gradient);
   color: var(--foreground);
+  overscroll-behavior-y: none;
 }
 
 /* White Clean Theme Utility */
 .theme-clean-white {
-  background: #FFFFFF !important;
+  background: var(--color-bg-primary) !important;
   color: #000000;
   position: relative;
   z-index: 10;
 }
 
-.theme-clean-white h1, 
-.theme-clean-white h2, 
-.theme-clean-white h3, 
-.theme-clean-white h4, 
-.theme-clean-white h5, 
+.theme-clean-white h1,
+.theme-clean-white h2,
+.theme-clean-white h3,
+.theme-clean-white h4,
+.theme-clean-white h5,
 .theme-clean-white h6 {
   color: #000000 !important;
 }
 
-.theme-clean-white p, 
-.theme-clean-white span:not(.no-theme-override), 
+.theme-clean-white p,
+.theme-clean-white span:not(.no-theme-override),
 .theme-clean-white div:not(.no-theme-override) {
   color: #000000 !important;
 }
@@ -100,7 +136,12 @@ body {
 }
 
 /* Header titles */
-h1,h2,h3,h4,h5,h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   color: #f8fafc;
   font-weight: 700;
   letter-spacing: -0.04em;
@@ -166,7 +207,8 @@ p {
   backdrop-filter: blur(10px);
   border: 1px solid rgba(29, 95, 49, 0.4);
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
-  transition: all 0.3s ease;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  will-change: transform;
 }
 
 .dark-card:hover {
@@ -215,8 +257,9 @@ p {
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 0.75rem;
   padding: 2rem;
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
   cursor: default;
+  will-change: transform;
 }
 
 .benefit-card:hover {
@@ -232,8 +275,9 @@ p {
   border: 1px solid rgba(29, 95, 49, 0.3);
   border-radius: 0.75rem;
   overflow: hidden;
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  will-change: transform;
 }
 
 .course-card-dark:hover {
@@ -253,7 +297,7 @@ p {
   border: 1px solid var(--accent-green);
   border-radius: 0.75rem;
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), filter 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   font-size: 1rem;
   position: relative;
   overflow: hidden;
@@ -274,6 +318,7 @@ p {
   isolation: isolate;
 }
 
+/* CORRIGIDO: adicionado mask padrão (era alerta linha ~310) */
 .btn-cta.glow-ring::before {
   content: '';
   position: absolute;
@@ -283,6 +328,7 @@ p {
   background: conic-gradient(from var(--angle), #1D5F31, #00ff88, #22d3ee, #4ade80, #1D5F31);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask-composite: exclude;
   animation: spinGlow 4s linear infinite;
   pointer-events: none;
@@ -299,6 +345,7 @@ p {
   isolation: isolate;
 }
 
+/* CORRIGIDO: adicionado mask padrão (era alerta linha ~335) */
 .hero-badge::before {
   content: '';
   position: absolute;
@@ -308,6 +355,7 @@ p {
   background: conic-gradient(from var(--angle), #1D5F31, #00ff88, #22d3ee, #4ade80, #1D5F31);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask-composite: exclude;
   animation: spinGlow 6s linear infinite;
   pointer-events: none;
@@ -325,6 +373,7 @@ p {
   overflow: hidden;
 }
 
+/* CORRIGIDO: adicionado mask padrão (era alerta linha ~361) */
 .glow-card::before {
   content: '';
   position: absolute;
@@ -334,6 +383,7 @@ p {
   background: conic-gradient(from var(--angle), transparent 20%, #1D5F31, #00ff88, #22d3ee, transparent 80%);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   mask-composite: exclude;
   animation: spinGlow 8s linear infinite;
   pointer-events: none;
@@ -358,7 +408,7 @@ p {
   width: 100%;
   max-width: 420px;
   outline: none;
-  transition: all 0.2s;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
   backdrop-filter: blur(6px);
 }
 
@@ -372,12 +422,16 @@ p {
   background: rgba(255, 255, 255, 0.06);
   box-shadow: 0 0 0 4px rgba(29, 95, 49, 0.1);
 }
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
 .no-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
 /* === Mux Player Customization === */

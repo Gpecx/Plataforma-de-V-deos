@@ -112,7 +112,7 @@ export function StudentCarousel({ heroBanners }: { heroBanners?: BannerItem[] })
                         <button
                             key={i}
                             onClick={() => setCurrentIndex(i)}
-                            className={`h-1.5 rounded-full transition-all ${currentIndex === i ? 'w-8 bg-white' : 'w-2 bg-white/40 hover:bg-white/60'}`}
+                            className={`h-1.5 rounded-full transition-[width] duration-300 ${currentIndex === i ? 'w-8 bg-white' : 'w-2 bg-white/40 hover:bg-white/60'}`}
                         />
                     ))}
                 </div>

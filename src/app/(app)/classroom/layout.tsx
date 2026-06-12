@@ -13,10 +13,6 @@ export default async function ClassroomLayout({
         redirect('/login')
     }
 
-    if (!user.emailVerified) {
-        redirect('/verify-email')
-    }
-
     return (
         <AuthProvider>
             <div className="classroom-theme">

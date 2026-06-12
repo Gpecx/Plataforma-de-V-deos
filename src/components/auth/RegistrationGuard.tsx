@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/context/AuthProvider'
 
-const EXCLUDED_PATHS = ['/login', '/register', '/verify-email', '/auth']
+const EXCLUDED_PATHS = ['/login', '/register', '/auth']
 
 export function RegistrationGuard({ children }: { children: React.ReactNode }) {
     const router = useRouter()

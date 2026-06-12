@@ -58,7 +58,7 @@ export default function MFAChallenge({ email, onVerify, onCancel }: MFAChallenge
                 return
             }
 
-            // Validar PIN via Documento de Perfil (Manobra Técnica para evitar erro de permissão)
+            // Validar PIN via perfil do usuário (mfa_auth_temp)
             const profileRef = doc(db, 'profiles', user.uid);
             const profileDoc = await getDoc(profileRef);
             const profileData = profileDoc.data();
@@ -84,7 +84,7 @@ export default function MFAChallenge({ email, onVerify, onCancel }: MFAChallenge
                 return;
             }
 
-            // Sucesso na validação: Limpar dados sensíveis no Firestore
+            // Sucesso na validação: Limpar dados sensíveis no perfil
             await updateDoc(profileRef, {
                 mfa_auth_temp: null,
                 mfaCodeRequested: false

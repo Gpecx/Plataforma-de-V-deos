@@ -51,7 +51,7 @@ export default async function DevModePage() {
         </p>
       </header>
 
-      <div className="border-2 border-slate-200 bg-white">
+      <div className="border border-slate-200 bg-white rounded-2xl shadow-sm">
         <div className="border-b border-slate-200 px-6 py-4 flex items-center gap-3">
           <Monitor size={18} style={{ color: '#1D5F31' }} />
           <span className="text-xs font-bold uppercase tracking-widest text-slate-800">
@@ -69,7 +69,7 @@ export default async function DevModePage() {
                 target={link.href ? '_blank' : undefined}
                 rel={link.href ? 'noopener noreferrer' : undefined}
                 className={`flex items-center gap-4 px-6 py-5 transition-colors group ${
-                  isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-50'
+                  isDisabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-slate-50'
                 }`}
                 onClick={isDisabled ? (e) => e.preventDefault() : undefined}
               >
@@ -103,8 +103,8 @@ export default async function DevModePage() {
         </div>
       </div>
 
-      <div className="border-2 border-amber-200 bg-amber-50 px-6 py-4">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-amber-700">
+      <div className="border border-yellow-200 bg-amber-50 px-6 py-4 rounded-xl">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-yellow-800">
           Acesso somente visual. Nenhuma permissão ou função de usuário é alterada.
         </p>
       </div>

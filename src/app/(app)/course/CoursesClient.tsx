@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense, useEffect } from "react";
+import { useState, Suspense, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { useSearchParams, useRouter } from "next/navigation";
@@ -102,7 +102,7 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners, vitri
         return () => clearInterval(timer);
     }, [displaySlides.length]);
 
-    const filteredResults = (() => {
+    const filteredResults = useMemo(() => {
         const query = normalizeString((localSearch || searchQuery).toLowerCase().trim());
         
         const courses = initialCourses.filter(c => {
@@ -116,36 +116,34 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners, vitri
             if (!matchesSearch) return false;
             if (activeFilter === 'free') return c.pricing_type === 'free';
             if (activeFilter === 'new') return isNewCourse(c.created_at);
-            // CORRIGIDO: case-insensitive comparison
             if (vitrineCategorias.some(cat => cat.toUpperCase() === activeFilter.toUpperCase())) {
-                const fixados = vitrineCursosFixados[activeFilter]; // NOVO: cursosFixados
+                const fixados = vitrineCursosFixados[activeFilter];
                 if (fixados && fixados.length > 0) {
                     return fixados.includes(c.id);
                 }
-                return c.category?.toUpperCase() === activeFilter.toUpperCase(); // CORRIGIDO
+                return c.category?.toUpperCase() === activeFilter.toUpperCase();
             }
             return true;
         }).map(c => ({ data: c, type: 'course' as const }));
 
         const teachers = initialTeachers.filter(t => {
-            // Professores só aparecem se houver uma busca ativa ou se não houver filtros de preço/novidade
             if (!query) return false;
             return t.full_name && normalizeString(t.full_name).includes(query) || 
                    t.specialty && normalizeString(t.specialty).includes(query);
         }).map(t => ({ data: t, type: 'teacher' as const }));
 
         return [...courses, ...teachers];
-    })();
+    }, [localSearch, searchQuery, initialCourses, initialTeachers, activeFilter, vitrineCategorias, vitrineCursosFixados]);
 
-    const filteredCourses = filteredResults.filter(r => r.type === 'course').map(r => r.data as Course);
-    const filteredTeachers = filteredResults.filter(r => r.type === 'teacher').map(r => r.data as Teacher);
+    const filteredCourses = useMemo(() => filteredResults.filter(r => r.type === 'course').map(r => r.data as Course), [filteredResults]);
+    const filteredTeachers = useMemo(() => filteredResults.filter(r => r.type === 'teacher').map(r => r.data as Teacher), [filteredResults]);
 
     const handleCourseClick = (course: Course) => {
         setSelectedCourse(course);
         setIsModalOpen(true);
     };
 
-    const dynamicCategories = Array.from(new Set(filteredCourses.map(c => c.category || "Lançamentos"))).sort();
+    const dynamicCategories = useMemo(() => Array.from(new Set(filteredCourses.map(c => c.category || "Lançamentos"))).sort(), [filteredCourses]);
 
     return (
         <div className="min-h-screen bg-[#0B1215] text-white font-montserrat pt-24">
@@ -218,7 +216,7 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners, vitri
                                 <button
                                     key={i}
                                     onClick={() => setCurrentSlide(i)}
-                                    className={`w-2 h-2 transition-all ${i === currentSlide ? 'bg-[#1D5F31] w-6' : 'bg-white/40'}`}
+                                    className={`w-2 h-2 transition-[width] duration-300 ${i === currentSlide ? 'bg-[#1D5F31] w-6' : 'bg-white/40'}`}
                                 />
                             ))}
                         </div>

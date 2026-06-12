@@ -3,11 +3,9 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import Logo from '@/components/Logo'
-import { useBranding } from '@/context/BrandingContext'
 import { Mail, Phone, MapPin, Instagram, Youtube, Linkedin } from 'lucide-react'
 
 export default function Footer({ variant = 'light' }: { variant?: 'light' | 'dark' }) {
-    const { siteName } = useBranding()
     const pathname = usePathname()
     const year = new Date().getFullYear()
 
@@ -24,7 +22,7 @@ export default function Footer({ variant = 'light' }: { variant?: 'light' | 'dar
                     ? 'bg-transparent border-none'
                 : isHomePage
                     ? 'bg-transparent border-none' 
-                    : isDark ? 'bg-[#061629] border-t border-white/5' : 'bg-white border-t border-slate-100'
+                    : isDark ? 'bg-[#061629] border-t border-white/5' : 'bg-[#F5F5F7] border-t border-transparent'
         }`}>
             <div className="max-w-[1600px] mx-auto px-6 md:px-12">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
@@ -108,7 +106,7 @@ export default function Footer({ variant = 'light' }: { variant?: 'light' | 'dar
                         : isDark ? 'text-white/50' : 'text-slate-700'
                 } ${isHomePage ? 'text-center' : 'md:flex-row md:justify-between'}`}>
                     <div className="text-[10px] font-bold uppercase tracking-[0.2em]">
-                        © {year} {siteName} - GPECx Tecnologia. Todos os direitos reservados.
+                        © {year} POWERPLAY – VoltsMind Holding. Todos os direitos reservados.
                     </div>
                 </div>
             </div>
