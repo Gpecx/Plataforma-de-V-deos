@@ -6,10 +6,11 @@ import { signOut as firebaseSignOut } from 'firebase/auth'
 
 interface TeacherStatusGuardProps {
   status: 'pending' | 'rejected'
+  rejectionReason?: string
   userName?: string
 }
 
-export function TeacherStatusGuard({ status, userName }: TeacherStatusGuardProps) {
+export function TeacherStatusGuard({ status, rejectionReason, userName }: TeacherStatusGuardProps) {
   const content = {
     pending: {
       icon: Clock,
@@ -48,6 +49,17 @@ export function TeacherStatusGuard({ status, userName }: TeacherStatusGuardProps
           <p className="text-slate-600 mb-6 leading-relaxed">
             {config.message}
           </p>
+
+          {status === 'rejected' && rejectionReason && (
+            <div className="mb-6 p-4 bg-red-100 border border-red-300 rounded-xl text-left">
+              <p className="text-sm font-semibold text-red-800 mb-1">
+                Motivo da reprovação:
+              </p>
+              <p className="text-sm text-red-700 leading-relaxed">
+                {rejectionReason}
+              </p>
+            </div>
+          )}
 
           {userName && (
             <p className="text-sm text-slate-500 mb-6">

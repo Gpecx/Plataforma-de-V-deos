@@ -88,3 +88,60 @@ export async function getStudentPurchasedCoursesForAdmin(studentId: string): Pro
         return []
     }
 }
+
+export async function getCourseByIdAdmin(courseId: string) {
+    if (!courseId) return null
+
+    try {
+        const courseDoc = await adminDb.collection('courses').doc(courseId).get()
+        if (!courseDoc.exists) return null
+
+        const data = courseDoc.data()
+        return {
+            id: courseId,
+            teacher_id: data?.teacher_id || null,
+            title: data?.title || '',
+            status: data?.status || '',
+        }
+    } catch (error) {
+        console.error('Erro ao buscar curso por ID:', error)
+        return null
+    }
+}
+
+export async function getConfirmedStudentIdsByCourses(courseIds: string[]): Promise<string[]> {
+    if (courseIds.length === 0) return []
+
+    try {
+        const CHUNK_SIZE = 30
+        const results = new Set<string>()
+
+        if (courseIds.length <= CHUNK_SIZE) {
+            const snapshot = await adminDb.collection('enrollments')
+                .where('course_id', 'in', courseIds)
+                .where('payment_confirmed', '==', true)
+                .get()
+            snapshot.forEach(doc => results.add(doc.data().user_id))
+        } else {
+            const queries = []
+            for (let i = 0; i < courseIds.length; i += CHUNK_SIZE) {
+                const chunk = courseIds.slice(i, i + CHUNK_SIZE)
+                queries.push(
+                    adminDb.collection('enrollments')
+                        .where('course_id', 'in', chunk)
+                        .where('payment_confirmed', '==', true)
+                        .get()
+                )
+            }
+            const snapshots = await Promise.all(queries)
+            for (const snapshot of snapshots) {
+                snapshot.forEach(doc => results.add(doc.data().user_id))
+            }
+        }
+
+        return Array.from(results)
+    } catch (error) {
+        console.error('Erro ao buscar alunos confirmados por cursos:', error)
+        return []
+    }
+}

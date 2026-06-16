@@ -37,7 +37,7 @@ export default function CourseValiditySettings({ initialMonths }: CourseValidity
     }
 
     return (
-        <div className="bg-white p-8 border border-black/20 shadow-sm rounded-xl">
+        <div className="bg-white p-8 border border-black/20 shadow-sm rounded-lg">
             <div className="flex items-center gap-3 mb-6">
                 <Settings className="text-[#1D5F31]" size={20} />
                 <h3 className="text-sm font-bold uppercase tracking-widest !text-[#000000]">
@@ -58,7 +58,7 @@ export default function CourseValiditySettings({ initialMonths }: CourseValidity
                                 max={60}
                                 value={months}
                                 onChange={handleChange}
-                                className={`w-full bg-white border-2 px-4 h-12 outline-none transition-all font-bold !text-[#000000] rounded-lg ${!isValid && months !== ('' as any)
+                                className={`w-full bg-white border-2 px-4 h-12 outline-none transition-all font-bold !text-[#000000] rounded-md ${!isValid && months !== ('' as any)
                                         ? 'border-red-400 focus:border-red-500'
                                         : 'border-black/20 focus:border-[#1D5F31]'
                                     }`}
@@ -72,7 +72,7 @@ export default function CourseValiditySettings({ initialMonths }: CourseValidity
                         <button
                             onClick={handleSave}
                             disabled={loading || !isValid}
-                            className="bg-[#1D5F31] text-white px-8 h-12 font-bold uppercase text-[10px] tracking-widest hover:bg-[#28b828] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg"
+                            className="bg-[#1D5F31] text-white px-8 h-12 font-bold uppercase text-[10px] tracking-widest hover:bg-[#28b828] transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed rounded-md"
                         >
                             {loading
                                 ? <Loader2 size={14} className="animate-spin" />

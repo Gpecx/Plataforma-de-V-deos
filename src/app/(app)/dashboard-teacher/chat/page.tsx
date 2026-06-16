@@ -8,6 +8,7 @@ import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp,
 import { useAuth } from '@/context/AuthProvider'
 import { parseFirebaseDate } from '@/lib/date-utils'
 import { toast } from 'sonner'
+import { getConfirmedStudentIdsByCourses } from '@/app/actions/profile'
 
 interface ChatMessage {
     id: string
@@ -108,16 +109,9 @@ export default function TeacherChatPage() {
                     where('teacher_id', '==', user.uid)
                 ))
                 const teacherCourseIds = coursesSnap.docs.map(d => d.id)
-                const confirmedStudentIds = new Set<string>()
-                for (let i = 0; i < teacherCourseIds.length; i += 10) {
-                    const chunk = teacherCourseIds.slice(i, i + 10)
-                    const enrollSnap = await getDocs(query(
-                        collection(db, 'enrollments'),
-                        where('course_id', 'in', chunk),
-                        where('payment_confirmed', '==', true)
-                    ))
-                    enrollSnap.forEach(d => confirmedStudentIds.add(d.data().user_id))
-                }
+                const confirmedStudentIds = new Set(
+                    await getConfirmedStudentIdsByCourses(teacherCourseIds)
+                )
                 const filteredStudents = mappedStudents.filter(s => confirmedStudentIds.has(s.id))
                 setStudents(filteredStudents)
                 if (filteredStudents.length > 0 && !selectedStudent) {
@@ -382,7 +376,12 @@ export default function TeacherChatPage() {
                                             <Send size={16} />
                                         </button>
                                     </div>
-                                    <p className="text-[10px] text-center text-gray-400 mt-4 font-normal">PowerPlay Creator Ecosystem • Secure Mentorship</p>
+                                    <p className="text-xs text-center text-slate-400 mt-4 font-normal leading-relaxed">
+    Para garantir a qualidade do atendimento e a segurança da plataforma, esta conversa poderá ser monitorada. Ao continuar, você concorda com nossos{' '}
+    <Link href="/termos" className="underline hover:text-slate-500 transition-colors">Termos de Uso</Link>
+    {' '}e{' '}
+    <Link href="/privacidade" className="underline hover:text-slate-500 transition-colors">Política de Privacidade</Link>.
+</p>
                                 </div>
                             </>
                         ) : (

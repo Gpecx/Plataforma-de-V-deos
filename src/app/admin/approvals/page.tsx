@@ -20,8 +20,8 @@ export default async function ApprovalsPage() {
     return (
         <div className="flex flex-col animate-in fadeIn duration-700 font-montserrat bg-[#F5F5F7] min-h-screen">
             {/* Header Clean e Profissional */}
-            <header className="w-full pt-12 pb-10 px-6 border-b border-black/20">
-                <div className="max-w-6xl mx-auto flex flex-col items-start text-left">
+            <header className="w-full pt-12 pb-10 px-8 md:px-12 border-b border-black/20">
+                <div className="w-full flex flex-col items-start text-left">
                     <div className="flex items-center gap-3 mb-4">
 
 
@@ -36,7 +36,7 @@ export default async function ApprovalsPage() {
             </header>
 
             {/* Área de Gestão */}
-            <main className="w-full max-w-6xl mx-auto p-6 md:p-10 pb-24">
+            <main className="w-full px-8 md:px-12 py-10 pb-24">
                 <ApprovalsContent
                     pendingCourses={pendingCourses}
                     lessonsInActiveCourses={lessonsInActiveCourses}

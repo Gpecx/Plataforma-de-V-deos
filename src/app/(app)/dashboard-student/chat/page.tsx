@@ -1,12 +1,12 @@
 "use client"
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { ArrowLeft, Send, Paperclip, MessageSquare, Users } from 'lucide-react'
+import { ArrowLeft, Send, MessageSquare, Users } from 'lucide-react'
 import Link from 'next/link'
 import { auth, db } from '@/lib/firebase'
-import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp, getDocs, doc, getDoc } from 'firebase/firestore'
+import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp, getDocs } from 'firebase/firestore'
 import { onAuthStateChanged } from 'firebase/auth'
-import { getPublicProfile } from '@/app/actions/profile'
+import { getPublicProfile, getCourseByIdAdmin } from '@/app/actions/profile'
 import { parseFirebaseDate } from '@/lib/date-utils'
 import { toast } from 'sonner'
 
@@ -71,13 +71,14 @@ export default function StudentChatPage() {
                 const teacherIdsSeen = new Set<string>()
 
                 for (const enrollDoc of enrollSnapshot.docs) {
-                    const enrollData = enrollDoc.data()
-                    if (enrollData.payment_confirmed !== true) continue
-                    const courseId = enrollData.course_id
+                    try {
+                        const enrollData = enrollDoc.data()
+                        if (enrollData.payment_confirmed !== true) continue
+                        const courseId = enrollData.course_id
 
-                    const courseDoc = await getDoc(doc(db, 'courses', courseId))
-                    if (courseDoc.exists()) {
-                        const courseData = courseDoc.data()
+                        const courseData = await getCourseByIdAdmin(courseId)
+                        if (!courseData) continue
+
                         const teacherId = courseData.teacher_id
 
                         if (!teacherIdsSeen.has(teacherId)) {
@@ -92,6 +93,8 @@ export default function StudentChatPage() {
                                 teacherIdsSeen.add(teacherId)
                             }
                         }
+                    } catch (err) {
+                        console.error("Erro ao processar enrollment:", err)
                     }
                 }
 
@@ -340,9 +343,6 @@ export default function StudentChatPage() {
                                 {/* Input de Mensagem */}
                                 <div className="px-4 md:px-8 py-4 md:py-6 border-t border-[#D1D7DC] bg-white">
                                     <div className="flex items-center gap-4">
-                                        <button className="p-2 text-[#1d5f31] hover:bg-[#F1F3F4] rounded-full transition-colors shrink-0">
-                                            <Paperclip size={20} />
-                                        </button>
                                         <div className="flex-1 flex items-center bg-[#F5F5F7] border border-[#D1D7DC] rounded-lg px-4 py-3 focus-within:border-[#1d5f31] transition-all group ring-offset-2">
                                             <input
                                                 type="text"
@@ -362,7 +362,12 @@ export default function StudentChatPage() {
                                             <Send size={16} />
                                         </button>
                                     </div>
-                                    <p className="text-[10px] text-center text-gray-400 mt-4 font-normal">Sua comunicação com o mentor é direta e privada.</p>
+                                    <p className="text-xs text-center text-slate-400 mt-4 font-normal leading-relaxed">
+    Para garantir a qualidade do atendimento e a segurança da plataforma, esta conversa poderá ser monitorada. Ao continuar, você concorda com nossos{' '}
+    <Link href="/termos" className="underline hover:text-slate-500 transition-colors">Termos de Uso</Link>
+    {' '}e{' '}
+    <Link href="/privacidade" className="underline hover:text-slate-500 transition-colors">Política de Privacidade</Link>.
+</p>
                                 </div>
                             </>
                         ) : (

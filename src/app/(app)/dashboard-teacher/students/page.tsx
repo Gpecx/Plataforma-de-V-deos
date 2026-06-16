@@ -116,10 +116,10 @@ export default async function StudentsPage() {
                 </div>
                 <div className="flex gap-4 w-full md:w-auto">
                     <div className="relative flex-grow md:flex-initial group">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 transition-colors group-focus-within:text-[#1D5F31]" size={16} />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-[#1D5F31]" size={16} />
                         <input
                             placeholder="Buscar aluno por nome..."
-                            className="bg-white border border-black rounded-2xl px-12 py-4 text-xs text-slate-900 focus:border-black placeholder:text-slate-600 outline-none transition-all w-full md:w-80 font-bold uppercase tracking-widest shadow-sm"
+                            className="bg-white border border-gray-200 rounded-xl px-12 py-4 text-xs text-slate-900 focus:border-gray-400 placeholder:text-slate-400 outline-none transition-all w-full md:w-80 font-bold uppercase tracking-widest shadow-sm"
                         />
                     </div>
                 </div>

@@ -13,8 +13,6 @@ interface QuizFormProps {
 }
 
 export default function QuizForm({ initialData, onSave, isAdmin = false }: QuizFormProps) {
-  const [title, setTitle] = useState(initialData?.title || '');
-  const [description, setDescription] = useState(initialData?.description || '');
   const [questions, setQuestions] = useState<Partial<Question>[]>(
     initialData?.questions || [{ id: Math.random().toString(), text: '', options: ['', ''], correctAnswer: 0 }]
   );
@@ -63,8 +61,8 @@ export default function QuizForm({ initialData, onSave, isAdmin = false }: QuizF
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave({
-      title,
-      description,
+      title: '',
+      description: '',
       questions: questions.map(q => ({
         ...q,
         id: q.id || Math.random().toString(),
@@ -74,33 +72,6 @@ export default function QuizForm({ initialData, onSave, isAdmin = false }: QuizF
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8 font-montserrat">
-      {/* Quiz Header - Premium Clean White */}
-      <div className="bg-white border-2 border-black/5 p-8 rounded-xl shadow-sm relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-1 h-full bg-[#1D5F31]" />
-        <div className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/60">Título do Quiz</label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full bg-slate-50 border border-black/10 text-black px-4 py-4 rounded-xl focus:outline-none focus:border-[#1D5F31] transition-all text-xl font-bold tracking-tight"
-              placeholder="Ex: Fundamentos de Design Industrial"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-bold uppercase tracking-[3px] text-black/60">Descrição</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-slate-50 border border-black/10 text-black px-4 py-4 rounded-xl focus:outline-none focus:border-[#1D5F31] transition-all h-24 resize-none"
-              placeholder="Descreva o que será avaliado..."
-            />
-          </div>
-        </div>
-      </div>
-
       {/* Questions Section */}
       <div className="space-y-6">
         <div className="flex items-center justify-between border-b border-slate-800 pb-4">

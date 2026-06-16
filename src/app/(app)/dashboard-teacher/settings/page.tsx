@@ -204,7 +204,7 @@ export default function TeacherSettingsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-transparent p-8 md:p-12 space-y-16 font-montserrat border-t border-black/20 pb-32">
+        <div className="min-h-screen bg-[#F0F2F5] p-8 md:p-12 space-y-16 font-montserrat pb-32">
             <header className="max-w-6xl mx-auto">
                 <div className="flex items-center gap-3 mb-2">
 
@@ -217,7 +217,7 @@ export default function TeacherSettingsPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
                 {/* Dados Fiscais e Endereço - rounded-lg */}
-                <section className="bg-white border border-black/20/20 rounded-lg p-10 shadow-sm space-y-10 lg:col-span-2">
+                <section className="bg-white border border-gray-200 rounded-2xl p-10 shadow-sm space-y-10 lg:col-span-2">
                     <form action={formAction} className="space-y-10">
                         <div className="flex items-center gap-4">
                             <div className="p-4 bg-slate-50 rounded-lg text-[#1D5F31] border border-black/20">
@@ -443,7 +443,7 @@ export default function TeacherSettingsPage() {
                 </section>
 
                 {/* Segurança - rounded-lg */}
-                <section className="bg-white border border-black/20 rounded-lg p-10 shadow-sm space-y-10 lg:col-span-2 relative overflow-hidden group">
+                <section className="bg-white border border-gray-200 rounded-2xl p-10 shadow-sm space-y-10 lg:col-span-2 relative overflow-hidden group">
                     <div className="flex items-center gap-4 relative z-10">
                         <div className="p-4 bg-slate-50 rounded-lg text-[#1D5F31] border border-black/20">
                             <Shield size={24} strokeWidth={2.5} />
@@ -549,7 +549,7 @@ export default function TeacherSettingsPage() {
                 </section>
 
                 {/* Zona de Perigo - rounded-lg */}
-                <section className="bg-red-50 border border-black/20 rounded-lg p-10 shadow-sm space-y-8 lg:col-span-2">
+                <section className="bg-red-50 border border-gray-200 rounded-2xl p-10 shadow-sm space-y-8 lg:col-span-2">
                     <div className="flex items-center gap-4">
                         <div className="p-4 bg-white border border-black/20 rounded-lg text-red-500 shadow-sm">
                             <Trash2 size={24} strokeWidth={2.5} />

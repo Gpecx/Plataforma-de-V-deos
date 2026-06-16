@@ -68,12 +68,12 @@ export function FinancialTable({ payments }: FinancialTableProps) {
 
     return (
         <>
-            <div className="bg-[#FAFAFA] p-10 rounded-[32px] border border-black/20">
+            <div className="bg-[#FAFAFA] p-10 rounded-2xl border border-black/20">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
                     <h2 className="text-xl font-bold uppercase tracking-tighter !text-[#000000]">Histórico de Pagamentos</h2>
                     <div className="flex items-center gap-4">
                         <AdminFinanceExportButton payments={payments} />
-                        <div className="flex items-center gap-3 bg-slate-50 px-5 py-2 rounded-xl border border-black/20">
+                        <div className="flex items-center gap-3 bg-slate-50 px-5 py-2 rounded-lg border border-black/20">
                             <Search size={16} className="!text-[#000000]" />
                             <span className="text-sm font-bold !text-[#000000] uppercase tracking-tight">{payments.length} Transações</span>
                         </div>
@@ -88,7 +88,7 @@ export function FinancialTable({ payments }: FinancialTableProps) {
                         value={searchTerm}
                         onChange={e => setSearchTerm(e.target.value)}
                         placeholder="Buscar professor..."
-                        className="w-full h-14 pl-14 pr-5 rounded-2xl bg-slate-50 border border-black/10 text-sm font-bold uppercase tracking-tight !text-black placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1D5F31]/30 focus:border-[#1D5F31]/40 transition-all"
+                        className="w-full h-14 pl-14 pr-5 rounded-xl bg-slate-50 border border-black/10 text-sm font-bold uppercase tracking-tight !text-black placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#1D5F31]/30 focus:border-[#1D5F31]/40 transition-all"
                     />
                 </div>
 
@@ -98,11 +98,11 @@ export function FinancialTable({ payments }: FinancialTableProps) {
                         <button
                             key={t.teacherId ?? '__no_teacher__'}
                             onClick={() => handleTeacherClick(t.teacherId, t.teacherName)}
-                            className="w-full group p-6 md:p-8 rounded-[28px] border border-black/10 bg-white hover:border-[#1D5F31]/40 hover:shadow-lg hover:shadow-[#1D5F31]/5 transition-all text-left"
+                            className="w-full group p-6 md:p-8 rounded-xl border border-black/10 bg-white hover:border-[#1D5F31]/40 hover:shadow-lg hover:shadow-[#1D5F31]/5 transition-all text-left"
                         >
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                                 <div className="flex items-center gap-5">
-                                    <div className="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center border border-black/5 group-hover:border-[#1D5F31]/30 group-hover:bg-[#1D5F31]/5 transition-all shrink-0">
+                                    <div className="w-14 h-14 rounded-xl bg-slate-100 flex items-center justify-center border border-black/5 group-hover:border-[#1D5F31]/30 group-hover:bg-[#1D5F31]/5 transition-all shrink-0">
                                         <User size={22} className="text-slate-500 group-hover:text-[#1D5F31] transition-colors" />
                                     </div>
                                     <div className="text-left">
@@ -155,7 +155,7 @@ export function FinancialTable({ payments }: FinancialTableProps) {
                     ))}
 
                     {filteredSummaries.length === 0 && (
-                        <div className="text-center py-20 bg-slate-50 rounded-[40px] border border-dashed border-black/10">
+                        <div className="text-center py-20 bg-slate-50 rounded-2xl border border-dashed border-black/10">
                             <p className="text-sm font-bold uppercase text-slate-400 tracking-[0.2em]">
                                 {searchTerm ? 'Nenhum professor encontrado para esta busca.' : 'Nenhum pagamento registrado.'}
                             </p>

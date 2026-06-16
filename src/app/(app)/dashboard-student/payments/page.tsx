@@ -394,8 +394,11 @@ export default function PaymentsPage() {
                                         const dateFormatted = new Date(t.dataCriacao).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })
                                         const valueFormatted = isFree ? 'Gratuito' : `R$ ${Number(t.valorBruto).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
+                                        // FASE 2: Status expandidos para cobranças vencidas/canceladas
                                         const isPaid = (t.statusPagamento || '').toLowerCase() === 'pago'
                                         const isPending = (t.statusPagamento || '').toLowerCase() === 'pendente'
+                                        const isOverdue = (t.statusPagamento || '').toLowerCase() === 'vencido'
+                                        const isCanceled = ['expirado', 'cancelado'].includes((t.statusPagamento || '').toLowerCase())
 
                                         return (
                                             <tr 
@@ -440,16 +443,26 @@ export default function PaymentsPage() {
                                                         <MethodIcon size={14} className="text-black shrink-0" />
                                                         <span className="text-[10px] font-bold text-black uppercase tracking-widest">{methodText}</span>
                                                     </div>
+                                                    {/* FASE 2: cores e labels para novos status (vencido/expirado/cancelado) */}
                                                     <div className="flex items-center gap-2">
-                                                        <div className={`w-1.5 h-1.5 rounded-none ${isPending ? 'bg-amber-500' : 'bg-[#1D5F31]'}`} />
-                                                        <span className={`text-[9px] font-bold uppercase tracking-[2px] ${isPending ? 'text-amber-600' : 'text-[#1D5F31]'}`}>
-                                                            {t.statusPagamento || 'Concluído'}
+                                                        <div className={`w-1.5 h-1.5 rounded-none ${isOverdue ? 'bg-amber-700' : isCanceled ? 'bg-gray-400' : isPending ? 'bg-amber-500' : 'bg-[#1D5F31]'}`} />
+                                                        <span className={`text-[9px] font-bold uppercase tracking-[2px] ${isOverdue ? 'text-amber-700' : isCanceled ? 'text-gray-500' : isPending ? 'text-amber-600' : 'text-[#1D5F31]'}`}>
+                                                            {isOverdue ? 'Vencido' : isCanceled ? 'Cancelado' : t.statusPagamento || 'Concluído'}
                                                         </span>
                                                     </div>
                                                 </td>
                                                 <td className="py-6 pr-4 text-right">
                                                     <div className="flex items-center justify-end gap-2">
-                                                        {isPending ? (
+                                                        {/* FASE 2: labels de vencido/cancelado sem ações */}
+                                                        {isOverdue ? (
+                                                            <span className="text-[10px] font-bold uppercase tracking-[2px] text-amber-700 px-4">
+                                                                Vencido
+                                                            </span>
+                                                        ) : isCanceled ? (
+                                                            <span className="text-[10px] font-bold uppercase tracking-[2px] text-gray-500 px-4">
+                                                                Cancelado
+                                                            </span>
+                                                        ) : isPending ? (
                                                             <span className="text-[10px] font-bold uppercase tracking-[2px] text-amber-600 px-4">
                                                                 Aguardando Compensação
                                                             </span>

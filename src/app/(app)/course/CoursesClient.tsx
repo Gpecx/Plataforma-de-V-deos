@@ -226,7 +226,7 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners, vitri
 
             {/* Filtros e Busca */}
             <div className="relative z-30 px-6 md:px-12 mt-12">
-                <div className="flex flex-col md:flex-row gap-6 items-center justify-between bg-transparent border-b border-[#1D5F31] pb-4">
+                <div className="flex flex-col md:flex-row gap-6 items-center justify-between bg-transparent pb-4">
                     {/* Filtros Rápidos */}
                     <div className="flex flex-wrap gap-2 w-full md:w-auto">
                         {(['all', 'free', 'new'] as const).map((filter) => {
@@ -285,8 +285,7 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners, vitri
 
             {/* Título */}
             <div className="relative z-30 px-6 md:px-12 mt-12 mb-8">
-                <div className="flex items-center gap-4 mb-2">
-                    <div className="w-8 h-[2px] bg-[#22c55e]"></div>
+                <div className="mb-2">
                     <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Explorar</span>
                 </div>
                 <h2 className="text-2xl md:text-3xl font-bold tracking-tighter text-[#22c55e]">
@@ -297,8 +296,7 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners, vitri
             {/* Resultados de Professores */}
             {filteredTeachers.length > 0 && (
                 <div className="px-6 md:px-12 mb-12">
-                    <div className="flex items-center gap-4 mb-8">
-                        <div className="w-12 h-[2px] bg-[#1D5F31]"></div>
+                    <div className="mb-8">
                         <span className="text-sm font-bold uppercase tracking-tight text-[#1D5F31]">Professores Encontrados</span>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -353,7 +351,7 @@ function CoursesInner({ initialCourses, initialTeachers = [], heroBanners, vitri
 
                             return (
                                 <div key={category} className="space-y-10">
-                                    <div className="flex items-end justify-between border-b border-[#1D5F31]/50 pb-4">
+                                    <div className="flex items-end justify-between border-b border-gray-700/30 pb-4">
                                         <h2 className="text-lg md:text-xl font-bold uppercase tracking-wider flex items-center gap-3 group cursor-pointer text-[#22c55e]">
                                             {category}
                                             <ChevronRight className="text-[#22c55e] w-4 h-4 opacity-40 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />

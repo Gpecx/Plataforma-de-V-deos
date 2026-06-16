@@ -131,7 +131,7 @@ export default async function MyListPage() {
                             {wishlistCourses.map((curso) => {
                                 const hasPurchased = purchasedCourseIds.includes(curso.id)
                                 return (
-                                    <div key={curso.id} className="group w-full max-w-[320px] bg-[#F5F5F7] rounded-[24px] overflow-hidden border border-black shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col h-full">
+                                    <div key={curso.id} className="group w-full max-w-[320px] bg-white rounded-xl overflow-hidden border border-gray-200 shadow-sm hover:shadow-2xl transition-all duration-500 flex flex-col h-full">
                                         <div className="relative h-48 overflow-hidden bg-slate-100">
                                             <Image
                                                 src={curso.image_url || "https://images.unsplash.com/photo-1558655146-d09347e92766?w=400"}

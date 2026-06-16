@@ -1229,7 +1229,7 @@ export default function CourseBuilder() {
 
                         {selectedLesson ? (
                             <div className="space-y-4 bg-white p-8 rounded-md border border-[#1D5F31]/20 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-8 border-b-2 border-[#1D5F31]">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-8">
                                     <div className="space-y-2 flex-grow">
                                         <span className="text-[9px] font-bold uppercase text-[#1D5F31] tracking-[3px]">Título da Aula Digital</span>
                                         <input
@@ -1244,22 +1244,24 @@ export default function CourseBuilder() {
                                                 })))
                                             }}
                                         />
-                                        <div className="mt-4">
-                                            <span className="text-[9px] font-bold uppercase text-[#1D5F31] tracking-[3px]">Notas da Aula (Markdown ou Texto)</span>
-                                            <textarea
-                                                className="bg-transparent border-none focus:outline-none text-sm text-neutral-800 w-full mt-2 resize-none min-h-[120px]"
-                                                placeholder="Principais tópicos, links úteis ou anotações desta aula..."
-                                                value={selectedLesson.notas || ''}
-                                                onChange={(e) => {
-                                                    const newNotas = e.target.value
-                                                    setSelectedLesson({ ...selectedLesson, notas: newNotas })
-                                                    setModules(prev => prev.map(m => ({
-                                                        ...m,
-                                                        lessons: m.lessons.map(l => l.id === selectedLesson.id ? { ...l, notas: newNotas } : l)
-                                                    })))
-                                                }}
-                                            />
-                                        </div>
+                                        {selectedLesson.type !== 'quiz' && (
+                                            <div className="mt-4">
+                                                <span className="text-[9px] font-bold uppercase text-[#1D5F31] tracking-[3px]">Notas da Aula (Markdown ou Texto)</span>
+                                                <textarea
+                                                    className="bg-transparent border-none focus:outline-none text-sm text-neutral-800 w-full mt-2 resize-none min-h-[120px]"
+                                                    placeholder="Principais tópicos, links úteis ou anotações desta aula..."
+                                                    value={selectedLesson.notas || ''}
+                                                    onChange={(e) => {
+                                                        const newNotas = e.target.value
+                                                        setSelectedLesson({ ...selectedLesson, notas: newNotas })
+                                                        setModules(prev => prev.map(m => ({
+                                                            ...m,
+                                                            lessons: m.lessons.map(l => l.id === selectedLesson.id ? { ...l, notas: newNotas } : l)
+                                                        })))
+                                                    }}
+                                                />
+                                            </div>
+                                        )}
                                         {selectedLesson.status === 'REJEITADO' && selectedLesson.motivoRejeicao && (
                                             <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
                                                 <div className="flex items-center gap-2 mb-2">

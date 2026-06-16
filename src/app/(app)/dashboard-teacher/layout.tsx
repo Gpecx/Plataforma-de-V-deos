@@ -25,10 +25,12 @@ export default async function TeacherLayout({
     // Buscar status do professor
     let teacherStatus = 'approved'
     let profileData: any = null
+    let rejectionReason = ''
     try {
         const profileDoc = await adminDb.collection('profiles').doc(session.uid).get()
         profileData = profileDoc.data()
         teacherStatus = profileData?.teacher_status || 'approved'
+        rejectionReason = profileData?.rejection_reason || ''
     } catch (error) {
         console.error('Error fetching teacher status:', error)
     }
@@ -46,6 +48,7 @@ export default async function TeacherLayout({
                     <ScrollToTop />
                     <TeacherStatusGuard 
                         status={teacherStatus} 
+                        rejectionReason={rejectionReason}
                         userName={profileData?.full_name || profileData?.name || ''}
                     />
                 </div>

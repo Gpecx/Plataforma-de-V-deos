@@ -51,7 +51,7 @@ service cloud.firestore {
     match /profiles/{userId} {
       allow read:  if isSignedIn() && (isOwner(userId) || isAdmin());
       allow write: if isSignedIn() && (
-        isAdmin() || 
+        isAdmin() ||
         (isOwner(userId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'teacher_status', 'cursos_comprados']))
       );
     }
@@ -325,5 +325,52 @@ service cloud.firestore {
     match /profiles/{userId}/wishlist/{courseId} {
       allow read, write: if isSignedIn() && isOwner(userId);
     }
+
+    // =========================================================================
+    // LESSON COMMENTS (Dúvidas por Aula 💬)
+    // Feed público: alunos que compraram o curso veem todos os comentários
+    // da aula, como no YouTube. Cada aluno só apaga o próprio comentário.
+    // Professor pode apagar qualquer comentário (moderação).
+    // Admin tem acesso irrestrito.
+    // =========================================================================
+    match /lesson_comments/{commentId} {
+      // Leitura: próprio aluno, professor/admin, ou qualquer aluno que comprou o curso
+      allow read: if isSignedIn() && (
+        resource.data.studentId == request.auth.uid
+        || isTeacherOrAdmin()
+        || isAdmin()
+        || hasPurchasedCourse(resource.data.courseId)
+      );
+
+      // Criação: autenticado + é o dono declarado + comprou o curso
+      allow create: if isSignedIn()
+        && request.resource.data.studentId == request.auth.uid
+        && hasPurchasedCourse(request.resource.data.courseId);
+
+      // Atualização: apenas professor ou admin (para marcar como respondido)
+      allow update: if isTeacherOrAdmin() || isAdmin();
+
+      // Exclusão: próprio aluno, professor (moderação) ou admin
+      allow delete: if isSignedIn() && (
+        resource.data.studentId == request.auth.uid
+        || isTeacherOrAdmin()
+        || isAdmin()
+      );
+
+      // Replies: respostas do professor dentro de cada comentário
+      match /replies/{replyId} {
+        // Leitura: o aluno dono do comentário pai, professor/admin, ou aluno que comprou o curso
+        allow read: if isSignedIn() && (
+          get(/databases/$(database)/documents/lesson_comments/$(commentId)).data.studentId == request.auth.uid
+          || isTeacherOrAdmin()
+          || hasPurchasedCourse(get(/databases/$(database)/documents/lesson_comments/$(commentId)).data.courseId)
+        );
+        // Criação: apenas professor ou admin
+        allow create: if isTeacherOrAdmin();
+        // Exclusão: professor (ao apagar comentário pai) ou admin
+        allow delete: if isTeacherOrAdmin() || isAdmin();
+      }
+    }
+
   }
 }

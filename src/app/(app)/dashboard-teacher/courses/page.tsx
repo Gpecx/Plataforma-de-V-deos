@@ -3,7 +3,7 @@
 import { useEffect, useState, Suspense, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { auth, db } from '@/lib/firebase'
-import { collection, query, where, orderBy, getDocs, addDoc, doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore'
+import { collection, query, where, getDocs, addDoc, doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore'
 import { onAuthStateChanged } from 'firebase/auth'
 
 import Link from 'next/link'
@@ -12,9 +12,6 @@ import {
     Search,
     Filter,
     Edit,
-    Users,
-    Star,
-    BookOpen,
     Trash2,
     Loader2,
     Package,
@@ -25,9 +22,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { XCircle } from 'lucide-react'
 import { toast } from 'sonner'
-// Importamos a action que você acabou de criar no actions.ts
 import { deleteCourseAction, cancelCourseDeletionRequest } from './actions'
 import { normalizeString } from '@/lib/utils'
+import Image from 'next/image'
 
 function CoursesContent() {
     const [courses, setCourses] = useState<any[]>([])
@@ -48,46 +45,38 @@ function CoursesContent() {
         }
     }, [searchParams])
 
+    // FIX: unificado em um único listener onAuthStateChanged para evitar
+    // duas assinaturas de auth simultâneas e possível race condition
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             if (user) {
                 try {
-                    const coursesRef = collection(db, 'courses');
-                    const querySnapshot = await getDocs(query(coursesRef, where('teacher_id', '==', user.uid)));
-                    const data = querySnapshot.docs.map(doc => {
-                        const courseData = doc.data();
+                    // Carrega cursos e bundles em paralelo dentro do mesmo listener
+                    const [coursesSnapshot, bundlesSnapshot] = await Promise.all([
+                        getDocs(query(collection(db, 'courses'), where('teacher_id', '==', user.uid))),
+                        getDocs(query(collection(db, 'bundles'), where('teacher_id', '==', user.uid)))
+                    ])
+
+                    const coursesData = coursesSnapshot.docs.map(doc => {
+                        const courseData = doc.data()
                         return {
                             id: doc.id,
                             ...courseData,
                             image_url: courseData.image_url || courseData.imageUrl || courseData.image || null
-                        };
-                    });
-                    setCourses(data);
+                        }
+                    })
+
+                    const bundlesData = bundlesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+
+                    setCourses(coursesData)
+                    setBundles(bundlesData)
                 } catch (error) {
-                    console.error("Erro ao carregar cursos:", error);
+                    console.error("Erro ao carregar dados:", error)
                 }
             }
             setLoading(false)
         })
 
-        return () => unsubscribe()
-    }, [])
-
-    // Load bundles
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                try {
-                    const bundlesRef = collection(db, 'bundles')
-                    const q = query(bundlesRef, where('teacher_id', '==', user.uid))
-                    const snapshot = await getDocs(q)
-                    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-                    setBundles(data)
-                } catch (error) {
-                    console.error("Erro ao carregar pacotes:", error)
-                }
-            }
-        })
         return () => unsubscribe()
     }, [])
 
@@ -157,11 +146,11 @@ function CoursesContent() {
     }
 
     const handleDelete = (courseId: string, currentStatus: string) => {
-        const isAprovado = currentStatus === 'APROVADO';
+        const isAprovado = currentStatus === 'APROVADO'
         const confirmMessage = isAprovado
-            ? "O curso será enviado para análise antes de ser removido." 
-            : "Todos os dados e alunos vinculados serão perdidos.";
-        
+            ? "O curso será enviado para análise antes de ser removido."
+            : "Todos os dados e alunos vinculados serão perdidos."
+
         toast(isAprovado ? "Solicitar exclusão" : "Excluir curso", {
             description: (
                 <div className="mt-1 flex flex-col gap-1">
@@ -171,11 +160,11 @@ function CoursesContent() {
                 </div>
             ),
             duration: 8000,
-            style: { 
-                background: '#fff', 
-                color: '#0f172a', 
-                border: '1px solid #e2e8f0', 
-                borderRadius: '16px', 
+            style: {
+                background: '#fff',
+                color: '#0f172a',
+                border: '1px solid #e2e8f0',
+                borderRadius: '16px',
                 boxShadow: '0 10px 30px -10px rgba(0,0,0,0.08)',
                 padding: '20px'
             },
@@ -199,7 +188,7 @@ function CoursesContent() {
             action: {
                 label: 'Confirmar',
                 onClick: async () => {
-                    const result = await deleteCourseAction(courseId);
+                    const result = await deleteCourseAction(courseId)
 
                     if (result.success) {
                         if (result.requested) {
@@ -208,9 +197,9 @@ function CoursesContent() {
                                 style: { background: '#1D5F31', color: '#fff', border: '2px solid #1D5F31', borderRadius: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', boxShadow: 'none' },
                                 icon: '📋'
                             })
-                            setCourses(prev => prev.map(c => c.id === courseId ? { ...c, status: 'SOLICITADO_EXCLUSAO' } : c));
+                            setCourses(prev => prev.map(c => c.id === courseId ? { ...c, status: 'SOLICITADO_EXCLUSAO' } : c))
                         } else {
-                            setCourses(prev => prev.filter(c => c.id !== courseId));
+                            setCourses(prev => prev.filter(c => c.id !== courseId))
                             toast.success("CURSO REMOVIDO!", {
                                 description: "Curso excluído com sucesso.",
                                 style: { background: '#1D5F31', color: '#fff', border: '2px solid #1D5F31', borderRadius: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', boxShadow: 'none' },
@@ -227,10 +216,10 @@ function CoursesContent() {
             },
             cancel: {
                 label: 'Cancelar',
-                onClick: () => {}
+                onClick: () => { }
             }
-        });
-    };
+        })
+    }
 
     const handleCancelDeletionRequest = (courseId: string) => {
         toast("Cancelar exclusão", {
@@ -242,11 +231,11 @@ function CoursesContent() {
                 </div>
             ),
             duration: 8000,
-            style: { 
-                background: '#fff', 
-                color: '#0f172a', 
-                border: '1px solid #e2e8f0', 
-                borderRadius: '16px', 
+            style: {
+                background: '#fff',
+                color: '#0f172a',
+                border: '1px solid #e2e8f0',
+                borderRadius: '16px',
                 boxShadow: '0 10px 30px -10px rgba(0,0,0,0.08)',
                 padding: '20px'
             },
@@ -270,7 +259,7 @@ function CoursesContent() {
             action: {
                 label: 'Confirmar',
                 onClick: async () => {
-                    const result = await cancelCourseDeletionRequest(courseId);
+                    const result = await cancelCourseDeletionRequest(courseId)
 
                     if (result.success) {
                         toast.success("SOLICITAÇÃO CANCELADA!", {
@@ -278,7 +267,7 @@ function CoursesContent() {
                             style: { background: '#1D5F31', color: '#fff', border: '2px solid #1D5F31', borderRadius: '12px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '2px', boxShadow: 'none' },
                             icon: '✅'
                         })
-                        setCourses(prev => prev.map(c => c.id === courseId ? { ...c, status: 'APROVADO' } : c));
+                        setCourses(prev => prev.map(c => c.id === courseId ? { ...c, status: 'APROVADO' } : c))
                     } else {
                         toast.error("ERRO AO CANCELAR", {
                             description: result.error,
@@ -289,11 +278,10 @@ function CoursesContent() {
             },
             cancel: {
                 label: 'Voltar',
-                onClick: () => {}
+                onClick: () => { }
             }
-        });
-    };
-    // ---------------------------------------------------
+        })
+    }
 
     const filteredCourses = useMemo(() => courses.filter(curso =>
         curso.title ? normalizeString(curso.title).includes(normalizeString(searchTerm)) : false
@@ -319,13 +307,13 @@ function CoursesContent() {
                 <div className="flex gap-4">
                     <Button
                         onClick={() => setShowBundleModal(true)}
-                        className="bg-amber-600 text-white font-bold uppercase text-[10px] tracking-widest px-10 h-16 rounded-2xl hover:opacity-90 shadow-xl shadow-amber-600/10 active:scale-95 transition-all"
+                        className="bg-amber-600 text-white font-bold uppercase text-[10px] tracking-widest px-10 h-16 rounded-lg hover:opacity-90 shadow-xl shadow-amber-600/10 active:scale-95 transition-all"
                     >
                         <Package size={20} className="mr-2" strokeWidth={3} />
                         Criar Pacote
                     </Button>
                     <Link href="/dashboard-teacher/courses/new">
-                        <Button className="bg-[#1D5F31] text-white font-bold uppercase text-[10px] tracking-widest px-10 h-16 rounded-2xl hover:opacity-90 shadow-xl shadow-[#1D5F31]/10 active:scale-95 transition-all">
+                        <Button className="bg-[#1D5F31] text-white font-bold uppercase text-[10px] tracking-widest px-10 h-16 rounded-lg hover:opacity-90 shadow-xl shadow-[#1D5F31]/10 active:scale-95 transition-all">
                             <Plus size={20} className="mr-2" strokeWidth={3} />
                             Lançar Novo Curso
                         </Button>
@@ -341,10 +329,10 @@ function CoursesContent() {
                             placeholder="Buscar por nome do curso..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="bg-white border border-black/20 pl-14 h-16 rounded-2xl focus:border-black focus:ring-1 focus:ring-black/20 text-sm font-bold text-slate-900 placeholder:text-slate-400 shadow-sm transition-all"
+                            className="bg-white border border-black/20 pl-14 h-16 rounded-lg focus:border-black focus:ring-1 focus:ring-black/20 text-sm font-bold text-slate-900 placeholder:text-slate-400 shadow-sm transition-all"
                         />
                     </div>
-                    <div className="bg-white border border-black/20 text-slate-500 h-16 px-10 rounded-2xl flex items-center gap-4 shadow-sm">
+                    <div className="bg-white border border-black/20 text-slate-500 h-16 px-10 rounded-lg flex items-center gap-4 shadow-sm">
                         <Filter size={18} className="text-[#1D5F31]" />
                         <span className="text-[10px] font-bold uppercase tracking-[3px] whitespace-nowrap">{filteredCourses.length} Encontrados</span>
                     </div>
@@ -359,84 +347,80 @@ function CoursesContent() {
                         </p>
                     </div>
                 ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8">
-                    {filteredCourses.map((curso) => (
-                        <div key={curso.id} className="group bg-white rounded-[32px] border border-black/20 flex flex-col hover:border-black transition-all duration-500 shadow-sm hover:shadow-xl overflow-hidden">
-                            <div className="relative h-44 bg-slate-100 overflow-hidden">
-                                <img
-                                    src={curso.image_url || "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400"}
-                                    alt={curso.title}
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                                    onError={(e) => {
-                                        (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400"
-                                    }}
-                                />
-                                <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
-                                    <div className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-black/20 shadow-sm">
-                                        <span className="text-[8px] font-bold text-slate-900 tracking-widest uppercase">{curso.category || 'GERAL'}</span>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8">
+                        {filteredCourses.map((curso) => (
+                            <div key={curso.id} className="group bg-white rounded-lg border border-black/20 flex flex-col hover:border-black transition-all duration-500 shadow-sm hover:shadow-xl overflow-hidden">
+                                <div className="relative h-44 bg-slate-100 overflow-hidden">
+                                    {/* FIX: substituído <img> por <Image /> do Next.js */}
+                                    <Image
+                                        src={curso.image_url || "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400"}
+                                        alt={curso.title}
+                                        fill
+                                        className="object-cover group-hover:scale-110 transition-transform duration-700"
+                                    />
+                                    <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
+                                        <div className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-lg border border-black/20 shadow-sm">
+                                            <span className="text-[8px] font-bold text-slate-900 tracking-widest uppercase">{curso.category || 'GERAL'}</span>
+                                        </div>
+                                        <div className={`px-3 py-1.5 rounded-lg border shadow-sm ${curso.status === 'APROVADO'
+                                                ? 'bg-white/95 backdrop-blur-md border-[#1D5F31]/30'
+                                                : curso.status === 'SOLICITADO_EXCLUSAO'
+                                                    ? 'bg-red-50 border-red-300'
+                                                    : 'bg-amber-50 border-amber-300'
+                                            }`}>
+                                            <span className={`text-[8px] font-bold tracking-widest uppercase ${curso.status === 'APROVADO' ? 'text-[#1D5F31]' :
+                                                    curso.status === 'SOLICITADO_EXCLUSAO' ? 'text-red-600' : 'text-amber-700'
+                                                }`}>
+                                                {curso.status === 'APROVADO' ? 'Aprovado' :
+                                                    curso.status === 'SOLICITADO_EXCLUSAO' ? 'Remoção Solicitada' : 'Pendente'}
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div className={`px-3 py-1.5 rounded-lg border shadow-sm ${
-                                        curso.status === 'APROVADO' 
-                                            ? 'bg-white/95 backdrop-blur-md border-[#1D5F31]/30' 
-                                            : curso.status === 'SOLICITADO_EXCLUSAO'
-                                            ? 'bg-red-50 border-red-300'
-                                            : 'bg-amber-50 border-amber-300'
-                                    }`}>
-                                        <span className={`text-[8px] font-bold tracking-widest uppercase ${
-                                            curso.status === 'APROVADO' ? 'text-[#1D5F31]' : 
-                                            curso.status === 'SOLICITADO_EXCLUSAO' ? 'text-red-600' : 'text-amber-700'
-                                        }`}>
-                                            {curso.status === 'APROVADO' ? 'Aprovado' : 
-                                             curso.status === 'SOLICITADO_EXCLUSAO' ? 'Remoção Solicitada' : 'Pendente'}
-                                        </span>
+                                </div>
+
+                                <div className="p-8 flex-grow flex flex-col">
+                                    <h3 className="text-lg font-bold tracking-tight text-slate-900 mb-6 line-clamp-2 uppercase leading-tight group-hover:text-[#1D5F31] transition-colors">{curso.title}</h3>
+
+                                    <div className="flex justify-between items-end mb-8 pt-6 border-t border-black/20">
+                                        <div className="flex flex-col">
+                                            <span className="text-[8px] font-bold uppercase text-slate-600 tracking-[1px] mb-1">Preço de Venda</span>
+                                            <span className="text-slate-900 font-bold text-xl tracking-tighter leading-none">
+                                                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(curso.price || 0)}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-auto flex gap-4">
+                                        <Link href={`/dashboard-teacher/courses/${curso.id}/edit`} className="flex-grow">
+                                            <Button className="w-full bg-slate-900 hover:bg-[#1D5F31] text-white font-bold uppercase tracking-widest py-4 h-auto rounded-md transition-all duration-300 text-[10px] shadow-md border border-black/20">
+                                                <Edit size={14} className="mr-2" /> Editar
+                                            </Button>
+                                        </Link>
+
+                                        {curso.status === 'SOLICITADO_EXCLUSAO' ? (
+                                            <Button
+                                                variant="outline"
+                                                onClick={() => handleCancelDeletionRequest(curso.id)}
+                                                className="border border-amber-400 text-amber-600 hover:text-amber-700 hover:bg-amber-50 p-4 w-14 h-14 rounded-md transition-all shadow-sm"
+                                                title="Cancelar solicitação de exclusão"
+                                            >
+                                                <XCircle size={18} />
+                                            </Button>
+                                        ) : (
+                                            <Button
+                                                variant="outline"
+                                                onClick={() => handleDelete(curso.id, curso.status)}
+                                                className="border border-black/20 text-slate-600 hover:text-red-600 hover:border-red-600 hover:bg-red-50 p-4 w-14 h-14 rounded-md transition-all shadow-sm"
+                                                title="Excluir curso"
+                                            >
+                                                <Trash2 size={18} />
+                                            </Button>
+                                        )}
                                     </div>
                                 </div>
                             </div>
-
-                            <div className="p-8 flex-grow flex flex-col">
-                                <h3 className="text-lg font-bold tracking-tight text-slate-900 mb-6 line-clamp-2 uppercase leading-tight group-hover:text-[#1D5F31] transition-colors">{curso.title}</h3>
-                                
-                                <div className="flex justify-between items-end mb-8 pt-6 border-t border-black/20">
-                                    <div className="flex flex-col">
-                                        <span className="text-[8px] font-bold uppercase text-slate-600 tracking-[1px] mb-1">Preço de Venda</span>
-                                        <span className="text-slate-900 font-bold text-xl tracking-tighter leading-none">
-                                            {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(curso.price || 0)}
-                                        </span>
-                                    </div>
-
-                                </div>
-
-                                <div className="mt-auto flex gap-4">
-                                    <Link href={`/dashboard-teacher/courses/${curso.id}/edit`} className="flex-grow">
-                                        <Button className="w-full bg-slate-900 hover:bg-[#1D5F31] text-white font-bold uppercase tracking-widest py-4 h-auto rounded-xl transition-all duration-300 text-[10px] shadow-md border border-black/20">
-                                            <Edit size={14} className="mr-2" /> Editar
-                                        </Button>
-                                    </Link>
-
-                                    {curso.status === 'SOLICITADO_EXCLUSAO' ? (
-                                        <Button
-                                            variant="outline"
-                                            onClick={() => handleCancelDeletionRequest(curso.id)}
-                                            className="border border-amber-400 text-amber-600 hover:text-amber-700 hover:bg-amber-50 p-4 w-14 h-14 rounded-xl transition-all shadow-sm"
-                                            title="Cancelar solicitação de exclusão"
-                                        >
-                                            <XCircle size={18} />
-                                        </Button>
-                                    ) : (
-                                        <Button
-                                            variant="outline"
-                                            onClick={() => handleDelete(curso.id, curso.status)}
-                                            className="border border-black/20 text-slate-600 hover:text-red-600 hover:border-red-600 hover:bg-red-50 p-4 w-14 h-14 rounded-xl transition-all shadow-sm"
-                                            title="Excluir curso"
-                                        >
-                                            <Trash2 size={18} />
-                                        </Button>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
                 )}
             </div>
 
@@ -453,10 +437,10 @@ function CoursesContent() {
                         {bundles.map((bundle) => {
                             const bundleCourses = courses.filter(c => bundle.course_ids?.includes(c.id))
                             return (
-                                <div key={bundle.id} className="bg-white rounded-[24px] border border-black/20 p-6 flex flex-col gap-4 shadow-sm">
+                                <div key={bundle.id} className="bg-white rounded-lg border border-black/20 p-6 flex flex-col gap-4 shadow-sm">
                                     <div className="flex items-start justify-between">
                                         <div className="flex items-center gap-3">
-                                            <div className="p-2.5 bg-amber-50 rounded-xl border border-amber-200">
+                                            <div className="p-2.5 bg-amber-50 rounded-md border border-amber-200">
                                                 <Gift size={18} className="text-amber-600" />
                                             </div>
                                             <div>
@@ -502,11 +486,11 @@ function CoursesContent() {
 
             {/* Bundle Creation Modal */}
             {showBundleModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowBundleModal(false)}>
-                    <div className="bg-white rounded-[32px] w-full max-w-lg mx-4 p-8 shadow-2xl max-h-[90vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setShowBundleModal(false)}>
+                    <div className="bg-[#FAFAFA] rounded-lg w-full max-w-xl mx-4 p-8 shadow-2xl border border-slate-200/60 max-h-[90vh] overflow-y-auto animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
                         <div className="flex items-center justify-between mb-8">
                             <div className="flex items-center gap-4">
-                                <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200">
+                                <div className="p-3 bg-white rounded-md border border-slate-200 shadow-sm">
                                     <Package size={22} className="text-amber-600" />
                                 </div>
                                 <div>
@@ -514,84 +498,91 @@ function CoursesContent() {
                                     <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[3px]">Combine cursos com preço especial</p>
                                 </div>
                             </div>
-                            <button onClick={() => setShowBundleModal(false)} className="p-2 hover:bg-slate-100 rounded-xl transition">
-                                <X size={20} className="text-slate-400" />
+                            <button onClick={() => setShowBundleModal(false)} className="p-2 hover:bg-slate-200/50 text-slate-400 hover:text-slate-600 rounded-md transition-colors">
+                                <X size={20} />
                             </button>
                         </div>
 
                         <div className="space-y-6">
-                            <div>
-                                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 block">Nome do Pacote</label>
+                            <div className="group">
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 block group-focus-within:text-amber-600 transition-colors">Nome do Pacote</label>
                                 <Input
                                     placeholder="Ex: Kit Elétrica Completa"
                                     value={bundleName}
                                     onChange={e => setBundleName(e.target.value)}
-                                    className="h-14 rounded-2xl border border-black/20 px-5 text-sm font-bold"
+                                    className="h-14 rounded-md border-slate-200 bg-white hover:bg-slate-50 focus:bg-white px-5 text-sm font-bold shadow-sm transition-all focus:border-amber-500 focus:ring-1 focus:ring-amber-500 placeholder:text-slate-400 placeholder:font-medium"
                                 />
                             </div>
 
-                            <div>
-                                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 block">Selecionar Cursos (mín. 2)</label>
-                                <div className="space-y-2 max-h-48 overflow-y-auto border border-black/10 rounded-2xl p-3">
+                            <div className="group">
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 block group-focus-within:text-amber-600 transition-colors">Selecionar Cursos (mín. 2)</label>
+                                <div className="space-y-2 max-h-[260px] overflow-y-auto pr-2 custom-scrollbar">
                                     {courses.map(c => (
-                                        <label key={c.id} className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition ${selectedCourseIds.includes(c.id) ? 'bg-[#1D5F31]/5 border border-[#1D5F31]/20' : 'hover:bg-slate-50 border border-transparent'}`}>
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedCourseIds.includes(c.id)}
-                                                onChange={() => {
-                                                    setSelectedCourseIds(prev =>
-                                                        prev.includes(c.id) ? prev.filter(id => id !== c.id) : [...prev, c.id]
-                                                    )
-                                                }}
-                                                className="w-4 h-4 rounded border-slate-300 text-[#1D5F31] focus:ring-[#1D5F31]"
-                                            />
-                                            <span className="text-xs font-bold uppercase tracking-tight text-slate-700 flex-1">{c.title}</span>
-                                            <span className="text-[10px] font-bold text-slate-400">R$ {(Number(c.price) || 0).toFixed(2)}</span>
+                                        <label key={c.id} className={`flex items-start sm:items-center gap-4 p-4 rounded-md cursor-pointer transition-all duration-200 ${selectedCourseIds.includes(c.id) ? 'bg-amber-50/70 border-amber-200 shadow-sm' : 'bg-white border-slate-200 hover:bg-slate-50 shadow-sm'} border`}>
+                                            <div className={`mt-0.5 sm:mt-0 flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-md border transition-colors ${selectedCourseIds.includes(c.id) ? 'bg-amber-600 border-amber-600 text-white' : 'bg-slate-50 border-slate-300'}`}>
+                                                {selectedCourseIds.includes(c.id) && <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
+                                            </div>
+                                            <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                                <span className="text-sm font-bold text-slate-700 leading-tight">{c.title}</span>
+                                                <span className="text-[11px] font-bold text-slate-500 bg-slate-100/80 px-2.5 py-1.5 rounded-md border border-slate-200/60 whitespace-nowrap">R$ {(Number(c.price) || 0).toFixed(2)}</span>
+                                            </div>
                                         </label>
                                     ))}
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 block">Preço do Pacote (R$)</label>
-                                <Input
-                                    type="number"
-                                    placeholder="199,00"
-                                    value={bundlePrice}
-                                    onChange={e => setBundlePrice(e.target.value)}
-                                    className="h-14 rounded-2xl border border-black/20 px-5 text-sm font-bold"
-                                    min={0}
-                                    step={0.01}
-                                />
+                            <div className="group">
+                                <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 block group-focus-within:text-amber-600 transition-colors">Preço do Pacote (R$)</label>
+                                <div className="relative">
+                                    <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">R$</span>
+                                    <Input
+                                        type="number"
+                                        placeholder="199,00"
+                                        value={bundlePrice}
+                                        onChange={e => setBundlePrice(e.target.value)}
+                                        className="h-14 rounded-md border-slate-200 bg-white hover:bg-slate-50 focus:bg-white pl-12 pr-5 text-sm font-bold shadow-sm transition-all focus:border-amber-500 focus:ring-1 focus:ring-amber-500 placeholder:text-slate-400 placeholder:font-medium"
+                                        min={0}
+                                        step={0.01}
+                                    />
+                                </div>
                             </div>
 
                             {selectedCourseIds.length >= 2 && (
-                                <div className="bg-slate-50 rounded-2xl p-5 space-y-2 border border-slate-200">
-                                    <div className="flex justify-between text-xs font-bold text-slate-500">
-                                        <span>Preço Original</span>
-                                        <span className="text-slate-900">R$ {selectedCoursesTotal.toFixed(2)}</span>
+                                <div className="bg-white rounded-md p-5 border border-slate-200 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-300">
+                                    <div className="flex justify-between items-center mb-3">
+                                        <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Preço Original</span>
+                                        <span className="text-sm font-bold text-slate-400 line-through">R$ {selectedCoursesTotal.toFixed(2)}</span>
                                     </div>
-                                    <div className="flex justify-between text-xs font-bold">
-                                        <span className="text-[#1D5F31]">Economia</span>
-                                        <span className="text-[#1D5F31]">
-                                            -R$ {savings.toFixed(2)} {savingsPercent > 0 && `(${savingsPercent}%)`}
-                                        </span>
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs font-bold uppercase tracking-widest text-emerald-600">Sua Economia</span>
+                                            {savingsPercent > 0 && (
+                                                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded-md">
+                                                    -{savingsPercent}%
+                                                </span>
+                                            )}
+                                        </div>
+                                        <div className="text-right">
+                                            <span className="text-xl font-black tracking-tighter text-slate-900">
+                                                R$ {Number(bundlePrice || 0).toFixed(2)}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                             )}
 
-                            <div className="flex gap-4 pt-4">
+                            <div className="flex gap-4 pt-2">
                                 <Button
                                     onClick={() => setShowBundleModal(false)}
                                     variant="outline"
-                                    className="flex-1 h-14 rounded-2xl border border-black/20 text-slate-600 font-bold uppercase text-[10px] tracking-widest"
+                                    className="flex-1 h-14 rounded-md border-slate-200 bg-white hover:bg-slate-50 text-slate-600 font-bold uppercase text-[10px] tracking-widest shadow-sm transition-all"
                                 >
                                     Cancelar
                                 </Button>
                                 <Button
                                     onClick={handleCreateBundle}
                                     disabled={savingBundle || selectedCourseIds.length < 2 || !bundleName.trim() || !bundlePrice}
-                                    className="flex-1 h-14 rounded-2xl bg-amber-600 text-white font-bold uppercase text-[10px] tracking-widest hover:opacity-90 disabled:opacity-50"
+                                    className="flex-1 h-14 rounded-md bg-amber-600 text-white font-bold uppercase text-[10px] tracking-widest hover:bg-amber-700 disabled:opacity-50 shadow-md shadow-amber-600/20 active:scale-[0.98] transition-all"
                                 >
                                     {savingBundle ? 'Salvando...' : 'Salvar Pacote'}
                                 </Button>

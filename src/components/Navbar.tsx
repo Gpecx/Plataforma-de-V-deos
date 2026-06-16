@@ -42,6 +42,11 @@ import {
     DropdownMenuTrigger,
     DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu"
+import {
+    Sheet,
+    SheetTrigger,
+    SheetContent,
+} from "@/components/ui/sheet"
 import { useAuth } from '@/context/AuthProvider'
 import { searchGlobal, SearchResult } from '@/app/actions/search'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -245,6 +250,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
         ...(isEffectivelyLoggedIn ? [
             { href: '/dashboard-teacher', label: 'Dashboard' },
             { href: '/dashboard-teacher/courses', label: 'Meus Cursos' },
+            { href: '/dashboard-teacher/duvidas', label: 'Dúvidas' },
             { href: '/dashboard-teacher/analytics', label: 'Desempenho' },
             { href: '/dashboard-teacher/settings', label: 'Configurações' },
         ] : []),
@@ -369,7 +375,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                         exit={{ opacity: 0, y: 10 }}
                                         className={cn(
                                             "absolute top-full right-0 left-0 md:left-auto md:w-[450px] mt-2 shadow-2xl border z-[200] overflow-hidden rounded-xl search-container",
-                                            effectiveLight ? "bg-white border-slate-200" : "bg-[#0B1215] border-white/10"
+                                            effectiveLight ? "bg-white border-slate-200" : "bg-slate-950 border-white/10"
                                         )}
                                     >
                                         <div className="max-h-[70vh] overflow-y-auto">
@@ -377,19 +383,19 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                             {isSearching && (
                                                 <div className="p-8 flex flex-col items-center justify-center gap-3">
                                                     <div className="w-6 h-6 border-2 border-[#1D5F31] border-t-transparent rounded-full animate-spin" />
-                                                    <p className={cn("text-[10px] font-bold uppercase tracking-widest opacity-50", effectiveLight ? "text-slate-900" : "text-white")}>Buscando...</p>
+                                                    <div className={cn("text-[10px] font-bold uppercase tracking-widest no-theme-override", effectiveLight ? "text-slate-900" : "text-white drop-shadow-sm")}>Buscando...</div>
                                                 </div>
                                             )}
 
                                             {!isSearching && searchResults.length === 0 && searchQuery.length >= 2 && (
                                                 <div className="p-8 text-center">
-                                                    <p className={cn("text-[11px] font-bold uppercase tracking-widest opacity-50", effectiveLight ? "text-slate-900" : "text-white")}>Nenhum resultado encontrado</p>
+                                                    <div className={cn("text-[11px] font-bold uppercase tracking-widest no-theme-override", effectiveLight ? "text-slate-900" : "text-white drop-shadow-sm")}>Nenhum resultado encontrado</div>
                                                 </div>
                                             )}
                                             {/* Resultados de Cursos */}
                                             {searchResults.filter(r => r.type === 'course').length > 0 && (
                                                 <div className="p-2">
-                                                    <p className={cn("px-3 py-2 text-[10px] font-bold uppercase tracking-widest opacity-50", effectiveLight ? "text-slate-900" : "text-white")}>Cursos Sugeridos</p>
+                                                    <div className={cn("px-3 py-2 text-[10px] font-bold uppercase tracking-widest no-theme-override", effectiveLight ? "text-slate-900" : "text-white drop-shadow-sm")}>Cursos Sugeridos</div>
                                                     {searchResults.filter(r => r.type === 'course').map(result => (
                                                         <Link
                                                             key={result.id}
@@ -412,10 +418,10 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                                                 )}
                                                             </div>
                                                             <div className="flex flex-col min-w-0">
-                                                                <span className={cn("text-[13px] font-bold leading-tight line-clamp-2 group-hover:text-[#1D5F31] transition-colors", effectiveLight ? "text-slate-900" : "text-white")}>
+                                                                <span className={cn("text-[13px] font-bold leading-tight line-clamp-2 group-hover:text-[#1D5F31] transition-colors no-theme-override", effectiveLight ? "text-slate-900" : "text-white drop-shadow-md")}>
                                                                     {result.title}
                                                                 </span>
-                                                                <span className={cn("text-[10px] font-medium uppercase tracking-tight opacity-60 mt-1", effectiveLight ? "text-slate-600" : "text-white/60")}>
+                                                                <span className={cn("text-[10px] font-medium uppercase tracking-tight mt-1 no-theme-override", effectiveLight ? "text-slate-600" : "text-white/80 drop-shadow-sm")}>
                                                                     {isTeacherMode ? (result.subtitle === 'published' ? 'Publicado' : result.subtitle === 'draft' ? 'Rascunho' : result.subtitle) : result.subtitle}
                                                                 </span>
                                                             </div>
@@ -432,7 +438,7 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                             {/* Resultados de Instrutores */}
                                             {searchResults.filter(r => r.type === 'teacher').length > 0 && (
                                                 <div className="p-2">
-                                                    <p className={cn("px-3 py-2 text-[10px] font-bold uppercase tracking-widest opacity-50", effectiveLight ? "text-slate-900" : "text-white")}>Instrutores</p>
+                                                    <div className={cn("px-3 py-2 text-[10px] font-bold uppercase tracking-widest no-theme-override", effectiveLight ? "text-slate-900" : "text-white drop-shadow-sm")}>Instrutores</div>
                                                     {searchResults.filter(r => r.type === 'teacher').map(result => (
                                                         <button
                                                             key={result.id}
@@ -454,10 +460,10 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                                                                 )}
                                                             </div>
                                                             <div className="flex flex-col min-w-0">
-                                                                <span className={cn("text-[13px] font-bold leading-tight group-hover:text-[#1D5F31] transition-colors", effectiveLight ? "text-slate-900" : "text-white")}>
+                                                                <span className={cn("text-[13px] font-bold leading-tight group-hover:text-[#1D5F31] transition-colors no-theme-override", effectiveLight ? "text-slate-900" : "text-white drop-shadow-md")}>
                                                                     {result.title}
                                                                 </span>
-                                                                <span className={cn("text-[10px] font-medium uppercase tracking-tight opacity-60 mt-1", effectiveLight ? "text-slate-600" : "text-white/60")}>
+                                                                <span className={cn("text-[10px] font-medium uppercase tracking-tight mt-1 no-theme-override", effectiveLight ? "text-slate-600" : "text-white/80 drop-shadow-sm")}>
                                                                     {result.subtitle}
                                                                 </span>
                                                             </div>
@@ -676,63 +682,66 @@ export default function Navbar({ transparent, light = false, hidden: hiddenProp 
                         </DropdownMenu>
                         ) : null}
 
-                        {/* Hamburger Button (mobile only) */}
+                        {/* Mobile Sheet Drawer (hamburger) */}
                         {!isHomePage && (
-                             <button
-                                 onClick={() => setIsMobileMenuOpen(prev => !prev)}
-                                className={`md:hidden flex items-center justify-center min-w-[44px] min-h-[44px] transition outline-none ml-1 ${effectiveLight ? 'text-slate-900 hover:text-[#1D5F31]' : 'text-white hover:text-[#1D5F31]'}`}
-                                aria-label="Abrir menu"
-                            >
-                                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                            </button>
+                            <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+                                <SheetTrigger asChild>
+                                    <button
+                                        className={`md:hidden flex items-center justify-center min-w-[44px] min-h-[44px] transition outline-none ml-1 ${effectiveLight ? 'text-slate-900 hover:text-[#1D5F31]' : 'text-white hover:text-[#1D5F31]'}`}
+                                        aria-label="Abrir menu"
+                                    >
+                                        {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+                                    </button>
+                                </SheetTrigger>
+                                <SheetContent
+                                    side="right"
+                                    className={cn(
+                                        "w-[85vw] sm:max-w-sm p-0 border-l backdrop-blur-[6px]",
+                                        effectiveLight ? "bg-white/95 border-slate-200" : "bg-slate-950/95 border-white/10 text-white"
+                                    )}
+                                >
+                                    <div className="flex flex-col h-full pt-16 pb-6 px-6 overflow-y-auto">
+                                        <div className="space-y-1">
+                                            {filteredNavLinks.map(link => (
+                                                <Link
+                                                    key={link.href}
+                                                    href={link.href as any}
+                                                    onClick={() => setIsMobileMenuOpen(false)}
+                                                    className={cn(
+                                                        "flex items-center px-4 py-3 min-h-[44px] rounded-xl text-sm tracking-tight transition-colors font-medium",
+                                                        pathname === link.href
+                                                            ? 'text-[#1D5F31] font-bold border-l-4 border-[#1D5F31]'
+                                                            : effectiveLight ? 'text-slate-500' : 'text-white/70'
+                                                    )}
+                                                >
+                                                    {link.label}
+                                                </Link>
+                                            ))}
+                                        </div>
+
+                                        {!isEffectivelyLoggedIn && (
+                                            <div className={cn(
+                                                "pt-3 space-y-2 border-t mt-3",
+                                                effectiveLight ? "border-slate-100" : "border-white/10"
+                                            )}>
+                                                <div className="flex gap-2">
+                                                    <Link href="/login" className="flex-1" onClick={() => setIsMobileMenuOpen(false)}>
+                                                        <button className="w-full text-[10px] font-bold uppercase tracking-widest px-4 py-2.5 rounded-xl transition bg-[#1D5F31] text-white hover:brightness-110">
+                                                            Login
+                                                        </button>
+                                                    </Link>
+                                                    <Link href="/register" className={`flex-1 ${isHomePage ? 'hidden' : ''}`} onClick={() => setIsMobileMenuOpen(false)}>
+                                                        <button className="w-full text-[10px] font-bold uppercase tracking-widest px-4 py-2.5 rounded-xl transition bg-[#1D5F31] text-white hover:brightness-110">Inscreva-se</button>
+                                                    </Link>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </SheetContent>
+                            </Sheet>
                         )}
                     </div>
                 </nav>
-
-                {/* Mobile Menu Dropdown */}
-                {isMobileMenuOpen && (
-                    <div className={cn(
-                        "md:hidden border-t px-4 py-4 space-y-1 animate-in slide-in-from-top-2 duration-200 shadow-sm border max-h-[calc(100vh-70px)] overflow-y-auto backdrop-blur-[6px]",
-                        effectiveLight ? "bg-white/90 border-slate-200" : "bg-[#0B1215]/90 border-white/10"
-                    )}>
-                        {filteredNavLinks.map(link => (
-                            <Link
-                                key={link.href}
-                                href={link.href as any}
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                className={cn(
-                                        "flex items-center px-4 py-3 min-h-[44px] rounded-xl text-sm tracking-tight transition-colors font-medium",
-                                        pathname === link.href
-                                            ? 'text-[#1D5F31] font-bold border-l-4 border-[#1D5F31]'
-                                            : effectiveLight ? 'text-slate-500' : 'text-white/70'
-                                    )}
-                            >
-                                {link.label}
-                            </Link>
-                        ))}
-
-                        {!isEffectivelyLoggedIn && (
-                            <div className={cn(
-                                "pt-3 space-y-2 border-t mt-3",
-                                effectiveLight ? "border-slate-100" : "border-white/10"
-                            )}>
-
-                                <div className="flex gap-2">
-                                    <Link href="/login" className="flex-1" onClick={() => setIsMobileMenuOpen(false)}>
-                                        <button className="w-full text-[10px] font-bold uppercase tracking-widest px-4 py-2.5 rounded-xl transition bg-[#1D5F31] text-white hover:brightness-110">
-                                            Login
-                                        </button>
-                                    </Link>
-                                    <Link href="/register" className={`flex-1 ${isHomePage ? 'hidden' : ''}`} onClick={() => setIsMobileMenuOpen(false)}>
-                                        <button className="w-full text-[10px] font-bold uppercase tracking-widest px-4 py-2.5 rounded-xl transition bg-[#1D5F31] text-white hover:brightness-110">Inscreva-se</button>
-                                    </Link>
-                                </div>
-                            </div>
-                        )}
-
-
-                    </div>
-                )}
             </header>
         </>
     )

@@ -523,20 +523,20 @@ export default function ClassroomPage() {
                 Mobile (<lg):  flex-col - player no topo, list de aulas abaixo (sem drawer)
                 Desktop (lg+): flex-row - player a esquerda, sidebar drawer a direita
             */}
-            <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] xl:grid-cols-[1fr_440px] flex-1 overflow-hidden">
 
                 {/* Coluna Esquerda: Player + Tabs */}
                 <div
-                    className="flex-1 flex flex-col overflow-y-auto scrollbar-hide"
+                    className="flex flex-col overflow-y-auto scrollbar-hide min-w-0"
                     style={scrollbarHideStyle}
                 >
                     {/* Player */}
-                    <div className="w-full lg:p-6 lg:pb-0">
+                    <div className="w-full lg:p-6 order-1 lg:order-none">
                         <div
                             key={currentLesson?.id}
                             className="w-full aspect-video relative animate-in fade-in-0 zoom-in-95 duration-300"
                         >
-                            <div className="relative w-full h-full lg:rounded-2xl overflow-hidden shadow-2xl bg-black border-0 lg:border lg:border-slate-700">
+                            <div className={`relative w-full h-full lg:rounded-2xl ${isQuizLesson ? '' : 'overflow-hidden'} shadow-2xl bg-black border-0 lg:border lg:border-slate-700`}>
                                 {currentLesson?.type === 'quiz' ? (
                                     <QuizPlayer
                                         quizData={currentLesson.quizData || {}}
@@ -636,7 +636,7 @@ export default function ClassroomPage() {
                     </div>
 
                     {/* Info da Aula Atual + Botoes Nav */}
-                    <div className="px-4 md:px-6 lg:px-8 pt-4 pb-3 border-b border-slate-800">
+                    <div className="px-4 md:px-6 lg:px-8 pt-4 pb-3 border-b border-slate-800 order-1 lg:order-none">
                         {/* Titulo e badge da aula */}
                         <p className="text-[10px] font-bold uppercase tracking-[3px] text-[#1D5F31] mb-1">
                             {currentLesson?.type === 'quiz' ? 'Questionário' : 'Vídeo Aula'}
@@ -664,7 +664,7 @@ export default function ClassroomPage() {
                     </div>
 
                     {/* Botoes de Navegacao Entre Aulas */}
-                    <div className="flex items-center justify-between gap-2 px-4 md:px-6 lg:px-8 py-3 border-b border-slate-800">
+                    <div className="flex items-center justify-between gap-2 px-4 md:px-6 lg:px-8 py-3 border-b border-slate-800 order-2 lg:order-none">
                         <button
                             onClick={goToPrevLesson}
                             disabled={lessons.findIndex(l => l.id === currentLesson?.id) === 0}
@@ -722,7 +722,7 @@ export default function ClassroomPage() {
                     </div>
 
                     {/* Lista de Aulas por Módulo (APENAS mobile <lg) */}
-                    <div className="lg:hidden">
+                    <div className="lg:hidden order-3 lg:order-none">
                         <div className="px-4 pt-4 pb-2 flex items-center justify-between">
                             <h3 className="text-[10px] font-bold uppercase tracking-[4px] text-[#1D5F31]">
                                 Conteúdo do Curso
@@ -778,11 +778,17 @@ export default function ClassroomPage() {
                                                             <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#1D5F31] rounded-r-full" />
                                                         )}
 
-                                                        <button
-                                                            type="button"
+                                                        <div
                                                             onClick={(e) => {
                                                                 e.stopPropagation()
                                                                 toggleLessonStatus(lesson.id)
+                                                            }}
+                                                            onKeyDown={(e) => {
+                                                                if (e.key === 'Enter' || e.key === ' ') {
+                                                                    e.preventDefault()
+                                                                    e.stopPropagation()
+                                                                    toggleLessonStatus(lesson.id)
+                                                                }
                                                             }}
                                                             className={`
                                                                 flex-shrink-0 w-11 h-11 -mx-1.5 rounded-full flex items-center justify-center
@@ -791,6 +797,8 @@ export default function ClassroomPage() {
                                                                     ? 'bg-[#1D5F31]/20 text-[#1D5F31]'
                                                                     : 'bg-slate-800/50 text-slate-500'}
                                                             `}
+                                                            role="button"
+                                                            tabIndex={0}
                                                             aria-label={
                                                                 completedLessons.includes(lesson.id)
                                                                     ? 'Desmarcar aula'
@@ -799,9 +807,9 @@ export default function ClassroomPage() {
                                                         >
                                                             {completedLessons.includes(lesson.id)
                                                                 ? <CheckCircle2 size={20} />
-                                                                : <PlayCircle size={18} />
-                                                            }
-                                                        </button>
+                                                                 : <PlayCircle size={18} />
+                                                             }
+                                                         </div>
 
                                                         <div className="flex-1 min-w-0">
                                                             <p className={`text-sm font-bold tracking-tight line-clamp-2 leading-snug
@@ -829,7 +837,7 @@ export default function ClassroomPage() {
                     </div>
 
                     {/* Tabs de info (descrição, Q&A etc.) */}
-                    <div className="px-4 md:px-6 lg:px-8 pb-16">
+                    <div className="px-4 md:px-6 lg:px-8 pb-16 order-3 lg:order-none">
                         <ClassroomTabs
                             lessonId={currentLesson?.id}
                             lessonTitle={currentLesson?.title || ''}
@@ -954,11 +962,17 @@ export default function ClassroomPage() {
                                                             <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#1D5F31] rounded-r-full" />
                                                         )}
 
-                                                        <button
-                                                            type="button"
+                                                        <div
                                                             onClick={(e) => {
                                                                 e.stopPropagation()
                                                                 toggleLessonStatus(lesson.id)
+                                                            }}
+                                                            onKeyDown={(e) => {
+                                                                if (e.key === 'Enter' || e.key === ' ') {
+                                                                    e.preventDefault()
+                                                                    e.stopPropagation()
+                                                                    toggleLessonStatus(lesson.id)
+                                                                }
                                                             }}
                                                             className={`
                                                                 flex-shrink-0 w-11 h-11 -mx-1 rounded-full flex items-center justify-center
@@ -967,6 +981,8 @@ export default function ClassroomPage() {
                                                                     ? 'bg-[#1D5F31]/20 text-[#1D5F31]'
                                                                     : 'bg-slate-800/60 text-slate-500 hover:text-[#1D5F31]'}
                                                             `}
+                                                            role="button"
+                                                            tabIndex={0}
                                                             aria-label={
                                                                 completedLessons.includes(lesson.id)
                                                                     ? 'Desmarcar aula'
@@ -975,9 +991,9 @@ export default function ClassroomPage() {
                                                         >
                                                             {completedLessons.includes(lesson.id)
                                                                 ? <CheckCircle2 size={18} />
-                                                                : <PlayCircle size={16} />
-                                                            }
-                                                        </button>
+                                                                 : <PlayCircle size={16} />
+                                                             }
+                                                         </div>
 
                                                         <div className="flex-1 min-w-0">
                                                             <p className={`text-[13px] font-bold tracking-tight line-clamp-2 leading-snug

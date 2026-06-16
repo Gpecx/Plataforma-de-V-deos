@@ -98,13 +98,13 @@ export function TeacherSalesDrawer({ isOpen, onClose, teacherName, teacherId, al
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                        className="relative bg-white w-full max-w-6xl max-h-[92vh] shadow-2xl rounded-[40px] overflow-hidden z-10 border border-black/10 flex flex-col"
+                        className="relative bg-white w-full max-w-6xl max-h-[92vh] shadow-2xl rounded-2xl overflow-hidden z-10 border border-black/10 flex flex-col"
                     >
                         {/* Header */}
                         <div className="p-8 md:p-12 border-b border-black/10 bg-white">
                             <button
                                 onClick={onClose}
-                                className="absolute top-10 right-10 p-3 hover:bg-slate-100 rounded-2xl transition-all text-black hover:text-red-500"
+                                className="absolute top-10 right-10 p-3 hover:bg-slate-100 rounded-xl transition-all text-black hover:text-red-500"
                             >
                                 <X size={28} />
                             </button>
@@ -122,9 +122,9 @@ export function TeacherSalesDrawer({ isOpen, onClose, teacherName, teacherId, al
                             <div className="p-8 md:p-12 space-y-14">
                                 {/* Summary Cards */}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                                    <div className="bg-slate-50 p-10 rounded-[32px] border border-black/10 shadow-sm">
+                                    <div className="bg-slate-50 p-10 rounded-2xl border border-black/10 shadow-sm">
                                         <div className="flex items-center gap-5 mb-8">
-                                            <div className="p-5 bg-white rounded-2xl border border-black/10 text-black shadow-sm">
+                                            <div className="p-5 bg-white rounded-xl border border-black/10 text-black shadow-sm">
                                                 <DollarSign size={28} strokeWidth={2.5} />
                                             </div>
                                             <p className="text-[14px] font-bold uppercase tracking-[0.2em] !text-black">Venda Bruta Total</p>
@@ -134,9 +134,9 @@ export function TeacherSalesDrawer({ isOpen, onClose, teacherName, teacherId, al
                                         </h3>
                                     </div>
 
-                                    <div className="bg-[#1D5F31]/10 p-10 rounded-[32px] border border-[#1D5F31]/20 relative overflow-hidden group shadow-sm">
+                                    <div className="bg-[#1D5F31]/10 p-10 rounded-2xl border border-[#1D5F31]/20 relative overflow-hidden group shadow-sm">
                                         <div className="flex items-center gap-5 mb-8">
-                                            <div className="p-5 bg-white rounded-2xl border border-[#1D5F31]/20 text-[#1D5F31] shadow-sm">
+                                            <div className="p-5 bg-white rounded-xl border border-[#1D5F31]/20 text-[#1D5F31] shadow-sm">
                                                 <Users size={28} strokeWidth={2.5} />
                                             </div>
                                             <p className="text-[14px] font-bold uppercase tracking-[0.2em] text-[#1D5F31]">Repasse Professor</p>
@@ -145,7 +145,7 @@ export function TeacherSalesDrawer({ isOpen, onClose, teacherName, teacherId, al
                                             R$ {totals.teacher.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                                         </h3>
                                         {pendingPayments.length > 0 && (
-                                            <div className="mt-6 flex items-center gap-2 text-[11px] font-bold uppercase text-white bg-amber-600 w-fit px-4 py-2 rounded-xl border border-amber-500 shadow-md">
+                                            <div className="mt-6 flex items-center gap-2 text-[11px] font-bold uppercase text-white bg-amber-600 w-fit px-4 py-2 rounded-lg border border-amber-500 shadow-md">
                                                 <AlertCircle size={14} />
                                                 Aguardando Pagamento
                                             </div>
@@ -176,14 +176,14 @@ export function TeacherSalesDrawer({ isOpen, onClose, teacherName, teacherId, al
                                         {visiblePayments.map((p) => (
                                             <div
                                                 key={p.id}
-                                                className={`group p-8 rounded-[32px] border transition-all flex flex-col md:flex-row justify-between items-center gap-8 ${
+                                                className={`group p-8 rounded-2xl border transition-all flex flex-col md:flex-row justify-between items-center gap-8 ${
                                                     p.commissionStatus === 'paid'
                                                     ? 'bg-slate-50 border-black/5'
                                                     : 'bg-white border-black/20 hover:border-[#1D5F31] shadow-sm'
                                                 }`}
                                             >
                                                 <div className="flex items-center gap-8 w-full">
-                                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border ${
+                                                    <div className={`w-14 h-14 rounded-xl flex items-center justify-center shrink-0 border ${
                                                         p.commissionStatus === 'paid'
                                                         ? 'bg-emerald-50 border-emerald-100 text-emerald-600 shadow-sm'
                                                         : 'bg-slate-50 border-black/10 text-black shadow-sm'
@@ -229,7 +229,7 @@ export function TeacherSalesDrawer({ isOpen, onClose, teacherName, teacherId, al
                                         ))}
 
                                         {teacherPayments.length === 0 && (
-                                            <div className="text-center py-20 bg-slate-50 rounded-[40px] border border-dashed border-black/10">
+                                            <div className="text-center py-20 bg-slate-50 rounded-2xl border border-dashed border-black/10">
                                                 <p className="text-sm font-bold uppercase text-slate-400 tracking-[0.2em]">Nenhuma venda encontrada para este professor.</p>
                                             </div>
                                         )}
@@ -260,7 +260,7 @@ export function TeacherSalesDrawer({ isOpen, onClose, teacherName, teacherId, al
                         <div className="p-8 md:p-10 bg-slate-50 border-t border-black/10">
                             <button
                                 onClick={onClose}
-                                className="w-full h-16 rounded-2xl bg-[#000000] text-white font-bold uppercase tracking-[2px] text-sm transition-all border-2 border-transparent hover:opacity-90"
+                                className="w-full h-16 rounded-xl bg-[#000000] text-white font-bold uppercase tracking-[2px] text-sm transition-all border-2 border-transparent hover:opacity-90"
                             >
                                 Fechar Detalhamento
                             </button>

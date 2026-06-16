@@ -58,8 +58,11 @@ export default async function StudentDashboard() {
     const allLessons = lessonsSnapshot.docs.map(doc => doc.data()) as any[]
 
     const now = new Date()
+    // FASE 2: Exclui enrollments com status de expirado/cancelado (para não mostrar cards no dashboard)
     const activeEnrollments = enrollmentsSnapshot.docs.filter(doc => {
         const data = doc.data()
+        const status = data.status || ''
+        if (status === 'expired' || status === 'canceled' || status === 'overdue') return false
         if (!data.expiresAt) return true
         const expiresAt = data.expiresAt.toDate ? data.expiresAt.toDate() : new Date(data.expiresAt)
         return expiresAt > now
@@ -148,7 +151,7 @@ export default async function StudentDashboard() {
                                 const isPending = enrollmentStatusMap[curso.id] === 'pending'
                                 
                                 return (
-                                <div key={curso.id} className={`group bg-white rounded-[24px] overflow-hidden border border-black transition-all duration-300 shadow-sm flex flex-col ${isPending ? 'opacity-85 saturate-50' : 'hover:shadow-xl hover:-translate-y-1'}`}>
+                                <div key={curso.id} className={`group bg-white rounded-xl overflow-hidden border border-gray-200 transition-all duration-300 shadow-sm flex flex-col ${isPending ? 'opacity-85 saturate-50' : 'hover:shadow-xl hover:-translate-y-1'}`}>
                                     <div className="relative h-48 bg-slate-100 overflow-hidden">
                                         <Image
                                             src={curso.image_url || "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400"}
@@ -211,7 +214,7 @@ export default async function StudentDashboard() {
                 )}
 
                 {/* Seção Founders (Banner Centralizado) */}
-                <section className="bg-white rounded-[32px] p-6 sm:p-10 md:p-14 overflow-hidden relative shadow-xl border border-black">
+                <section className="bg-white rounded-xl p-6 sm:p-10 md:p-14 overflow-hidden relative shadow-xl border border-gray-200">
                     <div className="relative z-10">
                         <div className="inline-flex items-center gap-3 px-4 py-2 bg-slate-100 rounded-xl mb-6 border border-black/10">
                             <Trophy size={18} className="text-[#1D5F31]" />
@@ -237,7 +240,7 @@ export default async function StudentDashboard() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                        <Card className="border-black rounded-[24px] transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 flex flex-col bg-white">
+                        <Card className="border-gray-200 rounded-xl transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 flex flex-col bg-white">
                             <CardHeader className="p-6 md:p-8 pb-0">
                                 <div className="flex items-center gap-4 mb-2">
                                     <div className="p-3 bg-[#1D5F31]/10 rounded-xl">
@@ -260,7 +263,7 @@ export default async function StudentDashboard() {
                             </CardContent>
                         </Card>
 
-                        <Card className="border-black rounded-[24px] transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 flex flex-col bg-white">
+                        <Card className="border-gray-200 rounded-xl transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 flex flex-col bg-white">
                             <CardHeader className="p-8 pb-0">
                                 <div className="flex items-center gap-4 mb-2">
                                     <div className="p-3 bg-[#1D5F31]/10 rounded-xl">
@@ -281,7 +284,7 @@ export default async function StudentDashboard() {
                             </CardContent>
                         </Card>
 
-                        <Card className="border-black rounded-[24px] transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 flex flex-col bg-white">
+                        <Card className="border-gray-200 rounded-xl transition-all duration-300 shadow-sm hover:shadow-xl hover:-translate-y-1 flex flex-col bg-white">
                             <CardHeader className="p-8 pb-0">
                                 <div className="flex items-center gap-4 mb-2">
                                     <div className="p-3 bg-[#1D5F31]/10 rounded-xl">
