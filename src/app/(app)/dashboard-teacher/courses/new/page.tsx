@@ -533,15 +533,7 @@ export default function NewCoursePage() {
                                     </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label className="text-[10px] font-bold uppercase tracking-widest text-black px-1">Subtítulo Estratégico</Label>
-                                    <Input
-                                        placeholder="Uma frase curta que resume a transformação"
-                                        className="bg-white border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-500/10 h-14 rounded-lg text-sm font-medium transition-all text-gray-900 placeholder:text-gray-400"
-                                        value={formData.subtitle}
-                                        onChange={(e) => setStepData({ subtitle: e.target.value })}
-                                    />
-                                </div>
+
                                 <div className="space-y-2">
                                     <Label className="text-[10px] font-bold uppercase tracking-widest text-black px-1">Descrição Completa</Label>
                                     <textarea
@@ -827,7 +819,7 @@ export default function NewCoursePage() {
                                                                         onClick={(e) => e.stopPropagation()}
                                                                         onChange={(e) => handleModuleTitleChange(module.id, e.target.value)}
                                                                     />
-                                                                    <span className="text-[9px] text-white/60 font-bold uppercase">{totalLessons} aula{totalLessons !== 1 ? 's' : ''}</span>
+                                                                    <span className="text-[9px] text-white/80 font-bold uppercase tracking-[2px]">{totalLessons} {totalLessons === 1 ? 'AULA' : 'AULAS'} TOTAIS</span>
                                                                     <button
                                                                         onClick={() => handleAddLessonInModule(module.id, 'lesson')}
                                                                         className="text-[9px] text-white/80 hover:text-white font-bold uppercase tracking-widest transition-colors ml-2"
@@ -1114,16 +1106,7 @@ export default function NewCoursePage() {
                                         <h3 className="text-[10px] font-bold uppercase tracking-[5px] text-black/60 mb-6">Configurações Base</h3>
 
                                         <div className="space-y-8">
-                                            {/* Subtítulo */}
-                                            <div className="space-y-4">
-                                                <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Subtítulo Estratégico</label>
-                                                <input
-                                                className="w-full bg-white border border-gray-300 rounded-lg px-5 py-3 focus:border-green-500 focus:ring-2 focus:ring-green-500/10 outline-none text-sm text-gray-900 transition-all"
-                                                placeholder="Ex: Do zero ao avançado"
-                                                    value={formData.subtitle || ''}
-                                                    onChange={(e) => setStepData({ subtitle: e.target.value })}
-                                                />
-                                            </div>
+
 
                                             {/* Descrição */}
                                             <div className="space-y-4">

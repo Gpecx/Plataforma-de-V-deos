@@ -112,7 +112,7 @@ export default async function StudentsPage() {
                     <h1 className="text-2xl md:text-3xl font-bold tracking-tighter text-slate-900 uppercase leading-none max-w-xl">
                         Gestão de <span className="text-[#1D5F31]">Alunos</span>
                     </h1>
-                    <p className="text-slate-600 mt-3 text-[10px] font-bold uppercase tracking-[3px] ">Acompanhe o progresso de seus alunos e gerencie matrículas.</p>
+                    <p className="text-slate-600 mt-3 text-[10px] font-bold uppercase tracking-[3px] ">Acompanhe o progresso de seus alunos.</p>
                 </div>
                 <div className="flex gap-4 w-full md:w-auto">
                     <div className="relative flex-grow md:flex-initial group">

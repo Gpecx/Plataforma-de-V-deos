@@ -225,7 +225,7 @@ export default function StudentChatPage() {
     }
 
     return (
-        <div className="h-[calc(100vh-120px)] bg-[#F5F5F7] text-slate-900 flex flex-col overflow-hidden font-sans">
+        <div className="h-[calc(100vh-80px)] bg-[#F5F5F7] text-slate-900 flex flex-col overflow-hidden font-sans">
             <div className="max-w-full w-full mx-auto flex flex-col flex-1 pt-4 pb-4 px-4 md:px-6 gap-4 md:gap-6 overflow-hidden">
 
                 {/* Header Simples */}
@@ -309,10 +309,10 @@ export default function StudentChatPage() {
                                                 className={`flex flex-col ${msg.role === 'student' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}
                                             >
                                                 <div className={`max-w-[70%] flex flex-col gap-1`}>
-                                                    <div className={`px-5 py-3.5 rounded-2xl text-[14px] leading-relaxed ${
+                                                    <div className={`px-5 py-3.5 rounded-2xl text-[14px] leading-relaxed shadow-sm ${
                                                         msg.role === 'teacher' 
                                                         ? 'bg-white border border-[#D1D7DC] text-[#061629]' 
-                                                        : 'bg-[#F1F3F4] text-[#061629]'
+                                                        : 'bg-white border border-slate-300 text-slate-900'
                                                     }`}>
                                                         {msg.content}
                                                     </div>
@@ -362,12 +362,15 @@ export default function StudentChatPage() {
                                             <Send size={16} />
                                         </button>
                                     </div>
-                                    <p className="text-xs text-center text-slate-400 mt-4 font-normal leading-relaxed">
+                                </div>
+                                {/* Aviso de monitoramento */}
+                                <div className="px-4 md:px-8 py-3 bg-gray-200 border-t border-gray-300">
+                                    <div className="text-xs text-center text-gray-500 font-semibold leading-relaxed">
     Para garantir a qualidade do atendimento e a segurança da plataforma, esta conversa poderá ser monitorada. Ao continuar, você concorda com nossos{' '}
-    <Link href="/termos" className="underline hover:text-slate-500 transition-colors">Termos de Uso</Link>
+    <Link href="/termos" className="font-bold underline underline-offset-2 text-gray-500 hover:opacity-70 transition-colors">Termos de Uso</Link>
     {' '}e{' '}
-    <Link href="/privacidade" className="underline hover:text-slate-500 transition-colors">Política de Privacidade</Link>.
-</p>
+    <Link href="/privacidade" className="font-bold underline underline-offset-2 text-gray-500 hover:opacity-70 transition-colors">Política de Privacidade</Link>.
+</div>
                                 </div>
                             </>
                         ) : (

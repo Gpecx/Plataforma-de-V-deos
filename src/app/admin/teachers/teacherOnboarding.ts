@@ -43,7 +43,7 @@ export interface CreateTeacherWalletResult {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function getAsaasBaseUrl(): string {
-  return process.env.ASAAS_API_URL ?? "https://sandbox.asaas.com/api";
+  return process.env.ASAAS_API_URL ?? "https://api.asaas.com/v3";
 }
 
 // ─── Server Action ────────────────────────────────────────────────────────────

@@ -201,12 +201,12 @@ export default function SettingsPage() {
 
     return (
         <div className="min-h-screen bg-[#F5F5F7] text-slate-900 font-montserrat p-4 md:p-8 lg:p-12">
-            <div className="max-w-4xl mx-auto space-y-10">
+            <div className="max-w-6xl w-full mx-auto space-y-10">
 
                 {/* Header da Página */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-bold uppercase !text-black tracking-tighter max-w-4xl">Configurações</h1>
+                        <h1 className="text-2xl md:text-3xl font-bold uppercase !text-black tracking-tighter">Configurações</h1>
                         <p className="!text-black text-xs uppercase tracking-[3px] mt-1 font-bold">Gerencie sua conta e fluxos de pagamento</p>
                     </div>
                     <Link href="/dashboard-student" className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-slate-600 hover:text-slate-900 bg-white px-6 py-3.5 rounded-xl border border-gray-300 transition-all shadow-sm hover:shadow-md active:scale-95 w-fit">
@@ -262,7 +262,7 @@ export default function SettingsPage() {
                                         type={showCurrentPassword ? 'text' : 'password'} 
                                         value={currentPassword} 
                                         onChange={(e) => setCurrentPassword(e.target.value)} 
-                                        className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-600 font-medium focus-visible:ring-[#1D5F31]/20 focus-visible:border-black pr-12" 
+                                        className="bg-white border-gray-300 rounded-lg h-14 text-slate-900 placeholder:text-slate-400 font-medium focus-visible:ring-green-500/10 focus-visible:border-green-500 pr-12" 
                                         placeholder="Digite sua senha atual" 
                                     />
                                     <button
@@ -282,7 +282,7 @@ export default function SettingsPage() {
                                             type={showNewPassword ? 'text' : 'password'} 
                                             value={newPassword} 
                                             onChange={(e) => setNewPassword(e.target.value)} 
-                                            className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-600 font-medium focus-visible:ring-[#1D5F31]/20 focus-visible:border-black pr-12" 
+                                            className="bg-white border-gray-300 rounded-lg h-14 text-slate-900 placeholder:text-slate-400 font-medium focus-visible:ring-green-500/10 focus-visible:border-green-500 pr-12" 
                                             placeholder="Nova senha (mín. 6 chars)" 
                                         />
                                         <button
@@ -301,7 +301,7 @@ export default function SettingsPage() {
                                             type={showConfirmPassword ? 'text' : 'password'} 
                                             value={confirmPassword} 
                                             onChange={(e) => setConfirmPassword(e.target.value)} 
-                                            className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-600 font-medium focus-visible:ring-[#1D5F31]/20 focus-visible:border-black pr-12" 
+                                            className="bg-white border-gray-300 rounded-lg h-14 text-slate-900 placeholder:text-slate-400 font-medium focus-visible:ring-green-500/10 focus-visible:border-green-500 pr-12" 
                                             placeholder="Repita a nova senha" 
                                         />
                                         <button

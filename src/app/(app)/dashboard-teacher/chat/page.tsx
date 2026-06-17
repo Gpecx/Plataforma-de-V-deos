@@ -323,10 +323,10 @@ export default function TeacherChatPage() {
                                                 className={`flex flex-col ${msg.role === 'teacher' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}
                                             >
                                                 <div className={`max-w-[70%] flex flex-col gap-1`}>
-                                                    <div className={`px-5 py-3.5 rounded-2xl text-[14px] leading-relaxed ${
+                                                    <div className={`px-5 py-3.5 rounded-2xl text-[14px] leading-relaxed shadow-sm ${
                                                         msg.role === 'teacher' 
                                                         ? 'bg-white border border-[#D1D7DC] text-[#061629]' 
-                                                        : 'bg-[#F1F3F4] text-[#061629]'
+                                                        : 'bg-white border border-slate-300 text-slate-900'
                                                     }`}>
                                                         {msg.content}
                                                     </div>

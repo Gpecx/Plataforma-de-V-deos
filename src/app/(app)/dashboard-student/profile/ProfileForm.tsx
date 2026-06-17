@@ -119,7 +119,7 @@ export function ProfileForm({ initialFullName, initialPhotoURL, uid }: ProfileFo
                     <div className="relative group/avatar">
                         <div 
                             onClick={() => !isUploading && fileInputRef.current?.click()}
-                            className="w-28 h-28 bg-white border border-black rounded-xl flex items-center justify-center text-[#1a1a1a] shadow-sm relative overflow-hidden cursor-pointer transition-all active:scale-95 group-hover/avatar:border-[#1D5F31]"
+                            className="w-28 h-28 bg-white border border-gray-300 rounded-xl flex items-center justify-center text-[#1a1a1a] shadow-sm relative overflow-hidden cursor-pointer transition-all active:scale-95 group-hover/avatar:border-[#1D5F31]"
                         >
                             {isUploading ? (
                                 <Loader2 size={32} className="animate-spin text-slate-400" />
@@ -169,7 +169,7 @@ export function ProfileForm({ initialFullName, initialPhotoURL, uid }: ProfileFo
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 gap-8 max-w-2xl">
+                <div className="grid grid-cols-1 gap-8">
                     <div className="space-y-2">
                         <label className="block text-[10px] font-bold uppercase tracking-widest text-slate-500 px-1">
                             Nome Completo
@@ -178,7 +178,7 @@ export function ProfileForm({ initialFullName, initialPhotoURL, uid }: ProfileFo
                             type="text"
                             name="fullName"
                             defaultValue={initialFullName}
-                            className="w-full bg-gray-50 border border-black shadow-sm rounded-xl px-5 py-4 focus:outline-none focus:border-[#1D5F31] focus:bg-white transition-all text-[#1a1a1a] font-medium placeholder-slate-400"
+                            className="w-full bg-white border border-gray-300 shadow-sm rounded-lg px-5 h-14 focus:outline-none focus:ring-1 focus:ring-green-500/10 focus:border-green-500 focus:bg-white transition-all text-slate-900 font-medium placeholder-slate-400"
                             placeholder="Seu nome"
                             required
                         />
@@ -204,7 +204,7 @@ export function ProfileForm({ initialFullName, initialPhotoURL, uid }: ProfileFo
                 <button
                     type="submit"
                     disabled={isPending || isUploading}
-                    className="flex items-center justify-center gap-3 w-full md:w-auto px-12 h-14 bg-[#1D5F31] border border-black text-white font-bold uppercase tracking-[2px] rounded-xl hover:bg-[#154724] transition-all active:scale-[0.98] disabled:opacity-50 group"
+                    className="flex items-center justify-center gap-3 w-full md:w-auto px-12 h-14 bg-[#1D5F31] border border-[#1D5F31] text-white font-bold uppercase tracking-[2px] rounded-xl hover:bg-[#154724] transition-all active:scale-[0.98] disabled:opacity-50 group"
                 >
                     {(isPending || isUploading) ? (
                         <Loader2 size={20} className="animate-spin" />

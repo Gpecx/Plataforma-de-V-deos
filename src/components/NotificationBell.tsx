@@ -34,7 +34,7 @@ function getRelativeTimeString(dateValue: any): string {
     if (diffMins < 60) return `há ${diffMins} min`
     if (diffHours < 24) return `há ${diffHours} ${diffHours === 1 ? 'hora' : 'horas'}`
     if (diffDays < 30) return `há ${diffDays} ${diffDays === 1 ? 'dia' : 'dias'}`
-    
+
     return date.toLocaleDateString('pt-BR')
 }
 
@@ -88,32 +88,32 @@ export function NotificationBell({
                 const myCourseIds = enrollmentsSnapshot.docs
                     .filter(doc => doc.data().payment_confirmed === true)
                     .map(doc => doc.data().course_id)
-                if (myCourseIds.length === 0) { 
+                if (myCourseIds.length === 0) {
                     setNotifications([])
                     setLoading(false)
-                    return 
+                    return
                 }
                 const coursesRef = collection(db, 'courses')
                 const coursesQuery = query(coursesRef, where('__name__', 'in', myCourseIds), orderBy('updated_at', 'desc'), limit(5))
                 const coursesSnapshot = await getDocs(coursesQuery)
                 const studentNotifs: Notification[] = coursesSnapshot.docs.map(courseDoc => {
                     const c = courseDoc.data()
-                    return { 
-                        id: courseDoc.id, 
-                        type: 'new_lesson', 
-                        title: 'Conteúdo atualizado!', 
-                        subtitle: `Novas aulas em: ${c.title}`, 
-                        time: c.updated_at, 
-                        read: false, 
-                        href: `/classroom/${courseDoc.id}` 
+                    return {
+                        id: courseDoc.id,
+                        type: 'new_lesson',
+                        title: 'Conteúdo atualizado!',
+                        subtitle: `Novas aulas em: ${c.title}`,
+                        time: c.updated_at,
+                        read: false,
+                        href: `/classroom/${courseDoc.id}`
                     }
                 })
                 setNotifications(studentNotifs)
             }
-        } catch (error) { 
-            console.error("Erro ao buscar notificações:", error) 
-        } finally { 
-            setLoading(false) 
+        } catch (error) {
+            console.error("Erro ao buscar notificações:", error)
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -153,11 +153,9 @@ export function NotificationBell({
     }
 
     const toggleOpen = () => {
-        setOpen(prev => {
-            const next = !prev
-            if (next) fetchNotifications()
-            return next
-        })
+        const next = !open
+        setOpen(next)
+        if (next) fetchNotifications()
     }
 
     return (

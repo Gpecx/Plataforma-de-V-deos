@@ -42,8 +42,8 @@ export default async function FinancialDashboardPage() {
 
     const courses = coursesSnapshot.docs.reduce((acc, doc) => {
         const data = doc.data()
-        acc[doc.id] = { 
-            id: doc.id, 
+        acc[doc.id] = {
+            id: doc.id,
             title: data.title,
             price: data.price
         }
@@ -138,14 +138,14 @@ export default async function FinancialDashboardPage() {
                     <h1 className="text-2xl font-bold tracking-tighter text-black">
                         GESTÃO <span className="text-[#1D5F31]">FINANCEIRA</span>
                     </h1>
-                    <p className="text-slate-500 mt-1 text-sm font-medium">Acompanhe suas vendas, comissões e solicite saques com facilidade.</p>
+                    <p className="text-slate-500 mt-1 text-sm font-medium">Acompanhe suas vendas e comissões.</p>
                 </div>
 
                 <div className="flex gap-4">
-                    <AnalyticsExportButton 
-                        enrollments={enrollments} 
-                        courses={courses} 
-                        teacherName={teacherName} 
+                    <AnalyticsExportButton
+                        enrollments={enrollments}
+                        courses={courses}
+                        teacherName={teacherName}
                     />
                     {/* TODO: Implementar e exibir este botão quando a Server Action de transferências/saques do Asaas for integrada ao escopo */}
                     {/* 

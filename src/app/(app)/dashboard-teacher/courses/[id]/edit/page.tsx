@@ -276,6 +276,10 @@ function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons,
         transition,
     }
 
+    const totalLessonsCount = module.lessons.length;
+    const approvedLessonsCount = module.lessons.filter(l => l.status === 'APROVADO').length;
+    const pendingLessonsCount = module.lessons.filter(l => l.status !== 'APROVADO' && l.status !== 'REJEITADO' && l.status !== 'SOLICITADO_EXCLUSAO').length;
+
     return (
         <div
             ref={setNodeRef}
@@ -293,7 +297,23 @@ function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons,
                             value={module.title}
                             onChange={(e) => onModuleTitleChange?.(module.id, e.target.value)}
                         />
-                        <p className="text-[9px] font-bold uppercase tracking-[3px] text-[#1D5F31] mt-1">ESTRUTURA DE MÓDULO</p>
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            <p className="text-[9px] font-bold uppercase tracking-[3px] text-[#1D5F31]">ESTRUTURA DE MÓDULO</p>
+                            <span className="text-[9px] font-bold uppercase tracking-[3px] text-slate-300">|</span>
+                            <p className="text-[9px] font-bold uppercase tracking-[2px] text-slate-500">
+                                {totalLessonsCount} {totalLessonsCount === 1 ? 'AULA' : 'AULAS'} TOTAIS
+                            </p>
+                            <span className="text-[9px] font-bold uppercase tracking-[3px] text-slate-300">|</span>
+                            <div className="flex items-center gap-1">
+                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                                <span className="text-[9px] font-bold uppercase tracking-[2px] text-blue-500">{approvedLessonsCount} {approvedLessonsCount === 1 ? 'APROVADA' : 'APROVADAS'}</span>
+                            </div>
+                            <span className="text-[9px] font-bold uppercase tracking-[3px] text-slate-300">|</span>
+                            <div className="flex items-center gap-1">
+                                <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                                <span className="text-[9px] font-bold uppercase tracking-[2px] text-amber-600">{pendingLessonsCount} {pendingLessonsCount === 1 ? 'PENDENTE' : 'PENDENTES'}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1403,16 +1423,7 @@ export default function CourseBuilder() {
                     <section className="bg-white p-8 rounded-md border border-[#1D5F31]/20 relative overflow-hidden group">
                         <h3 className="text-[10px] font-bold uppercase tracking-[5px] text-[#1D5F31] mb-10  relative z-10">Configurações Base</h3>
                         <div className="space-y-8 relative z-10">
-                            <div className="space-y-4">
-                                <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Subtítulo Estratégico</label>
-                                <input
-                                    type="text"
-                                    value={courseSubtitle}
-                                    onChange={(e) => setCourseSubtitle(e.target.value)}
-                                    placeholder="Frase curta de impacto"
-                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-md px-5 py-3 focus:border-[#1D5F31] outline-none text-sm text-black transition-all"
-                                />
-                            </div>
+
 
                             <div className="space-y-4">
                                 <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Descrição Completa</label>

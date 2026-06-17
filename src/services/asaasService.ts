@@ -3,7 +3,7 @@ import { adminDb } from '@/lib/firebase-admin'
 function getAsaasApiBaseUrl(): string {
     const url = process.env.ASAAS_API_URL
     if (!url) {
-        return 'https://sandbox.asaas.com/api/v3'
+        return 'https://api.asaas.com/v3'
     }
     return url
 }
@@ -90,7 +90,7 @@ export interface CustomerResponse {
     phone: string
     mobilePhone: string
     address: string
-       addressNumber: string
+    addressNumber: string
     complement: string
     province: string
     postalCode: string
@@ -143,12 +143,12 @@ async function makeRequest<T>(
     options: RequestInit = {}
 ): Promise<T> {
     const apiKey = getAsaasApiKey()
-    
+
     // HIGHLIGHT: Normalização de URL - Previne barras duplicadas (Resiliência Industrial)
     const cleanBase = ASAAS_API_BASE_URL.replace(/\/+$/, '')
     const cleanEndpoint = endpoint.replace(/^\/+/, '')
     const url = `${cleanBase}/${cleanEndpoint}`
-    
+
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), 15_000)
 
@@ -185,12 +185,12 @@ async function makeRequest<T>(
 
         const errors = (data.errors || (Array.isArray(data) ? data : [])) as ApiError[]
         const errorMessage = errors.length > 0
-            ? errors.map(e => e.description).join(', ') 
+            ? errors.map(e => e.description).join(', ')
             : 'Erro desconhecido'
-        
+
         // Captura o código de erro específico do Asaas para tratamento refinado
         const errorCode = errors[0]?.code
-        
+
         throw new AsaasServiceError(errorMessage, errorCode, response.status)
     }
 
@@ -277,11 +277,11 @@ export async function getCustomer(customerId: string): Promise<CustomerResponse>
 
 export async function getPlatformTax(): Promise<number> {
     const doc = await adminDb.collection('config').doc('platform_settings').get()
-    
+
     if (!doc.exists) {
         return 20
     }
-    
+
     const data = doc.data()
     return data?.platform_tax ?? 20
 }
@@ -294,18 +294,18 @@ export interface TeacherWalletInfo {
 
 export async function getTeacherWalletInfo(professorId: string): Promise<TeacherWalletInfo | null> {
     const profileDoc = await adminDb.collection('profiles').doc(professorId).get()
-    
+
     if (!profileDoc.exists) {
         return null
     }
-    
+
     const data = profileDoc.data()
     const walletId = data?.asaas_wallet_id || data?.walletId
-    
+
     if (!walletId) {
         return null
     }
-    
+
     return {
         teacherId: professorId,
         walletId,
@@ -324,11 +324,11 @@ export interface CourseInfo {
 
 export async function getCourseInfo(cursoId: string): Promise<CourseInfo | null> {
     const courseDoc = await adminDb.collection('courses').doc(cursoId).get()
-    
+
     if (!courseDoc.exists) {
         return null
     }
-    
+
     const data = courseDoc.data()
     return {
         id: courseDoc.id,
@@ -350,11 +350,11 @@ export interface StudentInfo {
 
 export async function getStudentAsaasId(alunoId: string): Promise<string | null> {
     const profileDoc = await adminDb.collection('profiles').doc(alunoId).get()
-    
+
     if (!profileDoc.exists) {
         return null
     }
-    
+
     const data = profileDoc.data()
     return data?.asaas_customer_id || null
 }
@@ -401,6 +401,6 @@ export function calculateSplitValues(
 ): { platformAmount: number; teacherAmount: number } {
     const platformAmount = Math.round(grossValue * (platformTaxPercent / 100) * 100) / 100
     const teacherAmount = Math.round((grossValue - platformAmount) * 100) / 100
-    
+
     return { platformAmount, teacherAmount }
 }

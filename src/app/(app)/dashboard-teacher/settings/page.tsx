@@ -153,7 +153,7 @@ export default function TeacherSettingsPage() {
                 // Protocolo 1: Reautenticação Obrigatória
                 const credential = EmailAuthProvider.credential(user.email!, currentPassword)
                 await reauthenticateWithCredential(user, credential)
-                
+
                 // Protocolo 2: Update Silencioso
                 await updatePassword(user, newPassword)
 
@@ -168,7 +168,7 @@ export default function TeacherSettingsPage() {
 
                 // Feedback Visual de Sucesso (#1D5F31)
                 showNotification('Senha atualizada com sucesso!', 'success')
-                
+
                 // Limpeza de campos
                 setNewPassword('')
                 setConfirmPassword('')
@@ -204,7 +204,7 @@ export default function TeacherSettingsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-[#F0F2F5] p-8 md:p-12 space-y-16 font-montserrat pb-32">
+        <div className="min-h-screen bg-transparent p-8 md:p-12 space-y-16 font-montserrat pb-32">
             <header className="max-w-6xl mx-auto">
                 <div className="flex items-center gap-3 mb-2">
 
@@ -212,7 +212,7 @@ export default function TeacherSettingsPage() {
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tighter text-slate-900 max-w-4xl">
                     CONFIGURAÇÕES DO <span className="text-[#1D5F31] uppercase">TEACHER</span>
                 </h1>
-                <p className="text-sm text-slate-500 mt-2 font-medium tracking-tight">Gerencie suas preferências de faturamento e alertas de sistema.</p>
+                <p className="text-sm text-slate-500 mt-2 font-medium tracking-tight">Gerencie suas preferências de faturamento e informações cadastrais.</p>
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
@@ -436,7 +436,7 @@ export default function TeacherSettingsPage() {
                             )}
                             {isPending ? 'Salvando...' : 'Salvar Dados'}
                         </Button>
-                        
+
                         <input type="hidden" name="notifications_email" value={emailEnabled ? 'on' : 'off'} />
                         <input type="hidden" name="notifications_push" value={browserEnabled ? 'on' : 'off'} />
                     </form>
@@ -457,7 +457,7 @@ export default function TeacherSettingsPage() {
                     <form onSubmit={handleUpdatePassword} className="space-y-8 relative z-10">
                         <div className="space-y-6">
                             <h3 className="text-sm font-bold uppercase tracking-tight text-slate-900 px-1">Redefinição de Credenciais</h3>
-                            
+
                             <div className="space-y-3">
                                 <label className="text-sm font-bold uppercase tracking-tight text-slate-900 px-1 flex items-center gap-2">
                                     <Key size={14} />
