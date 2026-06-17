@@ -422,7 +422,7 @@ export default function TeacherManagement({ initialTeachers }: TeacherManagement
                 </div>
             </div>
 
-            <div className="bg-white p-8 rounded-2xl border border-slate-300 shadow-sm flex flex-col min-h-[600px]">
+            <div className="bg-[#F5F5F7] p-8 rounded-2xl border border-slate-300 shadow-sm flex flex-col min-h-[600px]">
                 <div className="flex items-center gap-4 mb-10 border-b border-slate-200 pb-6">
                     <div className="w-12 h-12 rounded-xl bg-[#1D5F31] flex items-center justify-center shadow-lg">
                         <Users className="text-white" size={24} strokeWidth={2} />

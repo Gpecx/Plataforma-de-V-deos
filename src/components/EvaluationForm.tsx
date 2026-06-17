@@ -188,9 +188,9 @@ export function EvaluationForm({ courseId }: EvaluationFormProps) {
 
             {rating > 0 && (
                 <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    className="mb-6"
+                    initial={{ opacity: 0, maxHeight: 0 }}
+                    animate={{ opacity: 1, maxHeight: 300 }}
+                    className="mb-6 overflow-hidden"
                 >
                     <label className="block text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-2">
                         Comentário (opcional)

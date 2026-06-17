@@ -402,7 +402,7 @@ export default function AdminSettingsPage() {
                                             {...getRootProps()}
                                             className={`
                                                 border-2 border-dashed rounded-xl p-8 transition-all cursor-pointer flex flex-col items-center justify-center gap-4 text-center min-h-[160px]
-                                                ${isDragActive ? 'border-black bg-[#1D5F31]/5' : 'border-black border-dashed hover:border-black/50 bg-slate-50/50 hover:bg-white shadow-inner hover:shadow-md'}
+                                                ${isDragActive ? 'border-black bg-[#1D5F31]/5' : 'border-black border-dashed hover:border-black/50 bg-slate-50/50 hover:bg-[#F5F5F7] shadow-inner hover:shadow-md'}
                                             `}
                                         >
                                             <input {...getInputProps()} />

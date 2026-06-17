@@ -56,10 +56,10 @@ export default function TagInput({ tags, onChange, maxTags = 5, placeholder = "D
                 onBlur={addTag}
                 placeholder={tags.length >= maxTags ? "Limite atingido" : placeholder}
                 disabled={tags.length >= maxTags}
-                className="bg-white border-2 border-black focus:border-[#1D5F31] focus-visible:ring-0 focus-visible:border-[#1D5F31] h-12 rounded-md text-sm font-medium transition-all text-black placeholder:text-black/50"
+                className="bg-white border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-500/10 h-12 rounded-lg text-sm font-medium transition-all text-gray-900 placeholder:text-gray-400"
             />
             {tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 p-2 border-2 border-black rounded-md bg-white">
+                <div className="flex flex-wrap gap-2 p-2 border border-gray-300 rounded-lg bg-white">
                     {tags.map((tag, index) => (
                         <span
                             key={index}

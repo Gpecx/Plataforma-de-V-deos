@@ -185,7 +185,7 @@ export default function DeletionApprovalList({ pendingCourses, pendingLessons, t
                                         />
                                     ) : (
                                         <div className="scale-75 origin-center">
-                                            <Logo light />
+                                            <Logo light href={null} />
                                         </div>
                                     )}
                                     <div className="absolute inset-0 bg-gradient-to-t from-red-900/30 to-transparent pointer-events-none" />
@@ -223,7 +223,7 @@ export default function DeletionApprovalList({ pendingCourses, pendingLessons, t
                                         <button
                                             onClick={() => handleRejectCourse(course.id)}
                                             disabled={loadingId === course.id && loadingType === 'course'}
-                                            className="flex-1 py-3 bg-white border border-green-600 text-green-700 text-[9px] font-bold uppercase tracking-wider hover:bg-green-50 transition-all duration-300 rounded-lg shadow-sm active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                                            className="flex-1 py-3 bg-[#F5F5F7] border border-green-600 text-green-700 text-[9px] font-bold uppercase tracking-wider hover:bg-green-50 transition-all duration-300 rounded-lg shadow-sm active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
                                         >
                                             {loadingId === course.id && loadingType === 'course' ? (
                                                 <Loader2 size={14} className="animate-spin" />
@@ -274,7 +274,7 @@ export default function DeletionApprovalList({ pendingCourses, pendingLessons, t
                                         />
                                     ) : (
                                         <div className="scale-75 origin-center">
-                                            <Logo light />
+                                            <Logo light href={null} />
                                         </div>
                                     )}
                                     <div className="absolute inset-0 bg-black/20 group-hover/video:bg-black/40 transition-colors duration-300 pointer-events-none" />
@@ -318,7 +318,7 @@ export default function DeletionApprovalList({ pendingCourses, pendingLessons, t
                                         <button
                                             onClick={() => handleRejectLesson(lesson.id)}
                                             disabled={loadingId === lesson.id && loadingType === 'lesson'}
-                                            className="flex-1 py-3 bg-white border border-green-600 text-green-700 text-[9px] font-bold uppercase tracking-wider hover:bg-green-50 transition-all duration-300 rounded-lg shadow-sm active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
+                                            className="flex-1 py-3 bg-[#F5F5F7] border border-green-600 text-green-700 text-[9px] font-bold uppercase tracking-wider hover:bg-green-50 transition-all duration-300 rounded-lg shadow-sm active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
                                         >
                                             {loadingId === lesson.id && loadingType === 'lesson' ? (
                                                 <Loader2 size={14} className="animate-spin" />

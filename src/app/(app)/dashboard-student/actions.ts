@@ -178,6 +178,9 @@ export async function processCheckoutAction(
                 if (isInstantlyConfirmed) {
                     const wishlistRef = adminDb.collection('profiles').doc(user.uid).collection('wishlist').doc(courseData.id)
                     batch.delete(wishlistRef)
+                    batch.update(adminDb.collection('profiles').doc(user.uid), {
+                        cursos_comprados: FieldValue.arrayUnion(courseData.id)
+                    })
                 }
             }
             return batch
@@ -351,12 +354,16 @@ export async function processCheckoutAction(
 
             const asaasResponse = await createPayment(paymentPayload)
 
+            // FASE 2: Captura a data de vencimento oficial definida pelo Asaas
+            const asaasDueDate = asaasResponse.dueDate ?? null
+
             // 3. Atualiza enrollment com o paymentId e status se confirmado instantaneamente
             const isInstantlyConfirmed = billingType === 'CREDIT_CARD' && (asaasResponse.status === 'CONFIRMED' || asaasResponse.status === 'RECEIVED')
             
-            for (const { ref } of enrollRefs) {
+            for (const { ref, courseData } of enrollRefs) {
                 const updateData: any = {
-                    payment_id: asaasResponse.id
+                    payment_id: asaasResponse.id,
+                    asaas_due_date: asaasDueDate,
                 }
                 if (isInstantlyConfirmed) {
                     const now = new Date()
@@ -375,6 +382,7 @@ export async function processCheckoutAction(
                 await adminDb.collection('vendas_logs').add({
                     idTransacao: `TR-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
                     paymentId: asaasResponse.id,
+                    asaasDueDate,
                     invoiceUrl: asaasResponse.invoiceUrl || null,
                     alunoId: user.uid,
                     userId: user.uid,
@@ -788,6 +796,9 @@ export async function payPendingCreditCardAction(
                         // Remove da lista de desejos, se existir
                         const wishlistRef = adminDb.collection('profiles').doc(user.uid).collection('wishlist').doc(cursoId)
                         batch.delete(wishlistRef)
+                        batch.update(adminDb.collection('profiles').doc(user.uid), {
+                            cursos_comprados: FieldValue.arrayUnion(cursoId)
+                        })
                     }
                 }
             })
@@ -932,6 +943,9 @@ export async function syncPaymentStatusAction(paymentId: string) {
                 payment_id: paymentId,
                 updated_at: new Date(),
                 status: FieldValue.delete(),
+            })
+            batch.update(adminDb.collection('profiles').doc(user.uid), {
+                cursos_comprados: FieldValue.arrayUnion(cursoId)
             })
         }
 

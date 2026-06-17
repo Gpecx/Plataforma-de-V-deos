@@ -147,7 +147,7 @@ export default function ComprasPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
                 {/* Tabela de Transações */}
                 <div className="lg:col-span-2 space-y-8">
-                    <div className="bg-white rounded-[24px] md:rounded-[40px] border border-slate-100 p-6 sm:p-8 md:p-10 shadow-sm relative overflow-hidden h-full flex flex-col">
+                    <div className="bg-[#F5F5F7] rounded-[24px] md:rounded-[40px] border border-slate-100 p-6 sm:p-8 md:p-10 shadow-sm relative overflow-hidden h-full flex flex-col">
                         <div className="flex items-center justify-between mb-10">
                             <h2 className="text-lg font-bold uppercase tracking-tighter text-slate-800">Histórico de Transações</h2>
                             <button className="text-[10px] font-bold uppercase tracking-widest text-[#1D5F31] hover:text-slate-900 transition-colors">

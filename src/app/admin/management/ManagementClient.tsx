@@ -103,7 +103,7 @@ export default function ManagementClient({ initialAdmins }: ManagementClientProp
                         {admins.map((admin) => (
                             <div key={admin.id} className="space-y-3">
                                 <div 
-                                    className="group border border-slate-100 p-4 rounded-xl hover:border-[#1D5F31] hover:bg-[#1D5F31]/5 transition-all flex items-center justify-between bg-slate-50/50"
+                                    className="group border border-slate-100 p-4 rounded-xl hover:border-[#1D5F31] hover:bg-[#1D5F31]/5 transition-colors flex items-center justify-between bg-slate-50/50"
                                 >
                                     <div className="flex items-center gap-4">
                                         <div className="w-10 h-10 bg-[#1D5F31]/10 flex items-center justify-center text-[#1D5F31] rounded-lg font-black text-sm">
@@ -136,9 +136,9 @@ export default function ManagementClient({ initialAdmins }: ManagementClientProp
                                 <AnimatePresence>
                                     {updatingPasswordId === admin.id && (
                                         <motion.div
-                                            initial={{ height: 0, opacity: 0 }}
-                                            animate={{ height: 'auto', opacity: 1 }}
-                                            exit={{ height: 0, opacity: 0 }}
+                                            initial={{ maxHeight: 0, opacity: 0 }}
+                                            animate={{ maxHeight: 300, opacity: 1 }}
+                                            exit={{ maxHeight: 0, opacity: 0 }}
                                             className="overflow-hidden"
                                         >
                                             <div className="p-6 bg-slate-100 rounded-xl border-2 border-[#1D5F31] flex items-center gap-4">
@@ -149,13 +149,13 @@ export default function ManagementClient({ initialAdmins }: ManagementClientProp
                                                         placeholder="NOVA SENHA DO OPERADOR"
                                                         value={newAdminPassword}
                                                         onChange={(e) => setNewAdminPassword(e.target.value)}
-                                                        className="w-full bg-white border border-slate-200 rounded-lg p-3 pl-10 text-black text-[10px] font-black uppercase tracking-wider focus:border-[#1D5F31] focus:outline-none transition-all placeholder:text-black/40"
+                                                        className="w-full bg-white border border-slate-200 rounded-lg p-3 pl-10 text-black text-[10px] font-black uppercase tracking-wider focus:border-[#1D5F31] focus:outline-none transition-colors placeholder:text-black/40"
                                                     />
                                                 </div>
                                                 <button
                                                     onClick={() => handleUpdatePassword(admin.id)}
                                                     disabled={isUpdating}
-                                                    className="bg-[#1D5F31] text-white px-6 py-3 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-black transition-all disabled:opacity-50"
+                                                    className="bg-[#1D5F31] text-white px-6 py-3 rounded-lg font-black text-[10px] uppercase tracking-widest hover:bg-black transition-colors disabled:opacity-50"
                                                 >
                                                     {isUpdating ? <Loader2 className="animate-spin" size={14} /> : 'Salvar'}
                                                 </button>
@@ -201,7 +201,7 @@ export default function ManagementClient({ initialAdmins }: ManagementClientProp
                                         placeholder="EX: JOÃO DA SILVA"
                                         value={fullName}
                                         onChange={(e) => setFullName(e.target.value.toUpperCase())}
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 pl-12 text-black text-xs font-bold uppercase tracking-wider focus:border-[#1D5F31] focus:bg-white focus:outline-none transition-all placeholder:text-black/40"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 pl-12 text-black text-xs font-bold uppercase tracking-wider focus:border-[#1D5F31] focus:bg-white focus:outline-none transition-colors placeholder:text-black/40"
                                     />
                                 </div>
                             </div>
@@ -218,7 +218,7 @@ export default function ManagementClient({ initialAdmins }: ManagementClientProp
                                         placeholder="EX: ADMIN@GPECX.COM"
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 pl-12 text-slate-900 text-xs font-bold tracking-wider focus:border-[#1D5F31] focus:bg-white focus:outline-none transition-all"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 pl-12 text-slate-900 text-xs font-bold tracking-wider focus:border-[#1D5F31] focus:bg-white focus:outline-none transition-colors"
                                     />
                                 </div>
                             </div>
@@ -235,7 +235,7 @@ export default function ManagementClient({ initialAdmins }: ManagementClientProp
                                         placeholder="MÍN. 8 CARACTERES (LETRAS E NÚMEROS)"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 pl-12 text-slate-900 text-xs font-bold tracking-wider focus:border-[#1D5F31] focus:bg-white focus:outline-none transition-all"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-xl p-4 pl-12 text-slate-900 text-xs font-bold tracking-wider focus:border-[#1D5F31] focus:bg-white focus:outline-none transition-colors"
                                     />
                                 </div>
                             </div>
@@ -243,7 +243,7 @@ export default function ManagementClient({ initialAdmins }: ManagementClientProp
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className="w-full bg-[#1D5F31] hover:bg-[#257a3f] text-white py-5 rounded-xl font-black text-xs uppercase tracking-[0.3em] transition-all shadow-lg shadow-[#1D5F31]/20 flex items-center justify-center gap-3 disabled:opacity-50 group"
+                                className="w-full bg-[#1D5F31] hover:bg-[#257a3f] text-white py-5 rounded-xl font-black text-xs uppercase tracking-[0.3em] transition-colors shadow-lg shadow-[#1D5F31]/20 flex items-center justify-center gap-3 disabled:opacity-50 group"
                             >
                                 {loading ? (
                                     <Loader2 className="animate-spin" size={18} />

@@ -4,8 +4,7 @@ import dynamic from 'next/dynamic'
 import { useState, useEffect, useMemo, useRef } from 'react'
 import 'react-quill-new/dist/quill.snow.css'
 
-// Import dinâmico com loading state aprimorado
-const ReactQuill = dynamic(() => import('react-quill-new'), { 
+const ReactQuill = dynamic(() => import('react-quill-new'), {
     ssr: false,
     loading: () => (
         <div className="h-[400px] w-full bg-[#FAFAFA] flex items-center justify-center border border-black/10">
@@ -26,21 +25,18 @@ interface RichTextEditorProps {
 export default function RichTextEditor({ value, onChange, placeholder }: RichTextEditorProps) {
     const [localValue, setLocalValue] = useState(value)
     const timeoutRef = useRef<NodeJS.Timeout | null>(null)
-    const isFirstRender = useRef(true)
 
-    // Sincroniza apenas se o valor externo mudar drasticamente (ex: Reset)
     useEffect(() => {
         if (value !== localValue) {
             setLocalValue(value)
         }
     }, [value])
 
-    // Debounce para evitar sobrecarga no estado pai
     const handleLocalChange = (content: string) => {
         setLocalValue(content)
-        
+
         if (timeoutRef.current) clearTimeout(timeoutRef.current)
-        
+
         timeoutRef.current = setTimeout(() => {
             onChange(content)
         }, 500)
@@ -49,7 +45,7 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
     const modules = useMemo(() => ({
         toolbar: [
             [{ 'header': [1, 2, 3, false] }],
-            ['bold'], // Italic removido para manter padrão "texto reto" Industrial
+            ['bold'],
             [{ 'list': 'ordered' }, { 'list': 'bullet' }],
             ['link', 'clean']
         ],
@@ -58,13 +54,13 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
     const formats = [
         'header',
         'bold',
-        'list', 'bullet',
+        'list',   // ← removido 'bullet', apenas 'list' é necessário
         'link'
     ]
 
     return (
         <div className="rich-text-editor-container border border-black rounded-none overflow-hidden bg-white shadow-[2px_2px_0px_0px_rgba(0,0,0,0.1)] focus-within:shadow-[4px_4px_0px_0px_rgba(29,95,49,0.2)] transition-all">
-            <ReactQuill 
+            <ReactQuill
                 theme="snow"
                 value={localValue}
                 onChange={handleLocalChange}
@@ -73,8 +69,9 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
                 placeholder={placeholder}
                 className="bg-white text-slate-900"
             />
-            
-            <style dangerouslySetInnerHTML={{ __html: `
+
+            <style dangerouslySetInnerHTML={{
+                __html: `
                 .rich-text-editor-container .ql-toolbar {
                     border: none !important;
                     border-bottom: 1px solid black !important;
@@ -105,7 +102,6 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
                     left: 32px !important;
                 }
 
-                /* Estilização Industrial dos elementos internos */
                 .rich-text-editor-container .ql-editor h1 {
                     font-size: 2.25rem !important;
                     font-weight: 900 !important;

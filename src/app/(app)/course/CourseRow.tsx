@@ -73,7 +73,7 @@ export default function CourseRow({
 
     return (
         <div className="space-y-10">
-            <div className="flex items-end justify-between border-b border-[#1D5F31]/50 pb-4">
+            <div className="flex items-end justify-between pb-4">
                 <h2 className="text-lg md:text-xl font-bold uppercase tracking-wider flex items-center gap-3 group cursor-pointer text-[#22c55e]">
                     {category}
                     <ChevronRight className="text-[#22c55e] w-4 h-4 opacity-40 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />

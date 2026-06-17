@@ -135,7 +135,7 @@ export function QuizPlayer({ quizData, onComplete }: QuizPlayerProps) {
   }
 
   return (
-    <div className="flex flex-col h-full bg-slate-900 border border-slate-800 relative overflow-hidden font-montserrat">
+    <div className="flex flex-col h-auto lg:h-full min-h-[300px] lg:min-h-0 bg-slate-900 border border-slate-800 relative overflow-visible lg:overflow-hidden font-montserrat">
       {/* Progress Bar Industrial */}
       <div className="absolute top-0 left-0 w-full h-1 bg-slate-800">
         <div 
@@ -144,7 +144,7 @@ export function QuizPlayer({ quizData, onComplete }: QuizPlayerProps) {
         />
       </div>
 
-      <div className="p-8 md:p-12 flex flex-col h-full">
+      <div className="p-4 md:p-8 lg:p-12 flex flex-col flex-1">
         <div className="flex justify-between items-center mb-12">
           <div>
             <span className="text-[10px] font-bold text-green-500 uppercase tracking-[4px] block mb-1">DESAFIO DE CONHECIMENTO</span>
@@ -161,13 +161,13 @@ export function QuizPlayer({ quizData, onComplete }: QuizPlayerProps) {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.3 }}
-              className="space-y-8"
+              className="space-y-8 pb-6"
             >
               <p className="text-xl md:text-2xl font-bold text-white leading-tight">
                 {currentQuestion.text}
               </p>
 
-              <div className="grid grid-cols-1 gap-4">
+              <div className="grid grid-cols-1 gap-4 mb-4">
                 {currentQuestion.options.map((option, index) => {
                   const isSelected = selectedOption === index;
                   const isCorrect = index === currentQuestion.correctAnswer;
@@ -221,7 +221,7 @@ export function QuizPlayer({ quizData, onComplete }: QuizPlayerProps) {
           </AnimatePresence>
         </div>
 
-        <div className="mt-12 flex justify-end">
+        <div className="mt-6 md:mt-12 flex justify-end">
           {!isConfirmed ? (
             <button
               disabled={selectedOption === null}

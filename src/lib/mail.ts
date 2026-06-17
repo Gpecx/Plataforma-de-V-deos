@@ -1,4 +1,5 @@
 import { Resend } from 'resend'
+import { generateVerificationEmailHTML, generateResetPasswordEmailHTML } from './email-template'
 
 // SEC: HTML escape for user data
 function escapeHtml(str: string): string {
@@ -12,7 +13,7 @@ if (resendApiKey) {
     resend = new Resend(resendApiKey)
 }
 
-const FROM_EMAIL = process.env.EMAIL_FROM || 'nao-responder@powerplay.cursos'
+const FROM_EMAIL = process.env.EMAIL_FROM || 'onboarding@resend.dev'
 const FROM_NAME = 'PowerPlay'
 
 // Plano gratuito do Resend: apenas e-mails verificados (onboarding@resend.dev, admin, domínio verificado).
@@ -324,5 +325,49 @@ Para mais informações, consulte nossa <a href="https://powerplaycursos.com.br/
         return data
     } catch (error) {
         console.error('[mail.ts] Erro ao enviar e-mail de resposta do chat:', error)
+    }
+}
+
+export async function sendVerificationEmail(params: {
+    to: string
+    code: string
+}) {
+    if (!resend) return
+    const { to, code } = params
+    const recipient = resolveToEmail(to)
+
+    try {
+        const data = await resend.emails.send({
+            from: `${FROM_NAME} <${FROM_EMAIL}>`,
+            to: recipient,
+            subject: '⚡ Seu código de verificação PowerPlay',
+            html: generateVerificationEmailHTML(code),
+            text: `Seu código PowerPlay: ${code}. Expira em 5 minutos.`,
+        })
+        return data
+    } catch (error) {
+        console.error('[mail.ts] Erro ao enviar e-mail de verificação:', error)
+    }
+}
+
+export async function sendResetPasswordEmail(params: {
+    to: string
+    resetLink: string
+}) {
+    if (!resend) return
+    const { to, resetLink } = params
+    const recipient = resolveToEmail(to)
+
+    try {
+        const data = await resend.emails.send({
+            from: `${FROM_NAME} <${FROM_EMAIL}>`,
+            to: recipient,
+            subject: '🔐 Redefinição de Senha - PowerPlay',
+            html: generateResetPasswordEmailHTML(resetLink),
+            text: `Redefina sua senha PowerPlay acessando: ${resetLink}. Este link expira em 1 hora.`,
+        })
+        return data
+    } catch (error) {
+        console.error('[mail.ts] Erro ao enviar e-mail de redefinição de senha:', error)
     }
 }

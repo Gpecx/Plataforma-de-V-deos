@@ -26,7 +26,7 @@ export default function TaxSettings({ currentTax }: TaxSettingsProps) {
     }
 
     return (
-        <div className="bg-white p-8 border border-black/20 shadow-sm rounded-xl">
+        <div className="bg-white p-8 border border-black/20 shadow-sm rounded-lg">
             <div className="flex items-center gap-3 mb-6">
                 <Settings className="text-[#1D5F31]" size={20} />
                 <h3 className="text-sm font-bold uppercase tracking-widest !text-[#000000]">
@@ -45,13 +45,13 @@ export default function TaxSettings({ currentTax }: TaxSettingsProps) {
                                 type="number" 
                                 value={tax} 
                                 onChange={(e) => setTax(Number(e.target.value))}
-                                className="w-full bg-white border-2 border-black/20 px-4 h-12 outline-none focus:border-[#1D5F31] transition-all font-bold !text-[#000000] rounded-lg"
+                                className="w-full bg-white border-2 border-black/20 px-4 h-12 outline-none focus:border-[#1D5F31] transition-all font-bold !text-[#000000] rounded-md"
                             />
                         </div>
                         <button 
                             onClick={handleSave}
                             disabled={loading}
-                            className="bg-[#1D5F31] text-white px-8 h-12 font-bold uppercase text-[10px] tracking-widest hover:bg-[#28b828] transition-all flex items-center gap-2 disabled:opacity-50 rounded-lg"
+                            className="bg-[#1D5F31] text-white px-8 h-12 font-bold uppercase text-[10px] tracking-widest hover:bg-[#28b828] transition-all flex items-center gap-2 disabled:opacity-50 rounded-md"
                         >
                             {loading ? <Loader2 size={14} className="animate-spin" /> : <><Save size={14} /> Salvar</>}
                         </button>

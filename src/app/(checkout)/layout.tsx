@@ -6,14 +6,14 @@ import { AuthProvider } from '@/context/AuthProvider'
 export default function CheckoutLayout({ children }: { children: React.ReactNode }) {
     return (
         <AuthProvider>
-            <div className="theme-clean-white min-h-screen flex flex-col bg-white">
+            <div className="min-h-screen flex flex-col bg-[#F5F5F7]">
                 <Suspense fallback={null}>
-                    <Navbar light={true} />
+                    <Navbar light={false} />
                 </Suspense>
                 <main className="flex-grow pt-24">
                     {children}
                 </main>
-                <Footer variant="light" />
+                <Footer variant="dark" />
             </div>
         </AuthProvider>
     )

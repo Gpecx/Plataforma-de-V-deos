@@ -6,6 +6,8 @@ import { BrandingData, getSettings } from '@/app/admin/settings/actions'
 import { CartStoreSynchronizer } from '@/components/CartStoreSynchronizer'
 import { Toaster } from '@/components/ui/sonner'
 
+import type { Metadata } from 'next'
+
 const exo = Exo({
   subsets: ['latin'],
   weight: ['400', '700', '900'],
@@ -17,6 +19,16 @@ const montserrat = Montserrat({
   weight: ['400', '700', '800', '900'],
   variable: '--font-montserrat'
 })
+
+export const metadata: Metadata = {
+  title: 'POWERPLAY',
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+    apple: '/icon.svg',
+  },
+}
 
 export default async function RootLayout({
   children,

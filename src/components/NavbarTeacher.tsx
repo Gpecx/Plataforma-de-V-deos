@@ -145,7 +145,7 @@ export default function NavbarTeacher() {
 
                     {/* Search Component */}
                     <div className="flex items-center gap-2 relative">
-                        <div className={`flex items-center bg-slate-50 border border-slate-100 rounded-xl px-3 py-1.5 transition-all duration-300 ${isSearchOpen ? 'w-36 sm:w-48 md:w-64 opacity-100' : 'w-0 opacity-0 pointer-events-none border-none'}`}>
+                        <div className={`flex items-center bg-slate-50 border border-slate-100 rounded-xl px-3 py-1.5 transition-[width,opacity] duration-300 overflow-hidden ${isSearchOpen ? 'w-36 sm:w-48 md:w-64 opacity-100' : 'w-0 opacity-0 pointer-events-none border-none'}`}>
                             <Search size={16} className="text-slate-400 mr-2" />
                             <input
                                 type="text"

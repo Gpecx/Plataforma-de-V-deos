@@ -17,10 +17,6 @@ export default async function StudentLayout({
         redirect('/login')
     }
 
-    if (!session.emailVerified) {
-        redirect('/verify-email')
-    }
-
     // Se for professor, redireciona para o dashboard de professor
     if (session.role === 'teacher') {
         redirect('/dashboard-teacher')

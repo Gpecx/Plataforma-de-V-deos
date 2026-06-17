@@ -391,9 +391,9 @@ export function GoogleCompleteProfileModal({ isOpen, user, onSuccess, onClose }:
                             {formError && (
                                 <motion.div
                                     key="form-error"
-                                    initial={{ opacity: 0, y: -8, height: 0 }}
-                                    animate={{ opacity: 1, y: 0, height: 'auto' }}
-                                    exit={{ opacity: 0, y: -8, height: 0 }}
+                                    initial={{ opacity: 0, y: -8, maxHeight: 0 }}
+                                    animate={{ opacity: 1, y: 0, maxHeight: 300 }}
+                                    exit={{ opacity: 0, y: -8, maxHeight: 0 }}
                                     className="overflow-hidden mb-6"
                                 >
                                     <div className="flex items-start gap-3 p-4 rounded-lg border bg-red-500/10 border-red-500/30 text-red-300">

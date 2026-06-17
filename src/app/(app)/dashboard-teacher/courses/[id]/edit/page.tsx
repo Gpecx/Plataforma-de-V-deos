@@ -276,6 +276,10 @@ function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons,
         transition,
     }
 
+    const totalLessonsCount = module.lessons.length;
+    const approvedLessonsCount = module.lessons.filter(l => l.status === 'APROVADO').length;
+    const pendingLessonsCount = module.lessons.filter(l => l.status !== 'APROVADO' && l.status !== 'REJEITADO' && l.status !== 'SOLICITADO_EXCLUSAO').length;
+
     return (
         <div
             ref={setNodeRef}
@@ -293,7 +297,23 @@ function SortableModule({ module, onAddLesson, onDeleteLesson, onReorderLessons,
                             value={module.title}
                             onChange={(e) => onModuleTitleChange?.(module.id, e.target.value)}
                         />
-                        <p className="text-[9px] font-bold uppercase tracking-[3px] text-[#1D5F31] mt-1">ESTRUTURA DE MÓDULO</p>
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                            <p className="text-[9px] font-bold uppercase tracking-[3px] text-[#1D5F31]">ESTRUTURA DE MÓDULO</p>
+                            <span className="text-[9px] font-bold uppercase tracking-[3px] text-slate-300">|</span>
+                            <p className="text-[9px] font-bold uppercase tracking-[2px] text-slate-500">
+                                {totalLessonsCount} {totalLessonsCount === 1 ? 'AULA' : 'AULAS'} TOTAIS
+                            </p>
+                            <span className="text-[9px] font-bold uppercase tracking-[3px] text-slate-300">|</span>
+                            <div className="flex items-center gap-1">
+                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                                <span className="text-[9px] font-bold uppercase tracking-[2px] text-blue-500">{approvedLessonsCount} {approvedLessonsCount === 1 ? 'APROVADA' : 'APROVADAS'}</span>
+                            </div>
+                            <span className="text-[9px] font-bold uppercase tracking-[3px] text-slate-300">|</span>
+                            <div className="flex items-center gap-1">
+                                <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                                <span className="text-[9px] font-bold uppercase tracking-[2px] text-amber-600">{pendingLessonsCount} {pendingLessonsCount === 1 ? 'PENDENTE' : 'PENDENTES'}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
@@ -1098,18 +1118,37 @@ export default function CourseBuilder() {
                                         if (selectedLesson?.id === lessonId) setSelectedLesson(prev => prev ? { ...prev, title: newTitle } : null)
                                     }}
                                     onDeleteModule={() => {
-                                        toast("Confirmar Exclusão", {
-                                            description: "Tem certeza que deseja excluir este módulo? Todas as aulas dentro dele serão removidas.",
-                                            action: {
-                                                label: "Excluir",
-                                                onClick: () => {
-                                                    setModules(prev => prev.filter(m => m.id !== module.id))
-                                                    if (selectedLesson && module.lessons.some(l => l.id === selectedLesson.id)) {
-                                                        setSelectedLesson(null)
+                                        const approvedLessons = module.lessons.filter(l => l.status === 'APROVADO')
+                                        if (approvedLessons.length > 0) {
+                                            forceImmediateAutosaveRef.current = true
+                                            setModules(prev => prev.map(m =>
+                                                m.id === module.id
+                                                    ? {
+                                                        ...m,
+                                                        lessons: m.lessons
+                                                            .filter(l => l.status === 'APROVADO')
+                                                            .map(l => ({ ...l, status: 'SOLICITADO_EXCLUSAO' }))
+                                                    }
+                                                    : m
+                                            ))
+                                            if (selectedLesson && !module.lessons.some(l => l.id === selectedLesson.id && l.status === 'APROVADO')) {
+                                                setSelectedLesson(null)
+                                            }
+                                            toast.info(`${approvedLessons.length} aula(s) aprovada(s) enviada(s) para análise de exclusão. Salve o projeto para confirmar.`)
+                                        } else {
+                                            toast("Confirmar Exclusão", {
+                                                description: "Tem certeza que deseja excluir este módulo? Todas as aulas dentro dele serão removidas.",
+                                                action: {
+                                                    label: "Excluir",
+                                                    onClick: () => {
+                                                        setModules(prev => prev.filter(m => m.id !== module.id))
+                                                        if (selectedLesson && module.lessons.some(l => l.id === selectedLesson.id)) {
+                                                            setSelectedLesson(null)
+                                                        }
                                                     }
                                                 }
-                                            }
-                                        })
+                                            })
+                                        }
                                     }}
                                     canDeleteModule={modules.length > 1}
                                     onResubmitLesson={(lessonId) => {
@@ -1210,7 +1249,7 @@ export default function CourseBuilder() {
 
                         {selectedLesson ? (
                             <div className="space-y-4 bg-white p-8 rounded-md border border-[#1D5F31]/20 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-8 border-b-2 border-[#1D5F31]">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-8">
                                     <div className="space-y-2 flex-grow">
                                         <span className="text-[9px] font-bold uppercase text-[#1D5F31] tracking-[3px]">Título da Aula Digital</span>
                                         <input
@@ -1225,22 +1264,24 @@ export default function CourseBuilder() {
                                                 })))
                                             }}
                                         />
-                                        <div className="mt-4">
-                                            <span className="text-[9px] font-bold uppercase text-[#1D5F31] tracking-[3px]">Notas da Aula (Markdown ou Texto)</span>
-                                            <textarea
-                                                className="bg-transparent border-none focus:outline-none text-sm text-neutral-800 w-full mt-2 resize-none min-h-[120px]"
-                                                placeholder="Principais tópicos, links úteis ou anotações desta aula..."
-                                                value={selectedLesson.notas || ''}
-                                                onChange={(e) => {
-                                                    const newNotas = e.target.value
-                                                    setSelectedLesson({ ...selectedLesson, notas: newNotas })
-                                                    setModules(prev => prev.map(m => ({
-                                                        ...m,
-                                                        lessons: m.lessons.map(l => l.id === selectedLesson.id ? { ...l, notas: newNotas } : l)
-                                                    })))
-                                                }}
-                                            />
-                                        </div>
+                                        {selectedLesson.type !== 'quiz' && (
+                                            <div className="mt-4">
+                                                <span className="text-[9px] font-bold uppercase text-[#1D5F31] tracking-[3px]">Notas da Aula (Markdown ou Texto)</span>
+                                                <textarea
+                                                    className="bg-transparent border-none focus:outline-none text-sm text-neutral-800 w-full mt-2 resize-none min-h-[120px]"
+                                                    placeholder="Principais tópicos, links úteis ou anotações desta aula..."
+                                                    value={selectedLesson.notas || ''}
+                                                    onChange={(e) => {
+                                                        const newNotas = e.target.value
+                                                        setSelectedLesson({ ...selectedLesson, notas: newNotas })
+                                                        setModules(prev => prev.map(m => ({
+                                                            ...m,
+                                                            lessons: m.lessons.map(l => l.id === selectedLesson.id ? { ...l, notas: newNotas } : l)
+                                                        })))
+                                                    }}
+                                                />
+                                            </div>
+                                        )}
                                         {selectedLesson.status === 'REJEITADO' && selectedLesson.motivoRejeicao && (
                                             <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-md">
                                                 <div className="flex items-center gap-2 mb-2">
@@ -1382,16 +1423,7 @@ export default function CourseBuilder() {
                     <section className="bg-white p-8 rounded-md border border-[#1D5F31]/20 relative overflow-hidden group">
                         <h3 className="text-[10px] font-bold uppercase tracking-[5px] text-[#1D5F31] mb-10  relative z-10">Configurações Base</h3>
                         <div className="space-y-8 relative z-10">
-                            <div className="space-y-4">
-                                <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Subtítulo Estratégico</label>
-                                <input
-                                    type="text"
-                                    value={courseSubtitle}
-                                    onChange={(e) => setCourseSubtitle(e.target.value)}
-                                    placeholder="Frase curta de impacto"
-                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-md px-5 py-3 focus:border-[#1D5F31] outline-none text-sm text-black transition-all"
-                                />
-                            </div>
+
 
                             <div className="space-y-4">
                                 <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Descrição Completa</label>

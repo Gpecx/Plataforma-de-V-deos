@@ -1,12 +1,12 @@
 "use client"
 
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { ArrowLeft, Send, Paperclip, MessageSquare, Users } from 'lucide-react'
+import { ArrowLeft, Send, MessageSquare, Users } from 'lucide-react'
 import Link from 'next/link'
 import { auth, db } from '@/lib/firebase'
-import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp, getDocs, doc, getDoc } from 'firebase/firestore'
+import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp, getDocs } from 'firebase/firestore'
 import { onAuthStateChanged } from 'firebase/auth'
-import { getPublicProfile } from '@/app/actions/profile'
+import { getPublicProfile, getCourseByIdAdmin } from '@/app/actions/profile'
 import { parseFirebaseDate } from '@/lib/date-utils'
 import { toast } from 'sonner'
 
@@ -71,12 +71,14 @@ export default function StudentChatPage() {
                 const teacherIdsSeen = new Set<string>()
 
                 for (const enrollDoc of enrollSnapshot.docs) {
-                    const enrollData = enrollDoc.data()
-                    const courseId = enrollData.course_id
+                    try {
+                        const enrollData = enrollDoc.data()
+                        if (enrollData.payment_confirmed !== true) continue
+                        const courseId = enrollData.course_id
 
-                    const courseDoc = await getDoc(doc(db, 'courses', courseId))
-                    if (courseDoc.exists()) {
-                        const courseData = courseDoc.data()
+                        const courseData = await getCourseByIdAdmin(courseId)
+                        if (!courseData) continue
+
                         const teacherId = courseData.teacher_id
 
                         if (!teacherIdsSeen.has(teacherId)) {
@@ -91,6 +93,8 @@ export default function StudentChatPage() {
                                 teacherIdsSeen.add(teacherId)
                             }
                         }
+                    } catch (err) {
+                        console.error("Erro ao processar enrollment:", err)
                     }
                 }
 
@@ -211,7 +215,7 @@ export default function StudentChatPage() {
 
     if (loading) {
         return (
-            <div className="h-screen flex items-center justify-center bg-white">
+            <div className="h-screen flex items-center justify-center bg-[#F5F5F7]">
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-12 h-12 border-4 border-[#1d5f31] border-t-transparent rounded-full animate-spin"></div>
                     <p className="text-xs font-medium text-[#061629] animate-pulse">Carregando suporte...</p>
@@ -221,7 +225,7 @@ export default function StudentChatPage() {
     }
 
     return (
-        <div className="h-[calc(100vh-120px)] bg-white text-slate-900 flex flex-col overflow-hidden font-sans">
+        <div className="h-[calc(100vh-80px)] bg-[#F5F5F7] text-slate-900 flex flex-col overflow-hidden font-sans">
             <div className="max-w-full w-full mx-auto flex flex-col flex-1 pt-4 pb-4 px-4 md:px-6 gap-4 md:gap-6 overflow-hidden">
 
                 {/* Header Simples */}
@@ -274,7 +278,7 @@ export default function StudentChatPage() {
                     </aside>
 
                     {/* Área de Chat Principal */}
-                    <section className="flex-1 flex flex-col bg-white border border-[#D1D7DC] rounded-xl overflow-hidden shadow-none">
+                    <section className="flex-1 flex flex-col bg-[#F5F5F7] border border-[#D1D7DC] rounded-xl overflow-hidden shadow-none">
                         {selectedTeacher ? (
                             <>
                                 {/* Chat Header */}
@@ -297,7 +301,7 @@ export default function StudentChatPage() {
                                 </div>
 
                                 {/* Mensagens */}
-                                <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6 md:py-10 space-y-6 bg-white custom-scrollbar-premium">
+                                <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6 md:py-10 space-y-6 bg-[#F5F5F7] custom-scrollbar-premium">
                                     {messages.length > 0 ? (
                                         messages.map(msg => (
                                             <div
@@ -305,10 +309,10 @@ export default function StudentChatPage() {
                                                 className={`flex flex-col ${msg.role === 'student' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}
                                             >
                                                 <div className={`max-w-[70%] flex flex-col gap-1`}>
-                                                    <div className={`px-5 py-3.5 rounded-2xl text-[14px] leading-relaxed ${
+                                                    <div className={`px-5 py-3.5 rounded-2xl text-[14px] leading-relaxed shadow-sm ${
                                                         msg.role === 'teacher' 
                                                         ? 'bg-white border border-[#D1D7DC] text-[#061629]' 
-                                                        : 'bg-[#F1F3F4] text-[#061629]'
+                                                        : 'bg-white border border-slate-300 text-slate-900'
                                                     }`}>
                                                         {msg.content}
                                                     </div>
@@ -339,10 +343,7 @@ export default function StudentChatPage() {
                                 {/* Input de Mensagem */}
                                 <div className="px-4 md:px-8 py-4 md:py-6 border-t border-[#D1D7DC] bg-white">
                                     <div className="flex items-center gap-4">
-                                        <button className="p-2 text-[#1d5f31] hover:bg-[#F1F3F4] rounded-full transition-colors shrink-0">
-                                            <Paperclip size={20} />
-                                        </button>
-                                        <div className="flex-1 flex items-center bg-white border border-[#D1D7DC] rounded-lg px-4 py-3 focus-within:border-[#1d5f31] transition-all group ring-offset-2">
+                                        <div className="flex-1 flex items-center bg-[#F5F5F7] border border-[#D1D7DC] rounded-lg px-4 py-3 focus-within:border-[#1d5f31] transition-all group ring-offset-2">
                                             <input
                                                 type="text"
                                                 value={input}
@@ -361,7 +362,15 @@ export default function StudentChatPage() {
                                             <Send size={16} />
                                         </button>
                                     </div>
-                                    <p className="text-[10px] text-center text-gray-400 mt-4 font-normal">Sua comunicação com o mentor é direta e privada.</p>
+                                </div>
+                                {/* Aviso de monitoramento */}
+                                <div className="px-4 md:px-8 py-3 bg-gray-200 border-t border-gray-300">
+                                    <div className="text-xs text-center text-gray-500 font-semibold leading-relaxed">
+    Para garantir a qualidade do atendimento e a segurança da plataforma, esta conversa poderá ser monitorada. Ao continuar, você concorda com nossos{' '}
+    <Link href="/termos" className="font-bold underline underline-offset-2 text-gray-500 hover:opacity-70 transition-colors">Termos de Uso</Link>
+    {' '}e{' '}
+    <Link href="/privacidade" className="font-bold underline underline-offset-2 text-gray-500 hover:opacity-70 transition-colors">Política de Privacidade</Link>.
+</div>
                                 </div>
                             </>
                         ) : (

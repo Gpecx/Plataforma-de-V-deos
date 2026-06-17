@@ -33,7 +33,7 @@ export function MyLearningSidebar({ recentCourses }: MyLearningSidebarProps) {
                             key={curso.id}
                             onMouseEnter={() => setIsHovered(curso.id)}
                             onMouseLeave={() => setIsHovered(null)}
-                            className="relative group transition-all duration-300"
+                            className="relative group"
                         >
                             <div className="flex items-start gap-4">
                                 <div className="w-14 h-14 rounded-xl overflow-hidden bg-slate-100 shrink-0 border border-slate-50 shadow-sm transition-transform duration-300 group-hover:scale-105">
@@ -51,7 +51,7 @@ export function MyLearningSidebar({ recentCourses }: MyLearningSidebarProps) {
                                     {/* Barra de Progresso Linear */}
                                     <div className="w-full bg-slate-50 h-1.5 rounded-full overflow-hidden border border-slate-100">
                                         <div
-                                            className="bg-[#1D5F31] h-full transition-all duration-1000"
+                                            className="bg-[#1D5F31] h-full transition-[width] duration-1000"
                                             style={{ width: `65%` }}
                                         ></div>
                                     </div>
@@ -59,8 +59,9 @@ export function MyLearningSidebar({ recentCourses }: MyLearningSidebarProps) {
                             </div>
 
                             {/* Detalhes ao passar o mouse */}
-                            <div className={`mt-4 overflow-hidden transition-all duration-300 ease-in-out ${isHovered === curso.id ? 'max-h-24 opacity-100' : 'max-h-0 opacity-0'}`}>
-                                <div className="flex items-center justify-between text-[8px] font-bold tracking-widest text-[#1D5F31] mb-4">
+                            <div className={`mt-4 grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${isHovered === curso.id ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                                <div className="overflow-hidden">
+                                    <div className="flex items-center justify-between text-[8px] font-bold tracking-widest text-[#1D5F31] mb-4">
                                     <span className="flex items-center gap-1"><Clock size={10} /> 4h restantes</span>
                                     <span>65% CONCLUÍDO</span>
                                 </div>
@@ -69,6 +70,7 @@ export function MyLearningSidebar({ recentCourses }: MyLearningSidebarProps) {
                                         <Play size={10} fill="currentColor" /> Continuar Assistindo
                                     </button>
                                 </Link>
+                            </div>
                             </div>
                         </div>
                     ))}

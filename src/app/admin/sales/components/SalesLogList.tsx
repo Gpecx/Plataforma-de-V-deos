@@ -143,7 +143,7 @@ export default function SalesLogList({ initialSales, teachers }: SalesLogListPro
                 </div>
 
                 {sales.length === 0 && (
-                    <div className="flex flex-col items-center justify-center py-24 bg-white">
+                    <div className="flex flex-col items-center justify-center py-24 bg-[#F5F5F7]">
                         <div className="w-16 h-16 bg-black/5 rounded-full flex items-center justify-center mb-6 border border-black/10">
                             <Search size={32} className="text-slate-200" />
                         </div>

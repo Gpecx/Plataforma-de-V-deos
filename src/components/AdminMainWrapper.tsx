@@ -17,7 +17,7 @@ export default function AdminMainWrapper({ children }: { children: React.ReactNo
     }
 
     return (
-        <main className="relative z-10 pl-72 min-h-screen" style={{ backgroundColor: '#ffffff' }}>
+        <main className="relative z-10 pl-72 min-h-screen" style={{ backgroundColor: '#F5F5F7' }}>
             <div className="p-8 md:p-12">
                 {children}
             </div>

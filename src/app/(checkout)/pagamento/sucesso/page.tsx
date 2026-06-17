@@ -116,12 +116,12 @@ function SucessoContent() {
                     </div>
                 </div>
 
-                <h1 className="text-4xl font-bold text-black mb-4 tracking-tight uppercase not-italic">
+                <h1 className="text-4xl font-bold !text-slate-900 mb-4 tracking-tight uppercase not-italic">
                     {(payment?.status === 'RECEIVED' || payment?.status === 'CONFIRMED')
                         ? 'Pagamento Confirmado!'
                         : 'Pedido Realizado!'}
                 </h1>
-                <p className="text-black font-medium mb-12 max-w-lg mx-auto not-italic">
+                <p className="!text-black font-medium mb-12 max-w-lg mx-auto not-italic">
                     Sua inscrição foi reservada.
                     {billingType === 'PIX' && ' Conclua o pagamento via PIX para liberação imediata.'}
                     {billingType === 'BOLETO' && ' O boleto pode levar até 48h para ser compensado.'}
@@ -134,7 +134,7 @@ function SucessoContent() {
                 <div className="bg-white border-[3px] border-black p-8 md:p-12 mb-10 text-left relative overflow-hidden">
                     <div className="mb-8 pb-6 border-b border-black">
                         <span className="text-[10px] font-bold uppercase tracking-[4px] text-[#1D5F31] block mb-2">Comprovante de Transação</span>
-                        <h2 className="text-xl font-bold uppercase tracking-tighter text-[#1a1a1a]">Recibo PowerPlay</h2>
+                        <h2 className="text-xl font-bold uppercase tracking-tighter !text-[#1a1a1a]">Recibo PowerPlay</h2>
                     </div>
 
                     {loading ? (
@@ -212,7 +212,7 @@ function SucessoContent() {
                             {billingType === 'PIX' && pixData && (
                                 <div className="pt-4 border-t border-black">
                                     <div className="p-4 bg-slate-50 border border-slate-200 rounded-md">
-                                        <p className="text-[10px] font-bold uppercase mb-2 text-slate-500 not-italic">Copia e Cola PIX</p>
+                                        <p className="text-[10px] font-bold uppercase mb-2 !text-slate-500 not-italic">Copia e Cola PIX</p>
                                         <div className="flex gap-2">
                                             <input
                                                 readOnly
@@ -229,7 +229,7 @@ function SucessoContent() {
                             {billingType === 'BOLETO' && boletoData && (
                                 <div className="pt-4 border-t border-black">
                                     <div className="p-4 bg-slate-50 border border-slate-200 rounded-md">
-                                        <p className="text-[10px] font-bold uppercase mb-2 text-slate-500">Linha Digitável</p>
+                                        <p className="text-[10px] font-bold uppercase mb-2 !text-slate-500">Linha Digitável</p>
                                         <div className="flex gap-2">
                                             <input
                                                 readOnly
@@ -306,7 +306,7 @@ export default function SucessoPagamentoPage() {
             <div className="min-h-screen flex items-center justify-center bg-white">
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-12 h-12 border-4 border-[#1D5F31]/20 border-t-[#1D5F31] rounded-full animate-spin" />
-                    <p className="text-sm font-bold uppercase tracking-widest text-black">Iniciando...</p>
+                    <p className="text-sm font-bold uppercase tracking-widest !text-black">Iniciando...</p>
                 </div>
             </div>
         }>

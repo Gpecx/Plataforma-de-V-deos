@@ -133,7 +133,7 @@ export default function AdminQuizManagement() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="bg-white border border-slate-200 p-6 rounded-none flex flex-col md:flex-row items-center justify-between gap-6 group hover:border-[#1D5F31] transition-all"
+                className="bg-[#FAFAFA] border border-slate-200 p-6 rounded-none flex flex-col md:flex-row items-center justify-between gap-6 group hover:border-[#1D5F31] transition-all"
               >
                 <div className="flex items-center gap-6 flex-1">
                   <div className={cn(
@@ -218,7 +218,7 @@ export default function AdminQuizManagement() {
               {/* Modal Content */}
               <div className="p-8 overflow-y-auto space-y-8 bg-slate-50">
                 {selectedQuiz.questions.map((q, idx) => (
-                  <div key={q.id} className="bg-white p-6 border border-slate-200">
+                  <div key={q.id} className="bg-[#FAFAFA] p-6 border border-slate-200">
                     <div className="flex gap-4 mb-4">
                       <span className="w-8 h-8 shrink-0 bg-slate-900 text-white flex items-center justify-center font-bold text-xs">
                         {idx + 1}
@@ -246,7 +246,7 @@ export default function AdminQuizManagement() {
               </div>
 
               {/* Modal Footer */}
-              <div className="p-6 bg-white border-t border-slate-200 flex justify-end gap-4">
+              <div className="p-6 bg-[#FAFAFA] border-t border-slate-200 flex justify-end gap-4">
                 <button
                   onClick={() => setSelectedQuiz(null)}
                   className="px-8 py-3 text-[10px] font-bold uppercase tracking-widest text-slate-600 hover:bg-slate-50 transition-all border border-slate-200"

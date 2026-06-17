@@ -8,6 +8,7 @@ import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp,
 import { useAuth } from '@/context/AuthProvider'
 import { parseFirebaseDate } from '@/lib/date-utils'
 import { toast } from 'sonner'
+import { getConfirmedStudentIdsByCourses } from '@/app/actions/profile'
 
 interface ChatMessage {
     id: string
@@ -102,9 +103,19 @@ export default function TeacherChatPage() {
                     }
                 }
 
-                setStudents(mappedStudents)
-                if (mappedStudents.length > 0 && !selectedStudent) {
-                    setSelectedStudent(mappedStudents[0])
+                // Filtra apenas alunos com matrícula confirmada
+                const coursesSnap = await getDocs(query(
+                    collection(db, 'courses'),
+                    where('teacher_id', '==', user.uid)
+                ))
+                const teacherCourseIds = coursesSnap.docs.map(d => d.id)
+                const confirmedStudentIds = new Set(
+                    await getConfirmedStudentIdsByCourses(teacherCourseIds)
+                )
+                const filteredStudents = mappedStudents.filter(s => confirmedStudentIds.has(s.id))
+                setStudents(filteredStudents)
+                if (filteredStudents.length > 0 && !selectedStudent) {
+                    setSelectedStudent(filteredStudents[0])
                 }
             } catch (error) {
                 console.error("Erro ao carregar alunos:", error)
@@ -217,7 +228,7 @@ export default function TeacherChatPage() {
 
     if (loading && students.length === 0) {
         return (
-            <div className="h-screen flex items-center justify-center bg-white">
+            <div className="h-screen flex items-center justify-center bg-[#F5F5F7]">
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-12 h-12 border-4 border-[#1d5f31] border-t-transparent rounded-full animate-spin"></div>
                     <p className="text-xs font-medium text-[#061629] animate-pulse">Carregando Conversas...</p>
@@ -227,7 +238,7 @@ export default function TeacherChatPage() {
     }
 
     return (
-        <div className="h-[calc(100vh-120px)] bg-white text-slate-900 flex flex-col overflow-hidden font-sans animate-in fade-in duration-500">
+        <div className="h-[calc(100vh-120px)] bg-[#F5F5F7] text-slate-900 flex flex-col overflow-hidden font-sans animate-in fade-in duration-500">
             <div className="max-w-full w-full mx-auto flex flex-col flex-1 pt-4 pb-4 px-6 gap-6 overflow-hidden">
 
                 {/* Header Simples */}
@@ -279,7 +290,7 @@ export default function TeacherChatPage() {
                     </aside>
 
                     {/* Área de Chat Principal */}
-                    <section className="flex-1 flex flex-col bg-white border border-[#D1D7DC] rounded-xl overflow-hidden shadow-none">
+                    <section className="flex-1 flex flex-col bg-[#F5F5F7] border border-[#D1D7DC] rounded-xl overflow-hidden shadow-none">
                         {selectedStudent ? (
                             <>
                                 {/* Chat Header */}
@@ -304,7 +315,7 @@ export default function TeacherChatPage() {
                                 </div>
 
                                 {/* Mensagens */}
-                                <div className="flex-1 overflow-y-auto px-8 py-10 space-y-6 bg-white custom-scrollbar-premium">
+                                <div className="flex-1 overflow-y-auto px-8 py-10 space-y-6 bg-[#F5F5F7] custom-scrollbar-premium">
                                     {messages.length > 0 ? (
                                         messages.map(msg => (
                                             <div
@@ -312,10 +323,10 @@ export default function TeacherChatPage() {
                                                 className={`flex flex-col ${msg.role === 'teacher' ? 'items-end' : 'items-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}
                                             >
                                                 <div className={`max-w-[70%] flex flex-col gap-1`}>
-                                                    <div className={`px-5 py-3.5 rounded-2xl text-[14px] leading-relaxed ${
+                                                    <div className={`px-5 py-3.5 rounded-2xl text-[14px] leading-relaxed shadow-sm ${
                                                         msg.role === 'teacher' 
                                                         ? 'bg-white border border-[#D1D7DC] text-[#061629]' 
-                                                        : 'bg-[#F1F3F4] text-[#061629]'
+                                                        : 'bg-white border border-slate-300 text-slate-900'
                                                     }`}>
                                                         {msg.content}
                                                     </div>
@@ -346,7 +357,7 @@ export default function TeacherChatPage() {
                                 {/* Input de Mensagem */}
                                 <div className="px-8 py-6 border-t border-[#D1D7DC] bg-white">
                                     <div className="flex items-center gap-4">
-                                        <div className="flex-1 flex items-center bg-white border border-[#D1D7DC] rounded-lg px-4 py-3 focus-within:border-[#1d5f31] transition-all group ring-offset-2">
+                                        <div className="flex-1 flex items-center bg-[#F5F5F7] border border-[#D1D7DC] rounded-lg px-4 py-3 focus-within:border-[#1d5f31] transition-all group ring-offset-2">
                                             <input
                                                 type="text"
                                                 value={input}
@@ -365,7 +376,12 @@ export default function TeacherChatPage() {
                                             <Send size={16} />
                                         </button>
                                     </div>
-                                    <p className="text-[10px] text-center text-gray-400 mt-4 font-normal">PowerPlay Creator Ecosystem • Secure Mentorship</p>
+                                    <p className="text-xs text-center text-slate-400 mt-4 font-normal leading-relaxed">
+    Para garantir a qualidade do atendimento e a segurança da plataforma, esta conversa poderá ser monitorada. Ao continuar, você concorda com nossos{' '}
+    <Link href="/termos" className="underline hover:text-slate-500 transition-colors">Termos de Uso</Link>
+    {' '}e{' '}
+    <Link href="/privacidade" className="underline hover:text-slate-500 transition-colors">Política de Privacidade</Link>.
+</p>
                                 </div>
                             </>
                         ) : (

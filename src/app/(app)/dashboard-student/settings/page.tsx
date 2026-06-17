@@ -193,30 +193,30 @@ export default function SettingsPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-white text-slate-900">
+            <div className="min-h-screen flex items-center justify-center bg-[#F5F5F7] text-slate-900">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#1D5F31]"></div>
             </div>
         )
     }
 
     return (
-        <div className="min-h-screen bg-white text-slate-900 font-montserrat p-4 md:p-8 lg:p-12">
-            <div className="max-w-4xl mx-auto space-y-10">
+        <div className="min-h-screen bg-[#F5F5F7] text-slate-900 font-montserrat p-4 md:p-8 lg:p-12">
+            <div className="max-w-6xl w-full mx-auto space-y-10">
 
                 {/* Header da Página */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div>
-                        <h1 className="text-2xl md:text-3xl font-bold uppercase !text-black tracking-tighter max-w-4xl">Configurações</h1>
+                        <h1 className="text-2xl md:text-3xl font-bold uppercase !text-black tracking-tighter">Configurações</h1>
                         <p className="!text-black text-xs uppercase tracking-[3px] mt-1 font-bold">Gerencie sua conta e fluxos de pagamento</p>
                     </div>
-                    <Link href="/dashboard-student" className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-slate-600 hover:text-slate-900 bg-white px-6 py-3.5 rounded-xl border border-black transition-all shadow-sm hover:shadow-md active:scale-95 w-fit">
+                    <Link href="/dashboard-student" className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-slate-600 hover:text-slate-900 bg-white px-6 py-3.5 rounded-xl border border-gray-300 transition-all shadow-sm hover:shadow-md active:scale-95 w-fit">
                         <ArrowLeft size={16} /> Voltar ao Painel
                     </Link>
                 </div>
 
                 <div className="space-y-10">
                     {/* Informações Básicas */}
-                    <section className="bg-white border border-black p-8 md:p-10 rounded-[24px] shadow-sm">
+                    <section className="bg-white border border-gray-200 p-8 md:p-10 rounded-xl shadow-sm">
                         <div className="flex items-center gap-5 mb-8">
                             <div className="w-14 h-14 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-[#1D5F31] shadow-sm"><User size={24} /></div>
                             <div>
@@ -237,7 +237,7 @@ export default function SettingsPage() {
                                         name="phone"
                                         value={phone}
                                         onChange={(e) => setPhone(maskPhone(e.target.value))}
-                                        className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-600 font-medium focus-visible:ring-[#1D5F31]/20 focus-visible:border-black"
+                                        className="bg-white border-gray-300 rounded-lg h-14 text-slate-900 placeholder:text-slate-400 font-medium focus-visible:ring-green-500/10 focus-visible:border-green-500"
                                         placeholder="(00) 00000-0000"
                                     />
                                 </div>
@@ -246,7 +246,7 @@ export default function SettingsPage() {
                         </section>
 
                     {/* Segurança */}
-                    <section className="bg-white border border-black p-8 md:p-10 rounded-[24px] shadow-sm">
+                    <section className="bg-white border border-gray-200 p-8 md:p-10 rounded-xl shadow-sm">
                         <div className="flex items-center gap-5 mb-8">
                             <div className="w-14 h-14 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-[#1D5F31] shadow-sm"><Lock size={24} /></div>
                             <div>
@@ -262,7 +262,7 @@ export default function SettingsPage() {
                                         type={showCurrentPassword ? 'text' : 'password'} 
                                         value={currentPassword} 
                                         onChange={(e) => setCurrentPassword(e.target.value)} 
-                                        className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-600 font-medium focus-visible:ring-[#1D5F31]/20 focus-visible:border-black pr-12" 
+                                        className="bg-white border-gray-300 rounded-lg h-14 text-slate-900 placeholder:text-slate-400 font-medium focus-visible:ring-green-500/10 focus-visible:border-green-500 pr-12" 
                                         placeholder="Digite sua senha atual" 
                                     />
                                     <button
@@ -282,7 +282,7 @@ export default function SettingsPage() {
                                             type={showNewPassword ? 'text' : 'password'} 
                                             value={newPassword} 
                                             onChange={(e) => setNewPassword(e.target.value)} 
-                                            className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-600 font-medium focus-visible:ring-[#1D5F31]/20 focus-visible:border-black pr-12" 
+                                            className="bg-white border-gray-300 rounded-lg h-14 text-slate-900 placeholder:text-slate-400 font-medium focus-visible:ring-green-500/10 focus-visible:border-green-500 pr-12" 
                                             placeholder="Nova senha (mín. 6 chars)" 
                                         />
                                         <button
@@ -301,7 +301,7 @@ export default function SettingsPage() {
                                             type={showConfirmPassword ? 'text' : 'password'} 
                                             value={confirmPassword} 
                                             onChange={(e) => setConfirmPassword(e.target.value)} 
-                                            className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-600 font-medium focus-visible:ring-[#1D5F31]/20 focus-visible:border-black pr-12" 
+                                            className="bg-white border-gray-300 rounded-lg h-14 text-slate-900 placeholder:text-slate-400 font-medium focus-visible:ring-green-500/10 focus-visible:border-green-500 pr-12" 
                                             placeholder="Repita a nova senha" 
                                         />
                                         <button
@@ -314,7 +314,7 @@ export default function SettingsPage() {
                                     </div>
                                 </div>
                             </div>
-                            <Button type="submit" disabled={isUpdatingPassword} className="bg-[#1D5F31] border border-black hover:opacity-90 text-white font-bold uppercase rounded-xl h-14 px-10 shadow-lg shadow-[#1D5F31]/10 transition-all active:scale-95">
+                            <Button type="submit" disabled={isUpdatingPassword} className="bg-[#1D5F31] border border-[#1D5F31] hover:opacity-90 text-white font-bold uppercase rounded-xl h-14 px-10 shadow-lg shadow-[#1D5F31]/10 transition-all active:scale-95">
                                 {isUpdatingPassword ? 'Atualizando...' : 'Atualizar Senha'}
                             </Button>
                         </form>
@@ -323,7 +323,7 @@ export default function SettingsPage() {
                     </section>
 
                     {/* Dados Fiscais e Pagamento */}
-                    <section className="bg-white border border-black p-8 md:p-10 rounded-[24px] shadow-sm">
+                    <section className="bg-white border border-gray-200 p-8 md:p-10 rounded-xl shadow-sm">
                         <form action={formAction} className="space-y-8">
                             <div className="flex items-center gap-5 mb-8">
                                 <div className="w-14 h-14 bg-slate-50 border border-slate-100 rounded-2xl flex items-center justify-center text-[#1D5F31] shadow-sm"><CreditCard size={24} /></div>
@@ -338,7 +338,7 @@ export default function SettingsPage() {
                                 <Input 
                                     readOnly
                                     defaultValue={settingsData.cpf_cnpj || ''}
-                                    className="bg-slate-50 border-black rounded-xl h-14 text-slate-500 placeholder:text-slate-600 font-medium cursor-not-allowed select-none opacity-70" 
+                                    className="bg-slate-50 border-gray-300 rounded-lg h-14 text-slate-500 placeholder:text-slate-400 font-medium cursor-not-allowed select-none opacity-70" 
                                     placeholder="000.000.000-00"
                                 />
                                 <p className="text-[9px] text-slate-500 font-bold uppercase tracking-wider">O CPF/CNPJ é vinculado à sua conta e não pode ser alterado por segurança.</p>
@@ -350,7 +350,7 @@ export default function SettingsPage() {
                                     <Input 
                                         name="pix_key"
                                         defaultValue={settingsData.pix_key || ''}
-                                        className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-600 font-medium focus-visible:ring-[#1D5F31]/20 focus-visible:border-black" 
+                                        className="bg-white border-gray-300 rounded-lg h-14 text-slate-900 placeholder:text-slate-400 font-medium focus-visible:ring-green-500/10 focus-visible:border-green-500" 
                                         placeholder="CPF, E-mail ou Celular" 
                                     />
                                 </div>
@@ -359,7 +359,7 @@ export default function SettingsPage() {
                                     <Input 
                                         name="bank_name"
                                         defaultValue={settingsData.bank_name || ''}
-                                        className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-600 font-medium focus-visible:ring-[#1D5F31]/20 focus-visible:border-black" 
+                                        className="bg-white border-gray-300 rounded-lg h-14 text-slate-900 placeholder:text-slate-400 font-medium focus-visible:ring-green-500/10 focus-visible:border-green-500" 
                                         placeholder="Ex: Nubank, Itaú..." 
                                     />
                                 </div>
@@ -382,7 +382,7 @@ export default function SettingsPage() {
                                             value={addressData.cep || ''}
                                             onChange={(e) => setAddressData(prev => ({ ...prev, cep: e.target.value }))}
                                             onBlur={(e) => handleCepBlur(e.target.value)}
-                                            className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-600 font-medium focus-visible:ring-[#1D5F31]/20 focus-visible:border-black" 
+                                            className="bg-white border-gray-300 rounded-lg h-14 text-slate-900 placeholder:text-slate-400 font-medium focus-visible:ring-green-500/10 focus-visible:border-green-500" 
                                             placeholder="00000-000"
                                         />
                                     </div>
@@ -392,7 +392,7 @@ export default function SettingsPage() {
                                             name="numero"
                                             value={addressData.numero || ''}
                                             onChange={(e) => setAddressData(prev => ({ ...prev, numero: e.target.value }))}
-                                            className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-600 font-medium focus-visible:ring-[#1D5F31]/20 focus-visible:border-black" 
+                                            className="bg-white border-gray-300 rounded-lg h-14 text-slate-900 placeholder:text-slate-400 font-medium focus-visible:ring-green-500/10 focus-visible:border-green-500" 
                                             placeholder="Número" 
                                         />
                                     </div>
@@ -404,7 +404,7 @@ export default function SettingsPage() {
                                         name="logradouro"
                                         value={addressData.logradouro || ''}
                                         onChange={(e) => setAddressData(prev => ({ ...prev, logradouro: e.target.value }))}
-                                        className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-600 font-medium focus-visible:ring-[#1D5F31]/20 focus-visible:border-black" 
+                                        className="bg-white border-gray-300 rounded-lg h-14 text-slate-900 placeholder:text-slate-400 font-medium focus-visible:ring-green-500/10 focus-visible:border-green-500" 
                                         placeholder="Rua, Avenida..." 
                                     />
                                 </div>
@@ -415,7 +415,7 @@ export default function SettingsPage() {
                                         name="bairro"
                                         value={addressData.bairro || ''}
                                         onChange={(e) => setAddressData(prev => ({ ...prev, bairro: e.target.value }))}
-                                        className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-600 font-medium focus-visible:ring-[#1D5F31]/20 focus-visible:border-black" 
+                                        className="bg-white border-gray-300 rounded-lg h-14 text-slate-900 placeholder:text-slate-400 font-medium focus-visible:ring-green-500/10 focus-visible:border-green-500" 
                                         placeholder="Bairro" 
                                     />
                                 </div>
@@ -427,7 +427,7 @@ export default function SettingsPage() {
                                             name="cidade"
                                             value={addressData.cidade || ''}
                                             onChange={(e) => setAddressData(prev => ({ ...prev, cidade: e.target.value }))}
-                                            className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-600 font-medium focus-visible:ring-[#1D5F31]/20 focus-visible:border-black" 
+                                            className="bg-white border-gray-300 rounded-lg h-14 text-slate-900 placeholder:text-slate-400 font-medium focus-visible:ring-green-500/10 focus-visible:border-green-500" 
                                             placeholder="Cidade" 
                                         />
                                     </div>
@@ -437,7 +437,7 @@ export default function SettingsPage() {
                                             name="estado"
                                             value={addressData.estado || ''}
                                             onChange={(e) => setAddressData(prev => ({ ...prev, estado: e.target.value }))}
-                                            className="bg-white border-black rounded-xl h-14 text-slate-900 placeholder:text-slate-600 font-medium focus-visible:ring-[#1D5F31]/20 focus-visible:border-black" 
+                                            className="bg-white border-gray-300 rounded-lg h-14 text-slate-900 placeholder:text-slate-400 font-medium focus-visible:ring-green-500/10 focus-visible:border-green-500" 
                                             placeholder="UF" 
                                         />
                                     </div>
@@ -461,7 +461,7 @@ export default function SettingsPage() {
                             <Button 
                                 type="submit" 
                                 disabled={isPending}
-                                className="bg-[#1D5F31] border border-black hover:opacity-90 text-white font-bold uppercase rounded-xl h-14 px-10 shadow-lg shadow-[#1D5F31]/10 transition-all active:scale-95"
+                                className="bg-[#1D5F31] border border-[#1D5F31] hover:opacity-90 text-white font-bold uppercase rounded-xl h-14 px-10 shadow-lg shadow-[#1D5F31]/10 transition-all active:scale-95"
                             >
                                 {isPending ? 'Salvando...' : 'Salvar Tudo'}
                             </Button>
@@ -469,7 +469,7 @@ export default function SettingsPage() {
                     </section>
 
                     {/* Zona de Perigo */}
-                    <section className="bg-red-50 border border-red-100 p-8 md:p-10 rounded-[24px]">
+                    <section className="bg-red-50 border border-red-100 p-8 md:p-10 rounded-xl">
                         <div className="flex items-center gap-5 mb-6">
                             <div className="w-14 h-14 bg-white border border-red-100 rounded-2xl flex items-center justify-center text-red-500 shadow-sm"><Trash2 size={24} /></div>
                             <div>

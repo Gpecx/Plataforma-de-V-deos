@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthProvider'
 import { EvaluationForm } from '@/components/EvaluationForm'
+import { LessonComments } from '@/components/classroom/LessonComments'
 import { db } from '@/lib/firebase'
 import { collection, addDoc, onSnapshot, query, where, orderBy, serverTimestamp, deleteDoc, doc } from 'firebase/firestore'
 
@@ -232,6 +233,7 @@ export function ClassroomTabs({ lessonId, description, courseId, notas }: Classr
                                 <p className="text-sm text-slate-400">Nenhuma nota cadastrada para esta aula.</p>
                             )}
                         </div>
+                        {courseId && <LessonComments lessonId={lessonId} courseId={courseId} />}
                     </div>
                 ) : activeTab === 'comments' && SHOW_QA ? (
                     <div className="max-w-4xl space-y-8">

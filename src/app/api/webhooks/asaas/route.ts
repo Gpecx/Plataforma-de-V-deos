@@ -137,6 +137,11 @@ export async function POST(request: NextRequest) {
                     const wishlistRef = adminDb.collection('profiles').doc(userId).collection('wishlist').doc(cursoId)
                     batch.delete(wishlistRef)
 
+                    // Adiciona o curso à lista de cursos comprados do aluno
+                    batch.update(adminDb.collection('profiles').doc(userId), {
+                        cursos_comprados: FieldValue.arrayUnion(cursoId)
+                    })
+
                     emailQueue.push({ userId, cursoId, professorId })
                 } else {
                     console.warn(`Webhook Asaas: Tentativa de confirmar matrícula inexistente (curso ${cursoId})`)
@@ -194,6 +199,114 @@ export async function POST(request: NextRequest) {
                     }
                 }
             }
+
+        // FASE 2: Eventos de expiração/cancelamento de cobranças PIX/Boleto
+        } else if (event === 'PAYMENT_OVERDUE' || event === 'PAYMENT_DELETED' || event === 'PAYMENT_CANCELED') {
+            // FASE 2: Mapeia o evento para o status no banco
+            let newVendaStatus: string
+            let newEnrollStatus: string
+            const isDeletion = event === 'PAYMENT_DELETED' || event === 'PAYMENT_CANCELED'
+
+            if (event === 'PAYMENT_OVERDUE') {
+                // pending → overdue (PIX/boleto venceu)
+                newVendaStatus = 'vencido'
+                newEnrollStatus = 'overdue'
+            } else {
+                // pending/overdue → expired (cobrança cancelada/excluída)
+                newVendaStatus = 'cancelado'
+                newEnrollStatus = 'expired'
+            }
+
+            // FASE 2: Busca vendas_logs pelo paymentId
+            const vendasLogsQuery = await adminDb.collection('vendas_logs')
+                .where('paymentId', '==', payment.id)
+                .get()
+
+            if (vendasLogsQuery.empty) {
+                console.log(`Webhook Asaas: Nenhuma venda encontrada para paymentId ${payment.id}, ignorando.`)
+                return NextResponse.json({ success: true }, { status: 200 })
+            }
+
+            // FASE 2: Idempotência — verifica se já foi processado
+            // NOTA: 'vencido' NÃO está incluso para permitir que PAYMENT_DELETED
+            //       transicione overdue → expired (a idempotência por enrollment
+            //       na linha 298 já protege contra re-processamento).
+            const alreadyProcessed = vendasLogsQuery.docs.some(d => {
+                const s = (d.data().statusPagamento || '').toLowerCase()
+                return ['pago', 'cancelado'].includes(s)
+            })
+            if (alreadyProcessed) {
+                return NextResponse.json({ success: true, message: 'Já processado.' }, { status: 200 })
+            }
+
+            // FASE 2: Monta batch para atualizar vendas_logs e enrollments
+            const batch = adminDb.batch()
+
+            for (const saleDoc of vendasLogsQuery.docs) {
+                const saleData = saleDoc.data()
+                const cursoId: string = saleData.cursoId
+
+                batch.update(saleDoc.ref, {
+                    statusPagamento: newVendaStatus,
+                })
+
+                if (!cursoId) {
+                    console.warn(`Webhook Asaas: Venda ${saleDoc.id} sem cursoId, pulando enrollment.`)
+                    continue
+                }
+
+                // FASE 2: Busca enrollment por payment_id
+                let enrollmentQuery = await adminDb.collection('enrollments')
+                    .where('payment_id', '==', payment.id)
+                    .where('course_id', '==', cursoId)
+                    .limit(1)
+                    .get()
+
+                if (enrollmentQuery.empty) {
+                    const userId: string = saleData.userId || saleData.alunoId
+                    if (userId) {
+                        enrollmentQuery = await adminDb.collection('enrollments')
+                            .where('user_id', '==', userId)
+                            .where('course_id', '==', cursoId)
+                            .limit(1)
+                            .get()
+                    }
+                }
+
+                if (enrollmentQuery.empty) {
+                    console.warn(`Webhook Asaas: Enrollment não encontrado para curso ${cursoId}, pulando.`)
+                    continue
+                }
+
+                const enrollmentRef = enrollmentQuery.docs[0].ref
+                const enrollmentData = enrollmentQuery.docs[0].data()
+                const currentStatus = enrollmentData?.status || ''
+
+                // FASE 2: Idempotência — NUNCA sobrescrever um enrollment active
+                if (currentStatus === 'active' || enrollmentData?.payment_confirmed === true) {
+                    console.warn(`Webhook Asaas: Enrollment ${enrollmentRef.id} já está active/confirmado — ignorando evento ${event}`)
+                    continue
+                }
+
+                // FASE 2: Aplica transição de status conforme regras
+                if (event === 'PAYMENT_OVERDUE') {
+                    // pending → overdue
+                    if (currentStatus !== 'pending') continue
+                    batch.update(enrollmentRef, {
+                        status: newEnrollStatus,
+                        updated_at: FieldValue.serverTimestamp(),
+                    })
+                } else if (isDeletion) {
+                    // pending → expired ou overdue → expired
+                    if (currentStatus !== 'pending' && currentStatus !== 'overdue') continue
+                    batch.update(enrollmentRef, {
+                        status: newEnrollStatus,
+                        updated_at: FieldValue.serverTimestamp(),
+                    })
+                }
+            }
+
+            await batch.commit()
 
         } else {
             // Eventos ignorados não precisam ser logados em produção

@@ -157,12 +157,12 @@ export default function StudentManagement() {
         }
     }
 
-    const currentStudents = studentsByTab[activeTab]
-    const filteredStudents = currentStudents.filter(s =>
+    const currentStudents = useMemo(() => studentsByTab[activeTab], [studentsByTab, activeTab])
+    const filteredStudents = useMemo(() => currentStudents.filter(s =>
         s.full_name && normalizeString(s.full_name).includes(normalizeString(searchTerm)) ||
         s.email && normalizeString(s.email).includes(normalizeString(searchTerm)) ||
         activeTab === 'cnpj' && s.razao_social && normalizeString(s.razao_social).includes(normalizeString(searchTerm))
-    )
+    ), [currentStudents, searchTerm, activeTab])
 
     return (
         <div className="space-y-6 font-montserrat">

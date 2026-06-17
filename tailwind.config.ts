@@ -17,6 +17,7 @@ const config: Config = {
                     green: "#1D5F31",
                     accent: "#28a745",
                 },
+                'bg-primary': '#F5F5F7',
                 // Variáveis do Shadcn/UI
                 border: "hsl(var(--border))",
                 input: "hsl(var(--input))",

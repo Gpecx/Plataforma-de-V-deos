@@ -61,11 +61,6 @@ export function GoogleSignInButton() {
 
             if (!sessionRes.ok) {
                 const errorData = await sessionRes.json()
-                if (errorData.error === 'EMAIL_NOT_VERIFIED') {
-                    await auth.signOut()
-                    router.push('/verify-email')
-                    return
-                }
                 throw new Error('session_creation_failed')
             }
 

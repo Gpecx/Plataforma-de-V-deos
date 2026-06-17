@@ -169,6 +169,7 @@ export async function getTeacherNotificationsAction() {
         const enrollmentPromises = chunks.map(chunk =>
             adminDb.collection('enrollments')
                 .where('course_id', 'in', chunk)
+                .where('payment_confirmed', '==', true)
                 .orderBy('created_at', 'desc')
                 .limit(10)
                 .get()

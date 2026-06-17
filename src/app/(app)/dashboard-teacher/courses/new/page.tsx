@@ -381,7 +381,7 @@ export default function NewCoursePage() {
     const canLaunchCourse = isStepValid(1) && isStepValid(2) && hasModules && hasVideoLesson
 
     return (
-        <div className="min-h-screen bg-transparent text-black/90 p-8 md:p-12 font-montserrat border-t border-black/5">
+        <div className="min-h-screen bg-[#F0F2F5] text-gray-900 font-montserrat -mx-4 md:-mx-8 lg:-mx-12 px-8 md:px-12 py-8 md:py-12">
             {!isHydrated ? (
                 <div className="flex items-center justify-center min-h-[60vh]">
                     <div className="flex flex-col items-center gap-4">
@@ -402,14 +402,14 @@ export default function NewCoursePage() {
                         <div className="flex items-center gap-3">
                             <button
                                 onClick={() => setShowClearConfirm(true)}
-                                className="flex items-center gap-2 text-black/60 hover:text-red-600 transition group bg-transparent border-2 border-black/20 hover:border-red-400 px-5 py-3 rounded-md shadow-none font-bold uppercase text-[10px] tracking-widest"
+                                className="flex items-center gap-2 text-gray-500 hover:text-red-600 transition group bg-transparent border border-gray-300 hover:border-red-400 px-5 py-3 rounded-lg shadow-none font-bold uppercase text-[10px] tracking-widest"
                             >
                                 <Trash2 size={16} className="group-hover:scale-110 transition-transform" />
                                 <span>Limpar</span>
                             </button>
                             <button
                                 onClick={() => router.back()}
-                                className="flex items-center gap-3 text-white hover:text-white transition group bg-[#1D5F31] border-2 border-[#1D5F31] px-6 py-3 rounded-md shadow-none hover:bg-[#1D5F31]/80"
+                                className="flex items-center gap-3 text-white hover:text-white transition group bg-[#1D5F31] border border-[#1D5F31] px-6 py-3 rounded-lg shadow-none hover:bg-[#1D5F31]/80"
                             >
                                 <X size={18} className="group-hover:rotate-90 transition-transform" />
                                 <span className="font-bold uppercase text-[10px] tracking-widest">Sair do Studio</span>
@@ -452,14 +452,14 @@ export default function NewCoursePage() {
                     </div>
 
                     {/* Conteúdo Central */}
-                    <div className="w-full bg-white border border-black/5 rounded-md p-8 md:p-14 mb-16 shadow-none">
+                    <div className="w-full bg-white rounded-2xl shadow-sm p-8 md:p-14 mb-16">
 
                         {currentStep === 1 && (
                             <div className="max-w-5xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-700">
                                 {/* Upload de Capa */}
                                 <div className="space-y-4">
                                     <Label className="text-[10px] font-bold uppercase tracking-widest text-black px-1 ">Capa do Treinamento</Label>
-                                    <div className="relative group overflow-hidden rounded-md border-2 border-dashed border-black hover:border-black/50 transition-all duration-500 bg-white aspect-video flex flex-col items-center justify-center cursor-pointer">
+                                    <div className="relative group overflow-hidden rounded-xl border-2 border-dashed border-gray-300 hover:border-gray-400 transition-all duration-500 bg-white aspect-video flex flex-col items-center justify-center cursor-pointer">
                                         {formData.image_url ? (
                                             <>
                                                 <img
@@ -468,7 +468,7 @@ export default function NewCoursePage() {
                                                     className="w-full h-full object-cover group-hover:scale-105 transition-all duration-1000 opacity-80"
                                                 />
                                                 <div className="absolute inset-0 bg-white/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
-                                                    <Button variant="outline" className="bg-[#1D5F31] border-2 border-[#1D5F31] text-white hover:bg-[#1D5F31]/90 font-bold uppercase text-[10px] tracking-widest h-12 px-8 rounded-md">
+                                                    <Button variant="outline" className="bg-green-600 border border-green-600 text-white hover:bg-green-700 font-bold uppercase text-[10px] tracking-widest h-12 px-8 rounded-lg shadow-sm">
                                                         Trocar Arte
                                                     </Button>
                                                 </div>
@@ -505,7 +505,7 @@ export default function NewCoursePage() {
                                         <Label className="text-[10px] font-bold uppercase tracking-widest text-black px-1">Nome do Curso</Label>
                                         <Input
                                             placeholder="Ex: Do Zero ao Mestre em React"
-                                            className="bg-white border-2 border-black focus:border-[#1D5F31] focus-visible:ring-0 focus-visible:border-[#1D5F31] h-14 rounded-md text-sm font-medium transition-all text-black placeholder:text-black/50"
+                                            className="bg-white border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-500/10 h-14 rounded-lg text-sm font-medium transition-all text-gray-900 placeholder:text-gray-400"
                                             value={formData.title}
                                             onChange={(e) => setStepData({ title: e.target.value })}
                                         />
@@ -515,7 +515,7 @@ export default function NewCoursePage() {
                                         <Input
                                             type="number"
                                             placeholder="Ex: 40"
-                                            className="bg-white border-2 border-black focus:border-[#1D5F31] focus-visible:ring-0 focus-visible:border-[#1D5F31] h-14 rounded-md text-sm font-medium transition-all text-black placeholder:text-black/50"
+                                            className="bg-white border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-500/10 h-14 rounded-lg text-sm font-medium transition-all text-gray-900 placeholder:text-gray-400"
                                             value={formData.duration}
                                             onChange={(e) => setStepData({ duration: Number(e.target.value) })}
                                         />
@@ -523,7 +523,7 @@ export default function NewCoursePage() {
                                     <div className="space-y-2">
                                         <Label className="text-[10px] font-bold uppercase tracking-widest text-black px-1">Categoria Principal</Label>
                                         <select
-                                            className="w-full bg-white border-2 border-black text-black rounded-md px-5 h-14 focus:border-[#1D5F31] focus-visible:ring-0 outline-none text-sm font-medium transition-all appearance-none"
+                                            className="w-full bg-white border border-gray-300 text-gray-900 rounded-lg px-5 h-14 focus:border-green-500 focus:ring-2 focus:ring-green-500/10 outline-none text-sm font-medium transition-all appearance-none"
                                             value={formData.category}
                                             onChange={(e) => setStepData({ category: e.target.value })}
                                         >
@@ -533,19 +533,11 @@ export default function NewCoursePage() {
                                     </div>
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label className="text-[10px] font-bold uppercase tracking-widest text-black px-1">Subtítulo Estratégico</Label>
-                                    <Input
-                                        placeholder="Uma frase curta que resume a transformação"
-                                        className="bg-white border-2 border-black focus:border-[#1D5F31] focus-visible:ring-0 focus-visible:border-[#1D5F31] h-14 rounded-md text-sm font-medium transition-all text-black placeholder:text-black/50"
-                                        value={formData.subtitle}
-                                        onChange={(e) => setStepData({ subtitle: e.target.value })}
-                                    />
-                                </div>
+
                                 <div className="space-y-2">
                                     <Label className="text-[10px] font-bold uppercase tracking-widest text-black px-1">Descrição Completa</Label>
                                     <textarea
-                                        className="w-full bg-white border-2 border-black rounded-md p-6 min-h-[180px] focus:border-[#1D5F31] focus-visible:ring-0 outline-none text-sm font-medium transition-all leading-relaxed text-black placeholder:text-black/50"
+                                        className="w-full bg-[#F5F5F7] border border-gray-300 rounded-lg p-6 min-h-[180px] focus:border-green-500 focus:ring-2 focus:ring-green-500/10 outline-none text-sm font-medium transition-all leading-relaxed text-gray-900 placeholder:text-gray-400"
                                         placeholder="Descreva os benefícios e o que o aluno vai aprender..."
                                         value={formData.description}
                                         onChange={(e) => setStepData({ description: e.target.value })}
@@ -578,7 +570,7 @@ export default function NewCoursePage() {
                                                         setStepData({ curriculum: newCurriculum });
                                                     }}
                                                     placeholder={`Ex: Módulo ${idx + 1} - Fundamentos`}
-                                                    className="bg-white border-2 border-black hover:border-[#1D5F31] focus:border-[#1D5F31] focus-visible:ring-0 focus-visible:border-[#1D5F31] h-12 rounded-md text-sm font-medium transition-all text-black placeholder:text-black/50"
+                                                    className="bg-white border border-gray-300 hover:border-gray-400 focus:border-green-500 focus:ring-2 focus:ring-green-500/10 h-12 rounded-lg text-sm font-medium transition-all text-gray-900 placeholder:text-gray-400"
                                                 />
                                                 <button
                                                     type="button"
@@ -586,7 +578,7 @@ export default function NewCoursePage() {
                                                         const newCurriculum = formData.curriculum.filter((_, i) => i !== idx);
                                                         setStepData({ curriculum: newCurriculum });
                                                     }}
-                                                    className="px-4 text-slate-400 hover:text-red-500 hover:bg-red-50 border-2 border-transparent hover:border-red-200 rounded-md transition-all flex items-center justify-center shrink-0"
+                                                    className="px-4 text-slate-400 hover:text-red-500 hover:bg-red-50 border border-transparent hover:border-red-200 rounded-md transition-all flex items-center justify-center shrink-0"
                                                 >
                                                     <Trash2 size={18} />
                                                 </button>
@@ -604,7 +596,7 @@ export default function NewCoursePage() {
                                                 }
                                                 setStepData({ curriculum: [...formData.curriculum, ''] })
                                             }}
-                                            className="w-full bg-slate-50 text-black border-2 border-dashed border-black/30 hover:border-black hover:bg-slate-100 font-bold uppercase text-[10px] tracking-widest h-12 rounded-md shadow-none mt-2 transition-all"
+                                            className="w-full bg-slate-50 text-gray-700 border-2 border-dashed border-gray-300 hover:border-gray-400 hover:bg-slate-100 font-bold uppercase text-[10px] tracking-widest h-12 rounded-lg shadow-none mt-2 transition-all"
                                         >
                                             <Plus size={16} className="mr-2" />
                                             Adicionar Tópico
@@ -625,9 +617,9 @@ export default function NewCoursePage() {
                                     </div>
 
                                     <div className={`
-                                relative h-48 w-full border-2 border-dashed transition-all flex flex-col items-center justify-center overflow-hidden cursor-pointer rounded-md
+                                relative h-48 w-full border-2 border-dashed transition-all flex flex-col items-center justify-center overflow-hidden cursor-pointer rounded-xl
                                 ${formData.intro_video_playback_id
-                                            ? 'border-[#1D5F31] bg-[#1D5F31]/5' : 'border-black bg-white hover:border-black/50 text-black/60'}
+                                        ? 'border-[#1D5F31] bg-[#1D5F31]/5' : 'border-gray-300 bg-white hover:border-gray-400 text-gray-500'}
                             `}>
                                         {isUploadingIntro ? (
                                             <div className="flex flex-col items-center gap-3">
@@ -747,9 +739,9 @@ export default function NewCoursePage() {
                                                     if (type.id === 'free') newData.price = 0
                                                     setStepData(newData)
                                                 }}
-                                                className={`px-6 py-3 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all border-2 ${formData.pricing_type === type.id
+                                                className={`px-6 py-3 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all border ${formData.pricing_type === type.id
                                                         ? 'bg-[#1D5F31] border-[#1D5F31] text-white'
-                                                        : 'bg-white border-black text-black hover:border-[#1D5F31]'
+                                                        : 'bg-white border-gray-300 text-gray-700 hover:border-[#1D5F31]'
                                                     }`}
                                             >
                                                 {type.label}
@@ -764,7 +756,7 @@ export default function NewCoursePage() {
                                         <span className={`absolute left-6 top-1/2 -translate-y-1/2 font-bold text-2xl transition-colors ${formData.pricing_type === 'free' ? 'text-black/20' : 'text-black'}`}>R$</span>
                                         <Input
                                             type="number"
-                                            className={`bg-white border-2 border-black focus:border-[#1D5F31] focus-visible:ring-0 focus-visible:border-[#1D5F31] h-24 pl-16 rounded-md text-6xl font-bold text-black shadow-none transition-all text-center pr-8 placeholder:text-black/20 ${formData.pricing_type === 'free' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                            className={`bg-white border border-gray-300 focus:border-green-500 focus:ring-2 focus:ring-green-500/10 h-24 pl-16 rounded-lg text-6xl font-bold text-gray-900 shadow-none transition-all text-center pr-8 placeholder:text-gray-300 ${formData.pricing_type === 'free' ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             placeholder="0"
                                             value={formData.price || ''}
                                             onChange={(e) => setStepData({ price: Number(e.target.value) })}
@@ -796,7 +788,7 @@ export default function NewCoursePage() {
                                             <div className="flex gap-2">
                                                 <button
                                                     onClick={handleAddModule}
-                                                    className="text-[10px] font-bold uppercase tracking-[4px] text-white bg-[#1D5F31] hover:bg-[#1D5F31]/90 px-6 py-3 rounded-md border-none transition-all"
+                                                    className="text-[10px] font-bold uppercase tracking-[4px] text-white bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg border-none transition-all shadow-sm"
                                                 >
                                                     + Novo Módulo
                                                 </button>
@@ -805,7 +797,7 @@ export default function NewCoursePage() {
 
                                         <div className="mt-8 space-y-6">
                                             {safeModules.length === 0 ? (
-                                                <div className="text-center py-20 bg-white border-2 border-dashed border-[#1D5F31]/20 rounded-md">
+                                                <div className="text-center py-20 bg-white border-2 border-dashed border-gray-300 rounded-xl">
                                                     <BookOpen size={48} className="mx-auto text-black/20 mb-6" />
                                                     <p className="text-black/50 font-bold uppercase text-[10px] tracking-[3px]">Nenhum módulo criado</p>
                                                     <p className="text-black/30 text-[10px] mt-2 font-bold tracking-widest">CLIQUE EM "+ NOVO MÓDULO" PARA COMEÇAR</p>
@@ -816,7 +808,7 @@ export default function NewCoursePage() {
                                                         const totalLessons = module.lessons.length
                                                         const isSelectedLessonInModule = selectedLessonId && module.lessons.some(l => l.id === selectedLessonId)
                                                         return (
-                                                            <div key={module.id} className="bg-white border border-[#1D5F31]/20 rounded-md overflow-hidden">
+                                                            <div key={module.id} className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
                                                                 {/* Module Header */}
                                                                 <div className="bg-[#1D5F31] px-6 py-3 flex items-center gap-3">
                                                                     <BookOpen size={16} className="text-white shrink-0" />
@@ -827,7 +819,7 @@ export default function NewCoursePage() {
                                                                         onClick={(e) => e.stopPropagation()}
                                                                         onChange={(e) => handleModuleTitleChange(module.id, e.target.value)}
                                                                     />
-                                                                    <span className="text-[9px] text-white/60 font-bold uppercase">{totalLessons} aula{totalLessons !== 1 ? 's' : ''}</span>
+                                                                    <span className="text-[9px] text-white/80 font-bold uppercase tracking-[2px]">{totalLessons} {totalLessons === 1 ? 'AULA' : 'AULAS'} TOTAIS</span>
                                                                     <button
                                                                         onClick={() => handleAddLessonInModule(module.id, 'lesson')}
                                                                         className="text-[9px] text-white/80 hover:text-white font-bold uppercase tracking-widest transition-colors ml-2"
@@ -857,7 +849,7 @@ export default function NewCoursePage() {
                                                                 {/* Module Lessons */}
                                                                 <div className="p-4">
                                                                     {totalLessons === 0 ? (
-                                                                        <div className="text-center py-10 bg-slate-50 border-2 border-dashed border-slate-200 rounded-md">
+                                                                        <div className="text-center py-10 bg-slate-50 border-2 border-dashed border-gray-300 rounded-lg">
                                                                             <p className="text-black/40 font-bold uppercase text-[9px] tracking-[3px]">Nenhuma aula neste módulo</p>
                                                                             <p className="text-black/20 text-[8px] mt-1 font-bold tracking-widest">CLIQUE EM "+ AULA" OU "+ QUIZ" PARA ADICIONAR</p>
                                                                         </div>
@@ -869,7 +861,7 @@ export default function NewCoursePage() {
                                                                                     setSelectedLessonId(lesson.id!)
                                                                                     setSelectedLessonNotas(lesson.notas || '')
                                                                                 }}
-                                                                                className={`flex items-center justify-between p-4 cursor-pointer border-2 rounded-md transition-all duration-300 mb-3 ${selectedLessonId === lesson.id
+                                                                                className={`flex items-center justify-between p-4 cursor-pointer border rounded-lg transition-all duration-300 mb-3 ${selectedLessonId === lesson.id
                                                                                         ? 'bg-[#1D5F31] text-white border-[#1D5F31]'
                                                                                         : 'bg-white border-[#1D5F31] hover:border-[#1D5F31]/50 text-black'
                                                                                     }`}
@@ -965,7 +957,7 @@ export default function NewCoursePage() {
                                         if (!found) return null
                                         const { lesson } = found
                                         return (
-                                            <div className="space-y-4 bg-white p-8 rounded-md border border-[#1D5F31]/20 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                            <div className="space-y-4 bg-white p-8 rounded-2xl shadow-sm border border-gray-200 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                                 <div className="flex items-center gap-3 pb-4 border-b border-[#1D5F31]/20">
                                                     <Video size={20} className="text-[#1D5F31]" />
                                                     <h2 className="text-lg font-bold uppercase tracking-tighter text-black leading-none">Studio de Multimídia</h2>
@@ -973,7 +965,7 @@ export default function NewCoursePage() {
 
                                                 <div className="space-y-8">
                                                     {lesson.type === 'quiz' ? (
-                                                        <div className="border-2 border-black/5 p-6 bg-slate-50/30 rounded-md">
+                                                        <div className="border border-gray-200 p-6 bg-white rounded-xl">
                                                             <QuizForm
                                                                 key={selectedLessonId}
                                                                 initialData={lesson.quizData}
@@ -991,7 +983,7 @@ export default function NewCoursePage() {
                                                             <div className="space-y-2">
                                                                 <label className="text-[10px] font-bold uppercase tracking-widest text-black/60">Título da Aula Digital</label>
                                                                 <input
-                                                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-md px-5 py-3 focus:border-[#1D5F31] focus-visible:ring-0 outline-none text-sm font-bold text-black transition-all"
+                                                                    className="w-full bg-white border border-gray-300 rounded-lg px-5 py-3 focus:border-green-500 focus:ring-2 focus:ring-green-500/10 outline-none text-sm font-bold text-gray-900 transition-all"
                                                                     placeholder="Ex: Introdução ao Módulo 1"
                                                                     value={lesson.title || ''}
                                                                     onChange={(e) => handleUpdateLesson(selectedLessonId, { title: e.target.value })}
@@ -1001,7 +993,7 @@ export default function NewCoursePage() {
                                                             <div className="space-y-2">
                                                                 <label className="text-[10px] font-bold uppercase tracking-widest text-black/60">Notas da Aula (Markdown ou Texto)</label>
                                                                 <textarea
-                                                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-md px-6 py-4 focus:border-[#1D5F31] focus-visible:ring-0 outline-none text-sm font-medium text-black transition-all min-h-[120px]"
+                                                                    className="w-full bg-[#F5F5F7] border border-gray-300 rounded-lg px-6 py-4 focus:border-green-500 focus:ring-2 focus:ring-green-500/10 outline-none text-sm font-medium text-gray-900 transition-all min-h-[120px]"
                                                                     placeholder="Escreva aqui o roteiro, referências ou instruções internas para esta aula..."
                                                                     value={selectedLessonNotas}
                                                                     onChange={(e) => {
@@ -1012,7 +1004,7 @@ export default function NewCoursePage() {
                                                             </div>
 
                                                             {lesson.status === 'REJEITADO' && lesson.motivoRejeicao && (
-                                                                <div className="p-4 bg-red-50 border-2 border-red-200 rounded-md">
+                                                                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
                                                                     <div className="flex items-center gap-2 mb-2">
                                                                         <AlertCircle size={16} className="text-red-500 shrink-0" />
                                                                         <span className="text-[9px] font-bold uppercase text-red-600 tracking-widest">Feedback do Admin</span>
@@ -1024,8 +1016,8 @@ export default function NewCoursePage() {
                                                             <div className="space-y-2">
                                                                 <label className="text-[10px] font-bold uppercase tracking-widest text-black/60">Vídeo da Aula</label>
                                                                 <div className={`
-                                                            relative rounded-md border transition-all flex flex-col items-center justify-center overflow-hidden
-                                                            ${lesson.mux_playback_id ? 'border-[#1D5F31]/20 bg-white' : 'border-dashed border-[#1D5F31]/20 h-48 bg-white hover:border-[#1D5F31]/50'}
+                                                            relative rounded-xl border transition-all flex flex-col items-center justify-center overflow-hidden
+                                                            ${lesson.mux_playback_id ? 'border-gray-200 bg-white' : 'border-2 border-dashed border-gray-300 h-48 bg-white hover:border-gray-400'}
                                                         `}>
                                                                     {uploadingVideos[selectedLessonId] ? (
                                                                         <div className="flex flex-col items-center gap-3 p-8 text-center">
@@ -1094,7 +1086,7 @@ export default function NewCoursePage() {
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => setSelectedLessonId(null)}
-                                                                    className="flex items-center gap-3 bg-slate-900 text-white px-10 py-4 rounded-md font-bold uppercase tracking-[3px] text-[11px] hover:bg-black transition-all active:scale-95 shadow-xl"
+                                                                    className="flex items-center gap-3 bg-slate-900 text-white px-10 py-4 rounded-xl font-bold uppercase tracking-[3px] text-[11px] hover:bg-black transition-all active:scale-95 shadow-sm"
                                                                 >
                                                                     <Save size={18} />
                                                                     SALVAR VÍDEO AULA
@@ -1110,26 +1102,17 @@ export default function NewCoursePage() {
 
                                 {/* Sidebar — Configurações Base */}
                                 <aside className="space-y-12">
-                                    <section className="bg-white p-8 rounded-md border border-[#1D5F31]/20">
+                                    <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
                                         <h3 className="text-[10px] font-bold uppercase tracking-[5px] text-black/60 mb-6">Configurações Base</h3>
 
                                         <div className="space-y-8">
-                                            {/* Subtítulo */}
-                                            <div className="space-y-4">
-                                                <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Subtítulo Estratégico</label>
-                                                <input
-                                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-md px-5 py-3 focus:border-[#1D5F31] focus-visible:ring-0 outline-none text-sm text-black transition-all"
-                                                    placeholder="Ex: Do zero ao avançado"
-                                                    value={formData.subtitle || ''}
-                                                    onChange={(e) => setStepData({ subtitle: e.target.value })}
-                                                />
-                                            </div>
+
 
                                             {/* Descrição */}
                                             <div className="space-y-4">
                                                 <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Descrição Completa</label>
                                                 <textarea
-                                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-md px-6 py-4 focus:border-[#1D5F31] focus-visible:ring-0 outline-none text-sm text-black transition-all min-h-[120px]"
+                                                    className="w-full bg-[#F5F5F7] border border-gray-300 rounded-lg px-6 py-4 focus:border-green-500 focus:ring-2 focus:ring-green-500/10 outline-none text-sm text-gray-900 transition-all min-h-[120px]"
                                                     placeholder="Descreva o curso em detalhes..."
                                                     value={formData.description || ''}
                                                     onChange={(e) => setStepData({ description: e.target.value })}
@@ -1140,7 +1123,7 @@ export default function NewCoursePage() {
                                             <div className="space-y-4">
                                                 <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Categoria</label>
                                                 <select
-                                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-md px-5 py-3 focus:border-[#1D5F31] focus-visible:ring-0 outline-none text-sm text-black transition-all appearance-none"
+                                                    className="w-full bg-white border border-gray-300 rounded-lg px-5 py-3 focus:border-green-500 focus:ring-2 focus:ring-green-500/10 outline-none text-sm text-gray-900 transition-all appearance-none"
                                                     value={formData.category || ''}
                                                     onChange={(e) => setStepData({ category: e.target.value })}
                                                 >
@@ -1156,7 +1139,7 @@ export default function NewCoursePage() {
                                                 <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Carga Horária (h)</label>
                                                 <input
                                                     type="number"
-                                                    className="w-full bg-white border border-[#1D5F31]/20 rounded-md px-6 py-4 focus:border-[#1D5F31] focus-visible:ring-0 outline-none font-bold text-xl text-black transition-all"
+                                                    className="w-full bg-white border border-gray-300 rounded-lg px-6 py-4 focus:border-green-500 focus:ring-2 focus:ring-green-500/10 outline-none font-bold text-xl text-gray-900 transition-all"
                                                     placeholder="0"
                                                     value={formData.duration || ''}
                                                     onChange={(e) => setStepData({ duration: Number(e.target.value) })}
@@ -1188,9 +1171,9 @@ export default function NewCoursePage() {
                                                                 if (type.id === 'free') newData.price = 0
                                                                 setStepData(newData)
                                                             }}
-                                                            className={`flex-1 px-3 py-3 rounded-md text-[9px] font-bold uppercase tracking-widest transition-all border-2 ${formData.pricing_type === type.id
+                                                            className={`flex-1 px-3 py-3 rounded-lg text-[9px] font-bold uppercase tracking-widest transition-all border ${formData.pricing_type === type.id
                                                                     ? 'bg-[#1D5F31] border-[#1D5F31] text-white'
-                                                                    : 'bg-white border-[#1D5F31]/20 text-black/60 hover:border-[#1D5F31]'
+                                                                    : 'bg-[#F5F5F7] border-gray-300 text-gray-600 hover:border-[#1D5F31]'
                                                                 }`}
                                                         >
                                                             {type.label}
@@ -1207,7 +1190,7 @@ export default function NewCoursePage() {
                                                         <span className="absolute left-6 top-1/2 -translate-y-1/2 font-bold text-lg text-black/40">R$</span>
                                                         <input
                                                             type="number"
-                                                            className="w-full bg-white border border-[#1D5F31]/20 rounded-md pl-24 pr-8 py-5 focus:border-[#1D5F31] focus-visible:ring-0 outline-none font-bold text-2xl text-black transition-all"
+                                                            className="w-full bg-white border border-gray-300 rounded-lg pl-24 pr-8 py-5 focus:border-green-500 focus:ring-2 focus:ring-green-500/10 outline-none font-bold text-2xl text-gray-900 transition-all"
                                                             placeholder="0"
                                                             value={formData.price || ''}
                                                             onChange={(e) => setStepData({ price: Number(e.target.value) })}
@@ -1228,7 +1211,7 @@ export default function NewCoursePage() {
                             variant="ghost"
                             onClick={handleBack}
                             disabled={currentStep === 1}
-                            className="text-black/70 hover:text-black hover:bg-black/5 font-bold uppercase text-[10px] tracking-[4px] px-10 h-14 disabled:opacity-0 transition-all border-2 border-transparent hover:border-black rounded-md"
+                            className="text-gray-500 hover:text-gray-900 hover:bg-gray-100 font-bold uppercase text-[10px] tracking-[4px] px-10 h-14 disabled:opacity-0 transition-all border border-gray-200 hover:border-gray-400 rounded-lg"
                         >
                             <ChevronLeft size={20} className="mr-3" /> VOLTAR
                         </Button>
@@ -1238,15 +1221,15 @@ export default function NewCoursePage() {
                                 <Button
                                     onClick={handleNext}
                                     disabled={!isStepValid(currentStep)}
-                                    className="bg-[#1D5F31] text-white hover:bg-[#1D5F31]/90 font-bold uppercase text-[10px] tracking-[4px] px-12 h-16 shadow-none border-2 border-[#1D5F31] disabled:opacity-30 group transition-all rounded-md"
+                                    className="bg-green-600 text-white hover:bg-green-700 font-semibold text-sm tracking-wide px-8 py-3 shadow-sm disabled:opacity-40 group transition-all rounded-xl"
                                 >
-                                    PRÓXIMO PASSO <ChevronRight size={20} className="ml-3 group-hover:translate-x-1 transition-transform" />
+                                    PRÓXIMO PASSO <ChevronRight size={18} className="ml-2 group-hover:translate-x-1 transition-transform" />
                                 </Button>
                             ) : (
                                 <Button
                                     onClick={handlePublish}
                                     disabled={!canLaunchCourse || isPublishing}
-                                    className={`bg-[#1D5F31] text-white hover:bg-[#1D5F31]/90 font-bold uppercase text-[10px] tracking-[4px] px-16 h-16 shadow-none border-2 border-[#1D5F31] disabled:opacity-40 disabled:cursor-not-allowed group transition-all rounded-md`}
+                                    className={`bg-green-600 text-white hover:bg-green-700 font-semibold text-sm tracking-wide px-8 py-3 shadow-sm disabled:opacity-40 disabled:cursor-not-allowed group transition-all rounded-xl`}
                                 >
                                     {isPublishing ? (
                                         <Loader2 className="animate-spin mr-3" />

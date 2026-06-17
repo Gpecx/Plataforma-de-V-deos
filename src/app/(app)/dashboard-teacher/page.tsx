@@ -1,6 +1,7 @@
 import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import Image from 'next/image'
 import Link from 'next/link'
 import { Plus, DollarSign, TrendingUp, Edit } from 'lucide-react'
 import { SalesChart } from './components/SalesChart'
@@ -119,7 +120,7 @@ export default async function TeacherDashboard() {
                     <p className="text-slate-900 mt-3 font-bold uppercase text-[10px] tracking-[3px]">Gerencie seu império de conhecimento hoje.</p>
                 </div>
                 <Link href="/dashboard-teacher/courses/new">
-                    <button className="flex items-center gap-3 bg-[#1D5F31] text-white font-bold uppercase tracking-widest px-10 py-5 rounded-2xl hover:opacity-90 hover:scale-105 transition-all duration-300 shadow-xl shadow-[#1D5F31]/20 shrink-0 active:scale-95">
+                    <button className="flex items-center gap-3 bg-[#1D5F31] text-white font-bold uppercase tracking-widest px-10 py-5 rounded-lg hover:opacity-90 hover:scale-105 transition-all duration-300 shadow-xl shadow-[#1D5F31]/20 shrink-0 active:scale-95">
                         <Plus size={20} strokeWidth={3} /> Criar Novo Curso
                     </button>
                 </Link>
@@ -149,10 +150,10 @@ export default async function TeacherDashboard() {
                 </div>
 
                 {/* Gráfico de Desempenho */}
-                <section className="bg-white p-10 rounded-[40px] border border-black/20 shadow-xl overflow-hidden relative">
+                <section className="bg-white p-10 rounded-lg border border-black/20 shadow-xl overflow-hidden relative">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                            <div className="p-3 bg-slate-50 rounded-md border border-slate-100">
                                 <TrendingUp size={24} className="text-[#1D5F31]" />
                             </div>
                             <div>
@@ -160,7 +161,7 @@ export default async function TeacherDashboard() {
                                 <p className="text-slate-900 text-[9px] font-bold tracking-[3px] uppercase">Análise dos últimos 7 dias de operação</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-3 border-2 border-[#1D5F31]/30 bg-white px-6 py-3 rounded-xl">
+                        <div className="flex items-center gap-3 border-2 border-[#1D5F31]/30 bg-white px-6 py-3 rounded-md">
                             <span className="relative flex h-2.5 w-2.5">
                                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#1D5F31] opacity-75" />
                                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#1D5F31]" />
@@ -183,16 +184,16 @@ export default async function TeacherDashboard() {
                             </h2>
                             <p className="text-slate-900 text-[9px] font-bold tracking-[3px] uppercase mt-1">Edite e publique seus treinamentos</p>
                         </div>
-                        <Link href="/dashboard-teacher/courses" className="text-[11px] text-slate-900 hover:text-[#1D5F31] font-bold uppercase tracking-[3px] bg-white px-6 py-3 rounded-xl border border-black/30 shadow-sm transition-all hover:shadow-md">
+                        <Link href="/dashboard-teacher/courses" className="text-[11px] text-slate-900 hover:text-[#1D5F31] font-bold uppercase tracking-[3px] bg-white px-6 py-3 rounded-md border border-black/30 shadow-sm transition-all hover:shadow-md">
                             Ver todos os cursos
                         </Link>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-8">
                         {courses.length > 0 ? courses.map((curso) => (
-                            <div key={curso.id} className="group bg-white rounded-[28px] border border-black/20 flex flex-col hover:border-black transition-all duration-500 shadow-sm hover:shadow-xl overflow-hidden">
+                            <div key={curso.id} className="group bg-white rounded-lg border border-black/20 flex flex-col hover:border-black transition-all duration-500 shadow-sm hover:shadow-xl overflow-hidden">
                                 <div className="h-44 bg-slate-100 overflow-hidden relative">
-                                    <img src={curso.image_url} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={curso.title} />
+                                    <Image src={curso.image_url || "https://images.unsplash.com/photo-1627398242454-45a1465c2479?w=400"} fill sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw" className="object-cover group-hover:scale-110 transition-transform duration-700" alt={curso.title} />
                                     <div className="absolute top-4 left-4 bg-emerald-100 px-2.5 py-1 rounded-none border border-emerald-300 shadow-sm">
                                         <span className="text-[10px] font-bold text-emerald-800 tracking-wider">Repasse: {curso.teacherSharePercent}%</span>
                                     </div>
@@ -204,19 +205,19 @@ export default async function TeacherDashboard() {
                                     <h3 className="font-bold text-lg mb-6 tracking-tight text-slate-900 line-clamp-2 uppercase leading-tight group-hover:text-[#1D5F31] transition-colors">{curso.title}</h3>
                                     <div className="mt-auto flex items-center gap-3">
                                         <Link href={`/dashboard-teacher/courses/${curso.id}/edit`} className="flex-1">
-                                            <button className="w-full bg-slate-900 text-white font-bold uppercase text-[10px] tracking-widest py-4 rounded-xl hover:bg-[#1D5F31] transition-all shadow-md active:scale-95">Editar</button>
+                                            <button className="w-full bg-slate-900 text-white font-bold uppercase text-[10px] tracking-widest py-4 rounded-md hover:bg-[#1D5F31] transition-all shadow-md active:scale-95">Editar</button>
                                         </Link>
                                     </div>
                                 </div>
                             </div>
                         )) : (
-                            <div className="col-span-full py-24 border-2 border-dashed border-black/20 rounded-[40px] text-center bg-white shadow-sm">
+                            <div className="col-span-full py-24 border-2 border-dashed border-black/20 rounded-lg text-center bg-white shadow-sm">
                                 <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
                                     <Plus size={32} className="text-slate-300" />
                                 </div>
                                 <h3 className="text-xl font-bold uppercase tracking-tighter text-slate-900 mb-2">Seu catálogo está vazio</h3>
                                 <p className="text-slate-900 text-xs font-bold uppercase tracking-[3px]">Comece a criar seu primeiro curso agora mesmo.</p>
-                                <Link href="/dashboard-teacher/courses/new" className="inline-block mt-8 bg-[#1D5F31] text-white px-10 py-5 rounded-2xl font-bold uppercase tracking-widest text-xs shadow-xl shadow-[#1D5F31]/10 hover:opacity-90 transition">
+                                <Link href="/dashboard-teacher/courses/new" className="inline-block mt-8 bg-[#1D5F31] text-white px-10 py-5 rounded-lg font-bold uppercase tracking-widest text-xs shadow-xl shadow-[#1D5F31]/10 hover:opacity-90 transition">
                                     Criar Curso
                                 </Link>
                             </div>

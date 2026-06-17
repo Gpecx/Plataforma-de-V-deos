@@ -28,7 +28,7 @@ export default function PublicLayout({
       </main>
       <footer className="w-full border-t border-slate-100 bg-slate-50 mt-auto">
          <div className="max-w-4xl mx-auto px-6 py-8 text-center">
-             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">© {new Date().getFullYear()} POWERPLAY. TODOS OS DIREITOS RESERVADOS.</p>
+             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">© {new Date().getFullYear()} POWERPLAY – VoltsMind Holding. Todos os direitos reservados.</p>
          </div>
       </footer>
     </div>

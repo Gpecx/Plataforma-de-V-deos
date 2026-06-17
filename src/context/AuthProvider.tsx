@@ -25,11 +25,15 @@ const AuthContext = createContext<AuthContextType>({
     role: null,
     loading: true,
     isMfaPending: false,
-    setMfaPending: () => {},
+    setMfaPending: () => { },
     registrationIncomplete: false,
 })
 
 export const useAuth = () => useContext(AuthContext)
+
+// Fora do componente: persiste entre re-renders e mudanças de isMfaPending.
+// Só é resetado em full page reload (navegação hard), nunca por remount do componente.
+let _hasInitialized = false
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const router = useRouter()
@@ -40,7 +44,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [isMfaPending, setIsMfaPending] = useState(false)
     const [registrationIncomplete, setRegistrationIncomplete] = useState(false)
 
-    const hasInitialized = useRef(false)
     const incompleteTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     const setMfaPending = async (pending: boolean) => {
@@ -59,8 +62,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 unsubscribeProfile();
                 unsubscribeProfile = undefined;
             }
-            await signOut(auth).catch(() => {})
-            await fetch('/api/auth/signout').catch(() => {})
+            await signOut(auth).catch(() => { })
+            await fetch('/api/auth/signout').catch(() => { })
             setUser(null)
             setProfile(null)
             setRole(null)
@@ -69,12 +72,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const unsubscribeAuth = onAuthStateChanged(auth, async (currentUser) => {
             if (!mounted) return;
 
-            // isFirstCall é true apenas na primeira invocação deste callback.
-            // Se o primeiro callback tiver currentUser = null (página carregada sem sessão),
-            // e um callback subsequente tiver currentUser = user (sign-in fresco),
-            // isFirstCall já será false, pulando a validação de sessão abaixo.
-            const isFirstCall = !hasInitialized.current
-            hasInitialized.current = true
+            // isFirstCall é true apenas na primeira invocação após um full page load.
+            // Como _hasInitialized vive fora do componente, mudanças em isMfaPending
+            // que causam re-execução deste useEffect NÃO resetam a flag —
+            // evitando re-validação de sessão e falso redirect para /login.
+            const isFirstCall = !_hasInitialized
+            _hasInitialized = true
 
             if (currentUser && !isMfaPending) {
                 // Server-side session validation only on initial boot (cold start),
@@ -163,7 +166,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         return () => {
             mounted = false;
-            hasInitialized.current = false  // Reset so session is re-validated on remount
+            // NÃO resetar _hasInitialized aqui — ela vive fora do componente
+            // e só deve ser resetada em full page reload (pelo próprio módulo JS).
             unsubscribeAuth();
             if (unsubscribeProfile) {
                 unsubscribeProfile();

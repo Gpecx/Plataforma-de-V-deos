@@ -183,7 +183,7 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
 
                                 <div className="flex-1 flex items-center justify-center bg-slate-900 p-0 relative group overflow-y-auto" key={reviewingLesson.id}>
                                     {reviewingLesson.type === 'quiz' && reviewingLesson.quizData?.questions ? (
-                                        <div className="w-full h-full p-8 overflow-y-auto bg-white">
+                                        <div className="w-full h-full p-8 overflow-y-auto bg-[#F5F5F7]">
                                             <div className="max-w-2xl mx-auto space-y-6">
                                                 <h3 className="text-xl font-bold uppercase tracking-tighter !text-[#000000] mb-6">
                                                     {reviewingLesson.quizData.title || reviewingLesson.title}
@@ -243,7 +243,7 @@ export default function LessonApprovalList({ lessons, teachersMap }: LessonAppro
                             </div>
 
                             {/* Moderation Column */}
-                            <div className="w-full lg:w-[450px] p-10 lg:p-12 flex flex-col bg-white overflow-y-auto custom-scrollbar">
+                            <div className="w-full lg:w-[450px] p-10 lg:p-12 flex flex-col bg-[#F5F5F7] overflow-y-auto custom-scrollbar">
                                 <div className="mb-10">
                                     <div className="flex items-center gap-2 mb-4">
                                         <div className="w-1 h-1 rounded-full bg-[#1D5F31]"></div>
