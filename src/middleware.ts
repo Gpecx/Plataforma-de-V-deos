@@ -140,6 +140,22 @@ export async function middleware(request: NextRequest) {
     // ── 2. Webhook routes ─────────────────────────────────────────
     const isWebhookRoute = pathname.startsWith('/api/webhooks/')
     if (isWebhookRoute) {
+        // A rota do Asaas tem autenticação própria via header `asaas-access-token`,
+        // validado com timingSafeEqual contra ASAAS_WEBHOOK_TOKEN no próprio handler
+        // (src/app/api/webhooks/asaas/route.ts). O Asaas não envia `x-webhook-signature`,
+        // então o gate de WEBHOOK_SECRET abaixo a barraria indevidamente. Isenta apenas
+        // este pathname; demais webhooks (ex.: Mux) continuam sob o gate.
+        if (pathname === '/api/webhooks/asaas') {
+            return NextResponse.next()
+        }
+        // O Mux tem validação própria via HMAC no handler
+        // (src/app/api/webhooks/mux/route.ts:30, verifySignature constant-time), que é
+        // fail-closed: sem MUX_WEBHOOK_SECRET o handler retorna 500. O Mux envia
+        // `mux-signature`, não `x-webhook-signature`, então o gate abaixo a barraria
+        // indevidamente. Isenta apenas este pathname.
+        if (pathname === '/api/webhooks/mux') {
+            return NextResponse.next()
+        }
         const webhookSecret = process.env.WEBHOOK_SECRET
         if (!webhookSecret) {
             console.error('[Middleware] WEBHOOK_SECRET não configurado.')
