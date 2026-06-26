@@ -56,3 +56,6 @@ functions-debug.log
 .agents/
 .skills/
 .agent/
+
+# Firebase build artifacts
+.firebase/
