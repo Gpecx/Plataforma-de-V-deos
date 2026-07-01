@@ -16,7 +16,8 @@ import {
     Loader2,
     Package,
     Gift,
-    X
+    X,
+    Play
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -305,6 +306,12 @@ function CoursesContent() {
                     <p className="text-slate-600 mt-3 text-[10px] font-bold uppercase tracking-[3px]">Gerencie e acompanhe o desempenho de suas aulas.</p>
                 </div>
                 <div className="flex gap-4">
+                    <Link href={"/dashboard-teacher/live" as any}>
+                        <Button className="bg-slate-900 text-white font-bold uppercase text-xs tracking-widest px-8 h-16 flex items-center justify-center gap-2 rounded-lg hover:opacity-90 shadow-xl shadow-slate-900/10 active:scale-95 transition-all">
+                            <Play size={18} strokeWidth={3} />
+                            LIVE
+                        </Button>
+                    </Link>
                     <Button
                         onClick={() => setShowBundleModal(true)}
                         className="bg-amber-600 text-white font-bold uppercase text-[10px] tracking-widest px-10 h-16 rounded-lg hover:opacity-90 shadow-xl shadow-amber-600/10 active:scale-95 transition-all"

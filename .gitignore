@@ -56,3 +56,10 @@ functions-debug.log
 .agents/
 .skills/
 .agent/
+
+# Firebase build artifacts
+.firebase/
+
+# MFA
+MFA_AUDIT.md
+MFA_MIGRATION.md

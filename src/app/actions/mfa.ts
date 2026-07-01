@@ -1,5 +1,6 @@
 'use server'
 import { cookies } from 'next/headers'
+import { adminAuth } from '@/lib/firebase-admin'
 
 const MFA_TRUSTED_MAX_AGE = 30 * 24 * 60 * 60
 
@@ -63,4 +64,17 @@ export async function checkMfaTrusted(email: string): Promise<boolean> {
     }
 
     return true
+}
+
+export async function cancelMfaRequestAction(idToken: string) {
+    try {
+        // Valida o token para garantir que só um usuário autenticado encerre o desafio
+        await adminAuth.verifyIdToken(idToken);
+
+        await setMfaCookie(false);
+        return { success: true };
+    } catch (error) {
+        console.error("Erro ao cancelar MFA:", error);
+        return { success: false, error: "Erro ao cancelar a requisição." };
+    }
 }

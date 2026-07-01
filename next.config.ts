@@ -40,7 +40,7 @@ const nextConfig: NextConfig = {
             value: [
               "default-src 'self'",
               "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://asaas.com https://*.asaas.com",
-              "connect-src 'self' *.googleapis.com *.firebaseapp.com *.mux.com *.asaas.com https://asaas.com https://www.asaas.com https://inferred.litix.io https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://brasilapi.com.br site-895835261078.us-central1.run.app",
+              "connect-src 'self' *.googleapis.com *.firebaseapp.com *.mux.com *.asaas.com https://asaas.com https://www.asaas.com https://inferred.litix.io https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://brasilapi.com.br site-895835261078.us-central1.run.app https://*.cloudfunctions.net",
               "frame-src 'self' *.mux.com *.asaas.com https://asaas.com https://www.asaas.com *.firebaseapp.com site-895835261078.us-central1.run.app",
               "img-src 'self' data: blob: *.mux.com *.googleusercontent.com *.asaas.com *.googleapis.com images.unsplash.com",
               "style-src 'self' 'unsafe-inline'",

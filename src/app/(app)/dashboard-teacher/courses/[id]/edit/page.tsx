@@ -983,13 +983,13 @@ export default function CourseBuilder() {
                             onChange={(e) => setCourseTitle(e.target.value)}
                         />
                         <div className={`px-4 py-2 rounded-md border shrink-0 ${course?.status === 'APROVADO'
-                                ? 'bg-[#1D5F31]/10 border-[#1D5F31]/30'
-                                : course?.status === 'REJEITADO'
-                                    ? 'bg-red-50 border-red-300'
-                                    : 'bg-amber-50 border-amber-300'
+                            ? 'bg-[#1D5F31]/10 border-[#1D5F31]/30'
+                            : course?.status === 'REJEITADO'
+                                ? 'bg-red-50 border-red-300'
+                                : 'bg-amber-50 border-amber-300'
                             }`}>
                             <span className={`text-[10px] font-bold uppercase tracking-widest ${course?.status === 'APROVADO' ? 'text-[#1D5F31]' :
-                                    course?.status === 'REJEITADO' ? 'text-red-600' : 'text-amber-700'
+                                course?.status === 'REJEITADO' ? 'text-red-600' : 'text-amber-700'
                                 }`}>
                                 {course?.status === 'APROVADO' ? '✓ Aprovado' :
                                     course?.status === 'REJEITADO' ? '✕ Rejeitado' : '⏳ Pendente'}
@@ -1034,7 +1034,7 @@ export default function CourseBuilder() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 px-2">
                 {/* Lado Esquerdo: Estrutura (D&D) */}
                 <div className="lg:col-span-2 space-y-12">
-                    <div className="flex items-center justify-between pb-6 border-b-2 border-[#1D5F31]">
+                    <div className="flex items-center justify-between pb-6">
                         <div>
                             <h2 className="text-xl font-bold uppercase tracking-tighter flex items-center gap-3 text-black leading-none">
                                 <FileText size={20} className="text-[#1D5F31]" />
@@ -1208,7 +1208,7 @@ export default function CourseBuilder() {
                     </DndContext>
 
                     {/* Novo Studio de Multimídia (Coluna Principal) */}
-                    <div className="pt-12 border-t-2 border-[#1D5F31]">
+                    <div className="pt-12">
                         <div className="mb-8 flex items-start justify-between">
                             <div>
                                 <h3 className="text-[10px] font-bold uppercase tracking-[5px] text-[#1D5F31] mb-1 ">Studio de Multimídia</h3>
@@ -1291,9 +1291,9 @@ export default function CourseBuilder() {
                                                 <p className="text-sm text-red-700">{selectedLesson.motivoRejeicao}</p>
                                             </div>
                                         )}
-                        </div>
+                                    </div>
 
-                    </div>
+                                </div>
 
                                 <div className="grid grid-cols-1 gap-10">
                                     {selectedLesson.type === 'quiz' ? (
@@ -1319,24 +1319,24 @@ export default function CourseBuilder() {
                                                     <VideoUpload
                                                         onUploadStart={() => setIsProcessingVideo(true)}
                                                         onUploadComplete={(data) => {
-                                                        forceImmediateAutosaveRef.current = true
-                                                        const updatedLesson = {
-                                                            ...selectedLesson,
-                                                            video_url: '',
-                                                            mux_upload_id: data.mux_upload_id || selectedLesson.mux_upload_id,
-                                                            mux_playback_id: data.mux_playback_id || selectedLesson.mux_playback_id,
-                                                            mux_asset_id: data.mux_asset_id || selectedLesson.mux_asset_id
-                                                        }
-                                                        setSelectedLesson(updatedLesson)
-                                                        setModules(prev => prev.map(m => ({
-                                                            ...m,
-                                                            lessons: m.lessons.map(l => l.id === selectedLesson.id ? updatedLesson : l)
-                                                        })))
-                                                        if (data.mux_upload_id && !data.mux_playback_id) {
-                                                            setProcessingUploadId(data.mux_upload_id)
-                                                            setIsProcessingVideo(true)
-                                                        }
-                                                    }} />
+                                                            forceImmediateAutosaveRef.current = true
+                                                            const updatedLesson = {
+                                                                ...selectedLesson,
+                                                                video_url: '',
+                                                                mux_upload_id: data.mux_upload_id || selectedLesson.mux_upload_id,
+                                                                mux_playback_id: data.mux_playback_id || selectedLesson.mux_playback_id,
+                                                                mux_asset_id: data.mux_asset_id || selectedLesson.mux_asset_id
+                                                            }
+                                                            setSelectedLesson(updatedLesson)
+                                                            setModules(prev => prev.map(m => ({
+                                                                ...m,
+                                                                lessons: m.lessons.map(l => l.id === selectedLesson.id ? updatedLesson : l)
+                                                            })))
+                                                            if (data.mux_upload_id && !data.mux_playback_id) {
+                                                                setProcessingUploadId(data.mux_upload_id)
+                                                                setIsProcessingVideo(true)
+                                                            }
+                                                        }} />
                                                 </div>
                                             ) : (
                                                 <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-right-4 duration-500">
@@ -1350,9 +1350,9 @@ export default function CourseBuilder() {
                                                                 </div>
                                                             </div>
                                                         ) : selectedLesson.mux_playback_id ? (
-                                                            <SecureMuxPlayer 
-                                                                cursoId={params.id as string} 
-                                                                playbackId={selectedLesson.mux_playback_id} 
+                                                            <SecureMuxPlayer
+                                                                cursoId={params.id as string}
+                                                                playbackId={selectedLesson.mux_playback_id}
                                                                 className="w-full h-full"
                                                             />
                                                         ) : selectedLesson.mux_upload_id ? (
@@ -1370,7 +1370,7 @@ export default function CourseBuilder() {
                                                                 className="w-full h-full object-contain"
                                                             />
                                                         )}
-                                                        
+
                                                         {(selectedLesson.mux_playback_id || selectedLesson.video_url) && (
                                                             <div className="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                                                                 <div className="bg-white/80 backdrop-blur-md px-4 py-2 rounded-md border border-[#1D5F31]/20 text-[10px] font-bold uppercase text-[#1D5F31] tracking-widest flex items-center gap-2">
@@ -1469,39 +1469,38 @@ export default function CourseBuilder() {
 
                             <div className="space-y-4">
                                 <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Tipo de Precificação</label>
-                                 <div className="grid grid-cols-3 gap-2">
-                                     {[
-                                         { id: 'standard', label: 'Pago' },
-                                          { id: 'free', label: 'Gratuito' }
-                                     ].map((type) => {
-                                         const isLocked = course?.pricing_type === 'free' && type.id !== 'free';
-                                         return (
-                                             <button
-                                                 key={type.id}
-                                                 type="button"
-                                                 disabled={isLocked}
-                                                 onClick={() => {
-                                                     setCoursePricingType(type.id as any)
-                                                     if (type.id === 'free') setCoursePrice('0,00')
-                                                 }}
-                                                 className={`px-3 py-3 rounded-md text-[9px] font-bold uppercase tracking-widest transition-all border-2 ${
-                                                     coursePricingType === type.id
-                                                         ? 'bg-[#1D5F31] border-[#1D5F31] text-white'
-                                                         : 'bg-white border-black text-black hover:border-[#1D5F31]'
-                                                 } ${isLocked ? 'opacity-30 cursor-not-allowed grayscale' : ''}`}
-                                                 title={isLocked ? "Cursos gratuitos não podem ser alterados para pagos" : ""}
-                                             >
-                                                 {type.label}
-                                             </button>
-                                         );
-                                     })}
-                                 </div>
-                                 {course?.pricing_type === 'free' && (
-                                     <p className="text-[8px] text-amber-600 font-bold uppercase tracking-widest mt-2 px-1">
-                                         * Este curso é gratuito e não pode ser alterado para pago.
-                                     </p>
-                                 )}
-                             </div>
+                                <div className="grid grid-cols-3 gap-2">
+                                    {[
+                                        { id: 'standard', label: 'Pago' },
+                                        { id: 'free', label: 'Gratuito' }
+                                    ].map((type) => {
+                                        const isLocked = course?.pricing_type === 'free' && type.id !== 'free';
+                                        return (
+                                            <button
+                                                key={type.id}
+                                                type="button"
+                                                disabled={isLocked}
+                                                onClick={() => {
+                                                    setCoursePricingType(type.id as any)
+                                                    if (type.id === 'free') setCoursePrice('0,00')
+                                                }}
+                                                className={`px-3 py-3 rounded-md text-[9px] font-bold uppercase tracking-widest transition-all border-2 ${coursePricingType === type.id
+                                                        ? 'bg-[#1D5F31] border-[#1D5F31] text-white'
+                                                        : 'bg-white border-black text-black hover:border-[#1D5F31]'
+                                                    } ${isLocked ? 'opacity-30 cursor-not-allowed grayscale' : ''}`}
+                                                title={isLocked ? "Cursos gratuitos não podem ser alterados para pagos" : ""}
+                                            >
+                                                {type.label}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                {course?.pricing_type === 'free' && (
+                                    <p className="text-[8px] text-amber-600 font-bold uppercase tracking-widest mt-2 px-1">
+                                        * Este curso é gratuito e não pode ser alterado para pago.
+                                    </p>
+                                )}
+                            </div>
 
                             <div className="space-y-4">
                                 <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Valor do Investimento</label>
@@ -1573,7 +1572,7 @@ export default function CourseBuilder() {
                                         <span className="text-[10px] font-bold uppercase text-amber-700 tracking-widest">Trailer em Análise</span>
                                     </div>
                                     <p className="text-xs text-amber-800">
-                                        Seu novo trailer foi enviado e está aguardando aprovação da moderação. 
+                                        Seu novo trailer foi enviado e está aguardando aprovação da moderação.
                                         O trailer atual continua visível para os alunos durante a análise.
                                     </p>
                                 </div>
@@ -1582,9 +1581,9 @@ export default function CourseBuilder() {
                                         <div className="p-6">
                                             <p className="text-[9px] font-bold uppercase text-amber-700 tracking-widest mb-2">Preview do Trailer Pendente:</p>
                                             <div className="aspect-video bg-slate-900 overflow-hidden border border-amber-300">
-                                                <SecureMuxPlayer 
-                                                    cursoId={params.id as string} 
-                                                    playbackId={pendingTrailerPlaybackId} 
+                                                <SecureMuxPlayer
+                                                    cursoId={params.id as string}
+                                                    playbackId={pendingTrailerPlaybackId}
                                                     className="w-full h-full"
                                                     isPublic={false}
                                                 />
@@ -1620,46 +1619,46 @@ export default function CourseBuilder() {
                         )}
 
                         {trailerReviewStatus !== 'trailer_pending_review' && (
-                        <div className="bg-white p-6 rounded-md border border-[#1D5F31]/20 space-y-6">
-                            <div className="space-y-4">
-                                <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Upload do Trailer</label>
-                                <div className={`
+                            <div className="bg-white p-6 rounded-md border border-[#1D5F31]/20 space-y-6">
+                                <div className="space-y-4">
+                                    <label className="text-[9px] font-bold uppercase tracking-[3px] text-black/60 px-1">Upload do Trailer</label>
+                                    <div className={`
                                     relative aspect-video rounded-md border-2 border-dashed transition-all flex flex-col items-center justify-center overflow-hidden cursor-pointer
                                     ${(courseIntroVideo || courseIntroVideoPlaybackId) ? 'border-[#1D5F31] bg-slate-900' : 'border-[#1D5F31] bg-white hover:border-[#1D5F31]/30'}
                                 `}>
-                                    {isUploadingIntro ? (
-                                        <div className="w-full h-full flex flex-col items-center justify-center p-4">
-                                            <Loader2 className="animate-spin text-[#1D5F31] mb-2" size={32} />
-                                            <div className="w-full max-w-[150px] h-1.5 bg-white/10 rounded-md overflow-hidden border border-white/20">
-                                                <div
-                                                    className="h-full bg-[#1D5F31] transition-all"
-                                                    style={{ width: `${introUploadStatus === 'processing' ? 100 : introUploadProgress}%` }}
-                                                />
+                                        {isUploadingIntro ? (
+                                            <div className="w-full h-full flex flex-col items-center justify-center p-4">
+                                                <Loader2 className="animate-spin text-[#1D5F31] mb-2" size={32} />
+                                                <div className="w-full max-w-[150px] h-1.5 bg-white/10 rounded-md overflow-hidden border border-white/20">
+                                                    <div
+                                                        className="h-full bg-[#1D5F31] transition-all"
+                                                        style={{ width: `${introUploadStatus === 'processing' ? 100 : introUploadProgress}%` }}
+                                                    />
+                                                </div>
+                                                <span className="text-[8px] font-black uppercase text-white tracking-[4px] mt-3 text-center">
+                                                    {introUploadStatus === 'uploading' ? `TRANSFERINDO ${introUploadProgress}%` : 'OTIMIZANDO VÍDEO PARA STREAMING...'}
+                                                </span>
                                             </div>
-                                            <span className="text-[8px] font-black uppercase text-white tracking-[4px] mt-3 text-center">
-                                                {introUploadStatus === 'uploading' ? `TRANSFERINDO ${introUploadProgress}%` : 'OTIMIZANDO VÍDEO PARA STREAMING...'}
-                                            </span>
-                                        </div>
-                                    ) : (trailerReviewStatus === 'trailer_pending_review' && pendingTrailerPlaybackId) || courseIntroVideoPlaybackId || courseIntroVideoAssetId ? (
-                                        <div className="w-full h-full group relative">
-                                            {(trailerReviewStatus === 'trailer_pending_review' && pendingTrailerPlaybackId) ? (
-                                                <SecureMuxPlayer 
-                                                    cursoId={params.id as string} 
-                                                    playbackId={pendingTrailerPlaybackId} 
-                                                    className="w-full h-full"
-                                                    isPublic={false}
-                                                />
-                                            ) : courseIntroVideoPlaybackId ? <>
-                                                    <SecureMuxPlayer 
-                                                        cursoId={params.id as string} 
-                                                        playbackId={courseIntroVideoPlaybackId} 
+                                        ) : (trailerReviewStatus === 'trailer_pending_review' && pendingTrailerPlaybackId) || courseIntroVideoPlaybackId || courseIntroVideoAssetId ? (
+                                            <div className="w-full h-full group relative">
+                                                {(trailerReviewStatus === 'trailer_pending_review' && pendingTrailerPlaybackId) ? (
+                                                    <SecureMuxPlayer
+                                                        cursoId={params.id as string}
+                                                        playbackId={pendingTrailerPlaybackId}
+                                                        className="w-full h-full"
+                                                        isPublic={false}
+                                                    />
+                                                ) : courseIntroVideoPlaybackId ? <>
+                                                    <SecureMuxPlayer
+                                                        cursoId={params.id as string}
+                                                        playbackId={courseIntroVideoPlaybackId}
                                                         className="w-full h-full"
                                                         isPublic={true}
                                                     />
-                                                    
+
                                                     {/* Central Play Button Overlay - Now functional to PLAY */}
                                                     {!isPlayingIntro && (
-                                                        <div 
+                                                        <div
                                                             onClick={(e) => {
                                                                 e.stopPropagation()
                                                                 setIsPlayingIntro(true)
@@ -1707,126 +1706,126 @@ export default function CourseBuilder() {
                                                         </button>
                                                     </div>
                                                 </> : null}
-                                        </div>
-                                    ) : courseIntroVideo ? (
-                                        <div className="flex flex-col items-center gap-1">
-                                            <CheckCircle2 size={16} className="text-[#1D5F31]" />
-                                            <span className="text-[8px] font-black text-[#1D5F31] uppercase tracking-widest">URL ATIVA</span>
-                                        </div>
-                                    ) : (
-                                        <div className="text-center group-hover:scale-110 transition-transform">
-                                            <UploadCloud size={24} className="mx-auto text-slate-400 mb-2" />
-                                            <span className="text-[8px] font-black text-slate-900 uppercase tracking-[2px]">Subir Vídeo Industrial</span>
-                                        </div>
-                                    )}
-                                    {!isUploadingIntro && (
-                                        <input
-                                            ref={introFileInputRef}
-                                            type="file"
-                                            accept="video/*"
-                                            className={(courseIntroVideoPlaybackId && trailerReviewStatus !== 'trailer_pending_review') ? "hidden" : "absolute inset-0 opacity-0 cursor-pointer"}
-                                            onChange={async (e) => {
-                                                const file = e.target.files?.[0]
-                                                if (!file) return
+                                            </div>
+                                        ) : courseIntroVideo ? (
+                                            <div className="flex flex-col items-center gap-1">
+                                                <CheckCircle2 size={16} className="text-[#1D5F31]" />
+                                                <span className="text-[8px] font-black text-[#1D5F31] uppercase tracking-widest">URL ATIVA</span>
+                                            </div>
+                                        ) : (
+                                            <div className="text-center group-hover:scale-110 transition-transform">
+                                                <UploadCloud size={24} className="mx-auto text-slate-400 mb-2" />
+                                                <span className="text-[8px] font-black text-slate-900 uppercase tracking-[2px]">Subir Vídeo Industrial</span>
+                                            </div>
+                                        )}
+                                        {!isUploadingIntro && (
+                                            <input
+                                                ref={introFileInputRef}
+                                                type="file"
+                                                accept="video/*"
+                                                className={(courseIntroVideoPlaybackId && trailerReviewStatus !== 'trailer_pending_review') ? "hidden" : "absolute inset-0 opacity-0 cursor-pointer"}
+                                                onChange={async (e) => {
+                                                    const file = e.target.files?.[0]
+                                                    if (!file) return
 
-                                                setIsUploadingIntro(true)
-                                                setIntroUploadStatus('uploading')
-                                                setIntroUploadProgress(0)
-                                                // Limpa dados antigos ao começar novo upload
-                                                setCourseIntroVideo('')
-                                                setCourseIntroVideoPlaybackId('')
+                                                    setIsUploadingIntro(true)
+                                                    setIntroUploadStatus('uploading')
+                                                    setIntroUploadProgress(0)
+                                                    // Limpa dados antigos ao começar novo upload
+                                                    setCourseIntroVideo('')
+                                                    setCourseIntroVideoPlaybackId('')
 
-                                                try {
-                                                    const response = await getMuxUploadUrl('intro', params.id as string)
-                                                    if (response.error || !response.url) throw new Error(response.error)
+                                                    try {
+                                                        const response = await getMuxUploadUrl('intro', params.id as string)
+                                                        if (response.error || !response.url) throw new Error(response.error)
 
-                                                    const { url, id: uploadId } = response
-                                                    setCourseIntroVideoMuxId(uploadId)
+                                                        const { url, id: uploadId } = response
+                                                        setCourseIntroVideoMuxId(uploadId)
 
-                                                    const xhr = new XMLHttpRequest()
-                                                    xhr.open('PUT', url)
-                                                    xhr.upload.onprogress = (evt) => {
-                                                        if (evt.lengthComputable) {
-                                                            const pct = (evt.loaded / evt.total) * 100
-                                                            setIntroUploadProgress(Math.round(pct))
-                                                        }
-                                                    }
-                                                    xhr.onload = async () => {
-                                                        if (xhr.status >= 200 && xhr.status < 300) {
-                                                            setIntroUploadStatus('processing')
-                                                            toast.success("Upload concluído. Sincronizando infraestrutura...")
-
-                                                            let attempts = 0
-                                                            const check = async () => {
-                                                                if (attempts > 40) {
-                                                                    setIsUploadingIntro(false)
-                                                                    return
-                                                                }
-                                                                const res = await getMuxUploadStatus(uploadId)
-                                                                if (res.status === 'ready') {
-                                                                    setCourseIntroVideoPlaybackId(res.playback_id || '')
-                                                                    setCourseIntroVideoAssetId(res.asset_id || '')
-                                                                    setIntroUploadStatus('ready')
-                                                                    setIsUploadingIntro(false)
-                                                                    toast.success("PlayBack ID Ativo!")
-
-                                                                    if (course?.status === 'APROVADO') {
-                                                                        const allLessons = modules.flatMap(m => m.lessons)
-                                                                        let autoPrice = 0
-                                                                        try {
-                                                                            autoPrice = parseFloat(coursePrice.replace(',', '.'))
-                                                                            if (isNaN(autoPrice)) autoPrice = 0
-                                                                        } catch (e) { autoPrice = 0 }
-                                                                        await updateCourseAction(params.id as string, {
-                                                                            title: courseTitle,
-                                                                            subtitle: courseSubtitle,
-                                                                            description: courseDescription,
-                                                                            category: courseCategory,
-                                                                            price: autoPrice,
-                                                                            pricing_type: coursePricingType,
-                                                                            duration: courseDuration,
-                                                                            image_url: courseImage,
-                                                                            intro_video_url: '',
-                                                                            intro_video_mux_id: uploadId,
-                                                                            intro_video_asset_id: res.asset_id || '',
-                                                                            intro_video_playback_id: res.playback_id || '',
-                                                                            curriculum: courseCurriculum,
-                                                                            lessons: allLessons,
-                                                                            status: course?.status,
-                                                                            tags: courseTags
-                                                                        })
-                                                                        setTrailerReviewStatus('trailer_pending_review')
-                                                                        setPendingTrailerPlaybackId(res.playback_id || '')
-                                                                        setPendingTrailerAssetId(res.asset_id || '')
-                                                                        setPendingTrailerUrl('')
-                                                                        toast.success('Trailer enviado para análise da moderação!')
-                                                                    }
-                                                                } else {
-                                                                    attempts++
-                                                                    setTimeout(check, 3000)
-                                                                }
+                                                        const xhr = new XMLHttpRequest()
+                                                        xhr.open('PUT', url)
+                                                        xhr.upload.onprogress = (evt) => {
+                                                            if (evt.lengthComputable) {
+                                                                const pct = (evt.loaded / evt.total) * 100
+                                                                setIntroUploadProgress(Math.round(pct))
                                                             }
-                                                            check()
-                                                        } else {
-                                                            setIsUploadingIntro(false)
-                                                            toast.error("Erro na infra Mux")
                                                         }
-                                                    }
-                                                    xhr.onerror = () => {
+                                                        xhr.onload = async () => {
+                                                            if (xhr.status >= 200 && xhr.status < 300) {
+                                                                setIntroUploadStatus('processing')
+                                                                toast.success("Upload concluído. Sincronizando infraestrutura...")
+
+                                                                let attempts = 0
+                                                                const check = async () => {
+                                                                    if (attempts > 40) {
+                                                                        setIsUploadingIntro(false)
+                                                                        return
+                                                                    }
+                                                                    const res = await getMuxUploadStatus(uploadId)
+                                                                    if (res.status === 'ready') {
+                                                                        setCourseIntroVideoPlaybackId(res.playback_id || '')
+                                                                        setCourseIntroVideoAssetId(res.asset_id || '')
+                                                                        setIntroUploadStatus('ready')
+                                                                        setIsUploadingIntro(false)
+                                                                        toast.success("PlayBack ID Ativo!")
+
+                                                                        if (course?.status === 'APROVADO') {
+                                                                            const allLessons = modules.flatMap(m => m.lessons)
+                                                                            let autoPrice = 0
+                                                                            try {
+                                                                                autoPrice = parseFloat(coursePrice.replace(',', '.'))
+                                                                                if (isNaN(autoPrice)) autoPrice = 0
+                                                                            } catch (e) { autoPrice = 0 }
+                                                                            await updateCourseAction(params.id as string, {
+                                                                                title: courseTitle,
+                                                                                subtitle: courseSubtitle,
+                                                                                description: courseDescription,
+                                                                                category: courseCategory,
+                                                                                price: autoPrice,
+                                                                                pricing_type: coursePricingType,
+                                                                                duration: courseDuration,
+                                                                                image_url: courseImage,
+                                                                                intro_video_url: '',
+                                                                                intro_video_mux_id: uploadId,
+                                                                                intro_video_asset_id: res.asset_id || '',
+                                                                                intro_video_playback_id: res.playback_id || '',
+                                                                                curriculum: courseCurriculum,
+                                                                                lessons: allLessons,
+                                                                                status: course?.status,
+                                                                                tags: courseTags
+                                                                            })
+                                                                            setTrailerReviewStatus('trailer_pending_review')
+                                                                            setPendingTrailerPlaybackId(res.playback_id || '')
+                                                                            setPendingTrailerAssetId(res.asset_id || '')
+                                                                            setPendingTrailerUrl('')
+                                                                            toast.success('Trailer enviado para análise da moderação!')
+                                                                        }
+                                                                    } else {
+                                                                        attempts++
+                                                                        setTimeout(check, 3000)
+                                                                    }
+                                                                }
+                                                                check()
+                                                            } else {
+                                                                setIsUploadingIntro(false)
+                                                                toast.error("Erro na infra Mux")
+                                                            }
+                                                        }
+                                                        xhr.onerror = () => {
+                                                            setIsUploadingIntro(false)
+                                                            toast.error("Erro de conexão")
+                                                        }
+                                                        xhr.send(file)
+                                                    } catch (err: any) {
                                                         setIsUploadingIntro(false)
-                                                        toast.error("Erro de conexão")
+                                                        toast.error(err.message)
                                                     }
-                                                    xhr.send(file)
-                                                } catch (err: any) {
-                                                    setIsUploadingIntro(false)
-                                                    toast.error(err.message)
-                                                }
-                                            }}
-                                        />
-                                    )}
+                                                }}
+                                            />
+                                        )}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
                         )}
                     </section>
 
