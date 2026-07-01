@@ -10,8 +10,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ArrowRight, Eye, EyeOff } from "lucide-react"
-import { auth, db } from "@/lib/firebase"
+import { auth, db, app } from "@/lib/firebase"
 import { signInWithEmailAndPassword, reload } from "firebase/auth"
+import { getFunctions, httpsCallable } from "firebase/functions"
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore"
 import Logo from "@/components/Logo"
 import { ConversionBridge } from "@/components/ConversionBridge"
@@ -87,21 +88,15 @@ function LoginContent() {
                     return;
                 }
 
-                console.log("MFA Habilitado! Garantindo transição false → true no gatilho...");
+                console.log("MFA Habilitado! Solicitando novo código OTP via Callable...");
                 
-                // CORREÇÃO: Resetar para false ANTES de ativar.
-                // Se o campo já era 'true' (tentativa anterior sem limpeza), o Firestore
-                // não detectaria mudança, e o PIN não seria gerado.
-                await updateDoc(profileRef, { mfaCodeRequested: false });
-                
-                // Pequeno delay para garantir que a escrita anterior chegou ao Firestore
-                await new Promise(resolve => setTimeout(resolve, 300));
-                
-                // Agora ativa o gatilho com transição garantida: false → true
-                await updateDoc(profileRef, { mfaCodeRequested: true });
+                const functionsApp = getFunctions(app, 'southamerica-east1');
+                const sendMfa = httpsCallable(functionsApp, 'sendEmailVerificationCode');
+                await sendMfa({ email: user.email });
+
 
                 // Bloqueia o estado global e mostra o desafio
-                setMfaPending(true);
+                await setMfaPending(true);
                 setMfaEmail(user.email || "");
                 setIsMFAStep(true);
                 return;

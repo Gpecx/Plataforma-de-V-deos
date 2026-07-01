@@ -4,14 +4,15 @@ import { useState, useEffect, useRef } from 'react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ShieldCheck, ArrowRight, Loader2 } from "lucide-react"
-import { auth, db } from "@/lib/firebase"
-import { doc, getDoc, updateDoc } from "firebase/firestore"
+import { auth, db, app } from "@/lib/firebase"
+import { doc, updateDoc } from "firebase/firestore"
+import { getFunctions, httpsCallable } from "firebase/functions"
 import { useAuth } from "@/context/AuthProvider"
-import { setMfaTrustedCookie } from "@/app/actions/mfa"
+import { setMfaTrustedCookie, cancelMfaRequestAction } from "@/app/actions/mfa"
 
 interface MFAChallengeProps {
     email: string;
-    onVerify: () => Promise<void>;
+    onVerify: (data?: any) => Promise<void>;
     onCancel: () => void;
 }
 
@@ -58,59 +59,26 @@ export default function MFAChallenge({ email, onVerify, onCancel }: MFAChallenge
                 return
             }
 
-            // Validar PIN via perfil do usuário (mfa_auth_temp)
-            const profileRef = doc(db, 'profiles', user.uid);
-            const profileDoc = await getDoc(profileRef);
-            const profileData = profileDoc.data();
-            const mfaData = profileData?.mfa_auth_temp;
-
-            if (!mfaData || !mfaData.code) {
-                setError("Código não encontrado ou já expirado.");
+            // Validar via Callable Function
+            const functionsApp = getFunctions(app, 'southamerica-east1');
+            const verifyMfa = httpsCallable<{email: string, code: string}, any>(functionsApp, 'verifyEmailCode');
+            const result = await verifyMfa({ email, code });
+            const data = result.data;
+            
+            if (!data.success) {
+                setError(data.error || "Código de verificação incorreto.");
                 setLoading(false);
                 return;
             }
 
-            // Validar expiração
-            if (Date.now() > mfaData.expiresAt) {
-                setError("Este código expirou.");
-                setLoading(false);
-                return;
-            }
-
-            // Validar valor do PIN
-            if (mfaData.code !== code) {
-                setError("Código de verificação incorreto.");
-                setLoading(false);
-                return;
-            }
-
-            // Sucesso na validação: Limpar dados sensíveis no perfil
-            await updateDoc(profileRef, {
-                mfa_auth_temp: null,
-                mfaCodeRequested: false
-            });
-
-            // Sucesso na validação: Oficializar sessão no Back-end
-            console.log("PIN validado com sucesso. Criando sessão...")
-            const idToken = await user.getIdToken(true)
-            const sessionRes = await fetch("/api/auth/session", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ idToken }),
-                credentials: 'include',
-            });
-
-            if (!sessionRes.ok) {
-                throw new Error("Erro ao oficializar sessão no servidor.");
-            }
 
             // Salva cookie de dispositivo confiável vinculado ao e-mail (30 dias)
             await setMfaTrustedCookie(email);
 
             // Redirecionamento (O cleanup do Firestore agora é feito no Backend pelo verifyMfaCode)
             isVerifiedRef.current = true;
-            setMfaPending(false)
-            await onVerify()
+            await setMfaPending(false); // Aguarda o cookie 'mfa_pending' ser deletado para o middleware não interceptar
+            await onVerify(data); // O onVerify delegará a criação da sessão e o redirect
         } catch (err: unknown) {
             console.error("MFA Verification Error:", err)
             const message = err instanceof Error ? err.message : "Erro na verificação. Tente novamente."
@@ -122,15 +90,11 @@ export default function MFAChallenge({ email, onVerify, onCancel }: MFAChallenge
     const handleCancel = async () => {
         const user = auth.currentUser
         if (user) {
-            // Limpa o estado no perfil se o usuário cancelar
-            const profileRef = doc(db, 'profiles', user.uid);
-            await updateDoc(profileRef, {
-                mfa_auth_temp: null,
-                mfaCodeRequested: false
-            }).catch(() => {});
+            const idToken = await user.getIdToken();
+            await cancelMfaRequestAction(idToken).catch(() => {});
         }
         isCancelledRef.current = true;
-        setMfaPending(false)
+        await setMfaPending(false)
         onCancel()
     }
 

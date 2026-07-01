@@ -1,79 +1,27 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import * as nodemailer from "nodemailer";
+import * as crypto from "crypto";
 
-admin.initializeApp();
+if (admin.apps.length === 0) {
+  admin.initializeApp();
+}
 
-function generateMfaEmailHTML(pin: string): string {
-  return `<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Seu código PowerPlay</title>
-</head>
-<body style="margin:0;padding:0;background-color:#0D1117;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
-  <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">
-    ⚡ Seu código de acesso PowerPlay está pronto. Use-o em até 5 minutos.
-  </div>
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#0D1117;padding:40px 16px;">
-    <tr>
-      <td align="center">
-        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background-color:#161B22;border-radius:12px;border:1px solid #21262D;border-top:3px solid #22c55e;overflow:hidden;">
-          <tr>
-            <td style="padding:32px 40px 24px;">
-              <table cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="padding-right:12px;vertical-align:middle;">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="36" height="36">
-                      <rect width="32" height="32" rx="4" fill="#0D1117"/>
-                      <path d="M4 4L28 16L4 28Z" fill="#22c55e" fill-opacity="0.15" stroke="#22c55e" stroke-width="2.5" stroke-linejoin="round"/>
-                      <path d="M13.5 9L9 17H12L11 23L16 15H13L13.5 9Z" fill="#22c55e"/>
-                    </svg>
-                  </td>
-                  <td style="font-size:20px;font-weight:700;color:#FFFFFF;letter-spacing:1px;vertical-align:middle;">POWERPLAY</td>
-                </tr>
-              </table>
-              <p style="margin:8px 0 0;font-size:13px;color:#8B949E;letter-spacing:0.5px;">Verificação de Identidade</p>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:0 40px;">
-              <div style="height:1px;background-color:#21262D;"></div>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:32px 40px;">
-              <p style="margin:0 0 24px;font-size:15px;color:#E6EDF3;line-height:1.6;">
-                Use o código abaixo para confirmar seu login:
-              </p>
-              <div style="background-color:#0D2818;border:1px solid #22c55e;border-radius:8px;padding:24px;text-align:center;margin-bottom:24px;">
-                <span style="font-size:36px;font-weight:700;color:#22c55e;letter-spacing:12px;font-family:'Courier New',Courier,monospace;">
-                  ${pin}
-                </span>
-              </div>
-              <p style="margin:0 0 8px;font-size:13px;color:#8B949E;line-height:1.5;">
-                Este código expira em <strong style="color:#E6EDF3;">5 minutos</strong>.
-              </p>
-              <p style="margin:0;font-size:12px;color:#6E7681;line-height:1.5;">
-                Se você não solicitou este código, ignore este e-mail.
-              </p>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:0 40px 32px;">
-              <div style="height:1px;background-color:#22c55e;opacity:0.2;margin-bottom:20px;"></div>
-              <p style="margin:0;font-size:11px;color:#6E7681;text-align:center;">
-                © 2026 POWERPLAY – VoltsMind Holding. Todos os direitos reservados.
-              </p>
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`
+// Configuração robusta do Transporter com Pool e Timeouts explícitos.
+// Criado sob demanda para garantir que os secrets SMTP_USER/SMTP_PASS já
+// estejam disponíveis em process.env no momento da execução.
+function createTransporter() {
+  const user = process.env.SMTP_USER || "";
+  const pass = process.env.SMTP_PASS || "";
+  return nodemailer.createTransport({
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
+    auth: { user, pass },
+    pool: true,
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+  });
 }
 
 interface VendaLog {
@@ -91,7 +39,7 @@ interface VendaLog {
  * Só dispara quando o statusPagamento TRANSICIONA para 'pago' (ex: webhook do Asaas).
  */
 export const onNewSaleNotification = functions
-    .region("us-central1")
+    .region("southamerica-east1")
     .firestore
     .document("vendas_logs/{saleId}")
     .onUpdate(async (change, context) => {
@@ -143,7 +91,7 @@ export const onNewSaleNotification = functions
  * Exemplo de trigger para novas mensagens (Opcional no momento, conforme requisito)
  */
 export const onNewMessageNotification = functions
-    .region("us-central1")
+    .region("southamerica-east1")
     .firestore
     .document("comments/{commentId}")
     .onCreate(async (snapshot, context) => {
@@ -164,157 +112,189 @@ export const onNewMessageNotification = functions
         }
     });
 
-/**
- * Função sendMfaEmail: Dispara e-mail com PIN quando um novo código é gerado.
- */
-/**
- * Função sendMfaEmail: Gera um PIN, envia e-mail e salva no Firestore quando
- * o campo mfaCodeRequested no perfil do usuário é alterado para true.
- */
-export const sendMfaEmail = functions
-    .region("us-central1")
-    .firestore
-    .document("profiles/{userId}")
-    .onUpdate(async (change, context) => {
-        const newValue = change.after.data();
-        const previousValue = change.before.data();
+async function checkRateLimit(identifier: string, type: 'ip' | 'email', options: { max: number, windowMinutes: number }) {
+  const docId = `${type}_${identifier.replace(/\//g, '_')}`; 
+  const ref = admin.firestore().collection("_otp_rate_limits").doc(docId);
+  
+  await admin.firestore().runTransaction(async (transaction) => {
+    const doc = await transaction.get(ref);
+    const now = Date.now();
+    const windowMs = options.windowMinutes * 60 * 1000;
+    
+    if (!doc.exists) {
+      transaction.set(ref, {
+        count: 1,
+        resetAt: now + windowMs
+      });
+      return;
+    }
+    
+    const data = doc.data();
+    if (!data) return;
+    
+    if (now > data.resetAt) {
+      transaction.set(ref, {
+        count: 1,
+        resetAt: now + windowMs
+      });
+    } else {
+      if (data.count >= options.max) {
+        throw new functions.https.HttpsError("resource-exhausted", "Muitas tentativas. Aguarde antes de solicitar um novo código.");
+      }
+      transaction.update(ref, {
+        count: admin.firestore.FieldValue.increment(1)
+      });
+    }
+  });
+}
 
-        if (!newValue || !previousValue) return;
-
-        // Gatilho: mfaCodeRequested mudou de false/missing para true
-        const wasRequested = previousValue.mfaCodeRequested;
-        const isRequested = newValue.mfaCodeRequested;
-
-        if (isRequested === true && wasRequested !== true) {
-            const userId = context.params.userId;
-            const email = newValue.email;
-
-            console.log(`[MFA] Iniciando processo para: ${userId} | email: ${email}`);
-            
-            if (!email) {
-                console.error("[MFA] E-mail não encontrado no perfil:", userId);
-                return;
-            }
-
-            // 1. Gerar o código
-            const pin = Math.floor(100000 + Math.random() * 900000).toString();
-
-            // 2. Enviar o e-mail
-            const gmailEmail = functions.config().gmail?.email;
-            const gmailPassword = functions.config().gmail?.password;
-
-            if (!gmailEmail || !gmailPassword) {
-                console.error("Gmail credentials not configured in functions.config().");
-                return;
-            }
-
-            const transporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    user: gmailEmail,
-                    pass: gmailPassword,
-                },
-            });
-
-            const mailOptions = {
-                from: `"PowerPlay" <${gmailEmail}>`,
-                to: email,
-                subject: "⚡ Seu código de verificação PowerPlay",
-                html: generateMfaEmailHTML(pin),
-                text: `Seu código PowerPlay: ${pin}. Expira em 5 minutos.`,
-            };
-
-            try {
-                await transporter.sendMail(mailOptions);
-                console.log(`[Success] MFA email sent to ${email}`);
-
-                // 3. Salvar no perfil do usuário (campo mfa_auth_temp)
-                // As Firestore Rules permitem que o dono leia seu próprio perfil.
-                await admin.firestore().collection("profiles").doc(userId).update({
-                    mfa_auth_temp: {
-                        code: pin,
-                        expiresAt: Date.now() + 300000, // 5 minutos
-                    }
-                });
-
-                console.log(`[MFA] PIN salvo em profiles/${userId}.mfa_auth_temp`);
-            } catch (error) {
-                console.error("[MFA] Falha no processo de envio/salvamento:", error);
-            }
-        }
+export const sendEmailVerificationCode = functions
+  .region("southamerica-east1")
+  .runWith({ secrets: ["SMTP_USER", "SMTP_PASS"] })
+  .https.onCall(async (data, context) => {
+    if (!context.auth) {
+      throw new functions.https.HttpsError("unauthenticated", "Usuário não autenticado.");
+    }
+    
+    const email = data.email;
+    if (!email || typeof email !== "string") {
+      throw new functions.https.HttpsError("invalid-argument", "Email inválido.");
+    }
+    
+    const normalizedEmail = email.toLowerCase().trim();
+    const ip = context.rawRequest.ip || "unknown";
+    
+    await checkRateLimit(ip, 'ip', { max: 5, windowMinutes: 15 });
+    await checkRateLimit(normalizedEmail, 'email', { max: 5, windowMinutes: 60 });
+    
+    const pin = crypto.randomInt(100000, 1000000).toString().padStart(6, '0');
+    
+    await admin.firestore().collection("_email_otps").doc(normalizedEmail).set({
+      code: pin,
+      expiresAt: Date.now() + 600000,
+      attempts: 0,
+      userId: context.auth.uid,
+      createdAt: Date.now(),
     });
-
-/**
- * Função verifyMfaCode (HTTPS Callable): Valida o PIN inserido pelo usuário,
- * realiza a limpeza dos dados temporários e libera o login.
- */
-export const verifyMfaCode = functions
-    .region("us-central1")
-    .https.onCall(async (data, context) => {
-    // 1. Verificar autenticação
-    if (!context.auth) {
-        throw new functions.https.HttpsError("unauthenticated", "O usuário deve estar logado.");
-    }
-
-    const uid = context.auth.uid;
-    const { code } = data;
-
-    if (!code || code.length !== 6) {
-        throw new functions.https.HttpsError("invalid-argument", "Código inválido.");
-    }
-
+    
     try {
-        // 2. Buscar PIN na coleção isolada temp_mfa_codes
-        const mfaDoc = await admin.firestore().collection("temp_mfa_codes").doc(uid).get();
-
-        if (!mfaDoc.exists) {
-            return { success: false, error: "Código não encontrado ou já expirado." };
-        }
-
-        const mfaData = mfaDoc.data()!;
-
-        // 3. Validar expiração
-        if (Date.now() > mfaData.expiresAt) {
-            await admin.firestore().collection("temp_mfa_codes").doc(uid).delete().catch(() => {});
-            return { success: false, error: "Este código expirou." };
-        }
-
-        // 4. Validar valor do PIN
-        if (mfaData.code !== code) {
-            return { success: false, error: "Código de verificação incorreto." };
-        }
-
-        // 5. Sucesso: deleta o código da coleção isolada
-        await admin.firestore().collection("temp_mfa_codes").doc(uid).delete();
-
-        return { success: true };
-    } catch (error) {
-        console.error("Erro na verificação de MFA:", error);
-        throw new functions.https.HttpsError("internal", "Erro interno ao validar o código.");
+      const smtpUser = process.env.SMTP_USER || "";
+      await createTransporter().sendMail({
+        from: `"PowerPlay" <${smtpUser}>`,
+        replyTo: smtpUser,
+        to: normalizedEmail,
+        subject: `${pin} é o seu código de verificação PowerPlay`,
+        text: `⚡ PowerPlay - Verificação de Identidade\n\nUse o código abaixo para confirmar seu cadastro:\n\n${pin}\n\nEste código expira em 10 minutos.\n\nSe você não solicitou este código, ignore este e-mail.`,
+        html: `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <title>Verificação de Identidade PowerPlay</title>
+</head>
+<body style="margin:0; padding:0; background-color:#0d0d0d;">
+  <span style="display:none; max-height:0; overflow:hidden; opacity:0; color:#0d0d0d;">Seu código PowerPlay é ${pin}. Expira em 10 minutos.</span>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0d0d0d;">
+    <tr>
+      <td align="center" style="padding:32px 16px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px; background-color:#141414; border:1px solid #262626; border-radius:12px;">
+          <tr>
+            <td style="padding:40px 32px; font-family:Arial,Helvetica,sans-serif; text-align:center;">
+              <div style="font-size:30px; font-weight:bold; color:#ffffff; margin:0 0 4px;"><span style="color:#ffc400;">⚡</span> PowerPlay</div>
+              <div style="font-size:13px; font-weight:bold; letter-spacing:3px; text-transform:uppercase; color:#00ff88; margin:0 0 28px;">Verificação de Identidade</div>
+              <p style="margin:0 0 24px; font-size:15px; line-height:1.6; color:#cccccc;">Use o código abaixo para confirmar seu cadastro:</p>
+              <table role="presentation" cellpadding="0" cellspacing="0" align="center" style="margin:0 auto 28px;">
+                <tr>
+                  <td style="background-color:#0a0a0a; border:2px solid #00ff88; border-radius:10px; padding:20px 32px; font-size:38px; font-weight:bold; letter-spacing:10px; color:#00ff88; font-family:'Courier New',Courier,monospace;">${pin}</td>
+                </tr>
+              </table>
+              <p style="margin:0 0 20px; font-size:14px; font-weight:bold; color:#ffc400;">Este código expira em 10 minutos.</p>
+              <p style="margin:0; font-size:12px; line-height:1.6; color:#888888;">Se você não solicitou este código, ignore este e-mail.</p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`,
+      });
+      console.log(`[MFA] E-mail enviado com sucesso para ${normalizedEmail}`);
+      return { success: true };
+    } catch (error: any) {
+      const code = error?.code || error?.name || "UNKNOWN";
+      console.error(`[MFA] Erro ao enviar MFA para ${normalizedEmail}. Tipo:`, code);
+      
+      if (code === 'EAUTH') {
+        console.error("[MFA] Erro de Autenticação SMTP. Verifique as credenciais.");
+      } else if (code === 'EENVELOPE') {
+        console.error("[MFA] Erro de Envelope SMTP. O e-mail de destino pode ser inválido ou rejeitado pelo servidor.");
+      } else if (code === 'ETIMEDOUT') {
+        console.error("[MFA] Timeout na conexão SMTP. O servidor demorou muito para responder.");
+      }
+      
+      throw new functions.https.HttpsError("internal", "Erro ao enviar e-mail.");
     }
-});
+  });
 
-/**
- * Função cancelMfaRequest (HTTPS Callable): Limpa os dados de MFA caso o usuário desista do login.
- */
-export const cancelMfaRequest = functions
-    .region("us-central1")
-    .https.onCall(async (data, context) => {
+export const verifyEmailCode = functions
+  .region("southamerica-east1")
+  .https.onCall(async (data, context) => {
     if (!context.auth) {
-        throw new functions.https.HttpsError("unauthenticated", "O usuário deve estar logado.");
+      throw new functions.https.HttpsError("unauthenticated", "Usuário não autenticado.");
     }
-
-    const uid = context.auth.uid;
-
-    try {
-        await admin.firestore().collection("temp_mfa_codes").doc(uid).delete().catch(() => {});
-        await admin.firestore().collection("profiles").doc(uid).update({
-            mfaCodeRequested: false
-        }).catch(() => {});
-
-        return { success: true };
-    } catch (error) {
-        console.error("Erro ao cancelar MFA:", error);
-        throw new functions.https.HttpsError("internal", "Erro ao cancelar a requisição.");
+    
+    const { email, code } = data;
+    if (!email || !code || typeof email !== "string" || typeof code !== "string") {
+      throw new functions.https.HttpsError("invalid-argument", "Dados inválidos.");
     }
-});
+    
+    const normalizedEmail = email.toLowerCase().trim();
+    const otpRef = admin.firestore().collection("_email_otps").doc(normalizedEmail);
+    
+    const result = await admin.firestore().runTransaction(async (transaction) => {
+      const doc = await transaction.get(otpRef);
+      if (!doc.exists) {
+        throw new functions.https.HttpsError("not-found", "Código expirado ou não encontrado. Solicite um novo.");
+      }
+      
+      const otpData = doc.data();
+      if (!otpData) {
+        throw new functions.https.HttpsError("not-found", "Código inválido.");
+      }
+      
+      if (Date.now() > otpData.expiresAt) {
+        transaction.delete(otpRef);
+        throw new functions.https.HttpsError("deadline-exceeded", "Código expirado ou não encontrado. Solicite um novo.");
+      }
+      
+      if (otpData.attempts >= 5) {
+        transaction.delete(otpRef);
+        throw new functions.https.HttpsError("resource-exhausted", "Número máximo de tentativas excedido. Solicite um novo código.");
+      }
+      
+      if (otpData.code !== code) {
+        transaction.update(otpRef, {
+          attempts: admin.firestore.FieldValue.increment(1)
+        });
+        throw new functions.https.HttpsError("invalid-argument", "Código incorreto.");
+      }
+      
+      // Todas as leituras devem ocorrer antes de qualquer escrita na transação
+      const profileRef = admin.firestore().collection("profiles").doc(context.auth!.uid);
+      const profileDoc = await transaction.get(profileRef);
+      const profileData = profileDoc.data();
+
+      transaction.delete(otpRef);
+
+      return {
+        success: true,
+        role: profileData?.role || 'student',
+        teacher_status: profileData?.teacher_status
+      };
+    });
+    
+    return result;
+  });
+

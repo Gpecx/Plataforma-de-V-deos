@@ -59,3 +59,7 @@ functions-debug.log
 
 # Firebase build artifacts
 .firebase/
+
+# MFA
+MFA_AUDIT.md
+MFA_MIGRATION.md

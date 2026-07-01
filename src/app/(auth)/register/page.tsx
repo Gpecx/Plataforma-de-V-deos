@@ -3,17 +3,18 @@
 import { useState, useMemo, Suspense, useRef, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { auth, db } from '@/lib/firebase'
-import { createUserWithEmailAndPassword, updateProfile as firebaseUpdateProfile } from 'firebase/auth'
+import { auth, app } from '@/lib/firebase'
+import { createUserWithEmailAndPassword, updateProfile as firebaseUpdateProfile, signOut } from 'firebase/auth'
 import { createProfile, getDataByCnpj, checkUsernameAvailability } from './actions'
 import Logo from '@/components/Logo'
-import { doc, updateDoc } from 'firebase/firestore'
+import { getFunctions, httpsCallable } from 'firebase/functions'
 import MFAChallenge from "@/components/MFAChallenge"
 import { ArrowRight, AlertCircle, Eye, EyeOff, ChevronLeft, Building2, User } from 'lucide-react'
 import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import { RegisterSchema, Step1Schema, Step2Schema, Step3Schema } from '@/lib/validations/register'
 import { validateCPF, validateCNPJ, maskCPF, maskCNPJ, maskRG } from '@/lib/document-utils'
 import { generateSlug } from '@/lib/utils'
+import { useAuth } from '@/context/AuthProvider'
 
 const fadeUp: Variants = {
     hidden: { opacity: 0, y: 20 },
@@ -180,6 +181,7 @@ function RegisterForm() {
 
     const [step, setStep] = useState(1)
     const [razaoSocial, setRazaoSocial] = useState('')
+    const { setMfaPending } = useAuth()
 
     // Novos estados de endereço
     const [cep, setCep] = useState('')
@@ -476,11 +478,14 @@ function RegisterForm() {
                 throw new Error('session_creation_failed')
             }
 
-            await updateDoc(doc(db, 'profiles', user.uid), { mfaCodeRequested: false })
-            await new Promise(resolve => setTimeout(resolve, 300))
-            await updateDoc(doc(db, 'profiles', user.uid), { mfaCodeRequested: true })
+            const sendMfa = httpsCallable(
+                getFunctions(app, 'southamerica-east1'),
+                'sendEmailVerificationCode'
+            )
+            await sendMfa({ email: user.email })
 
             setMfaEmail(user.email || '')
+            setMfaPending(true)
             setIsMFAStep(true)
         } catch (error: any) {
             console.error('Erro no cadastro:', error)
@@ -496,10 +501,17 @@ function RegisterForm() {
         }
     }
 
-    async function handleVerifyMFA() {
+    async function handleVerifyMFA(mfaData?: any) {
         router.refresh()
         if (teacherData) {
             localStorage.removeItem('powerplay_teacher_quiz')
+        }
+
+        const finalRole = mfaData?.role || role;
+
+        if (finalRole === 'admin') {
+            router.push('/admin/dashboard')
+        } else if (finalRole === 'teacher') {
             router.push('/dashboard-teacher/courses')
         } else {
             router.push('/course')
@@ -573,7 +585,10 @@ function RegisterForm() {
                         <MFAChallenge
                             email={mfaEmail}
                             onVerify={handleVerifyMFA}
-                            onCancel={() => setIsMFAStep(false)}
+                            onCancel={async () => {
+                                await auth.signOut()
+                                router.push('/login')
+                            }}
                         />
                     ) : (
                         <div className="bg-transparent p-0">

@@ -2,7 +2,8 @@ import { adminAuth, adminDb } from '@/lib/firebase-admin'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import Image from 'next/image'
-import { PlayCircle, BookOpen, Sparkles, Trophy, Clock, Lock } from 'lucide-react'
+import Link from 'next/link'
+import { PlayCircle, BookOpen, Sparkles, Trophy, Clock, Lock, Radio, Calendar } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { StudentCarousel } from '@/components/dashboard/StudentCarousel'
 import { StoreInitializer } from '@/components/dashboard/StoreInitializer'
@@ -212,6 +213,71 @@ export default async function StudentDashboard() {
                         </div>
                     </section>
                 )}
+
+                {/* Seção: Lives (Ao Vivo e Em Breve) */}
+                <section>
+                    <div className="flex items-center justify-between mb-10 pb-4 border-b-2 border-slate-900/5">
+                        <h2 className="text-xl font-bold uppercase tracking-tight flex items-center gap-3">
+                            <Radio size={22} className="text-[#1D5F31]" />
+                            Ao Vivo & Em Breve
+                        </h2>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {/* Mock Live Ao Vivo */}
+                        <Link href={"/dashboard-student/live/1" as any} className="group relative bg-white rounded-xl overflow-hidden border-2 border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.2)] hover:shadow-[0_0_25px_rgba(239,68,68,0.4)] hover:-translate-y-1 transition-all duration-300 flex flex-col">
+                            <div className="relative h-48 bg-slate-900 overflow-hidden flex items-center justify-center">
+                                <div className="absolute top-3 left-3 z-10 flex items-center gap-2 bg-red-600 text-white px-3 py-1.5 rounded-md shadow-md">
+                                    <span className="relative flex h-2 w-2 mr-1">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                                    </span>
+                                    <span className="text-[10px] font-bold uppercase tracking-widest">Ao Vivo</span>
+                                </div>
+                                <Radio size={48} className="text-white/20" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-80" />
+                            </div>
+                            <div className="p-6 md:p-8 flex-1 flex flex-col relative">
+                                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Formação PowerPlay</div>
+                                <h3 className="font-bold text-lg mb-2 line-clamp-2 leading-tight uppercase group-hover:text-red-600 transition-colors">Aula de Revisão - Módulo 1</h3>
+                                <p className="text-sm font-medium text-slate-600 mb-6">Prof. PowerPlay</p>
+                                
+                                <div className="mt-auto">
+                                    <button className="w-full bg-red-600 text-white font-bold uppercase text-[11px] tracking-widest py-4 rounded-xl shadow-lg shadow-red-600/20 group-hover:bg-red-700 transition-colors">
+                                        Assistir Agora
+                                    </button>
+                                </div>
+                            </div>
+                        </Link>
+
+                        {/* Mock Live Agendada */}
+                        <div className="group bg-white rounded-xl overflow-hidden border border-gray-200 transition-all duration-300 shadow-sm flex flex-col">
+                            <div className="relative h-48 bg-slate-100 overflow-hidden flex items-center justify-center">
+                                <div className="absolute top-3 left-3 z-10 bg-amber-500 text-white text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-md shadow-md">
+                                    Em Breve
+                                </div>
+                                <Calendar size={48} className="text-slate-300" />
+                            </div>
+                            <div className="p-6 md:p-8 flex-1 flex flex-col">
+                                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Bônus Exclusivos</div>
+                                <h3 className="font-bold text-lg mb-2 line-clamp-2 leading-tight uppercase group-hover:text-[#1D5F31] transition-colors">Mentoria de Carreira</h3>
+                                <p className="text-sm font-medium text-slate-600 mb-4">Prof. Mentor</p>
+                                
+                                <div className="flex items-center gap-2 mb-6">
+                                    <Clock size={14} className="text-amber-600" />
+                                    <span className="text-xs font-bold text-amber-700 uppercase tracking-widest">Em 2 dias</span>
+                                    <span className="text-xs text-slate-400 font-medium ml-auto">15/08/2026 às 19:00</span>
+                                </div>
+                                
+                                <div className="mt-auto">
+                                    <button className="w-full border-2 border-[#1D5F31] text-[#1D5F31] hover:bg-[#1D5F31] hover:text-white font-bold uppercase text-[11px] tracking-widest py-3.5 rounded-xl transition-colors">
+                                        Lembrar-me
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
                 {/* Seção Founders (Banner Centralizado) */}
                 <section className="bg-white rounded-xl p-6 sm:p-10 md:p-14 overflow-hidden relative shadow-xl border border-gray-200">

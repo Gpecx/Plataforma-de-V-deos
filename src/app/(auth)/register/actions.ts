@@ -241,6 +241,9 @@ export async function createProfile(data: CreateProfileData) {
 
         await ref.set(payload)
 
+        // Sincroniza a claim imediatamente para que a criação da sessão no cliente venha com a role correta
+        await adminAuth.setCustomUserClaims(uid, { role });
+
         // Notifica o professor por e-mail que o cadastro foi recebido
         if (role === 'teacher') {
             sendTeacherStatusEmail({
